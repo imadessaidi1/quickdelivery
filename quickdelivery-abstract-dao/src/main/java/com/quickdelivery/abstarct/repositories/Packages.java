@@ -13,9 +13,15 @@ import java.util.List;
 public interface Packages extends CrudRepository<Package, Long> {
     @Query("SELECT a FROM Address a " +
             "WHERE st_distance_sphere(POINT(a.latitude, a.longitude), POINT(:latitude, :longitude)) <= :rayonEnMetres " +
-            "AND a.packaged.status='new' " +
-            "AND a.type = 'deprture'")
+            "AND a.packaged.status='NEW' " +
+            "AND a.type = 'DEPARTURE'")
     List<Address> findAddressAroundPosition(@Param("latitude") String latitude,
                                           @Param("longitude") String longitude,
                                           @Param("rayonEnMetres") double rayonEnMetres);
+    @Query("SELECT p "+
+            "FROM Package p JOIN FETCH p.addresses a "+
+            "WHERE a.latitude BETWEEN :departureLatitude AND :arrivalLatitude "+
+            "AND a.longitude BETWEEN :departureLongitude AND :arrivalLongitude")
+    List<Package> findAddressOnMyRoad(@Param("departureLatitude") String departureLatitude, @Param("arrivalLatitude") String arrivalLatitude,
+                                      @Param("departureLongitude") String departureLongitude, @Param("arrivalLongitude") String arrivalLongitude);
 }

@@ -49,6 +49,27 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    public List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude) {
+        if(departureLatitude.compareTo(arrivalLatitude) > 0){
+            String permut = departureLatitude;
+            departureLatitude = arrivalLatitude;
+            arrivalLatitude = permut;
+        }
+        if(departureLongitude.compareTo(arrivalLongitude)>0){
+            String permut = departureLongitude;
+            departureLongitude = arrivalLongitude;
+            arrivalLongitude = permut;
+        }
+        List<Package> packages = this.packages.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude,arrivalLongitude);
+        List<PackageDTO> packageDTOS = new ArrayList<>();
+        packages.stream().forEach(aPackage -> {
+            if(aPackage.getAddresses().size()==2){
+                packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class));
+            }});
+        return packageDTOS;
+    }
+
+    @Override
     public PackageDTO findPackageByID(Long id) {
         return null;
     }

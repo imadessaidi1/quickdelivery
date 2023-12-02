@@ -3,7 +3,7 @@ package com.quickdelivery.abstarct.dto;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 public class PackageDTO {
     private Long id;
@@ -16,7 +16,7 @@ public class PackageDTO {
     private Float deliveryPrice;
     private Long senderID;
     private Long deliveryPersonID;
-    private Set<AddressDTO> addresses;
+    private List<AddressDTO> addresses;
     public PackageDTO(){}
     private Long getId() {
         return id;
@@ -82,11 +82,11 @@ public class PackageDTO {
         this.deliveryPersonID = deliveryPersonID;
     }
 
-    public Set<AddressDTO> getAddresses() {
+    public List<AddressDTO> getAddresses() {
         return addresses;
     }
 
-    public void setAddresses(Set<AddressDTO> addresses) {
+    public void setAddresses(List<AddressDTO> addresses) {
         this.addresses = addresses;
     }
 

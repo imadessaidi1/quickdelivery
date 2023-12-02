@@ -29,4 +29,13 @@ public class PackageController {
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 
+    @GetMapping("/packages-on-my-road{departureLatitude}{departureLongitude}{ArrivalLatitude}{ArrivalLongitude}")
+    public List<PackageDTO> findPackagesOnMyRoad(@RequestParam(name = "departureLatitude", required = true) String departureLatitude,
+                                                   @RequestParam(name = "ArrivalLatitude", required = true) String arrivalLatitude,
+                                                 @RequestParam(name = "departureLongitude", required = true) String departureLongitude,
+                                                 @RequestParam(name = "arrivalLongitude", required = true) String arrivalLongitude){
+        return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude);
+    }
+
+
 }

@@ -1,0 +1,48 @@
+2023-11-26 11:33:14,137 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 20.0.1 with PID 5508 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2023-11-26 11:33:14,140 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2023-11-26 11:33:15,063 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=ef8467ff-4d45-32ec-8617-68fdabe93847
+2023-11-26 11:33:15,358 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2023-11-26 11:33:15,364 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2023-11-26 11:33:15,366 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2023-11-26 11:33:15,367 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2023-11-26 11:33:15,454 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2023-11-26 11:33:15,455 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1251 ms
+2023-11-26 11:33:17,363 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2023-11-26 11:33:17,385 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2023-11-26 11:33:17,720 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2023-11-26 11:33:17,765 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
+2023-11-26 11:33:17,768 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2023-11-26 11:33:17,774 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2023-11-26 11:33:17,775 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2023-11-26 11:33:17,783 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2023-11-26 11:33:17,787 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2023-11-26 11:33:17,788 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2023-11-26 11:33:17,871 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 4.372 seconds (process running for 4.698)
+2023-11-26 11:33:17,881 INFO c.q.ServiceRegistrationAndDiscoveryServer [main] Valeur de spring.application.name: null
+2023-11-26 11:34:04,400 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application DISCOVERY-SEREVER with eureka with status DOWN
+2023-11-26 11:34:04,420 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Shutting down Eureka Server..
+2023-11-26 11:34:04,430 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Eureka Service is now shutdown...
+2023-11-26 11:34:06,722 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 20.0.1 with PID 12544 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2023-11-26 11:34:06,725 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2023-11-26 11:34:07,650 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=ef8467ff-4d45-32ec-8617-68fdabe93847
+2023-11-26 11:34:07,943 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2023-11-26 11:34:07,949 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2023-11-26 11:34:07,950 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2023-11-26 11:34:07,951 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2023-11-26 11:34:08,048 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2023-11-26 11:34:08,049 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1259 ms
+2023-11-26 11:34:09,869 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2023-11-26 11:34:09,903 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2023-11-26 11:34:10,219 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2023-11-26 11:34:10,281 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
+2023-11-26 11:34:10,284 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2023-11-26 11:34:10,290 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2023-11-26 11:34:10,291 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2023-11-26 11:34:10,298 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2023-11-26 11:34:10,301 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2023-11-26 11:34:10,303 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2023-11-26 11:34:10,384 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 4.273 seconds (process running for 4.637)
+2023-11-26 11:34:10,391 INFO c.q.ServiceRegistrationAndDiscoveryServer [main] Valeur de spring.application.name: null
+2023-11-26 11:34:42,876 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application DISCOVERY-SEREVER with eureka with status DOWN
+2023-11-26 11:34:42,894 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Shutting down Eureka Server..
+2023-11-26 11:34:42,904 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Eureka Service is now shutdown...

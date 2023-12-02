@@ -1,0 +1,91 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: APIGatewayApplication
+  security:
+    oauth2:
+      client:
+        provider:
+          my-keycloak-provider:
+            issuer-uri: http://localhost:8084/auth/realms/baeldung
+            # Individual properties can also be provided this way
+        #            token-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/token
+        #            authorization-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/auth
+        #            userinfo-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/userinfo
+        #            user-name-attribute: preferred_username
+        registration:
+          keycloak-spring-gateway-client:
+            provider: my-keycloak-provider
+            scope: openid
+            client-id: quotes-client
+            client-secret: 30e082231-a70d-48e8-b8a5-fbfb743041b6
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: IAMService
+          #uri: http://localhost:8082
+          uri: lb://IAM-SEREVICES
+          predicates:
+            - Path=/IAM/v1/**
+          filters:
+            - TokenRelay=
+            - RemoveRequestHeader=Cookie
+            - name: CircuitBreaker
+              args:
+                name: IAMService
+                fallbackUri: forward:/fallback/testService
+    loadbalancer:
+      ribbon:
+        MaxAutoRetries: 2
+        MaxAutoRetriesNextServer: 2
+        OkToRetryOnAllOperations: true
+        OkRetryOnConnectionErrors: true
+        #enabled: false
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://admin:admin@localhost:8080/eureka/
+
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 2s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+    shared:
+      slidingWindowSize: 100
+      permittedNumberOfCallsInHalfOpenState: 30
+      waitDurationInOpenState: 1s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+  instances:
+    backendA:
+      baseConfig: default
+    backendB:
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      waitDurationInOpenState: 1s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10

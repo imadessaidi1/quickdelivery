@@ -1,0 +1,7 @@
+2023-11-25 15:42:47,533 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application DISCOVERY-SEREVER with eureka with status DOWN
+2023-11-25 15:42:47,727 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Shutting down Eureka Server..
+2023-11-25 15:42:47,759 INFO c.n.s.m.StatsMonitor [SpringApplicationShutdownHook] Attempting to get the value for an expired monitor: eurekaServer.replication.batchSize.Will start computing stats again.
+2023-11-25 15:42:47,776 INFO c.n.s.m.StatsMonitor [SpringApplicationShutdownHook] Attempting to get the value for an expired monitor: eurekaServer.replication.executionTime.Will start computing stats again.
+2023-11-25 15:42:47,777 INFO c.n.s.m.StatsMonitor [SpringApplicationShutdownHook] Attempting to get the value for an expired monitor: eurekaServer.replication.executionTime.Will start computing stats again.
+2023-11-25 15:42:47,779 INFO c.n.s.m.StatsMonitor [SpringApplicationShutdownHook] Attempting to get the value for an expired monitor: eurekaServer.replication.batchSize.Will start computing stats again.
+2023-11-25 15:42:47,798 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Eureka Service is now shutdown...

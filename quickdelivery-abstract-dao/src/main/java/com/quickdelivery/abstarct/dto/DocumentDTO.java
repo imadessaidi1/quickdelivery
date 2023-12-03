@@ -1,13 +1,15 @@
 package com.quickdelivery.abstarct.dto;
 
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
+
 import java.sql.Timestamp;
 
 public class DocumentDTO {
     private Long id;
     private Timestamp version;
     private String docURL;
-    private String type;
+    private DOCUMENT_TYPE type;
     public DocumentDTO(){}
 
     public Long getId() {
@@ -26,11 +28,11 @@ public class DocumentDTO {
         this.docURL = docURL;
     }
 
-    public String getType() {
+    public DOCUMENT_TYPE getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(DOCUMENT_TYPE type) {
         this.type = type;
     }
 

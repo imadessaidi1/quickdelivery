@@ -1,5 +1,6 @@
 package com.quickdelivery.abstarct.entities;
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
@@ -14,14 +15,19 @@ public class Document {
     @Column
     private String docURL;
     @Column
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private DOCUMENT_TYPE type;
     @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name="user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name="vehicle_id", nullable=false)
+    @JoinColumn(name="vehicle_id")
     private Vehicle vehicle;
+
+    @ManyToOne
+    @JoinColumn(name="package_id")
+    private Package aPackage;
 
     public Long getId() {
         return id;
@@ -39,12 +45,20 @@ public class Document {
         this.docURL = docURL;
     }
 
-    public String getType() {
+    public DOCUMENT_TYPE getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(DOCUMENT_TYPE type) {
         this.type = type;
+    }
+
+    public Package getaPackage() {
+        return aPackage;
+    }
+
+    public void setaPackage(Package aPackage) {
+        this.aPackage = aPackage;
     }
 
     public User getUser() {

@@ -8,6 +8,7 @@ import java.util.List;
 public class PackageDTO {
     private Long id;
     private Timestamp version;
+    private Timestamp creationDate;
     private Float height;
     private Float width;
     private Float weight;
@@ -17,8 +18,10 @@ public class PackageDTO {
     private Long senderID;
     private Long deliveryPersonID;
     private List<AddressDTO> addresses;
+
+    private List<DocumentDTO> documentS;
     public PackageDTO(){}
-    private Long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -104,5 +107,21 @@ public class PackageDTO {
 
     public void setSenderID(Long senderID) {
         this.senderID = senderID;
+    }
+
+    public Timestamp getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Timestamp creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public List<DocumentDTO> getDocumentS() {
+        return documentS;
+    }
+
+    public void setDocumentS(List<DocumentDTO> documentS) {
+        this.documentS = documentS;
     }
 }

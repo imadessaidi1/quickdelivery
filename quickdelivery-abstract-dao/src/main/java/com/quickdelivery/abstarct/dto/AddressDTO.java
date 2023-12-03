@@ -100,17 +100,31 @@ public class AddressDTO {
 
     @Override
     public String toString(){
-        String address="";
+        StringBuilder address= new StringBuilder();
         if (line1 != null)
-            address+=line1;
+            address.append(line1);
         if (line2 != null)
-            address+=" "+line2;
+            address.append(" ").append(line2);
         if (zipCode != null)
-            address+=" "+zipCode;
+            address.append(" ").append(zipCode);
         if (town!=null)
-            address+=" "+town;
+            address.append(" ").append(town);
         if (country != null)
-            address+=" "+country;
-        return address;
+            address.append(" ").append(country);
+        return address.toString();
+    }
+    public String formatedtoString(){
+        StringBuilder address= new StringBuilder();
+        if (line1 != null)
+            address.append(line1);
+        if (line2 != null)
+            address.append("\n").append(line2);
+        if (zipCode != null)
+            address.append("\n").append(zipCode);
+        if (town!=null)
+            address.append("\n").append(town);
+        if (country != null)
+            address.append("\n").append(country);
+        return address.toString();
     }
 }

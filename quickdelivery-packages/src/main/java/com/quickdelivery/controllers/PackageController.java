@@ -1,6 +1,7 @@
 package com.quickdelivery.controllers;
 
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,9 @@ public class PackageController {
                                                  @RequestParam(name = "arrivalLongitude", required = true) String arrivalLongitude){
         return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude);
     }
-
+    @GetMapping("/package{id}")
+    public PackageDTO findUserById(@RequestParam(name = "id", required = true) Long id){
+        return packagesService.findPackageByID(id);
+    }
 
 }

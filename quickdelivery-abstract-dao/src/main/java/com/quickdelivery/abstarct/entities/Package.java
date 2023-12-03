@@ -4,6 +4,7 @@ import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -13,6 +14,8 @@ public class Package {
     private Long id;
     @Version
     private Timestamp version;
+    @Column
+    private Timestamp creationDate;
     @Column
     private Float height;
     @Column
@@ -28,6 +31,9 @@ public class Package {
     private Float deliveryPrice;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "packaged", cascade = CascadeType.ALL)
     private Set<Address> addresses;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "aPackage", cascade = CascadeType.ALL)
+    private Set<Document> document = new HashSet<>();
     public Long getId() {
         return id;
     }
@@ -120,5 +126,21 @@ public class Package {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public Timestamp getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Timestamp creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public Set<Document> getDocument() {
+        return document;
+    }
+
+    public void setDocument(Set<Document> document) {
+        this.document = document;
     }
 }

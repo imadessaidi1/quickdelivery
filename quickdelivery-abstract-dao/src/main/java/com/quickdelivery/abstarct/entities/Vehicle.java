@@ -3,6 +3,7 @@ package com.quickdelivery.abstarct.entities;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -21,7 +22,7 @@ public class Vehicle {
     @Column
     private String energyType;
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
-    private Set<Document> document;
+    private Set<Document> document = new HashSet<>();
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)
     private User user;

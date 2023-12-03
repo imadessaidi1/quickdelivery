@@ -2,8 +2,12 @@ package com.quickdelivery.services.implementations;
 
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
+import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
+import com.quickdelivery.abstarct.helpers.PDFGenerator;
+import com.quickdelivery.abstarct.helpers.QRCodeGenerator;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IPackagesService;
@@ -12,8 +16,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class PackagesService implements IPackagesService {
@@ -22,7 +35,11 @@ public class PackagesService implements IPackagesService {
     @Value("${mapquest.geocode.url.part2}")
     private String mapQuestURL2;
     @Value("${mapquest.key}")
-    private String mapQUestKey;
+    private String mapQuestKey;
+    @Value("${package.services.getbyid.url}")
+    private String getPackageByIdURL;
+    @Value("${package.services.qrcode.file.location}")
+    private String qrCodePath;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -31,13 +48,23 @@ public class PackagesService implements IPackagesService {
     private Users users;
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO) {
-        createPackage(packageDTO);
+        try {
+            createPackage(packageDTO);
+        } catch (MalformedURLException | FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         return packageDTO;
     }
 
     @Override
     public void createNewPackages(List<PackageDTO> packageDTOS) {
-        packageDTOS.stream().forEach(packageDTO -> createPackage(packageDTO));
+        packageDTOS.stream().forEach(packageDTO -> {
+            try {
+                createPackage(packageDTO);
+            } catch (MalformedURLException | FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -62,16 +89,14 @@ public class PackagesService implements IPackagesService {
         }
         List<Package> packages = this.packages.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude,arrivalLongitude);
         List<PackageDTO> packageDTOS = new ArrayList<>();
-        packages.stream().forEach(aPackage -> {
-            if(aPackage.getAddresses().size()==2){
-                packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class));
-            }});
+        packages.stream().filter(aPackage -> aPackage.getAddresses().size()==2).collect(Collectors.toList())
+                .stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
         return packageDTOS;
     }
 
     @Override
     public PackageDTO findPackageByID(Long id) {
-        return null;
+        return modelMapper.map(packages.findById(id), PackageDTO.class);
     }
 
     @Override
@@ -84,13 +109,29 @@ public class PackagesService implements IPackagesService {
 
     }
 
-    private void createPackage(PackageDTO packageDTO){
-        packageDTO.getAddresses().stream().forEach(addressDTO -> GeoHelper.AdressGeoCoding(addressDTO, mapQuestURL1, mapQUestKey, mapQuestURL2));
+    private void createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
+        packageDTO.getAddresses().stream().forEach(addressDTO -> GeoHelper.AdressGeoCoding(addressDTO, mapQuestURL1, mapQuestKey, mapQuestURL2));
         Package aPackage = modelMapper.map(packageDTO, Package.class);
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
+        aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
         packages.save(aPackage);
         packageDTO.setId(aPackage.getId());
         packageDTO.setVersion(aPackage.getVersion());
+        QRCodeGenerator.generateQRCode(getPackageByIdURL+packageDTO.getId(),qrCodePath+packageDTO.getId()+".png",150,150);
+        Document qrDocument = new Document();
+        qrDocument.setaPackage(aPackage);
+        qrDocument.setType(DOCUMENT_TYPE.PACKAGE_QR);
+        qrDocument.setDocURL(qrCodePath+packageDTO.getId()+".png");
+        Set<Document> documents = new HashSet<>();
+        documents.add(qrDocument);
+        PDFGenerator.generatePdf(packageDTO, qrCodePath+packageDTO.getId()+".png", qrCodePath+packageDTO.getId()+".pdf");
+        Document pdfDocument = new Document();
+        pdfDocument.setaPackage(aPackage);
+        pdfDocument.setType(DOCUMENT_TYPE.PACKAGE_PDF_LABEL);
+        pdfDocument.setDocURL(qrCodePath+packageDTO.getId()+".pdf");
+        documents.add(pdfDocument);
+        aPackage.setDocument(documents);
+        packages.save(aPackage);
     }
 }

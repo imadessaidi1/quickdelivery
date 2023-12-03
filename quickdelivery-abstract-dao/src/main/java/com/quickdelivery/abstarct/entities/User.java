@@ -3,6 +3,7 @@ package com.quickdelivery.abstarct.entities;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -29,17 +30,17 @@ public class User {
     @Column
     private Boolean activeAccount;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "residents", cascade = CascadeType.ALL)
-    private Set<Address> personalAddress;
+    private Set<Address> personalAddress = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "holderInApp", cascade = CascadeType.ALL)
-    private Set<Payment> payments;
+    private Set<Payment> payments = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<Document> document;
+    private Set<Document> document = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "deliveryPerson", cascade = CascadeType.ALL)
-    private Set<Package> packagesDELIVERED;
+    private Set<Package> packagesDELIVERED = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sender", cascade = CascadeType.ALL)
-    private Set<Package> packagesSent;
+    private Set<Package> packagesSent = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<Vehicle> vehicles;
+    private Set<Vehicle> vehicles = new HashSet<>();
 
     public Long getId() {
         return id;

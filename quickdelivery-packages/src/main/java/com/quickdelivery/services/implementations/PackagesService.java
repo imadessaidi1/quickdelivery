@@ -8,6 +8,7 @@ import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.PDFGenerator;
 import com.quickdelivery.abstarct.helpers.QRCodeGenerator;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
+import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IPackagesService;
@@ -15,12 +16,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
-import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PackagesService implements IPackagesService {
     @Value("${mapquest.geocode.url.part1}")
     private String mapQuestURL1;
@@ -107,6 +108,19 @@ public class PackagesService implements IPackagesService {
     @Override
     public void deletePackage(PackageDTO user) {
 
+    }
+
+    @Override
+    public List<PackageDTO> findPackagesByStatus(PACKAGE_STATUS status) {
+        List<PackageDTO> packageDTOS = new ArrayList<>();
+        List<Package> packages = this.packages.findPackagesByStatus(status);
+        packages.stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
+        return packageDTOS;
+    }
+
+    @Override
+    public void updatePackageStatus(PACKAGE_STATUS status, Long id) {
+        packages.updatePackagesStatus(status,id);
     }
 
     private void createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {

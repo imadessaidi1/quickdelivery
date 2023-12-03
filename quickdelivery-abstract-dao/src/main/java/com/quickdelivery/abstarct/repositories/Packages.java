@@ -2,6 +2,8 @@ package com.quickdelivery.abstarct.repositories;
 
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Package;
+import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +26,13 @@ public interface Packages extends CrudRepository<Package, Long> {
             "AND a.longitude BETWEEN :departureLongitude AND :arrivalLongitude")
     List<Package> findAddressOnMyRoad(@Param("departureLatitude") String departureLatitude, @Param("arrivalLatitude") String arrivalLatitude,
                                       @Param("departureLongitude") String departureLongitude, @Param("arrivalLongitude") String arrivalLongitude);
+
+    @Query("SELECT p " +
+            "FROM Package p WHERE p.status = :status")
+    List<Package> findPackagesByStatus(@Param("status") PACKAGE_STATUS status);
+
+    @Modifying
+    @Query("UPDATE Package p " +
+            "SET p.status = :status WHERE p.id = :id")
+    void updatePackagesStatus(@Param("status") PACKAGE_STATUS status, @Param("id") Long id);
 }

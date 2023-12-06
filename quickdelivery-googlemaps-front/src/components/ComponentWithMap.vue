@@ -1,7 +1,4 @@
 <template>
-    <div v-for="(m, index) in markers" :key="index">
-        Position : {{m.lat}},{{m.lng}}
-      </div>
       <div>
   <GMapMap
     :center="{ lat: latitude, lng: longitude }"
@@ -44,11 +41,35 @@
       <GMapMarker
         :key="index"
         v-for="(m, index) in markers"
-        :position="m.position"
+        :position="m[2]"
         :clickable="true"
-        :draggable="true"
-        @click="center = m.position"
-      />
+        :draggable="false"
+        @click="openInfoWindow(m[0])">
+            <GMapInfoWindow
+                        v-if="m[1] != ''"
+                        @closeclick="infoWindowOpened = false"
+                        :opened="infoWindowOpened && selectedMarker == m[0]"
+                        :key="m[0]"
+                        :options="{
+                          pixelOffset: {
+                            width: 10,
+                            height: 0
+                          },
+                          maxWidth: 320,
+                          maxHeight: 320
+                        }"
+
+                      >
+                        <div class="location-details">
+                            <p> {{m[1].line1}} </p>
+                            <p> {{m[1].line2}} </p>
+                            <p> {{m[1].zipCode}} </p>
+                            <p> {{m[1].town}} </p>
+                            <p> {{m[1].country}} </p>
+                            <a @click="reservePackage(m[0])">Reserve</a>
+                        </div>
+                      </GMapInfoWindow>
+      </GMapMarker>
     </GMapCluster>
   </GMapMap>
   </div>
@@ -63,12 +84,13 @@ export default {
       latitude: null,
       longitude: null,
       markers: null,
+      infoWindowOpened: false,
+      selectedMarker: null,
     };
   },
   async mounted() {
       await this.getLocation();
       this.markers = await this.fetchDataFromSpringBoot();
-      console.log(this.markers);
     },
     methods: {
       async getLocation() {
@@ -93,9 +115,6 @@ export default {
       },
       async fetchDataFromSpringBoot() {
         const apiUrl = `http://localhost:8082/packages/v1/packages-around?latitude=${this.latitude}&longitude=${this.longitude}&rayonEnMetres=500`;
-
-        console.log(apiUrl);
-
         try {
           const response = await axios.get(apiUrl);
           const data = response.data;
@@ -111,15 +130,35 @@ export default {
         data.forEach(item => {
             item.addresses.forEach(address => {
                 if(address.type == 'DEPARTURE'){
+                    var addressPointDetail = [];
                     const position = {
-                        lat: address.latitude,
-                        lng: address.longitude
+                        lat: parseFloat(address.latitude)+0,
+                        lng: parseFloat(address.longitude)+0
                     };
-                    addressPoints.push(position);
+
+                    addressPointDetail.push(item.id);
+                    addressPointDetail.push(address);
+                    addressPointDetail.push(position);
+                    addressPoints.push(addressPointDetail);
                 }
             });
         });
         return addressPoints;
+      },
+      openInfoWindow(m) {
+              this.infoWindowOpened = true;
+              this.selectedMarker = m;
+      },
+      reservePackage(m){
+        const apiUrl = `http://localhost:8082/packages/v1/update-packages-status?${m}=RESERVED`;
+        axios.put(apiUrl, null)
+          .then(response => {
+            console.log('Réponse de la requête POST:', response.data);
+          })
+          .catch(error => {
+            console.error('Erreur de la requête POST:', error);
+          });
+          console.log(m);
       }
     },
 };

@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/packages/v1")
 public class PackageController {
     @Autowired
@@ -29,6 +31,7 @@ public class PackageController {
     public List<PackageDTO> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                     @RequestParam(name = "longitude", required = true) String longitude,
                                                     @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
+        System.out.println("test");
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 
@@ -39,13 +42,9 @@ public class PackageController {
                                                  @RequestParam(name = "arrivalLongitude", required = true) String arrivalLongitude){
         return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude);
     }
-    @GetMapping("/package{id}")
-    public PackageDTO findUserById(@RequestParam(name = "id", required = true) Long id){
-        return packagesService.findPackageByID(id);
-    }
 
     @GetMapping("/package-by-status{status}")
-    public List<PackageDTO> findUserById(@RequestParam(name = "status", required = true) PACKAGE_STATUS status){
+    public List<PackageDTO> findPackagesByStatus(@RequestParam(name = "status", required = true) PACKAGE_STATUS status){
         return packagesService.findPackagesByStatus(status);
     }
 
@@ -55,9 +54,8 @@ public class PackageController {
         packagesService.createNewPackages(packageDTOList);
     }
 
-    @PutMapping("/update-package-status{status}{id}")
-    public void updatePackageStatus(@RequestParam(name = "status", required = true) PACKAGE_STATUS status,
-                                    @RequestParam(name = "id", required = true) Long id){
-        packagesService.updatePackageStatus(status,id);
+    @PutMapping("/update-packages-status")
+    public void updatePackageStatus(@RequestParam Map<String, String> requestMap){
+        requestMap.forEach((id, status) -> packagesService.updatePackageStatus(PACKAGE_STATUS.valueOf(status),Long.valueOf(id)));
     }
 }

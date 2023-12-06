@@ -19,35 +19,43 @@ public class PackegeCSVReader {
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             List<String[]> records = reader.readAll();
             records.stream().forEach(strings -> {
-                PackageDTO packageDTO = new PackageDTO();
-                packageDTO.setHeight(Float.valueOf(strings[0]));
-                packageDTO.setWidth(Float.valueOf(strings[1]));
-                packageDTO.setWeight(Float.valueOf(strings[2]));
-                packageDTO.setHeight(Float.valueOf(strings[3]));
-                packageDTO.setStatus(PACKAGE_STATUS.NEW);
-                List<AddressDTO> packageAddressDTO=new ArrayList<>();
-                AddressDTO departureAddressDTO = new AddressDTO();
-                departureAddressDTO.setType(ADDRESS_TYPE.DEPARTURE);
-                departureAddressDTO.setLine1(strings[4]);
-                departureAddressDTO.setLine2(strings[5]);
-                departureAddressDTO.setZipCode(strings[6]);
-                departureAddressDTO.setTown(strings[7]);
-                departureAddressDTO.setCountry(strings[8]);
-                packageAddressDTO.add(departureAddressDTO);
-                AddressDTO arrivalAddressDTO = new AddressDTO();
-                arrivalAddressDTO.setType(ADDRESS_TYPE.ARRIVAL);
-                arrivalAddressDTO.setLine1(strings[9]);
-                arrivalAddressDTO.setLine2(strings[10]);
-                arrivalAddressDTO.setZipCode(strings[11]);
-                arrivalAddressDTO.setTown(strings[12]);
-                arrivalAddressDTO.setCountry(strings[13]);
-                packageAddressDTO.add(arrivalAddressDTO);
-                packageDTO.setAddresses(packageAddressDTO);
-                packageDTOFromCsvList.add(packageDTO);
+                packageDTOFromCsvList.add(mapToPackageDTO(strings));
             });
         } catch (CsvException | IOException e) {
             e.printStackTrace();
         }
         return packageDTOFromCsvList;
+    }
+
+    public static void packagesToCSV(List<PackageDTO> packageDTOList){
+
+    }
+
+    private static PackageDTO mapToPackageDTO(String[] strings){
+        PackageDTO packageDTO = new PackageDTO();
+        packageDTO.setHeight(Float.valueOf(strings[0]));
+        packageDTO.setWidth(Float.valueOf(strings[1]));
+        packageDTO.setWeight(Float.valueOf(strings[2]));
+        packageDTO.setHeight(Float.valueOf(strings[3]));
+        packageDTO.setStatus(PACKAGE_STATUS.NEW);
+        List<AddressDTO> packageAddressDTO=new ArrayList<>();
+        AddressDTO departureAddressDTO = new AddressDTO();
+        departureAddressDTO.setType(ADDRESS_TYPE.DEPARTURE);
+        departureAddressDTO.setLine1(strings[4]);
+        departureAddressDTO.setLine2(strings[5]);
+        departureAddressDTO.setZipCode(strings[6]);
+        departureAddressDTO.setTown(strings[7]);
+        departureAddressDTO.setCountry(strings[8]);
+        packageAddressDTO.add(departureAddressDTO);
+        AddressDTO arrivalAddressDTO = new AddressDTO();
+        arrivalAddressDTO.setType(ADDRESS_TYPE.ARRIVAL);
+        arrivalAddressDTO.setLine1(strings[9]);
+        arrivalAddressDTO.setLine2(strings[10]);
+        arrivalAddressDTO.setZipCode(strings[11]);
+        arrivalAddressDTO.setTown(strings[12]);
+        arrivalAddressDTO.setCountry(strings[13]);
+        packageAddressDTO.add(arrivalAddressDTO);
+        packageDTO.setAddresses(packageAddressDTO);
+        return packageDTO;
     }
 }

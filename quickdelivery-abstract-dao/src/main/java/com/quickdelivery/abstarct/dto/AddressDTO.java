@@ -1,6 +1,7 @@
 package com.quickdelivery.abstarct.dto;
 
 import com.quickdelivery.abstarct.parameters.ADDRESS_TYPE;
+import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -8,6 +9,8 @@ import java.sql.Timestamp;
 public class AddressDTO {
     private Long id;
     private Timestamp version;
+    private String firstName;
+    private String lastName;
     private String line1;
     private String line2;
     private String town;
@@ -96,6 +99,22 @@ public class AddressDTO {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     @Override

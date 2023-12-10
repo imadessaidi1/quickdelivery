@@ -3,6 +3,7 @@ package com.quickdelivery.abstarct.entities;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,6 +44,11 @@ public class Package {
     @ManyToOne
     @JoinColumn(name="sender_id")
     private User sender;
+
+    @Column(precision = 11, scale = 8)
+    private BigDecimal lastPositionLatitude;
+    @Column(precision = 11, scale = 8)
+    private BigDecimal lastPositionLongitude;
 
     public void setId(Long id) {
         this.id = id;
@@ -142,5 +148,21 @@ public class Package {
 
     public void setDocument(Set<Document> document) {
         this.document = document;
+    }
+
+    public BigDecimal getLastPositionLatitude() {
+        return lastPositionLatitude;
+    }
+
+    public void setLastPositionLatitude(BigDecimal lastPositionLatitude) {
+        this.lastPositionLatitude = lastPositionLatitude;
+    }
+
+    public BigDecimal getLastPositionLongitude() {
+        return lastPositionLongitude;
+    }
+
+    public void setLastPositionLongitude(BigDecimal lastPositionLongitude) {
+        this.lastPositionLongitude = lastPositionLongitude;
     }
 }

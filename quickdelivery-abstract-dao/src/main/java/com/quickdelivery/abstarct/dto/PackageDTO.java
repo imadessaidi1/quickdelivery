@@ -1,7 +1,9 @@
 package com.quickdelivery.abstarct.dto;
 
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
+import jakarta.persistence.Column;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -20,6 +22,8 @@ public class PackageDTO {
     private List<AddressDTO> addresses;
 
     private List<DocumentDTO> documentS;
+    private BigDecimal lastPositionLatitude;
+    private BigDecimal lastPositionLongitude;
     public PackageDTO(){}
     public Long getId() {
         return id;
@@ -123,5 +127,21 @@ public class PackageDTO {
 
     public void setDocumentS(List<DocumentDTO> documentS) {
         this.documentS = documentS;
+    }
+
+    public BigDecimal getLastPositionLatitude() {
+        return lastPositionLatitude;
+    }
+
+    public void setLastPositionLatitude(BigDecimal lastPositionLatitude) {
+        this.lastPositionLatitude = lastPositionLatitude;
+    }
+
+    public BigDecimal getLastPositionLongitude() {
+        return lastPositionLongitude;
+    }
+
+    public void setLastPositionLongitude(BigDecimal lastPositionLongitude) {
+        this.lastPositionLongitude = lastPositionLongitude;
     }
 }

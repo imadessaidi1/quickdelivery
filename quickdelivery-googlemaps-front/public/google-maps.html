@@ -7,7 +7,7 @@
 -->
 <html>
   <head>
-    <title>Displaying Text Directions With setPanel()</title>
+    <title>🌏 Packages Map</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script>
       /**
@@ -22,12 +22,13 @@
         directionsRenderer = new google.maps.DirectionsRenderer();
         directionsService = new google.maps.DirectionsService();
         map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 13,
-          disableDefaultUI: true,
-		  zoomControl: true,
-		  scaleControl: true,
+			zoom: 13,
+			disableDefaultUI: true,
+			zoomControl: true,
+			scaleControl: true,
         });
-		
+		const trafficLayer = new google.maps.TrafficLayer();
+		trafficLayer.setMap(map);
 		if (navigator.geolocation) {
 			 navigator.geolocation.getCurrentPosition(function (position) {
 				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
@@ -44,12 +45,9 @@
       }
 
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
-		console.log(packageStart);
-		console.log(packageEnd);
-        const start = packageStart;
+		const start = packageStart;
         const end = packageEnd;
         const selectedMode = "DRIVING";
-
         directionsService
           .route({
             origin: start,
@@ -63,6 +61,32 @@
             window.alert("Directions request failed due to " + status)
           );
       }
+	  function calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, packageStart, packageEnd) {
+			const start = packageStart;
+			const end = packageEnd;
+			const selectedMode = "DRIVING";
+			getPackagesOnMyRoad(packageStart, packageEnd)
+				.then(waypts => {
+					console.log(waypts);
+					directionsService
+						.route({
+							origin: start,
+							destination: end,
+							waypoints: waypts,
+							travelMode: google.maps.TravelMode[selectedMode],
+						})
+						.then((response) => {
+							directionsRenderer.setDirections(response);
+						})
+						.catch((e) =>
+							window.alert("Directions request failed due to " + status)
+						);
+				})
+				.catch(error => {
+					// Gérer les erreurs ici si nécessaire
+					console.error(error);
+				});
+		}
 	  function getPackagesAroundMe(latitude, longitude) {
 			var xhr = new XMLHttpRequest();
 			var url = `http://localhost:8082/packages/v1/packages-around?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=20000`;
@@ -70,9 +94,7 @@
 			xhr.onload = function() {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					var reponse = JSON.parse(xhr.responseText);
-					var i=0;
 					reponse.forEach(function(package_) {
-						i++;
 						var arrivalAddress;
 						var departureAddress;
 						package_.addresses.forEach(function(adresse) {
@@ -82,30 +104,55 @@
 								departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
 							}
 						});
-						console.log("addMarker");
 						addMarker(departureAddress, arrivalAddress, map);
-						console.log(i);
 					});
 				} else {
-					// La requête a échoué, gérer l'erreur ici
 					console.error("Erreur de l'API :", xhr.statusText);
 				}
 			};
-
-			// Gérez l'événement d'erreur (échec de la requête)
 			xhr.onerror = function() {
 				console.error("Erreur de réseau lors de la requête vers l'API.");
 			};
-
-			// Envoyez la requête
 			xhr.send();
 		}
+		function getPackagesOnMyRoad(departurePosition, arrivalPosition) {
+			return new Promise((resolve, reject) => {
+				var xhr = new XMLHttpRequest();
+				const waypts = [];
+				var url = `http://localhost:8082/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
+				xhr.open("GET", url, true);
+				xhr.onload = function () {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						var reponse = JSON.parse(xhr.responseText);
+						reponse.forEach(function (package_) {
+							var addressToAdd;
+							package_.addresses.forEach(function (adresse) {
+								addressToAdd = { lat: adresse.latitude, lng: adresse.longitude };
+								waypts.push({
+									location: addressToAdd,
+									stopover: true,
+								});
+							});
+						});
+						waypts.sort((a, b) => a.location.lat - b.location.lat);
+						resolve(waypts);
+					} else {
+						console.error("Erreur de l'API :", xhr.statusText);
+						reject(new Error(xhr.statusText));
+					}
+				};
+				xhr.onerror = function () {
+					console.error("Erreur de réseau lors de la requête vers l'API.");
+					reject(new Error("Erreur de réseau lors de la requête vers l'API."));
+				};
+				xhr.send();
+			});
+		}
 		function addMarker(departureAddress, arrivalAddress, map) {
-		console.log(departureAddress.lat +", "+arrivalAddress.lat);
 		  if(departureAddress != undefined){
 				  var markerInfo;
 				  if(arrivalAddress != undefined){
-					  markerInfo = `<p>${arrivalAddress.line1}</p><p>${arrivalAddress.line2}</p><p>${arrivalAddress.zipCode}</p><p>${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Cliquez ici</a></p>`;
+					  markerInfo = `<p>${arrivalAddress.line1}</p><p>${arrivalAddress.line2}</p><p>${arrivalAddress.zipCode}</p><p>${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction</a></p><p><a href="#" onclick="calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction with additional packages</a></p>`;
 					  
 				  }
 				  const infowindow = new google.maps.InfoWindow({

@@ -20,10 +20,11 @@ public interface Packages extends CrudRepository<Package, Long> {
     List<Address> findAddressAroundPosition(@Param("latitude") String latitude,
                                           @Param("longitude") String longitude,
                                           @Param("rayonEnMetres") double rayonEnMetres);
-    @Query("SELECT p "+
-            "FROM Package p JOIN FETCH p.addresses a "+
-            "WHERE a.latitude BETWEEN :departureLatitude AND :arrivalLatitude "+
-            "AND a.longitude BETWEEN :departureLongitude AND :arrivalLongitude")
+    @Query("SELECT p " +
+            "FROM Package p JOIN FETCH p.addresses a " +
+            "WHERE a.latitude > :departureLatitude AND a.latitude < :arrivalLatitude " +
+            "AND a.longitude > :departureLongitude AND a.longitude < :arrivalLongitude")
+
     List<Package> findAddressOnMyRoad(@Param("departureLatitude") String departureLatitude, @Param("arrivalLatitude") String arrivalLatitude,
                                       @Param("departureLongitude") String departureLongitude, @Param("arrivalLongitude") String arrivalLongitude);
 

@@ -14,6 +14,10 @@ public class Address {
     @Version
     private Timestamp version;
     @Column
+    private String firstName;
+    @Column
+    private String lastName;
+    @Column
     private String line1;
     @Column
     private String line2;
@@ -121,5 +125,21 @@ public class Address {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

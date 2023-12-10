@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<!--
+ @license
+ Copyright 2019 Google LLC. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <title>Displaying Text Directions With setPanel()</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script>
+      /**
+       * @license
+       * Copyright 2019 Google LLC. All Rights Reserved.
+       * SPDX-License-Identifier: Apache-2.0
+       */
+	   let map
+	   let directionsRenderer;
+       let directionsService;
+	   function initMap() {
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsService = new google.maps.DirectionsService();
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 13,
+          disableDefaultUI: true,
+		  zoomControl: true,
+		  scaleControl: true,
+        });
+		
+		if (navigator.geolocation) {
+			 navigator.geolocation.getCurrentPosition(function (position) {
+				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+				 map.setCenter(initialLocation);
+				 getPackagesAroundMe(position.coords.latitude, position.coords.longitude)
+			 });
+		 }
+        directionsRenderer.setMap(map);
+        directionsRenderer.setPanel(document.getElementById("sidebar"));
+
+        const control = document.getElementById("floating-panel");
+
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
+      }
+
+	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
+		console.log(packageStart);
+		console.log(packageEnd);
+        const start = packageStart;
+        const end = packageEnd;
+        const selectedMode = "DRIVING";
+
+        directionsService
+          .route({
+            origin: start,
+            destination: end,
+            travelMode: google.maps.TravelMode[selectedMode],
+          })
+          .then((response) => {
+            directionsRenderer.setDirections(response);
+          })
+          .catch((e) =>
+            window.alert("Directions request failed due to " + status)
+          );
+      }
+	  function getPackagesAroundMe(latitude, longitude) {
+			var xhr = new XMLHttpRequest();
+			var url = `http://localhost:8082/packages/v1/packages-around?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=20000`;
+			xhr.open("GET", url, true);
+			xhr.onload = function() {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					var reponse = JSON.parse(xhr.responseText);
+					var i=0;
+					reponse.forEach(function(package_) {
+						i++;
+						var arrivalAddress;
+						var departureAddress;
+						package_.addresses.forEach(function(adresse) {
+							if(adresse.type === "ARRIVAL"){
+								arrivalAddress = {line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
+							}else{
+								departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
+							}
+						});
+						console.log("addMarker");
+						addMarker(departureAddress, arrivalAddress, map);
+						console.log(i);
+					});
+				} else {
+					// La requête a échoué, gérer l'erreur ici
+					console.error("Erreur de l'API :", xhr.statusText);
+				}
+			};
+
+			// Gérez l'événement d'erreur (échec de la requête)
+			xhr.onerror = function() {
+				console.error("Erreur de réseau lors de la requête vers l'API.");
+			};
+
+			// Envoyez la requête
+			xhr.send();
+		}
+		function addMarker(departureAddress, arrivalAddress, map) {
+		console.log(departureAddress.lat +", "+arrivalAddress.lat);
+		  if(departureAddress != undefined){
+				  var markerInfo;
+				  if(arrivalAddress != undefined){
+					  markerInfo = `<p>${arrivalAddress.line1}</p><p>${arrivalAddress.line2}</p><p>${arrivalAddress.zipCode}</p><p>${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Cliquez ici</a></p>`;
+					  
+				  }
+				  const infowindow = new google.maps.InfoWindow({
+						  content: markerInfo,
+						  ariaLabel: "Uluru",
+						});
+					var marker = new google.maps.Marker({
+					  position: departureAddress,
+					  title: 'Home Center',
+					  map:map
+				  });
+				  marker.addListener("click", () => {
+				  infowindow.open({
+					anchor: marker,
+					map,
+				  });
+				});
+			}
+		}
+      window.initMap = initMap;
+    </script>
+    <style>
+      /**
+       * @license
+       * Copyright 2019 Google LLC. All Rights Reserved.
+       * SPDX-License-Identifier: Apache-2.0
+       */
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        height: 100%;
+        display: flex;
+      }
+
+      #sidebar {
+        flex-basis: 15rem;
+        flex-grow: 1;
+        padding: 1rem;
+        max-width: 30rem;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: auto;
+      }
+
+      #map {
+        flex-basis: 0;
+        flex-grow: 4;
+        height: 100%;
+      }
+
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: "Roboto", "sans-serif";
+        line-height: 30px;
+        padding-left: 10px;
+      }
+
+      #floating-panel {
+        background-color: #fff;
+        border: 0;
+        border-radius: 2px;
+        box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+        margin: 10px;
+        padding: 0 0.5em;
+        font: 400 18px Roboto, Arial, sans-serif;
+        overflow: hidden;
+        padding: 5px;
+        font-size: 14px;
+        text-align: center;
+        line-height: 30px;
+        height: auto;
+      }
+
+      #map {
+        flex: auto;
+      }
+
+      #sidebar {
+        flex: 0 1 auto;
+        padding: 0;
+      }
+      #sidebar > div {
+        padding: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <div id="sidebar"></div>
+    </div>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCBZNoGNPCcqSsTYTlOUhkXLhb47HqF9mM&callback=initMap&v=weekly"
+      defer
+    ></script>
+  </body>
+</html>
+    

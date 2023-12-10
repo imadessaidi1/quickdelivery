@@ -66,7 +66,8 @@
                             <p> {{m[1].zipCode}} </p>
                             <p> {{m[1].town}} </p>
                             <p> {{m[1].country}} </p>
-                            <a @click="reservePackage(m[0])">Reserve</a>
+                            <!--<a @click="reservePackage(m[0])" class="custom-link">Reserve</a>-->
+                            <a @click="fetchDirections(m)" class="custom-link">Direction</a>
                         </div>
                       </GMapInfoWindow>
       </GMapMarker>
@@ -77,7 +78,6 @@
 
 <script>
 import axios from 'axios';
-
 export default {
   data() {
     return {
@@ -86,7 +86,9 @@ export default {
       markers: null,
       infoWindowOpened: false,
       selectedMarker: null,
+      packages: null,
     };
+
   },
   async mounted() {
       await this.getLocation();
@@ -98,8 +100,8 @@ export default {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => {
-                this.latitude = parseFloat(position.coords.latitude);
-                this.longitude = parseFloat(position.coords.longitude);
+                this.latitude = parseFloat(position.coords.latitude)+0;
+                this.longitude = parseFloat(position.coords.longitude)+0;
                 resolve({ latitude: this.latitude, longitude: this.longitude });
               },
               (error) => {
@@ -114,10 +116,11 @@ export default {
         });
       },
       async fetchDataFromSpringBoot() {
-        const apiUrl = `http://localhost:8082/packages/v1/packages-around?latitude=${this.latitude}&longitude=${this.longitude}&rayonEnMetres=500`;
+        const apiUrl = `http://localhost:8082/packages/v1/packages-around?latitude=${this.latitude}&longitude=${this.longitude}&rayonEnMetres=1000`;
         try {
           const response = await axios.get(apiUrl);
           const data = response.data;
+
           const addressPoints = this.initMarkers(data);
           return Promise.resolve(addressPoints);
         } catch (error) {
@@ -128,20 +131,20 @@ export default {
       initMarkers(data){
         var addressPoints = [];
         data.forEach(item => {
+            var addressPointDetail = [];
+            addressPointDetail.splice(0, 0,item.id);
             item.addresses.forEach(address => {
                 if(address.type == 'DEPARTURE'){
-                    var addressPointDetail = [];
                     const position = {
                         lat: parseFloat(address.latitude)+0,
                         lng: parseFloat(address.longitude)+0
                     };
-
-                    addressPointDetail.push(item.id);
-                    addressPointDetail.push(address);
-                    addressPointDetail.push(position);
-                    addressPoints.push(addressPointDetail);
+                    addressPointDetail.splice(2, 0,position);
+                }else{
+                    addressPointDetail.splice(1, 0,address);
                 }
             });
+            addressPoints.push(addressPointDetail);
         });
         return addressPoints;
       },
@@ -167,5 +170,10 @@ export default {
 <style>
 body {
   margin: 0;
+}
+.custom-link {
+  color: blue; /* Couleur du texte du lien */
+  cursor: pointer; /* Curseur indiquant qu'il s'agit d'un lien cliquable */
+  text-decoration: underline; /* Souligner le texte du lien */
 }
 </style>

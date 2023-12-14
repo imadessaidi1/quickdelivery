@@ -58,4 +58,10 @@ public class PackageController {
     public void updatePackageStatus(@RequestParam Map<String, String> requestMap){
         requestMap.forEach((id, status) -> packagesService.updatePackageStatus(PACKAGE_STATUS.valueOf(status),Long.valueOf(id)));
     }
+
+    @PutMapping("/reserve{packageID}{deliveryPersonID}")
+    public void reservePackage(@RequestParam("packageID") Long packageID,
+                               @RequestParam("deliveryPersonID") Long deliveryPersonID){
+        packagesService.reservePackage(packageID,deliveryPersonID);
+    }
 }

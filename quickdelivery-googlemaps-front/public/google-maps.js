@@ -1,10 +1,4 @@
-
-<!DOCTYPE html>
-<!--
- @license
- Copyright 2019 Google LLC. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
--->
+const htmlContent = `
 <html>
   <head>
     <title>🌏 Packages Map</title>
@@ -22,21 +16,14 @@
 	   let map
 	   let directionsRenderer;
        let directionsService;
-	   let packagesArround=[];
-	   let packagesOnMyRoad=[];
 	   let packagesSimpleDirection = [];
 	   let packagesOnMyRoadDirection = [];
-	   let infowindow;
 	   function initMap() {
 	   var url_string = window.location.href; 
 		var url = new URL(url_string);
 		userID = url.searchParams.get("userID");
-        directionsRenderer = new google.maps.DirectionsRenderer({suppressMarkers: false});
+        directionsRenderer = new google.maps.DirectionsRenderer();
         directionsService = new google.maps.DirectionsService();
-		infowindow = new google.maps.InfoWindow(
-		  { 
-			size: new google.maps.Size(150,50)
-		  });
         map = new google.maps.Map(document.getElementById("map"), {
 			zoom: 13,
 			disableDefaultUI: true,
@@ -78,7 +65,7 @@
 				directionsRenderer.setDirections(filteredSimpleDirection[0].response);
 			} else {
 			console.log('New direction');
-				const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
+				const selectedMode = "DRIVING";
 				directionsService
 					.route({
 						origin: start,
@@ -108,9 +95,11 @@
 			const filteredOnMyRoadDirection = packagesOnMyRoadDirection.filter(filterOnMyRoadDirection);
 
 			if (filteredOnMyRoadDirection.length > 0) {
+				console.log('Existing direction');
 				directionsRenderer.setDirections(packagesOnMyRoadDirection[0].response);
 			}else{
-				const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
+				console.log('New direction');
+				const selectedMode = "DRIVING";
 				getPackagesOnMyRoad(packageStart, packageEnd)
 					.then(waypts => {
 						directionsService
@@ -142,8 +131,8 @@
 					xhr.open("GET", url, true);
 					xhr.onload = function() {
 						if (xhr.status >= 200 && xhr.status < 300) {
-							packagesArround = JSON.parse(xhr.responseText);
-							packagesArround.forEach(function(package_) {
+							var reponse = JSON.parse(xhr.responseText);
+							reponse.forEach(function(package_) {
 								var arrivalAddress;
 								var departureAddress;
 								package_.addresses.forEach(function(adresse) {
@@ -179,8 +168,8 @@
 
 					xhr.onload = function () {
 						if (xhr.status >= 200 && xhr.status < 300) {
-							packagesOnMyRoad = JSON.parse(xhr.responseText);
-							packagesOnMyRoad.forEach(function (package_) {
+							var reponse = JSON.parse(xhr.responseText);
+							reponse.forEach(function (package_) {
 								var addressToAdd;
 								package_.addresses.forEach(function (adresse) {
 									addressToAdd = { lat: adresse.latitude, lng: adresse.longitude };
@@ -238,7 +227,10 @@
 					  markerInfo = `<p>${arrivalAddress.line1}</p><p>${arrivalAddress.line2}</p><p>${arrivalAddress.zipCode}</p><p>${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction</a></p><p><a href="#" onclick="calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction with packages on my road</a></p><p><a href="#" onclick="reservePackage(${arrivalAddress.packageID}, ${userID})">Reseve Package</a></p>`;
 					  
 				  }
-				  
+				  const infowindow = new google.maps.InfoWindow({
+						  content: markerInfo,
+						  ariaLabel: arrivalAddress.packageID,
+						});
 					var marker = new google.maps.Marker({
 					  position: departureAddress,
 					  title: arrivalAddress.packageID+"",
@@ -246,8 +238,13 @@
 					  zIndex: Math.round(departureAddress.lat*-100000)<<5
 				  });
 				  marker.myname = arrivalAddress.packageID;
+				  /*marker.addListener("click", () => {
+				  infowindow.open({
+					anchor: marker,
+					map,
+				  });
+				});*/
 				google.maps.event.addListener(marker, 'click', function() { 
-					infowindow.setContent(markerInfo);
 					infowindow.open(map,marker);
 				});
 			}
@@ -343,4 +340,6 @@
     ></script>
   </body>
 </html>
-    
+`;
+
+export default htmlContent

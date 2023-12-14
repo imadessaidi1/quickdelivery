@@ -4,6 +4,7 @@ import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.Package;
+import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.PDFGenerator;
 import com.quickdelivery.abstarct.helpers.QRCodeGenerator;
@@ -82,9 +83,7 @@ public class PackagesService implements IPackagesService {
             String permut = departureLatitude;
             departureLatitude = arrivalLatitude;
             arrivalLatitude = permut;
-        }
-        if(departureLongitude.compareTo(arrivalLongitude)>0){
-            String permut = departureLongitude;
+            permut = departureLongitude;
             departureLongitude = arrivalLongitude;
             arrivalLongitude = permut;
         }
@@ -93,6 +92,15 @@ public class PackagesService implements IPackagesService {
         packages.stream().filter(aPackage -> aPackage.getAddresses().size()==2).collect(Collectors.toList())
                 .stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
         return packageDTOS;
+    }
+
+    @Override
+    public void reservePackage(Long packageID, Long deliveryPersonID) {
+        Package aPackage = packages.findById(packageID).get();
+        User user = users.findById(deliveryPersonID).get();
+        aPackage.setStatus(PACKAGE_STATUS.RESERVED);
+        aPackage.setDeliveryPerson(user);
+        packages.save(aPackage);
     }
 
     @Override

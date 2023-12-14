@@ -5,7 +5,7 @@
 </template>
 
 <script>
-  import ComponentWithMap from './components/ComponentWithMap.vue'
+  import ComponentWithMap from './components/ComponentWithMapFromHTML.vue'
 
 export default {
   name: 'App',

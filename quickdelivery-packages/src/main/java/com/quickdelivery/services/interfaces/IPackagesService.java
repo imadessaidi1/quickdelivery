@@ -15,6 +15,7 @@ public interface IPackagesService {
     void createNewPackages(List<PackageDTO> packageDTOS);
     List<PackageDTO> getPAckagesAroundPosition(String latitude, String longitude,double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
+    void reservePackage(Long packageID, Long deliveryPersonID);
     PackageDTO findPackageByID(Long id);
     PackageDTO updatePackage(PackageDTO packageDTO);
     void deletePackage(PackageDTO packageDTO);

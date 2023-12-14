@@ -1,4 +1,7 @@
 <template>
+<div>
+<a href="/google-maps.html?userID=904">maps html</a>
+</div>
       <div>
   <GMapMap
     :center="{ lat: latitude, lng: longitude }"

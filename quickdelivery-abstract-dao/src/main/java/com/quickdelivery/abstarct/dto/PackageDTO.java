@@ -11,6 +11,7 @@ public class PackageDTO {
     private Long id;
     private Timestamp version;
     private Timestamp creationDate;
+
     private Float height;
     private Float width;
     private Float weight;
@@ -18,7 +19,7 @@ public class PackageDTO {
     private PACKAGE_STATUS status;
     private Float deliveryPrice;
     private Long senderID;
-    private Long deliveryPersonID;
+    private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
 
     private List<DocumentDTO> documentS;
@@ -81,13 +82,7 @@ public class PackageDTO {
         this.deliveryPrice = deliveryPrice;
     }
 
-    public Long getDeliveryPersonID() {
-        return deliveryPersonID;
-    }
 
-    public void setDeliveryPersonID(Long deliveryPersonID) {
-        this.deliveryPersonID = deliveryPersonID;
-    }
 
     public List<AddressDTO> getAddresses() {
         return addresses;
@@ -143,5 +138,13 @@ public class PackageDTO {
 
     public void setLastPositionLongitude(BigDecimal lastPositionLongitude) {
         this.lastPositionLongitude = lastPositionLongitude;
+    }
+
+    public List<PackageReservationDTO> getPackageReservations() {
+        return packageReservations;
+    }
+
+    public void setPackageReservations(List<PackageReservationDTO> packageReservations) {
+        this.packageReservations = packageReservations;
     }
 }

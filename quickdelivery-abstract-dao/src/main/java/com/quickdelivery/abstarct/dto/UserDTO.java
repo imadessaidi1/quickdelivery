@@ -3,7 +3,7 @@ package com.quickdelivery.abstarct.dto;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 public class UserDTO {
     private Long id;
@@ -16,12 +16,12 @@ public class UserDTO {
     private String phone;
     private Boolean phoneValidation;
     private Boolean activeAccount;
-    private Set<AddressDTO> personalAddress;
-    private Set<PaymentDTO> paymentDTOS;
-    private Set<DocumentDTO> documentDTO;
-    private Set<PackageDTO> packagesDELIVERED;
-    private Set<PackageDTO> packagesSent;
-    private Set<VehicleDTO> vehicleDTOS;
+    private List<AddressDTO> personalAddress;
+    private List<PaymentDTO> paymentDTOS;
+    private List<DocumentDTO> documentDTO;
+    private List<PackageReservationDTO> packagesDELIVERED;
+    private List<PackageDTO> packagesSent;
+    private List<VehicleDTO> vehicleDTOS;
     @JsonCreator
     public UserDTO(){}
 
@@ -97,27 +97,27 @@ public class UserDTO {
         this.activeAccount = activeAccount;
     }
 
-    public Set<PaymentDTO> getPayments() {
+    public List<PaymentDTO> getPayments() {
         return paymentDTOS;
     }
 
-    public void setPayments(Set<PaymentDTO> paymentDTOS) {
+    public void setPayments(List<PaymentDTO> paymentDTOS) {
         this.paymentDTOS = paymentDTOS;
     }
 
-    public Set<DocumentDTO> getDocument() {
+    public List<DocumentDTO> getDocument() {
         return documentDTO;
     }
 
-    public void setDocument(Set<DocumentDTO> documentDTO) {
+    public void setDocument(List<DocumentDTO> documentDTO) {
         this.documentDTO = documentDTO;
     }
 
-    public Set<PackageDTO> getPackagesDELIVERED() {
+    public List<PackageReservationDTO> getPackagesDELIVERED() {
         return packagesDELIVERED;
     }
 
-    public void setPackagesDELIVERED(Set<PackageDTO> packagesDELIVERED) {
+    public void setPackagesDELIVERED(List<PackageReservationDTO> packagesDELIVERED) {
         this.packagesDELIVERED = packagesDELIVERED;
     }
 
@@ -129,43 +129,43 @@ public class UserDTO {
         this.type = type;
     }
 
-    public Set<AddressDTO> getPersonalAddress() {
+    public List<AddressDTO> getPersonalAddress() {
         return personalAddress;
     }
 
-    public void setPersonalAddress(Set<AddressDTO> personalAddress) {
+    public void setPersonalAddress(List<AddressDTO> personalAddress) {
         this.personalAddress = personalAddress;
     }
 
-    public Set<PaymentDTO> getPaymentDTOS() {
+    public List<PaymentDTO> getPaymentDTOS() {
         return paymentDTOS;
     }
 
-    public void setPaymentDTOS(Set<PaymentDTO> paymentDTOS) {
+    public void setPaymentDTOS(List<PaymentDTO> paymentDTOS) {
         this.paymentDTOS = paymentDTOS;
     }
 
-    public Set<DocumentDTO> getDocumentDTO() {
+    public List<DocumentDTO> getDocumentDTO() {
         return documentDTO;
     }
 
-    public void setDocumentDTO(Set<DocumentDTO> documentDTO) {
+    public void setDocumentDTO(List<DocumentDTO> documentDTO) {
         this.documentDTO = documentDTO;
     }
 
-    public Set<PackageDTO> getPackagesSent() {
+    public List<PackageDTO> getPackagesSent() {
         return packagesSent;
     }
 
-    public void setPackagesSent(Set<PackageDTO> packagesSent) {
+    public void setPackagesSent(List<PackageDTO> packagesSent) {
         this.packagesSent = packagesSent;
     }
 
-    public Set<VehicleDTO> getVehicleDTOS() {
+    public List<VehicleDTO> getVehicleDTOS() {
         return vehicleDTOS;
     }
 
-    public void setVehicleDTOS(Set<VehicleDTO> vehicleDTOS) {
+    public void setVehicleDTOS(List<VehicleDTO> vehicleDTOS) {
         this.vehicleDTOS = vehicleDTOS;
     }
 }

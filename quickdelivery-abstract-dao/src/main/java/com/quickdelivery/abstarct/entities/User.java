@@ -36,7 +36,7 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Document> document = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "deliveryPerson", cascade = CascadeType.ALL)
-    private Set<Package> packagesDELIVERED = new HashSet<>();
+    private Set<PackageReservation> packagesDELIVERED = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "sender", cascade = CascadeType.ALL)
     private Set<Package> packagesSent = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
@@ -138,11 +138,11 @@ public class User {
         this.document = document;
     }
 
-    public Set<Package> getPackagesDELIVERED() {
+    public Set<PackageReservation> getPackagesDELIVERED() {
         return packagesDELIVERED;
     }
 
-    public void setPackagesDELIVERED(Set<Package> packagesDELIVERED) {
+    public void setPackagesDELIVERED(Set<PackageReservation> packagesDELIVERED) {
         this.packagesDELIVERED = packagesDELIVERED;
     }
 

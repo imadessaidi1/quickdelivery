@@ -2,12 +2,14 @@ package com.quickdelivery.controllers;
 
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
+import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +64,35 @@ public class PackageController {
     @PutMapping("/reserve{packageID}{deliveryPersonID}")
     public void reservePackage(@RequestParam("packageID") Long packageID,
                                @RequestParam("deliveryPersonID") Long deliveryPersonID){
-        packagesService.reservePackage(packageID,deliveryPersonID);
+        try {
+            packagesService.reservePackage(packageID,deliveryPersonID);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PutMapping("/pickup{packageID}{deliveryPersonID}{pickUpOTP}")
+    public void pickUpPackage(@RequestParam("packageID") Long packageID,
+                              @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                              @RequestParam("pickUpOTP") String pickUpOTP){
+        try {
+            packagesService.pickUpPackage(packageID,deliveryPersonID,pickUpOTP);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/checkOTPForPickup{packageID}{senderID}{pickUpOTP}")
+    public CHECK_STATUS checkOTPForPickUpPackage(@RequestParam("packageID") Long packageID,
+                                                 @RequestParam("senderID") Long senderID,
+                                                 @RequestParam("pickUpOTP") String pickUpOTP){
+            return packagesService.checkOTPForPickUpPackage(packageID,senderID,pickUpOTP);
+    }
+
+    @GetMapping("/checkOTPForDelivery{packageID}{deliveryPersonID}{deliveryOTP}")
+    public CHECK_STATUS checkOTPForDeliveryPackage(@RequestParam("packageID") Long packageID,
+                                           @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                           @RequestParam("deliveryOTP") String deliveryOTP){
+        return packagesService.checkOTPForPickUpPackage(packageID,deliveryPersonID,deliveryOTP);
     }
 }

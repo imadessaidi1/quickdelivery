@@ -1,13 +1,13 @@
 package com.quickdelivery.services.implementations;
 
 import com.quickdelivery.abstarct.dto.PackageDTO;
-import com.quickdelivery.abstarct.entities.Address;
-import com.quickdelivery.abstarct.entities.Document;
+import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
-import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
+import com.quickdelivery.abstarct.helpers.OTPHelper;
 import com.quickdelivery.abstarct.helpers.PDFGenerator;
 import com.quickdelivery.abstarct.helpers.QRCodeGenerator;
+import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.abstarct.repositories.Packages;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +33,10 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class PackagesService implements IPackagesService {
+    @Value("${application.otp.secret}")
+    private String OTPSecret;
+    @Value("${application.otp.counter}")
+    private long OTPCounter;
     @Value("${mapquest.geocode.url.part1}")
     private String mapQuestURL1;
     @Value("${mapquest.geocode.url.part2}")
@@ -95,12 +100,58 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
-    public void reservePackage(Long packageID, Long deliveryPersonID) {
+    public void reservePackage(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException {
         Package aPackage = packages.findById(packageID).get();
         User user = users.findById(deliveryPersonID).get();
         aPackage.setStatus(PACKAGE_STATUS.RESERVED);
-        aPackage.setDeliveryPerson(user);
+        PackageReservation packageReservation = new PackageReservation();
+        packageReservation.setaPackage(aPackage);
+        packageReservation.setDeliveryPerson(user);
+        packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
+        packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, OTPCounter));
+        //To-Do Send OTP to delivery person & Sender
         packages.save(aPackage);
+    }
+
+    @Override
+    public void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP) throws NoSuchAlgorithmException {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryPerson().getId() == deliveryPersonID).collect(Collectors.toList());
+        if(packageReservation_.size()>0 && packageReservation_.get(0).getPickUpOTP().equals(pickUpOTP)) {
+            aPackage.setStatus(PACKAGE_STATUS.PICKEDUP);
+            aPackage.getPackageReservations().stream().forEach(packageReservation -> {
+                try {
+                    packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, OTPCounter));
+                    //To-Do Send OTP to delivery person & receiver
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }else{
+            System.out.println("Unauthorized USER");
+        }
+    }
+
+    @Override
+    public CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP) {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getPickUpOTP().equals(pickUpOTP)).collect(Collectors.toList());
+        if(packageReservation_.size()>0 && aPackage.getSender().getId().equals(senderID)) {
+           return CHECK_STATUS.OK;
+        }else{
+            return CHECK_STATUS.KO;
+        }
+    }
+
+    @Override
+    public CHECK_STATUS checkOTPForDeliverPackage(Long packageID, Long deliveryPersonID, String deliveryOTP) {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryOTP().equals(deliveryOTP)).collect(Collectors.toList());
+        if(packageReservation_.size()>0 && aPackage.getSender().getId().equals(deliveryPersonID)) {
+            return CHECK_STATUS.OK;
+        }else{
+            return CHECK_STATUS.KO;
+        }
     }
 
     @Override

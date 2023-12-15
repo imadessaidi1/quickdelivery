@@ -18,6 +18,8 @@ public class Package {
     @Column
     private Timestamp creationDate;
     @Column
+    private Timestamp reservationDate;
+    @Column
     private Float height;
     @Column
     private Float width;
@@ -35,12 +37,11 @@ public class Package {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "aPackage", cascade = CascadeType.ALL)
     private Set<Document> document = new HashSet<>();
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "aPackage", cascade = CascadeType.ALL)
+    private Set<PackageReservation> packageReservations = new HashSet<>();
     public Long getId() {
         return id;
     }
-    @ManyToOne
-    @JoinColumn(name="deliveryPerson_id")
-    private User deliveryPerson;
     @ManyToOne
     @JoinColumn(name="sender_id")
     private User sender;
@@ -110,14 +111,6 @@ public class Package {
         this.addresses = addresses;
     }
 
-    public User getDeliveryPerson() {
-        return deliveryPerson;
-    }
-
-    public void setDeliveryPerson(User deliveryPerson) {
-        this.deliveryPerson = deliveryPerson;
-    }
-
     public User getSender() {
         return sender;
     }
@@ -164,5 +157,21 @@ public class Package {
 
     public void setLastPositionLongitude(BigDecimal lastPositionLongitude) {
         this.lastPositionLongitude = lastPositionLongitude;
+    }
+
+    public Timestamp getReservationDate() {
+        return reservationDate;
+    }
+
+    public void setReservationDate(Timestamp reservationDate) {
+        this.reservationDate = reservationDate;
+    }
+
+    public Set<PackageReservation> getPackageReservations() {
+        return packageReservations;
+    }
+
+    public void setPackageReservations(Set<PackageReservation> packageReservations) {
+        this.packageReservations = packageReservations;
     }
 }

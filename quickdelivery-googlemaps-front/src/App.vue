@@ -1,16 +1,30 @@
 <template>
-  <div id="app">
-    <ComponentWithMap />
+  <div>
+    <SearchBar />
+    <div class="main-content">
+      <MarkerList />
+      <GoogleMap />
+
+    </div>
   </div>
 </template>
 
 <script>
-  import ComponentWithMap from './components/ComponentWithMapFromHTML.vue'
+import SearchBar from './components/SearchBar.vue';
+import GoogleMap from './components/GoogleMap.vue';
+import MarkerList from './components/MarkerList.vue';
 
 export default {
-  name: 'App',
   components: {
-    ComponentWithMap
-  }
-}
+    SearchBar,
+    GoogleMap,
+    MarkerList,
+  },
+};
 </script>
+
+<style>
+.main-content {
+  display: flex;
+}
+</style>

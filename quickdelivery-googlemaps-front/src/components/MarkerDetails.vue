@@ -2,13 +2,13 @@
   <div class="marker-details">
     <!-- Zone gauche avec la photo -->
     <div class="left-section">
-      <img :src="marker.photo" alt="Marqueur Photo" />
     </div>
 
     <!-- Zone droite avec le texte -->
     <div class="right-section">
-      <h3>{{ marker.title }}</h3>
-      <p>{{ marker.description }}</p>
+      <h3>{{ package_.id }}</h3>
+      <p>{{ package_.height }}</p>
+      <p>{{ package_.weight }}</p>
     </div>
 
     <!-- Zone inférieure avec des boutons -->
@@ -22,7 +22,7 @@
 <script>
 export default {
   props: {
-    marker: Object, // Propriété pour recevoir les détails du marqueur
+    package_: Object, // Propriété pour recevoir les détails du marqueur
   },
   methods: {
     handleButton1() {

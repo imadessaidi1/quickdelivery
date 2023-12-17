@@ -7,8 +7,8 @@
           height="450"
           :src="googleMapPath"
           style="border:0;"
-          allowfullscreen=""
-          loading="lazy"
+          v-on:load="onLoadIframe"
+          name="map"
         ></iframe>
     </div>
   </div>
@@ -22,9 +22,8 @@ export default {
         // Assurez-vous de remplacer 'nom-du-fichier-dans-public.html' par le vrai nom de votre fichier
       };
     },
-  mounted() {
-    // Initialiser la carte Google Maps ici
-    // Vous devrez inclure la bibliothèque Google Maps JavaScript API
+  methods: {
+
   },
 };
 </script>

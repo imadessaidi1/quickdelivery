@@ -37,6 +37,7 @@ export default {
     login() {
       // Logique de connexion
       console.log('User logged in');
+      window.getPackages();
     },
   },
 };

@@ -2,9 +2,8 @@
   <div>
     <SearchBar />
     <div class="main-content">
-      <MarkerList />
-      <GoogleMap />
-
+      <MarkerList :style="{ width: '30%' }"/>
+      <GoogleMap :style="{ width: '60%' }"/>
     </div>
   </div>
 </template>

@@ -1,6 +1,6 @@
 <template>
   <div class="marker-list">
-    <h2>Liste des Marqueurs</h2>
+    <h2>Liste des Colis autour de vous</h2>
     <ul>
       <li v-for="package_ in packagesList" :key="package_.id">
 
@@ -26,15 +26,21 @@ export default {
         window.onmessage = (e) => {
             const rawData = e.data;
             this.packagesList = JSON.parse(JSON.stringify(rawData));
-            console.log(this.packagesList);
            };
         },
 };
 </script>
 
 <style scoped>
-.marker-list {
+.marker-list ul{
+  width: 100%;
   flex: 1;
   padding: 10px;
+  max-height: 530px;
+  overflow-y: auto;
+}
+ul{
+ list-style: none;
+ padding: 0;
 }
 </style>

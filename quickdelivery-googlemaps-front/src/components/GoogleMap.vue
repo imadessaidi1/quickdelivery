@@ -3,8 +3,8 @@
     <!-- Google Maps intégré ici -->
     <div id="map">
     <iframe
-          width="600"
-          height="450"
+          width="100%"
+          height="591"
           :src="googleMapPath"
           style="border:0;"
           v-on:load="onLoadIframe"
@@ -30,7 +30,8 @@ export default {
 
 <style scoped>
 .google-map {
+  width: 100%;
   flex: 1;
-  height: 400px; /* Ajustez la hauteur selon vos besoins */
+  padding: 20px;
 }
 </style>

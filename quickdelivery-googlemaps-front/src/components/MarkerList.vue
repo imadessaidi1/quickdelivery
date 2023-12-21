@@ -3,9 +3,7 @@
     <h2>Liste des Colis autour de vous</h2>
     <ul>
       <li v-for="package_ in packagesList" :key="package_.id">
-
-        <!-- Utilisez le composant MarkerDetails pour chaque marqueur -->
-        <MarkerDetails :package_="package_" />
+        <MarkerDetails ref="markerDetail" :package_="package_" />
       </li>
     </ul>
   </div>
@@ -23,11 +21,24 @@ export default {
     };
   },
    mounted() {
-        window.onmessage = (e) => {
-            const rawData = e.data;
-            this.packagesList = JSON.parse(JSON.stringify(rawData));
-           };
-        },
+       window.onmessage = (e) => {
+        if (Array.isArray(e.data)) {
+                const rawData = e.data;
+                this.packagesList = JSON.parse(JSON.stringify(rawData));
+        }
+        if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
+           const packageID = e.data.split(':')[1];
+           const markerDetailComponent = this.$refs.markerDetail;
+           //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
+           markerDetailComponent.forEach(markerDetail => {
+            if(markerDetail.package_.id+'' === packageID)
+             if (markerDetail && markerDetail.setFocusOnReserveButton) {
+                markerDetail.setFocusOnReserveButton();
+             }
+           });
+        }
+       };
+   },
 };
 </script>
 

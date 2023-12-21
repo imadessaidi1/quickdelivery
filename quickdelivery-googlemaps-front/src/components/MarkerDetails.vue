@@ -13,7 +13,7 @@
 
     <!-- Zone inférieure avec des boutons -->
     <div class="bottom-section">
-      <button @click="handleButton1">Bouton 1</button>
+      <button ref="reserveButtons" :key="package_.id" @click="handleButton1">Reserve</button>
       <button @click="handleButton2">Bouton 2</button>
     </div>
   </div>
@@ -33,6 +33,15 @@ export default {
       // Logique du bouton 2
       console.log('Button 2 clicked');
     },
+    setFocusOnReserveButton() {
+          const reserveButton = this.$refs.reserveButtons;
+          if (reserveButton) {
+            reserveButton.focus();
+          }
+        },
+  },
+  mounted() {
+
   },
 };
 </script>

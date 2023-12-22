@@ -14,6 +14,7 @@ public class PackageDTO {
 
     private Float height;
     private Float width;
+    private Float depth;
     private Float weight;
     private String pictureURL;
     private PACKAGE_STATUS status;
@@ -146,5 +147,13 @@ public class PackageDTO {
 
     public void setPackageReservations(List<PackageReservationDTO> packageReservations) {
         this.packageReservations = packageReservations;
+    }
+
+    public Float getDepth() {
+        return depth;
+    }
+
+    public void setDepth(Float depth) {
+        this.depth = depth;
     }
 }

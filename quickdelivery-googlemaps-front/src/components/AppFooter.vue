@@ -1,5 +1,3 @@
-<!-- Footer.vue -->
-
 <template>
   <div>
     <footer>
@@ -38,7 +36,6 @@
 </template>
 
 <style scoped>
-/* Ajoutez du style pour le pied de page */
 footer {
   display: flex;
   justify-content: space-around;
@@ -59,11 +56,6 @@ footer {
 .footer-column ul {
   list-style: none;
   padding: 0;
-}
-
-.horizontal-line {
-  border-top: 1px solid #ccc;
-  margin-top: 20px;
 }
 
 .copyright-info {

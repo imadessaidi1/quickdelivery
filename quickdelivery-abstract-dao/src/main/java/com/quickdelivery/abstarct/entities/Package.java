@@ -24,6 +24,8 @@ public class Package {
     @Column
     private Float width;
     @Column
+    private Float depth;
+    @Column
     private Float weight;
     @Column
     private String pictureURL;
@@ -173,5 +175,13 @@ public class Package {
 
     public void setPackageReservations(Set<PackageReservation> packageReservations) {
         this.packageReservations = packageReservations;
+    }
+
+    public Float getDepth() {
+        return depth;
+    }
+
+    public void setDepth(Float depth) {
+        this.depth = depth;
     }
 }

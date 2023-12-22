@@ -2,13 +2,22 @@
   <div class="marker-details">
     <!-- Zone gauche avec la photo -->
     <div class="left-section">
+      PHOTO
     </div>
 
     <!-- Zone droite avec le texte -->
     <div class="right-section">
       <h3>{{ package_.id }}</h3>
-      <p>{{ package_.height }}</p>
-      <p>{{ package_.weight }}</p>
+      <p><label for="height">{{$t('packageHeight')}}:</label>
+        <label for="height">{{package_.height}}</label></p>
+      <p><label for="width">{{$t('packageWidth')}}:</label>
+        <label for="width">{{package_.width}} </label></p>
+      <p><label for="depth">{{$t('packageDepth')}}:</label>
+        <label for="depth">{{package_.dept}}</label></p>
+      <p><label for="weight">{{$t('packageWeight')}}:</label>
+        <label for="weight">{{package_.weight}}</label></p>
+      <p><label for="price">{{$t('packagePrice')}}:</label>
+        <label for="weight">{{package_.price}}</label></p>
     </div>
 
     <!-- Zone inférieure avec des boutons -->

@@ -2,34 +2,28 @@
   <div>
     <footer>
       <div class="footer-column">
-        <h4>Assistance</h4>
+        <h4>{{$t('footerAssistance')}}</h4>
         <ul>
-          <li>Centre d'aide</li>
-          <li>Lutte contre la discrimination</li>
-          <li>Assistance handicap</li>
+          <li>{{$t('footerAssistanceHelp')}}</li>
         </ul>
       </div>
       <div class="footer-column">
-        <h4>Accueil</h4>
+        <h4>{{$t('footerWelcome')}}</h4>
         <ul>
-
-          <li>Forum de la communauté</li>
+          <li>{{$t('footerWelcomeForum')}}</li>
         </ul>
       </div>
       <div class="footer-column">
-        <h4>QuickDelivery</h4>
+        <h4>{{$t('applicationName')}}</h4>
         <ul>
-          <li>A propos de nous</li>
-          <li>Nous contacter</li>
+          <li>{{$t('footerWelcomeAbout')}}</li>
+          <li>{{$t('footerWelcomeContact')}}</li>
         </ul>
       </div>
     </footer>
     <div class="copyright-info">
       <div class="left-align">
-        <p>© 2023 QuickDelivery, Inc.·Confidentialité ·Conditions générales ·Plan du site ·Fonctionnement du sit ·Infos sur l'entreprise</p>
-      </div>
-      <div class="right-align">
-        <p>Français (FR)&nbsp;€ EUR</p>
+        <p>© 2023 {{$t('applicationName')}}, Inc.·{{$t('footerPrivacy')}} ·{{$t('footerConditions')}} ·{{$t('footerCompany')}}</p>
       </div>
     </div>
   </div>

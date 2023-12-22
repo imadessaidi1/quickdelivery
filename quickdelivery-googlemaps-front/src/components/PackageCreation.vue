@@ -2,31 +2,48 @@
 
 <template>
   <div class="package-form">
-    <h2>Create Package</h2>
-    <form @submit.prevent="submitForm">
-      <div class="form-group">
-        <label for="height">Height:</label>
+    <h2>{{$t('createNewPackage')}}</h2>
+    <form @submit.prevent="submitForm" ref="packageCreationForm">
+    <table>
+    <tr>
+    <td>
+    <div class="form-group">
+        <label for="height">{{$t('packageHeight')}}:</label>
         <input type="number" v-model="package_.height" required />
-      </div>
 
+      </div>
+    </td>
+    <td>
       <div class="form-group">
-        <label for="width">Width:</label>
+        <label for="width">{{$t('packageWidth')}}:</label>
         <input type="number" v-model="package_.width" required />
       </div>
-
+    </td>
+    </tr>
+    <tr>
+      <td>
       <div class="form-group">
-        <label for="weight">Weight:</label>
-        <input type="number" v-model="package_.weight" required />
-      </div>
-      <div class="form-group">
-        <label for="depth">Depth:</label>
+        <label for="depth">{{$t('packageDepth')}}:*</label>
         <input type="number" v-model="package_.depth" required />
       </div>
-
+      </td>
+      <td>
       <div class="form-group">
-        <label for="pictureURL">Picture URL:</label>
+        <label for="weight">{{$t('packageWeight')}}:</label>
+        <input type="number" v-model="package_.weight" required />
+      </div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+      <div class="form-group">
+        <label for="pictureURL">{{$t('packagePicture')}}:</label>
         <input type="text" v-model="package_.pictureURL" />
       </div>
+      </td>
+      <td></td>
+    </tr>
+    </table>
       <PackageAddress :addresses="package_.addresses"/>
       <button type="submit">Create Package</button>
     </form>

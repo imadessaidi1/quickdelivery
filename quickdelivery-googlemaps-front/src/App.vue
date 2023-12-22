@@ -1,6 +1,6 @@
 <template>
   <div>
-  <button @click="openModal">Ouvrir la modal</button>
+  <button @click="openModal">{{ $t('greeting') }}</button>
     <SearchBar />
     <div class="main-content">
       <MarkerList :style="{ width: '30%' }"/>
@@ -20,7 +20,7 @@ import SearchBar from './components/SearchBar.vue';
 import GoogleMap from './components/GoogleMap.vue';
 import MarkerList from './components/MarkerList.vue';
 import AppFooter from './components/AppFooter.vue';
-import AppModal from "@/components/AppModal.vue";
+import AppModal from "@/components/CreatePackageModal.vue";
 
 export default {
   components: {

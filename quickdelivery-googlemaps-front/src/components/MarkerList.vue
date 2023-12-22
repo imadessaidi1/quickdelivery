@@ -1,6 +1,6 @@
 <template>
   <div class="marker-list">
-    <h2>Liste des Colis autour de vous</h2>
+    <h2>{{$t('packagesArround')}}</h2>
     <ul>
       <li v-for="package_ in packagesList" :key="package_.id">
         <MarkerDetails ref="markerDetail" :package_="package_" />

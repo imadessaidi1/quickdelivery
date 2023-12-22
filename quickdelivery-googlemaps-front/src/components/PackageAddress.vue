@@ -3,37 +3,37 @@
     <h2>Liste d'Adresses</h2>
     <div class="column-half">
       <div>
-        <label>Prénom:</label>
-        <input v-model="address.firstName" />
+        <label>{{$t('packageAddressFirstName')}}:</label>
+        <input v-model="address.firstName" required="true" />
       </div>
       <div>
-        <label>Nom:</label>
-        <input type="text" v-model="address.lastName" />
+        <label>{{$t('packageAddressLastName')}}:</label>
+        <input type="text" v-model="address.lastName" required="true" />
       </div>
       <div>
-        <label>Ligne 1:</label>
-        <input v-model="address.line1" />
+        <label>{{$t('packageAddressLine1')}}:</label>
+        <input v-model="address.line1" required="true" />
       </div>
       <div>
-        <label>Ligne 2:</label>
+        <label>{{$t('packageAddressLine2')}}:</label>
         <input v-model="address.line2" />
       </div>
       </div>
       <div class="column-half">
       <div>
-        <label>Ville:</label>
+        <label>{{$t('packageAddressCity')}}:</label>
         <input v-model="address.town" />
       </div>
       <div>
-        <label>Code Postal:</label>
-        <input type="number" v-model="address.zipCode" />
+        <label>{{$t('packageAddressZip')}}:</label>
+        <input type="number" v-model="address.zipCode" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="5" required="true"/>
       </div>
       <div>
-        <label>Pays:</label>
-        <input v-model="address.country" />
+        <label>{{$t('packageAddressCountry')}}:</label>
+        <input v-model="address.country" required="true" />
       </div>
       <div>
-        <label>Type:</label>
+        <label>{{$t('packageAddressType')}}:</label>
         <select id="addressType" v-model="address.type">
           <option v-for="addressType in addressTypes" :key="addressType.key" :value="addressType.key">
             {{ addressType.value }}
@@ -42,19 +42,19 @@
       </div>
       </div>
 
-    <button @click="addAddress">Ajouter une Adresse</button>
+    <button @click="addAddress" :disabled="addresses.length === 2">{{$t('packageAddressAddAction')}}</button>
     <table>
       <thead>
         <tr>
-          <th>Prénom</th>
-          <th>Nom</th>
-          <th>Ligne 1</th>
-          <th>Ligne 2</th>
-          <th>Ville</th>
-          <th>Code Postal</th>
-          <th>Pays</th>
-          <th>Type</th>
-          <th>Actions</th>
+          <th>{{$t('packageAddressFirstName')}}</th>
+          <th>{{$t('packageAddressLastName')}}</th>
+          <th>{{$t('packageAddressLine1')}}</th>
+          <th>{{$t('packageAddressLine2')}}</th>
+          <th>{{$t('packageAddressCity')}}</th>
+          <th>{{$t('packageAddressZip')}}</th>
+          <th>{{$t('packageAddressCountry')}}</th>
+          <th>{{$t('packageAddressType')}}</th>
+          <th>{{$t('packageAddressListActions')}}</th>
         </tr>
       </thead>
       <tbody>
@@ -68,8 +68,7 @@
           <td>{{ address.country }}</td>
           <td>{{ address.type }}</td>
           <td>
-            <button @click="editAddress(index)">Modifier</button>
-            <button @click="removeAddress(index)">Supprimer</button>
+            <button @click="removeAddress(index)">{{$t('packageAddressListActionsDelete')}}</button>
           </td>
         </tr>
       </tbody>
@@ -108,7 +107,16 @@ export default {
   },
   methods: {
     addAddress() {
-      this.addresses.push(this.address);
+      if(this.addresses.length < 2){
+      const typeExists = this.addresses.some(address => address.type === this.address.type);
+      if (!typeExists) {
+        this.addresses.push({ ...this.address});
+      }else{
+        alert('Type d\'adresse existant');
+      }
+      }else{
+      alert('Vous ne pouvez pas ajouter plus de 2 adresses');
+      }
     },
     removeAddress(index) {
       this.addresses.splice(index, 1);
@@ -138,5 +146,8 @@ export default {
 label {
   display: block;
   margin-bottom: 5px;
+}
+.invalid-field {
+  border: 1px solid red;
 }
 </style>

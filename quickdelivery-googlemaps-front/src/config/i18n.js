@@ -41,6 +41,11 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     //Packages Arround
     packagesArround: 'Packages around you',
+    //MENU
+    menuMyPackages: 'My Packages',
+    menuNewPackage: 'New Package',
+    //MESSAGES
+    messageExistingAddress: 'Address already added',
   },
   fr: {
   //FOOTER LABELS
@@ -79,6 +84,11 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
+    //MENU
+    menuMyPackages: 'Mes Colis',
+    menuNewPackage: 'Neouveau Colis',
+    //MESSAGE
+    messageExistingAddress: 'Type d\'adresse existant',
   },
   // Ajoutez d'autres langues si nécessaire...
 };

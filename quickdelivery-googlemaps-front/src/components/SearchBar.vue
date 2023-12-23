@@ -5,8 +5,8 @@
     <transition name="fade">
           <div v-if="isActiveMenu" class="horizontal-menu">
             <ul>
-              <li>Mes Colis</li>
-              <li>Mon Profil</li>
+              <li>{{$t('menuMyPackages')}}</li>
+              <li><a @click="openModal">{{$t('menuNewPackage')}}</a></li>
               <li>CGU</li>
               <li>Politique des Cookies</li>
               <li>Nous Contacter</li>
@@ -20,10 +20,15 @@
     <!-- Bouton de connexion -->
     <button @click="login">Connexion</button>
   </div>
+  <AppModal ref="AppModal" />
 </template>
 
 <script>
+import AppModal from "@/components/CreatePackageModal.vue";
 export default {
+  components: {
+    AppModal,
+  },
   data() {
       return {
         isActiveMenu: false,
@@ -39,11 +44,14 @@ export default {
       console.log('User logged in');
       window.getPackages();
     },
+    openModal() {
+      this.$refs.AppModal.openModal();
+    },
   },
 };
 </script>
 
-<style scoped>
+<style>
 .search-bar {
   display: flex;
   justify-content: space-between;

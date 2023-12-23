@@ -22,13 +22,12 @@
         </select>
       </div>
     <button @click="addAddress" :disabled="addresses.length === 2">{{$t('packageAddressAddAction')}}</button>
-    <table>
+    <table v-if="addresses.length > 0">
       <thead>
         <tr>
           <th>{{$t('packageAddressFirstName')}}</th>
           <th>{{$t('packageAddressLastName')}}</th>
           <th>{{$t('packageAddressLine1')}}</th>
-          <th>{{$t('packageAddressLine2')}}</th>
           <th>{{$t('packageAddressCity')}}</th>
           <th>{{$t('packageAddressZip')}}</th>
           <th>{{$t('packageAddressCountry')}}</th>
@@ -41,7 +40,6 @@
           <td>{{ address.firstName }}</td>
           <td>{{ address.lastName }}</td>
           <td>{{ address.line1 }}</td>
-          <td>{{ address.line2 }}</td>
           <td>{{ address.town }}</td>
           <td>{{ address.zipCode }}</td>
           <td>{{ address.country }}</td>
@@ -93,15 +91,16 @@ export default {
       if(this.addresses.length < 2){
       const addressAuto=this.$refs.addressAutoComplete;
       const address = addressAuto.address.split(',');
-      this.address.line1 = address[0];
+      this.address.line1 = address[0].trim();
       this.address.zipCode = address[1].trim().split(' ')[0];
       this.address.town = address[1].trim().split(' ')[1];
-      this.address.country = address[2];
+      this.address.country = address[2].trim();
       const typeExists = this.addresses.some(address => address.type === this.address.type);
       if (!typeExists) {
         this.addresses.push({ ...this.address});
       }else{
-        alert('Type d\'adresse existant');
+        const i18n = this.$i18n;
+        alert(i18n.t('messageExistingAddress'));
       }
       }else{
       alert('Vous ne pouvez pas ajouter plus de 2 adresses');

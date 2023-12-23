@@ -2,8 +2,6 @@
     <GoogleAddressAutocomplete
             apiKey="AIzaSyCBZNoGNPCcqSsTYTlOUhkXLhb47HqF9mM"
             v-model="address"
-            @callback="callbackFunction"
-            placeholder="placeholder if you wish"
     />
 </template>
 
@@ -19,11 +17,6 @@ export default {
         return {
             address: ref('')
         }
-    },
-    methods: {
-        callbackFunction(place) {
-           console.log(place);
-        },
     },
 }
 </script>

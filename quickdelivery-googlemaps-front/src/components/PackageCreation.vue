@@ -9,39 +9,30 @@
     <td>
     <div class="form-group">
         <label for="height">{{$t('packageHeight')}}:</label>
-        <input type="number" v-model="package_.height" required />
+        <input type="number" v-model="package_.height" required="true" />
 
       </div>
     </td>
     <td>
       <div class="form-group">
         <label for="width">{{$t('packageWidth')}}:</label>
-        <input type="number" v-model="package_.width" required />
+        <input type="number" v-model="package_.width" required="true" />
       </div>
     </td>
     </tr>
     <tr>
       <td>
       <div class="form-group">
-        <label for="depth">{{$t('packageDepth')}}:*</label>
-        <input type="number" v-model="package_.depth" required />
+        <label for="depth">{{$t('packageDepth')}}:</label>
+        <input type="number" v-model="package_.depth" required="true" />
       </div>
       </td>
       <td>
       <div class="form-group">
         <label for="weight">{{$t('packageWeight')}}:</label>
-        <input type="number" v-model="package_.weight" required />
+        <input type="number" v-model="package_.weight" required="true" />
       </div>
       </td>
-    </tr>
-    <tr>
-      <td>
-      <div class="form-group">
-        <label for="pictureURL">{{$t('packagePicture')}}:</label>
-        <input type="text" v-model="package_.pictureURL" />
-      </div>
-      </td>
-      <td></td>
     </tr>
     </table>
       <button type="submit">{{$t('packageCreateAction')}}</button>

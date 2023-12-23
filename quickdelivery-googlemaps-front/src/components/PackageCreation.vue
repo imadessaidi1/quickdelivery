@@ -44,9 +44,9 @@
       <td></td>
     </tr>
     </table>
-      <PackageAddress :addresses="package_.addresses"/>
-      <button type="submit">Create Package</button>
+      <button type="submit">{{$t('packageCreateAction')}}</button>
     </form>
+  <PackageAddress ref="addressList" :addresses="package_.addresses"/>
   </div>
 </template>
 
@@ -64,32 +64,27 @@ export default {
         weight: 0,
         depth: 0,
         pictureURL: '',
-        addresses: [
-                    {
-                      firstName: '',
-                      lastName: '',
-                      line1: '',
-                      line2: '',
-                      town: '',
-                      zipCode: '',
-                      country: '',
-                      type: ''
-                    }
-                  ],
-        documentS: [
-          {
-            docURL: '',
-            type: ''
-          }
-        ],
+        senderID: 905,
+        addresses: [],
+        documentS: [],
       },
     };
   },
   methods: {
-    submitForm() {
-      // Envoyez le package à l'API REST ici
-      console.log('Package to be sent:', this.package);
-      // Ajoutez la logique pour envoyer les données à l'API REST
+    async submitForm() {
+      const i18n = this.$i18n;
+      const addressListComponent=this.$refs.addressList;
+      this.package_.addresses = addressListComponent.addresses;
+      console.log(this.package_);
+      const requestOptions = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.package_)
+      };
+      console.log(i18n.t('rootURL') + i18n.t('createPackageUrl'));
+      const response = await fetch(i18n.t('rootURL') + i18n.t('createPackageUrl'), requestOptions);
+      const data = await response.json();
+      console.log(data);
     },
   },
 };

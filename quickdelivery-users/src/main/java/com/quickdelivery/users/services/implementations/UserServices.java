@@ -1,5 +1,7 @@
 package com.quickdelivery.users.services.implementations;
 
+import com.google.maps.GeoApiContext;
+import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.HashSet;
 
 @Service
@@ -28,9 +31,21 @@ public class UserServices implements IUserServices {
     private Users users;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private GeoApiContext geoApiContext;
     @Override
     public UserDTO createNewUser(UserDTO user) {
-        user.getPersonalAddress().stream().forEach(addressDTO -> GeoHelper.AdressGeoCoding(addressDTO, mapQuestURL1, mapQUestKey, mapQuestURL2));
+        user.getPersonalAddress().stream().forEach(addressDTO -> {
+            try {
+                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO, mapQuestURL1, mapQUestKey, mapQuestURL2);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ApiException e) {
+                throw new RuntimeException(e);
+            }
+        });
         User userEntity = modelMapper.map(user,User.class);
         userEntity.getPersonalAddress().stream().forEach(address -> address.setResidents(userEntity));
         users.save(userEntity);

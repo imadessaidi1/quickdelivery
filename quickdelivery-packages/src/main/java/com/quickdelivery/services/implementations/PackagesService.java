@@ -1,5 +1,7 @@
 package com.quickdelivery.services.implementations;
 
+import com.google.maps.GeoApiContext;
+import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
@@ -53,6 +56,8 @@ public class PackagesService implements IPackagesService {
     private Packages packages;
     @Autowired
     private Users users;
+    @Autowired
+    private GeoApiContext geoApiContext;
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO) {
         try {
@@ -183,7 +188,17 @@ public class PackagesService implements IPackagesService {
     }
 
     private void createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
-        packageDTO.getAddresses().stream().forEach(addressDTO -> GeoHelper.AdressGeoCoding(addressDTO, mapQuestURL1, mapQuestKey, mapQuestURL2));
+        packageDTO.getAddresses().stream().forEach(addressDTO -> {
+            try {
+                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO, mapQuestURL1, mapQuestKey, mapQuestURL2);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ApiException e) {
+                throw new RuntimeException(e);
+            }
+        });
         Package aPackage = modelMapper.map(packageDTO, Package.class);
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(users.findById(packageDTO.getSenderID()).get());

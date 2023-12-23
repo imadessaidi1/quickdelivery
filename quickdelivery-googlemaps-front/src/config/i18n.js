@@ -3,6 +3,9 @@ import { createI18n } from 'vue-i18n';
 
 const messages = {
   en: {
+    //API URLS
+    rootURL: 'http://localhost:8082/packages/v1/',
+    createPackageUrl: 'create',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -16,13 +19,15 @@ const messages = {
     footerCompany: 'Company Info',
     //NEW PACKAGE
     createNewPackage: 'New package',
-    packageHeight: 'Height',
-    packageWidth: 'Width',
-    packageWeight: 'Weight',
-    packageDepth: 'Depth',
+    packageHeight: 'Height (cm)',
+    packageWidth: 'Width (cm)',
+    packageWeight: 'Weight (kg)',
+    packageDepth: 'Depth (cm)',
     packagePicture: 'Picture URL',
     packagePrice: 'Price',
     packageCreateAction: 'Create Package',
+    packageAddressAddresses: 'Addresses',
+    packageAddressAddress: 'Address',
     packageAddressFirstName: 'First name',
     packageAddressLastName: 'Last name',
     packageAddressLine1: 'Line 1',
@@ -52,13 +57,15 @@ const messages = {
     footerCompany: 'Infos sur l\'entreprise',
     //Nouveau colis
     createNewPackage: 'Nouveau Colis',
-    packageHeight: 'Hauteur',
-    packageWidth: 'Largeur',
-    packageWeight: 'Poids',
-    packageDepth: 'Profondeur',
-    packagePrice: 'Prix',
+    packageHeight: 'Hauteur (cm)',
+    packageWidth: 'Largeur (cm)',
+    packageWeight: 'Poids (kg)',
+    packageDepth: 'Profondeur (cm)',
+    packagePrice: 'Prix (€)',
     packagePicture: 'URL de la photo',
     packageCreateAction: 'Créer le package',
+    packageAddressAddresses: 'Adresses',
+    packageAddressAddress: 'Adresse',
     packageAddressFirstName: 'Prénom',
     packageAddressLastName: 'Nom',
     packageAddressLine1: 'Ligne 1',
@@ -81,7 +88,7 @@ function detectBrowserLanguage() {
 }
 const i18n = createI18n({
   locale: detectBrowserLanguage(), // Langue par défaut
-  fallbackLocale: 'fr', // Langue de secours
+  fallbackLocale: 'en', // Langue de secours
   messages,
 });
 

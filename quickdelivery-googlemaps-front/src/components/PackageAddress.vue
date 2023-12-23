@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h2>Liste d'Adresses</h2>
-    <div class="column-half">
+    <h2>{{$t('packageAddressAddresses')}}</h2>
       <div>
         <label>{{$t('packageAddressFirstName')}}:</label>
         <input v-model="address.firstName" required="true" />
@@ -11,26 +10,8 @@
         <input type="text" v-model="address.lastName" required="true" />
       </div>
       <div>
-        <label>{{$t('packageAddressLine1')}}:</label>
-        <input v-model="address.line1" required="true" />
-      </div>
-      <div>
-        <label>{{$t('packageAddressLine2')}}:</label>
-        <input v-model="address.line2" />
-      </div>
-      </div>
-      <div class="column-half">
-      <div>
-        <label>{{$t('packageAddressCity')}}:</label>
-        <input v-model="address.town" />
-      </div>
-      <div>
-        <label>{{$t('packageAddressZip')}}:</label>
-        <input type="number" v-model="address.zipCode" oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" maxlength="5" required="true"/>
-      </div>
-      <div>
-        <label>{{$t('packageAddressCountry')}}:</label>
-        <input v-model="address.country" required="true" />
+        <label>{{$t('packageAddressAddress')}}:</label>
+        <AddressAutocomplete ref="addressAutoComplete"/>
       </div>
       <div>
         <label>{{$t('packageAddressType')}}:</label>
@@ -40,8 +21,6 @@
           </option>
         </select>
       </div>
-      </div>
-
     <button @click="addAddress" :disabled="addresses.length === 2">{{$t('packageAddressAddAction')}}</button>
     <table>
       <thead>
@@ -77,7 +56,11 @@
 </template>
 
 <script>
+import AddressAutocomplete from './AddressAutocomplete.vue';
 export default {
+  components: {
+      AddressAutocomplete,
+    },
   data() {
     return {
       addresses: [],
@@ -108,6 +91,12 @@ export default {
   methods: {
     addAddress() {
       if(this.addresses.length < 2){
+      const addressAuto=this.$refs.addressAutoComplete;
+      const address = addressAuto.address.split(',');
+      this.address.line1 = address[0];
+      this.address.zipCode = address[1].trim().split(' ')[0];
+      this.address.town = address[1].trim().split(' ')[1];
+      this.address.country = address[2];
       const typeExists = this.addresses.some(address => address.type === this.address.type);
       if (!typeExists) {
         this.addresses.push({ ...this.address});
@@ -120,10 +109,6 @@ export default {
     },
     removeAddress(index) {
       this.addresses.splice(index, 1);
-    },
-    editAddress(index) {
-      // Mettez en œuvre la logique pour éditer une adresse si nécessaire
-      console.log("Modifier l'adresse à l'index", index);
     },
   },
 };

@@ -5,8 +5,8 @@
     <transition name="fade">
           <div v-if="isActiveMenu" class="horizontal-menu">
             <ul>
-              <li>{{$t('menuMyPackages')}}</li>
-              <li><a @click="openModal">{{$t('menuNewPackage')}}</a></li>
+              <li><router-link to="/createPackage">{{$t('menuMyPackages')}}</router-link></li>
+              <li><router-link to="/createPackage">{{$t('menuNewPackage')}}</router-link></li>
               <li>CGU</li>
               <li>Politique des Cookies</li>
               <li>Nous Contacter</li>

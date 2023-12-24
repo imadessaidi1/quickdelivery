@@ -1,6 +1,4 @@
 <template>
-  <div>
-    <h2>{{$t('packageAddressAddresses')}}</h2>
       <div>
         <label for="firstName">{{$t('packageAddressFirstName')}}:</label>
         <input id="firstName" v-model="address.firstName" :required="true" />
@@ -9,48 +7,18 @@
         <label for="lastName">{{$t('packageAddressLastName')}}:</label>
         <input id="lastName" type="text" v-model="address.lastName" :required="true" />
       </div>
+        <div>
+          <label for="email">{{$t('packageAddressEmail')}}:</label>
+          <input id="email" type="email" v-model="address.email" :required="true" />
+        </div>
+        <div>
+          <label for="phone">{{$t('packageAddressPhone')}}:</label>
+          <input id="phone" type="text" v-model="address.phone" :required="true" />
+        </div>
       <div>
         <label for="address">{{$t('packageAddressAddress')}}:</label>
-        <AddressAutocomplete id="address" ref="addressAutoComplete"/>
+          <AddressAutocomplete id="address" ref="addressAutoComplete"/>
       </div>
-      <div>
-        <label for="addressType">{{$t('packageAddressType')}}:</label>
-        <select id="addressType" v-model="address.type">
-          <option v-for="addressType in addressTypes" :key="addressType.key" :value="addressType.key">
-            {{ addressType.value }}
-          </option>
-        </select>
-      </div>
-    <button @click="addAddress" :disabled="addresses.length === 2">{{$t('packageAddressAddAction')}}</button>
-    <table v-if="addresses.length > 0">
-      <thead>
-        <tr>
-          <th>{{$t('packageAddressFirstName')}}</th>
-          <th>{{$t('packageAddressLastName')}}</th>
-          <th>{{$t('packageAddressLine1')}}</th>
-          <th>{{$t('packageAddressCity')}}</th>
-          <th>{{$t('packageAddressZip')}}</th>
-          <th>{{$t('packageAddressCountry')}}</th>
-          <th>{{$t('packageAddressType')}}</th>
-          <th>{{$t('packageAddressListActions')}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(address, index) in addresses" :key="index">
-          <td>{{ address.firstName }}</td>
-          <td>{{ address.lastName }}</td>
-          <td>{{ address.line1 }}</td>
-          <td>{{ address.town }}</td>
-          <td>{{ address.zipCode }}</td>
-          <td>{{ address.country }}</td>
-          <td>{{ address.type }}</td>
-          <td>
-            <button @click="removeAddress(index)">{{$t('packageAddressListActionsDelete')}}</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </template>
 
 <script>
@@ -60,12 +28,11 @@ import { required } from '@vuelidate/validators';
 
 export default {
   components: {
-      AddressAutocomplete,
-    },
+    AddressAutocomplete,
+  },
   data() {
     return {
       v$: useValidate(),
-      addresses: [],
       address: {
         fullAddress:"",
         firstName: "",
@@ -75,20 +42,12 @@ export default {
         town: "",
         zipCode: "",
         country: "",
-        type: "",
+        email: "",
+        phone: "",
+        type: "ARRIVAL",
         latitude: 0,
         longitude: 0,
       },
-      addressTypes: [
-        {
-        key: 'DEPARTURE',
-        value: 'DEPARTURE'
-        },
-        {
-        key: 'ARRIVAL',
-        value: 'ARRIVAL'
-        }
-      ],
     };
   },
   validations() {
@@ -103,7 +62,7 @@ export default {
   methods: {
     addAddress() {
     console.log(this.v$);
-    if (!this.v$.$error){
+    if (!this.v$.address.$invalid){
         if(this.addresses.length < 2){
         const addressAuto=this.$refs.addressAutoComplete;
         const address = addressAuto.address.split(',');
@@ -135,6 +94,10 @@ export default {
 </script>
 
 <style scoped>
+.package-address {
+  display: flex;
+  flex-wrap: wrap;
+}
 .address-item {
   border: 1px solid #ddd;
   padding: 10px;

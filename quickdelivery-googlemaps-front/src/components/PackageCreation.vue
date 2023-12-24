@@ -1,52 +1,27 @@
 <!-- PackageForm.vue -->
 
 <template>
-  <div class="package-form">
-    <h2>{{$t('createNewPackage')}}</h2>
-    <form @submit.prevent="submitForm" ref="packageCreationForm">
-    <table>
-    <tr>
-    <td>
-    <div class="form-group">
+    <div>
         <label for="height">{{$t('packageHeight')}}:</label>
         <input id="height" type="number" v-model="package_.height" required="true" />
 
       </div>
-    </td>
-    <td>
-      <div class="form-group">
+      <div>
         <label for="width">{{$t('packageWidth')}}:</label>
         <input id="width" type="number" v-model="package_.width" required="true" />
       </div>
-    </td>
-    </tr>
-    <tr>
-      <td>
-      <div class="form-group">
+      <div>
         <label for="depth">{{$t('packageDepth')}}:</label>
         <input id="depth" type="number" v-model="package_.depth" required="true" />
       </div>
-      </td>
-      <td>
-      <div class="form-group">
+      <div>
         <label for="weight">{{$t('packageWeight')}}:</label>
         <input id="weight" type="number" v-model="package_.weight" required="true" />
       </div>
-      </td>
-    </tr>
-    </table>
-      <button type="submit">{{$t('packageCreateAction')}}</button>
-    </form>
-  <PackageAddress ref="addressList" :addresses="package_.addresses"/>
-  </div>
 </template>
-
 <script>
-import PackageAddress from './PackageAddress.vue';
+
 export default {
-  components: {
-    PackageAddress,
-  },
   data() {
     return {
       package_: {
@@ -56,7 +31,36 @@ export default {
         depth: 0,
         pictureURL: '',
         senderID: 905,
-        addresses: [],
+        addresses: [{
+        fullAddress:"",
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        email: "",
+        phone: "",
+        type: "DEPARTURE",
+        latitude: 0,
+        longitude: 0,
+      },
+      {
+        fullAddress:"",
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        email: "",
+        phone: "",
+        type: "ARRIVAL",
+        latitude: 0,
+        longitude: 0,
+      }],
         documentS: [],
       },
     };
@@ -81,29 +85,10 @@ export default {
 };
 </script>
 
-<style scoped>
-.package-form {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 10px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
+<style>
 
 label {
   display: block;
   margin-bottom: 5px;
 }
-.column-half {
-  width: 50%;
-  box-sizing: border-box;
-  float: left;
-}
-.column-half:nth-child(even) {
-  clear: both;
-}
-
 </style>

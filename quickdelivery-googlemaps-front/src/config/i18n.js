@@ -48,6 +48,7 @@ const messages = {
     //Packages Arround
     packagesArround: 'Packages around you',
     //MENU
+    menuHome: 'Home',
     menuMyPackages: 'My Packages',
     menuNewPackage: 'New Package',
     //MESSAGES
@@ -98,6 +99,7 @@ const messages = {
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
     //MENU
+    menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',
     menuNewPackage: 'Neouveau Colis',
     //MESSAGE

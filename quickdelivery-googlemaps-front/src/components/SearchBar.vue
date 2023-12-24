@@ -1,6 +1,6 @@
 <template>
   <div class="search-bar">
-    <!-- Bouton du menu -->
+    <router-link to="/">{{$t('menuHome')}}</router-link>
     <button @click="toggleMenu">☰</button>
     <transition name="fade">
           <div v-if="isActiveMenu" class="horizontal-menu">

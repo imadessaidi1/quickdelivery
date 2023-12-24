@@ -8,16 +8,16 @@
     <!-- Zone droite avec le texte -->
     <div class="right-section">
       <h3>{{ package_.id }}</h3>
-      <p><label for="height">{{$t('packageHeight')}}:</label>
-        <label for="height">{{package_.height}}</label></p>
-      <p><label for="width">{{$t('packageWidth')}}:</label>
-        <label for="width">{{package_.width}} </label></p>
-      <p><label for="depth">{{$t('packageDepth')}}:</label>
-        <label for="depth">{{package_.dept}}</label></p>
-      <p><label for="weight">{{$t('packageWeight')}}:</label>
-        <label for="weight">{{package_.weight}}</label></p>
-      <p><label for="price">{{$t('packagePrice')}}:</label>
-        <label for="weight">{{package_.price}}</label></p>
+      <p>{{$t('packageHeight')}}:
+        {{package_.height}}</p>
+      <p>{{$t('packageWidth')}}:
+        {{package_.width}} </p>
+      <p>{{$t('packageDepth')}}:
+        {{package_.dept}}</p>
+      <p>{{$t('packageWeight')}}:
+        {{package_.weight}}</p>
+      <p>{{$t('packagePrice')}}:
+        {{package_.price}}</p>
     </div>
 
     <!-- Zone inférieure avec des boutons -->

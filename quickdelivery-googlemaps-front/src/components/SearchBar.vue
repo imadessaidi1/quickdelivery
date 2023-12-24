@@ -15,7 +15,7 @@
         </transition>
 
     <!-- Barre de recherche -->
-    <input type="text" placeholder="Rechercher...">
+    <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
     <button @click="login">Connexion</button>
@@ -37,12 +37,10 @@ export default {
   methods: {
     toggleMenu() {
       this.isActiveMenu = !this.isActiveMenu;
-      console.log('Menu toggled');
     },
     login() {
       // Logique de connexion
       console.log('User logged in');
-      window.getPackages();
     },
     openModal() {
       this.$refs.AppModal.openModal();

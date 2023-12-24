@@ -9,14 +9,14 @@
     <td>
     <div class="form-group">
         <label for="height">{{$t('packageHeight')}}:</label>
-        <input type="number" v-model="package_.height" required="true" />
+        <input id="height" type="number" v-model="package_.height" required="true" />
 
       </div>
     </td>
     <td>
       <div class="form-group">
         <label for="width">{{$t('packageWidth')}}:</label>
-        <input type="number" v-model="package_.width" required="true" />
+        <input id="width" type="number" v-model="package_.width" required="true" />
       </div>
     </td>
     </tr>
@@ -24,13 +24,13 @@
       <td>
       <div class="form-group">
         <label for="depth">{{$t('packageDepth')}}:</label>
-        <input type="number" v-model="package_.depth" required="true" />
+        <input id="depth" type="number" v-model="package_.depth" required="true" />
       </div>
       </td>
       <td>
       <div class="form-group">
         <label for="weight">{{$t('packageWeight')}}:</label>
-        <input type="number" v-model="package_.weight" required="true" />
+        <input id="weight" type="number" v-model="package_.weight" required="true" />
       </div>
       </td>
     </tr>

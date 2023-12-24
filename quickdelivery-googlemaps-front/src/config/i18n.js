@@ -45,7 +45,8 @@ const messages = {
     menuMyPackages: 'My Packages',
     menuNewPackage: 'New Package',
     //MESSAGES
-    messageExistingAddress: 'Address already added',
+    messageExistingAddressType: 'Address type already added',
+    messageExistingAddress: 'You have already entered this address',
   },
   fr: {
   //FOOTER LABELS
@@ -88,7 +89,8 @@ const messages = {
     menuMyPackages: 'Mes Colis',
     menuNewPackage: 'Neouveau Colis',
     //MESSAGE
-    messageExistingAddress: 'Type d\'adresse existant',
+    messageExistingAddressType: 'Type d\'adresse existant',
+    messageExistingAddress: 'Vous avez déjà renseigné cette adresse',
   },
   // Ajoutez d'autres langues si nécessaire...
 };

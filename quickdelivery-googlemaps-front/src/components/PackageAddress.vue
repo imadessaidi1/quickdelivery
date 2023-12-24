@@ -2,19 +2,19 @@
   <div>
     <h2>{{$t('packageAddressAddresses')}}</h2>
       <div>
-        <label>{{$t('packageAddressFirstName')}}:</label>
-        <input v-model="address.firstName" required="true" />
+        <label for="firstName">{{$t('packageAddressFirstName')}}:</label>
+        <input id="firstName" v-model="address.firstName" :required="true" />
       </div>
       <div>
-        <label>{{$t('packageAddressLastName')}}:</label>
-        <input type="text" v-model="address.lastName" required="true" />
+        <label for="lastName">{{$t('packageAddressLastName')}}:</label>
+        <input id="lastName" type="text" v-model="address.lastName" :required="true" />
       </div>
       <div>
-        <label>{{$t('packageAddressAddress')}}:</label>
-        <AddressAutocomplete ref="addressAutoComplete"/>
+        <label for="address">{{$t('packageAddressAddress')}}:</label>
+        <AddressAutocomplete id="address" ref="addressAutoComplete"/>
       </div>
       <div>
-        <label>{{$t('packageAddressType')}}:</label>
+        <label for="addressType">{{$t('packageAddressType')}}:</label>
         <select id="addressType" v-model="address.type">
           <option v-for="addressType in addressTypes" :key="addressType.key" :value="addressType.key">
             {{ addressType.value }}
@@ -55,14 +55,19 @@
 
 <script>
 import AddressAutocomplete from './AddressAutocomplete.vue';
+import useValidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
+
 export default {
   components: {
       AddressAutocomplete,
     },
   data() {
     return {
+      v$: useValidate(),
       addresses: [],
       address: {
+        fullAddress:"",
         firstName: "",
         lastName: "",
         line1: "",
@@ -86,24 +91,40 @@ export default {
       ],
     };
   },
+  validations() {
+      return {
+        address: {
+          firstName: { required },
+          lastName: { required },
+          type: { required },
+        },
+      }
+    },
   methods: {
     addAddress() {
-      if(this.addresses.length < 2){
-      const addressAuto=this.$refs.addressAutoComplete;
-      const address = addressAuto.address.split(',');
-      this.address.line1 = address[0].trim();
-      this.address.zipCode = address[1].trim().split(' ')[0];
-      this.address.town = address[1].trim().split(' ')[1];
-      this.address.country = address[2].trim();
-      const typeExists = this.addresses.some(address => address.type === this.address.type);
-      if (!typeExists) {
-        this.addresses.push({ ...this.address});
-      }else{
+    console.log(this.v$);
+    if (!this.v$.$error){
+        if(this.addresses.length < 2){
+        const addressAuto=this.$refs.addressAutoComplete;
+        const address = addressAuto.address.split(',');
+        this.address.fullAddress = addressAuto;
+        this.address.line1 = address[0].trim();
+        this.address.zipCode = address[1].trim().split(' ')[0];
+        this.address.town = address[1].trim().split(' ')[1];
+        this.address.country = address[2].trim();
+        const typeExists = this.addresses.some(address => address.type === this.address.type);
+        const addressExists = this.addresses.some(address => address.fullAddress === this.address.fullAddress);
         const i18n = this.$i18n;
-        alert(i18n.t('messageExistingAddress'));
-      }
-      }else{
-      alert('Vous ne pouvez pas ajouter plus de 2 adresses');
+        if (typeExists) {
+          alert(i18n.t('messageExistingAddressType'));
+        }else if(addressExists){
+          alert(i18n.t('messageExistingAddress'));
+        }else{
+          this.addresses.push({ ...this.address});
+        }
+        }else{
+        alert('Vous ne pouvez pas ajouter plus de 2 adresses');
+        }
       }
     },
     removeAddress(index) {

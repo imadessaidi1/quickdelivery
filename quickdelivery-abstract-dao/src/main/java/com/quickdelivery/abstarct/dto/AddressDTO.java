@@ -19,6 +19,8 @@ public class AddressDTO {
     private ADDRESS_TYPE type;
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String email;
+    private String phone;
 
     public AddressDTO(){}
 
@@ -115,6 +117,22 @@ public class AddressDTO {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     @Override

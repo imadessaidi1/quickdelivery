@@ -29,11 +29,12 @@ public class Package {
     private Float weight;
     @Column
     private String pictureURL;
+
     @Column
     @Enumerated(EnumType.STRING)
     private PACKAGE_STATUS status;
     @Column
-    private Float deliveryPrice;
+    private Double deliveryPrice;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "packaged", cascade = CascadeType.ALL)
     private Set<Address> addresses;
 
@@ -97,11 +98,11 @@ public class Package {
         this.status = status;
     }
 
-    public Float getDeliveryPrice() {
+    public Double getDeliveryPrice() {
         return deliveryPrice;
     }
 
-    public void setDeliveryPrice(Float deliveryPrice) {
+    public void setDeliveryPrice(Double deliveryPrice) {
         this.deliveryPrice = deliveryPrice;
     }
 

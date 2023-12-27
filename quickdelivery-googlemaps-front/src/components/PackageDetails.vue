@@ -13,6 +13,12 @@
         <div>
             {{$t('packageWeight')}}: {{package_.weight}}
         </div>
+        <div>
+            {{$t('packagePicture')}}: {{documentS[0].name}}
+        </div>
+        <div>
+            {{$t('packageInvoice')}}: {{documentS[1].name}}
+        </div>
     </div>
     <div>
         <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
@@ -73,6 +79,7 @@
 export default {
     props: {
       package_: Object,
+      documentS: []
     },
 }
 </script>

@@ -17,6 +17,9 @@ public class Document {
     @Column
     @Enumerated(EnumType.STRING)
     private DOCUMENT_TYPE type;
+    @Lob
+    @Column(name = "doc_content", columnDefinition = "LONGBLOB")
+    private byte[] docContent;
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -83,5 +86,13 @@ public class Document {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public byte[] getDocContent() {
+        return docContent;
+    }
+
+    public void setDocContent(byte[] docContent) {
+        this.docContent = docContent;
     }
 }

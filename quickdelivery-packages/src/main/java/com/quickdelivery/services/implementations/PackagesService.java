@@ -5,10 +5,7 @@ import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
-import com.quickdelivery.abstarct.helpers.GeoHelper;
-import com.quickdelivery.abstarct.helpers.OTPHelper;
-import com.quickdelivery.abstarct.helpers.PDFGenerator;
-import com.quickdelivery.abstarct.helpers.QRCodeGenerator;
+import com.quickdelivery.abstarct.helpers.*;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
@@ -20,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,11 +25,9 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -59,9 +55,24 @@ public class PackagesService implements IPackagesService {
     @Autowired
     private GeoApiContext geoApiContext;
     @Override
-    public PackageDTO createNewPackage(PackageDTO packageDTO) {
+    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files) {
         try {
-            createPackage(packageDTO);
+            Package aPackage = createPackage(packageDTO);
+            IntStream.range(0, files.length)
+                    .forEach(index -> {
+                        MultipartFile file = files[index];
+                        Document document = new Document();
+                        document.setaPackage(aPackage);
+                        document.setDocURL(file.getName());
+                        document.setType(index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE);
+                        try {
+                            document.setDocContent(file.getBytes());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        aPackage.getDocument().add(document);
+                    });
+            packages.save(aPackage);
         } catch (MalformedURLException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -187,10 +198,10 @@ public class PackagesService implements IPackagesService {
         packages.updatePackagesStatus(status,id);
     }
 
-    private void createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
+    private Package createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
         packageDTO.getAddresses().stream().forEach(addressDTO -> {
             try {
-                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO, mapQuestURL1, mapQuestKey, mapQuestURL2);
+                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
@@ -200,6 +211,8 @@ public class PackagesService implements IPackagesService {
             }
         });
         Package aPackage = modelMapper.map(packageDTO, Package.class);
+        aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
+        packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
@@ -221,5 +234,6 @@ public class PackagesService implements IPackagesService {
         documents.add(pdfDocument);
         aPackage.setDocument(documents);
         packages.save(aPackage);
+        return aPackage;
     }
 }

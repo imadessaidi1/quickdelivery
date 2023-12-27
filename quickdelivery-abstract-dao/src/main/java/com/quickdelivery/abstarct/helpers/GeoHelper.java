@@ -12,16 +12,17 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class GeoHelper {
 
-    public static void AdressGeoCoding(GeoApiContext  geoApiContext, AddressDTO addressDTO, String mapQuestURL1, String mapQUestKey, String mapQuestURL2) throws IOException, InterruptedException, ApiException {
+    public static void AdressGeoCoding(GeoApiContext  geoApiContext, AddressDTO addressDTO) throws IOException, InterruptedException, ApiException {
         GeocodingResult[] results =  GeocodingApi.geocode(geoApiContext,
                 addressDTO.toString()).await();
-        geoApiContext.shutdown();
-        addressDTO.setLatitude(new BigDecimal(results[0].geometry.location.lat));
-        addressDTO.setLongitude(new BigDecimal(results[0].geometry.location.lng));
+        //geoApiContext.shutdown();
+        addressDTO.setLatitude((new BigDecimal(results[0].geometry.location.lat)).setScale(8, RoundingMode.CEILING));
+        addressDTO.setLongitude((new BigDecimal(results[0].geometry.location.lng)).setScale(8, RoundingMode.CEILING));
     }
 }

@@ -1,10 +1,13 @@
 package com.quickdelivery.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.services.interfaces.IPackagesService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,14 +17,24 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/packages/v1")
 public class PackageController {
     @Autowired
     private IPackagesService packagesService;
+    @Autowired
+    private ModelMapper modelMapper;
     @PostMapping("/create")
-    public PackageDTO createNewPackage(@RequestBody PackageDTO packageDTO){
-        return packagesService.createNewPackage(packageDTO);
+    public PackageDTO createNewPackage(@RequestParam("packageDTO") String packageDTO,
+                                       @RequestParam("files") MultipartFile[] files){
+        ObjectMapper objectMapper = new ObjectMapper();
+        PackageDTO packageDTO1 = null;
+        try {
+            packageDTO1 = objectMapper.readValue(packageDTO, PackageDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return packagesService.createNewPackage(packageDTO1, files);
     }
 
     @PostMapping("/bulk-create")

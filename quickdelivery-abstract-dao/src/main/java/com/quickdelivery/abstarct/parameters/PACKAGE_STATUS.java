@@ -1,6 +1,7 @@
 package com.quickdelivery.abstarct.parameters;
 
 public enum PACKAGE_STATUS {
+    PAYMENTPENDING("PAYMENTPENDING"),
     NEW("NEW"),
     PICKEDUP("PICKEDUP"),
     RESERVED("RESERVED"),

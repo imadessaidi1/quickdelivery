@@ -8,12 +8,13 @@ import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import org.apache.juli.logging.Log;
 import org.springframework.data.repository.query.Param;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public interface IPackagesService {
-    public PackageDTO createNewPackage(PackageDTO packageDTO);
+    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files);
     void createNewPackages(List<PackageDTO> packageDTOS);
     List<PackageDTO> getPAckagesAroundPosition(String latitude, String longitude,double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);

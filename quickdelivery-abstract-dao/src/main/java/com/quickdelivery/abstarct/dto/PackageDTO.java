@@ -1,7 +1,6 @@
 package com.quickdelivery.abstarct.dto;
 
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
-import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -18,7 +17,7 @@ public class PackageDTO {
     private Float weight;
     private String pictureURL;
     private PACKAGE_STATUS status;
-    private Float deliveryPrice;
+    private Double deliveryPrice;
     private Long senderID;
     private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
@@ -75,11 +74,11 @@ public class PackageDTO {
         this.status = status;
     }
 
-    public Float getDeliveryPrice() {
+    public Double getDeliveryPrice() {
         return deliveryPrice;
     }
 
-    public void setDeliveryPrice(Float deliveryPrice) {
+    public void setDeliveryPrice(Double deliveryPrice) {
         this.deliveryPrice = deliveryPrice;
     }
 

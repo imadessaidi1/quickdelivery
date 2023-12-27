@@ -37,7 +37,7 @@ public class UserServices implements IUserServices {
     public UserDTO createNewUser(UserDTO user) {
         user.getPersonalAddress().stream().forEach(addressDTO -> {
             try {
-                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO, mapQuestURL1, mapQUestKey, mapQuestURL2);
+                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {

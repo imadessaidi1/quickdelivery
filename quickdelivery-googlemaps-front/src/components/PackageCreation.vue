@@ -18,6 +18,22 @@
         <label for="weight">{{$t('packageWeight')}}:</label>
         <input id="weight" type="number" v-model="package_.weight" required="true" />
       </div>
+      <div>
+        <label for="pictureFile">{{$t('packagePicture')}} :</label>
+        <input  ref="fileInput0"
+                :id="pictureFile"
+                type="file"
+                accept="image/*, application/pdf"
+        @change="handleFileChange(0)"
+        />
+        <label for="documentFile">{{ $t('packageInvoice') }} :</label>
+        <input  ref="fileInput1"
+                :id="documentFile"
+                type="file"
+                accept="image/*, application/pdf"
+                @change="handleFileChange(1)"
+        />
+      </div>
 </template>
 <script>
 
@@ -25,12 +41,18 @@ export default {
   data() {
     return {
       package_: {
+        id: null,
+        version: null,
+        creationDate: null,
         height: 0,
         width: 0,
-        weight: 0,
         depth: 0,
-        pictureURL: '',
+        weight: 0,
+        pictureURL: "",
+        status: "",
+        deliveryPrice: null,
         senderID: 905,
+        packageReservations: [],
         addresses: [{
         fullAddress:"",
         firstName: "",
@@ -61,25 +83,20 @@ export default {
         latitude: 0,
         longitude: 0,
       }],
-        documentS: [],
+      lastPositionLatitude: null,
+      lastPositionLongitude: null
       },
+      documentS: [],
     };
   },
   methods: {
-    async submitForm() {
-      const i18n = this.$i18n;
-      const addressListComponent=this.$refs.addressList;
-      this.package_.addresses = addressListComponent.addresses;
-      console.log(this.package_);
-      const requestOptions = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(this.package_)
-      };
-      console.log(i18n.t('rootURL') + i18n.t('createPackageUrl'));
-      const response = await fetch(i18n.t('rootURL') + i18n.t('createPackageUrl'), requestOptions);
-      const data = await response.json();
-      console.log(data);
+    handleFileChange(index) {
+      const fileInput = this.$refs[`fileInput${index}`];
+      const file = fileInput.files[0];
+
+      if (file) {
+        this.documentS[index] = file;
+      }
     },
   },
 };

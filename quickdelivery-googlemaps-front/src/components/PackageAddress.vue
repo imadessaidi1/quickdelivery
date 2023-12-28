@@ -30,23 +30,21 @@ export default {
   components: {
     AddressAutocomplete,
   },
+  props: {
+    addressType: String,
+  },
+  computed: {
+    address() {
+    if(this.addressType === "ARRIVAL"){
+        return this.$store.state.package_.addresses[1];
+      }else{
+        return this.$store.state.package_.addresses[0];
+      }
+    },
+  },
   data() {
     return {
       v$: useValidate(),
-      address: {
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        email: "",
-        phone: "",
-        type: "ARRIVAL",
-        latitude: 0,
-        longitude: 0,
-      },
     };
   },
   validations() {

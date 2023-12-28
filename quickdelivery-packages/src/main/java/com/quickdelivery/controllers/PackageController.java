@@ -46,7 +46,6 @@ public class PackageController {
     public List<PackageDTO> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                     @RequestParam(name = "longitude", required = true) String longitude,
                                                     @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
-        System.out.println("test");
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 

@@ -2,7 +2,7 @@
   <div class="marker-details">
     <!-- Zone gauche avec la photo -->
     <div class="left-section">
-      PHOTO
+      <img :src="getImageSrc()" alt="Image" />
     </div>
 
     <!-- Zone droite avec le texte -->
@@ -31,7 +31,7 @@
 <script>
 export default {
   props: {
-    package_: Object, // Propriété pour recevoir les détails du marqueur
+    package_: Object,
   },
   methods: {
     handleButton1() {
@@ -41,6 +41,13 @@ export default {
     handleButton2() {
       // Logique du bouton 2
       console.log('Button 2 clicked');
+    },
+   getImageSrc() {
+      let imgSrc = '';
+      if (this.package_.files && this.package_.files[0]) {
+        imgSrc = `data:image/png;base64,${this.package_.files[0].data}`;
+      }
+      return imgSrc;
     },
     setFocusOnReserveButton() {
           const reserveButton = this.$refs.reserveButtons;

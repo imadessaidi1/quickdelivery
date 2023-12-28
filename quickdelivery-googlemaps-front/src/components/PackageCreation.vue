@@ -38,56 +38,13 @@
 <script>
 
 export default {
-  data() {
-    return {
-      package_: {
-        id: null,
-        version: null,
-        creationDate: null,
-        height: 0,
-        width: 0,
-        depth: 0,
-        weight: 0,
-        pictureURL: "",
-        status: "",
-        deliveryPrice: null,
-        senderID: 905,
-        packageReservations: [],
-        addresses: [{
-        fullAddress:"",
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        email: "",
-        phone: "",
-        type: "DEPARTURE",
-        latitude: 0,
-        longitude: 0,
-      },
-      {
-        fullAddress:"",
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        email: "",
-        phone: "",
-        type: "ARRIVAL",
-        latitude: 0,
-        longitude: 0,
-      }],
-      lastPositionLatitude: null,
-      lastPositionLongitude: null
-      },
-      documentS: [],
-    };
+  computed: {
+    package_() {
+      return this.$store.state.package_;
+    },
+    documentS() {
+      return this.$store.state.documentS;
+    },
   },
   methods: {
     handleFileChange(index) {

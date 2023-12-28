@@ -77,10 +77,14 @@
 </template>
 <script>
 export default {
-    props: {
-      package_: Object,
-      documentS: []
+    computed: {
+    package_() {
+      return this.$store.state.package_;
     },
+    documentS() {
+      return this.$store.state.documentS;
+    },
+  },
 }
 </script>
 <style>

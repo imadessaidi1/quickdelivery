@@ -137,7 +137,7 @@
 			return new Promise(async (resolve, reject) => {	
 				try{
 					var xhr = new XMLHttpRequest();
-					var url = `http://localhost:8082/packages/v1/packages-around?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=20000`;
+					var url = `http://localhost:8082/packages/v1/packages-around?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=30000`;
 					xhr.open("GET", url, true);
 					xhr.onload = function() {
 						if (xhr.status >= 200 && xhr.status < 300) {

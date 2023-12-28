@@ -4,6 +4,7 @@ import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PackageDTO {
@@ -22,9 +23,11 @@ public class PackageDTO {
     private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
 
-    private List<DocumentDTO> documentS;
+    private List<DocumentDTO> documentS = new ArrayList<>();
     private BigDecimal lastPositionLatitude;
     private BigDecimal lastPositionLongitude;
+
+    private List<FileDTO> files = new ArrayList<>();
     public PackageDTO(){}
     public Long getId() {
         return id;
@@ -154,5 +157,13 @@ public class PackageDTO {
 
     public void setDepth(Float depth) {
         this.depth = depth;
+    }
+
+    public List<FileDTO> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<FileDTO> files) {
+        this.files = files;
     }
 }

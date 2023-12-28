@@ -15,9 +15,6 @@ export default {
     SearchBar,
     AppFooter,
   },
-  methods: {
-
-    },
 };
 </script>
 

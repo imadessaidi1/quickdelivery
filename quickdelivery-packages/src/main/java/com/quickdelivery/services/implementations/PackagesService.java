@@ -2,6 +2,7 @@ package com.quickdelivery.services.implementations;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.FileDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
@@ -94,7 +95,19 @@ public class PackagesService implements IPackagesService {
     public List<PackageDTO> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
         List<PackageDTO> packageDTOS = new ArrayList<>();
-        addresses.stream().forEach(address -> packageDTOS.add(modelMapper.map(address.getPackaged(), PackageDTO.class)));
+        addresses.stream().forEach(address -> {
+            Package aPackage = address.getPackaged();
+            PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+            aPackage.getDocument().stream().forEach(document -> {
+                if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE)) {
+                    FileDTO fileDTO = new FileDTO();
+                    fileDTO.setData(document.getDocContent());
+                    fileDTO.setFileName(document.getDocURL());
+                    packageDTO.getFiles().add(fileDTO);
+                }
+            });
+            packageDTOS.add(packageDTO);
+        });
         return packageDTOS;
     }
 

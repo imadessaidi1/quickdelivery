@@ -2,8 +2,10 @@
   <div class="google-map">
     <!-- Google Maps intégré ici -->
     <div id="map">
+      <button @click="sendMessage">envoyer</button>
     <iframe
-          width="100%"
+            ref="map"
+            width="100%"
           height="591"
           :src="googleMapPath"
           style="border:0;"
@@ -23,7 +25,9 @@ export default {
       };
     },
   methods: {
-
+  sendMessage(){
+    this.$refs.map.contentWindow.postMessage("message", "*");
+    },
   },
 };
 </script>

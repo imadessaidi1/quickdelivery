@@ -2,11 +2,13 @@ package com.quickdelivery.services.implementations;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.FileDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.*;
+import com.quickdelivery.abstarct.parameters.ADDRESS_TYPE;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
@@ -92,7 +94,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
-    public List<PackageDTO> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
+    public Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
         List<PackageDTO> packageDTOS = new ArrayList<>();
         addresses.stream().forEach(address -> {
@@ -108,7 +110,12 @@ public class PackagesService implements IPackagesService {
             });
             packageDTOS.add(packageDTO);
         });
-        return packageDTOS;
+        Map<String, List<PackageDTO>> groupedPackages = packageDTOS.stream()
+                .collect(Collectors.groupingBy(packaged -> {
+                    AddressDTO departureAddress = getDepartureAddress(packaged.getAddresses());
+                    return departureAddress.getLatitude()+","+departureAddress.getLongitude()+","+departureAddress.toString();
+                }));
+        return groupedPackages;
     }
 
     @Override
@@ -248,5 +255,14 @@ public class PackagesService implements IPackagesService {
         aPackage.setDocument(documents);
         packages.save(aPackage);
         return aPackage;
+    }
+
+    private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {
+        for (AddressDTO address : addresses) {
+            if (ADDRESS_TYPE.DEPARTURE.equals(address.getType())) {
+                return address;
+            }
+        }
+        return null;
     }
 }

@@ -1,6 +1,8 @@
 package com.quickdelivery.services.interfaces;
 
+import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Package;
@@ -12,11 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 
 public interface IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files);
     void createNewPackages(List<PackageDTO> packageDTOS);
-    List<PackageDTO> getPAckagesAroundPosition(String latitude, String longitude,double rayonEnMetres);
+    Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
     void reservePackage(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException;
     void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP) throws NoSuchAlgorithmException;

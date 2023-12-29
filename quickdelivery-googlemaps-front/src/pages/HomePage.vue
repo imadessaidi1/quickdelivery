@@ -1,7 +1,7 @@
 <template>
     <div class="main-content">
         <MarkerList :style="{ width: '30%' }"/>
-        <GoogleMap :style="{ width: '60%' }"/>
+        <GoogleMap ref="mapVue" :style="{ width: '60%' }"/>
     </div>
 </template>
 <script>

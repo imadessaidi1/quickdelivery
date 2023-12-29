@@ -2,7 +2,9 @@ package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
@@ -43,9 +45,9 @@ public class PackageController {
     }
 
     @GetMapping("/packages-around{latitude}{longitude}{rayonEnMetres}")
-    public List<PackageDTO> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
-                                                    @RequestParam(name = "longitude", required = true) String longitude,
-                                                    @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
+    public Map<String, List<PackageDTO>> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
+                                                                    @RequestParam(name = "longitude", required = true) String longitude,
+                                                                    @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 

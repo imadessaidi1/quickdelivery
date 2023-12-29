@@ -35,8 +35,16 @@ export default {
   },
   methods: {
     handleButton1() {
-      // Logique du bouton 1
-      console.log('Button 1 clicked');
+    var stringDeparture="";
+    var stringArrival="";
+    this.package_.addresses.forEach(address =>{
+      if(address.type==="DEPARTURE"){
+        stringDeparture = address.latitude+","+address.longitude;
+      }else{
+        stringArrival = address.latitude+","+address.longitude;
+      }
+    });
+      this.$parent.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("SelectedDirection:"+stringDeparture+";"+stringArrival, "*");
     },
     handleButton2() {
       // Logique du bouton 2

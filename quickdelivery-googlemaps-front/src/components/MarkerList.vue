@@ -2,8 +2,11 @@
   <div class="marker-list">
     <h2>{{$t('packagesArround')}}</h2>
     <ul>
-      <li v-for="package_ in packagesList" :key="package_.id">
-        <MarkerDetails ref="markerDetail" :package_="package_" />
+      <li v-for="marker in makersList" :key="marker.addressString">
+        <h2 :id="marker.addressString">{{marker.addressString}}</h2>
+        <div v-for="package_ in marker.groupedPackagesList" :key="package_.id">
+          <MarkerDetails ref="markerDetail" :package_="package_" />
+        </div>
       </li>
     </ul>
   </div>
@@ -18,15 +21,13 @@ export default {
   data() {
     return {
       packagesList: [],
+      makersList: [],
     };
   },
    mounted() {
        window.onmessage = (e) => {
-        if (Array.isArray(e.data)) {
-                const rawData = e.data;
-                this.packagesList = JSON.parse(JSON.stringify(rawData));
-        }
         if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
+           window.location.hash = `#${e.data}`;
            const packageID = e.data.split(':')[1];
            const markerDetailComponent = this.$refs.markerDetail;
            //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
@@ -36,6 +37,12 @@ export default {
                 markerDetail.setFocusOnReserveButton();
              }
            });
+        }else{
+           Object.entries(e.data).forEach(([coordinates, packagesArray]) => {
+              if(typeof coordinates === 'string' && Array.isArray(packagesArray)){
+                this.makersList.push({addressString: coordinates, groupedPackagesList: packagesArray});
+              }
+            });
         }
        };
    },

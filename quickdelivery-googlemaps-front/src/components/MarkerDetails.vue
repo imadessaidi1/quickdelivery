@@ -22,19 +22,22 @@
 
     <!-- Zone inférieure avec des boutons -->
     <div class="bottom-section">
-      <button ref="reserveButtons" :key="package_.id" @click="handleButton1">Reserve</button>
-      <button @click="handleButton2">Bouton 2</button>
+      <button ref="direction" :key="package_.id" @click="showDirection">{{$t('packagesArroundMArkerDetailActionsShowDirection')}}</button>
+      <button ref="onMyRoad" :key="package_.id" @click="onMyDirection">{{$t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection')}}</button>
+      <button ref="reserveButtons" :key="package_.id" @click="reserve">{{$t('packagesArroundMArkerDetailActionsReserve')}}</button>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   props: {
     package_: Object,
   },
   methods: {
-    handleButton1() {
+    showDirection() {
     var stringDeparture="";
     var stringArrival="";
     this.package_.addresses.forEach(address =>{
@@ -46,9 +49,27 @@ export default {
     });
       this.$parent.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("SelectedDirection:"+stringDeparture+";"+stringArrival, "*");
     },
-    handleButton2() {
-      // Logique du bouton 2
-      console.log('Button 2 clicked');
+    onMyDirection() {
+    var stringDeparture="";
+    var stringArrival="";
+    this.package_.addresses.forEach(address =>{
+      if(address.type==="DEPARTURE"){
+        stringDeparture = address.latitude+","+address.longitude;
+      }else{
+        stringArrival = address.latitude+","+address.longitude;
+      }
+    });
+      this.$parent.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("OnMyDirection:"+stringDeparture+";"+stringArrival, "*");
+    },
+    reserve(){
+      const url = this.$i18n.t('rootURL')+this.$i18n.t('reservePackageUrl')+"packageID="+this.package_.id+"&deliveryPersonID="+this.$store.state.connectedUser.id;
+      console.log(url);
+      return axios.put(url)
+        .then(response => {
+            return response.data;
+        }).catch(() => {
+            console.log("unable to process your request this time. please try again latter.");
+      });
     },
    getImageSrc() {
       let imgSrc = '';

@@ -6,6 +6,7 @@ const messages = {
     //API URLS
     rootURL: 'http://localhost:8082/packages/v1/',
     createPackageUrl: 'create',
+    reservePackageUrl: 'reserve?',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -22,7 +23,7 @@ const messages = {
     packageHeight: 'Height (cm)',
     packageWidth: 'Width (cm)',
     packageWeight: 'Weight (kg)',
-    packageDepth: 'Depth (cm)',
+    packageDepth: 'Length (cm)',
     packagePicture: 'Picture (packages with a photo are more likely to quickly find a delivery person)',
     packageInvoice: 'Receipt/Invoice (Necessary to collect your package from a professional)',
     packagePrice: 'Price',
@@ -48,6 +49,9 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     //Packages Arround
     packagesArround: 'Packages around you',
+    packagesArroundMArkerDetailActionsShowDirection: 'Direction',
+    packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
+    packagesArroundMArkerDetailActionsReserve: 'Reserve',
     //MENU
     menuHome: 'Home',
     menuMyPackages: 'My Packages',
@@ -74,7 +78,7 @@ const messages = {
     packageHeight: 'Hauteur (cm)',
     packageWidth: 'Largeur (cm)',
     packageWeight: 'Poids (kg)',
-    packageDepth: 'Profondeur (cm)',
+    packageDepth: 'Longueur (cm)',
     packagePrice: 'Prix (€)',
     packagePicture: 'Photo (les colis avec photos ont plus de chances de trouver rapidement un livreur)',
     packageInvoice: 'Ticket de caisse / Facture (Necessaire pour recuperer votre colis auprès d\'un professionnel)',
@@ -100,6 +104,9 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
+    packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
+    packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
+    packagesArroundMArkerDetailActionsReserve: 'Reserver',
     //MENU
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',

@@ -145,6 +145,7 @@ public class PackagesService implements IPackagesService {
         packageReservation.setDeliveryPerson(user);
         packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
         packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, OTPCounter));
+        aPackage.getPackageReservations().add(packageReservation);
         //To-Do Send OTP to delivery person & Sender
         packages.save(aPackage);
     }

@@ -2,7 +2,6 @@
   <div class="google-map">
     <!-- Google Maps intégré ici -->
     <div id="map">
-      <button @click="sendMessage">envoyer</button>
     <iframe
             ref="map"
             width="100%"

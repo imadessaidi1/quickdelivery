@@ -36,7 +36,7 @@ public class Package {
     @Column
     private Double deliveryPrice;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "packaged", cascade = CascadeType.ALL)
-    private Set<Address> addresses;
+    private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "aPackage", cascade = CascadeType.ALL)
     private Set<Document> document = new HashSet<>();

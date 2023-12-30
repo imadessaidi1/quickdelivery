@@ -232,7 +232,6 @@
 		}
       window.initMap = initMap;
       window.onmessage = (e) => {
-
         if (typeof e.data === 'string' && e.data.includes('SelectedDirection:')) {
 			let dataArray = e.data.split(';');
 			let departure = dataArray[0].split(':')[1];
@@ -242,6 +241,16 @@
 			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
 			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
 			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departurePosition, arrivalPosition);
+        }else if (typeof e.data === 'string' && e.data.includes('OnMyDirection:')) {
+            console.log('OnMyDirection:');
+			let dataArray = e.data.split(';');
+			let departure = dataArray[0].split(':')[1];
+			let arrival = dataArray[1];
+			let departureArray = departure.split(',');
+			let arrivalArray = arrival.split(',');
+			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
+			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
+			calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, departurePosition, arrivalPosition);
         }
       }
     </script>

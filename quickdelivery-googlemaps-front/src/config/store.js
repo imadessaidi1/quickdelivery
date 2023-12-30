@@ -15,7 +15,7 @@ export default createStore({
         pictureURL: "",
         status: "",
         deliveryPrice: null,
-        senderID: 905,
+        senderID: null,
         packageReservations: [],
         addresses: [{
         firstName: "",
@@ -49,9 +49,11 @@ export default createStore({
       lastPositionLongitude: null
     },
     documentS: [],
-    addressModel: {
-      firstName: '',
-      lastName: '',
+    connectedUser: {
+      firstName: 'Imad',
+      lastName: 'ESSAIDI',
+      email: 'im.essaidi@gmail.com',
+      id: 904,
     },
   },
   mutations: {

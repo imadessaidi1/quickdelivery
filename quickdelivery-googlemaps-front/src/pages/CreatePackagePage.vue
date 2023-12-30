@@ -85,11 +85,11 @@ export default{
     },
     async submitForm() {
      const formData = new FormData();
+     this.package_.senderID = this.$store.state.connectedUser.id
      formData.append('packageDTO', JSON.stringify(this.package_));
      formData.append('files', this.documentS[0]);
      formData.append('files', this.documentS[1]);
-     const i18n = this.$i18n;
-     return axios.post(i18n.t('rootURL') + i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
+     return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
         .then(response => {
             this.$store.commit('updatePackage', response.data);
             return response.data;

@@ -20,6 +20,8 @@ public class PackageDTO {
     private PACKAGE_STATUS status;
     private Double deliveryPrice;
     private Long senderID;
+
+    private String distanceToDestination;
     private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
 
@@ -165,5 +167,13 @@ public class PackageDTO {
 
     public void setFiles(List<FileDTO> files) {
         this.files = files;
+    }
+
+    public String getDistanceToDestination() {
+        return distanceToDestination;
+    }
+
+    public void setDistanceToDestination(String distanceToDestination) {
+        this.distanceToDestination = distanceToDestination;
     }
 }

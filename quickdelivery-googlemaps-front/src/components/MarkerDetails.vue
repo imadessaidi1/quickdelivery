@@ -18,6 +18,10 @@
         {{package_.weight}}</p>
       <p>{{$t('packagePrice')}}:
         {{package_.price}}</p>
+      <p>{{$t('packageDestination')}}:
+        {{destinationAddress()}}</p>
+      <p>{{$t('packageDistanceToDestination')}}:
+      {{package_.distanceToDestination}}</p>
     </div>
 
     <!-- Zone inférieure avec des boutons -->
@@ -77,12 +81,21 @@ export default {
       }
       return imgSrc;
     },
+    destinationAddress() {
+      var destinationAddressS = '';
+      this.package_.addresses.forEach(address => {
+        if(address.type === 'ARRIVAL'){
+          destinationAddressS = address.line1+" "+address.zipCode+" "+address.town+" "+address.country;
+        }
+      });
+      return destinationAddressS;
+    },
     setFocusOnReserveButton() {
           const reserveButton = this.$refs.reserveButtons;
           if (reserveButton) {
             reserveButton.focus();
           }
-        },
+     },
   },
   mounted() {
 

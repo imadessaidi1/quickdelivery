@@ -101,6 +101,9 @@ public class PackagesService implements IPackagesService {
         addresses.stream().forEach(address -> {
             Package aPackage = address.getPackaged();
             PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+            DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(),
+                    getArrivalAddress(packageDTO.getAddresses()).toString());
+            packageDTO.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
             aPackage.getDocument().stream().forEach(document -> {
                 if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE)) {
                     FileDTO fileDTO = new FileDTO();

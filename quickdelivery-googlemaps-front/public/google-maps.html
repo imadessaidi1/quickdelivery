@@ -82,6 +82,7 @@
 						travelMode: google.maps.TravelMode[selectedMode],
 					})
 					.then((response) => {
+					    console.log(response);
 						directionsRenderer.setDirections(response);
 						packagesSimpleDirection.push({ packageStart: start, packageEnd: end, response: response });
 					})

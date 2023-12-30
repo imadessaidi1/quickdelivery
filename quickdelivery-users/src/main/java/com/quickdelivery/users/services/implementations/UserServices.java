@@ -8,12 +8,10 @@ import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.users.services.interfaces.IUserServices;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -37,7 +35,7 @@ public class UserServices implements IUserServices {
     public UserDTO createNewUser(UserDTO user) {
         user.getPersonalAddress().stream().forEach(addressDTO -> {
             try {
-                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO);
+                GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {

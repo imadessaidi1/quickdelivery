@@ -19,6 +19,7 @@ import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -97,27 +98,25 @@ public class PackagesService implements IPackagesService {
     @Override
     public Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
-        List<PackageDTO> packageDTOS = new ArrayList<>();
-        addresses.stream().forEach(address -> {
-            Package aPackage = address.getPackaged();
-            PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-            DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(),
-                    getArrivalAddress(packageDTO.getAddresses()).toString());
-            packageDTO.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
-            aPackage.getDocument().stream().forEach(document -> {
-                if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE)) {
-                    FileDTO fileDTO = new FileDTO();
-                    fileDTO.setData(document.getDocContent());
-                    fileDTO.setFileName(document.getDocURL());
-                    packageDTO.getFiles().add(fileDTO);
-                }
-            });
-            packageDTOS.add(packageDTO);
-        });
-        Map<String, List<PackageDTO>> groupedPackages = packageDTOS.stream()
-                .collect(Collectors.groupingBy(packaged -> {
+        List<PackageDTO> packageDTOS = addresses.stream()
+                .map(address -> {
+                    Package aPackage = address.getPackaged();
+                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+                    aPackage.getDocument().stream()
+                            .filter(document -> document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE))
+                            .map(document -> {
+                                FileDTO fileDTO = new FileDTO();
+                                fileDTO.setData(document.getDocContent());
+                                fileDTO.setFileName(document.getDocURL());
+                                packageDTO.getFiles().add(fileDTO);
+                                return packageDTO;
+                            });
+                    return packageDTO;
+                })
+                .collect(Collectors.toList());
+        Map<String, List<PackageDTO>> groupedPackages = packageDTOS.parallelStream()
+                .collect(Collectors.groupingByConcurrent(packaged -> {
                     AddressDTO departureAddress = getDepartureAddress(packaged.getAddresses());
-                    AddressDTO arrivalAddress = getArrivalAddress(packaged.getAddresses());
                     DistanceMatrix distancePackageUser = GeoHelper.getDistanceByCoordinates(geoApiContext, departureAddress.getLatitude().doubleValue(),
                             departureAddress.getLongitude().doubleValue()
                             , Double.parseDouble(latitude), Double.parseDouble(longitude));
@@ -231,7 +230,7 @@ public class PackagesService implements IPackagesService {
     private Package createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
         packageDTO.getAddresses().stream().forEach(addressDTO -> {
             try {
-                GeoHelper.AdressGeoCoding(geoApiContext, addressDTO);
+                GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
@@ -241,12 +240,16 @@ public class PackagesService implements IPackagesService {
             }
         });
         Package aPackage = modelMapper.map(packageDTO, Package.class);
+        DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(),
+                getArrivalAddress(packageDTO.getAddresses()).toString());
+        aPackage.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
         aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
         packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
         packages.save(aPackage);
+        GeoHelper.getDirection(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(), getArrivalAddress(packageDTO.getAddresses()).toString());
         packageDTO.setId(aPackage.getId());
         packageDTO.setVersion(aPackage.getVersion());
         QRCodeGenerator.generateQRCode(getPackageByIdURL+packageDTO.getId(),qrCodePath+packageDTO.getId()+".png",150,150);

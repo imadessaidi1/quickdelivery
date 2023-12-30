@@ -35,6 +35,8 @@ public class Package {
     private PACKAGE_STATUS status;
     @Column
     private Double deliveryPrice;
+    @Column
+    private String distanceToDestination;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "packaged", cascade = CascadeType.ALL)
     private Set<Address> addresses = new HashSet<>();
 
@@ -184,5 +186,13 @@ public class Package {
 
     public void setDepth(Float depth) {
         this.depth = depth;
+    }
+
+    public String getDistanceToDestination() {
+        return distanceToDestination;
+    }
+
+    public void setDistanceToDestination(String distanceToDestination) {
+        this.distanceToDestination = distanceToDestination;
     }
 }

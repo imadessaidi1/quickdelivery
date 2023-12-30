@@ -18,6 +18,10 @@ public class Address {
     @Column
     private String lastName;
     @Column
+    private String email;
+    @Column
+    private String phone;
+    @Column
     private String line1;
     @Column
     private String line2;
@@ -25,6 +29,8 @@ public class Address {
     private String town;
     @Column
     private String zipCode;
+    @Column
+    private String country;
     @Column
     @Enumerated(EnumType.STRING)
     private ADDRESS_TYPE type;
@@ -141,5 +147,29 @@ public class Address {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 }

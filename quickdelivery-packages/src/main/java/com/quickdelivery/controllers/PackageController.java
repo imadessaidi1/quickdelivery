@@ -11,6 +11,7 @@ import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,6 +46,7 @@ public class PackageController {
     }
 
     @GetMapping("/packages-around{latitude}{longitude}{rayonEnMetres}")
+    @Cacheable(value="PackagesAroundMe", keyGenerator="customKeyGenerator")
     public Map<String, List<PackageDTO>> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                                     @RequestParam(name = "longitude", required = true) String longitude,
                                                                     @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){

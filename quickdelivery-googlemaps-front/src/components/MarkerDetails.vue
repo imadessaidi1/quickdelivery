@@ -63,7 +63,6 @@ export default {
     },
     reserve(){
       const url = this.$i18n.t('rootURL')+this.$i18n.t('reservePackageUrl')+"packageID="+this.package_.id+"&deliveryPersonID="+this.$store.state.connectedUser.id;
-      console.log(url);
       return axios.put(url)
         .then(response => {
             return response.data;

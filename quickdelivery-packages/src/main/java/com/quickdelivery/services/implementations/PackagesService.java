@@ -2,6 +2,7 @@ package com.quickdelivery.services.implementations;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
+import com.google.maps.model.DistanceMatrix;
 import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.FileDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
@@ -113,7 +114,12 @@ public class PackagesService implements IPackagesService {
         Map<String, List<PackageDTO>> groupedPackages = packageDTOS.stream()
                 .collect(Collectors.groupingBy(packaged -> {
                     AddressDTO departureAddress = getDepartureAddress(packaged.getAddresses());
-                    return departureAddress.getLatitude()+","+departureAddress.getLongitude()+","+departureAddress.toString();
+                    AddressDTO arrivalAddress = getArrivalAddress(packaged.getAddresses());
+                    DistanceMatrix distancePackageUser = GeoHelper.getDistanceByCoordinates(geoApiContext, departureAddress.getLatitude().doubleValue(),
+                            departureAddress.getLongitude().doubleValue()
+                            , Double.parseDouble(latitude), Double.parseDouble(longitude));
+                    return departureAddress.getLatitude()+","+departureAddress.getLongitude()+","+departureAddress.toString()
+                            +" ("+distancePackageUser.rows[0].elements[0].duration+"/"+distancePackageUser.rows[0].elements[0].distance+")";
                 }));
         return groupedPackages;
     }
@@ -261,6 +267,14 @@ public class PackagesService implements IPackagesService {
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {
         for (AddressDTO address : addresses) {
             if (ADDRESS_TYPE.DEPARTURE.equals(address.getType())) {
+                return address;
+            }
+        }
+        return null;
+    }
+    private AddressDTO getArrivalAddress(List<AddressDTO> addresses) {
+        for (AddressDTO address : addresses) {
+            if (ADDRESS_TYPE.ARRIVAL.equals(address.getType())) {
                 return address;
             }
         }

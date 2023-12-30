@@ -3,7 +3,7 @@
     <h2>{{$t('packagesArround')}}</h2>
     <ul>
       <li v-for="marker in makersList" :key="marker.addressString">
-        <h2 :id="marker.addressString">{{displayAddress(marker.addressString)}}</h2>
+        <h2 :id="marker.addressString">{{displayAddress(marker.addressString)}} {{$t('packagesArroundDistanceFromYou')}}</h2>
         <div v-for="package_ in marker.groupedPackagesList" :key="package_.id">
           <MarkerDetails ref="markerDetail" :package_="package_" />
         </div>
@@ -48,7 +48,6 @@ export default {
    },
    methods: {
     displayAddress(addressString) {
-      console.log(addressString);
       const addressArray = addressString.split(',');
       return addressArray[2];
     },

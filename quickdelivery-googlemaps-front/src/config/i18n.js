@@ -49,6 +49,7 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     //Packages Arround
     packagesArround: 'Packages around you',
+    packagesArroundDistanceFromYou: 'from your position',
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
@@ -104,6 +105,7 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
+    packagesArroundDistanceFromYou: 'de votre position',
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',

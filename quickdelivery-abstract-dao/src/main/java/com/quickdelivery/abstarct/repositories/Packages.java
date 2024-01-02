@@ -36,4 +36,9 @@ public interface Packages extends CrudRepository<Package, Long> {
     @Query("UPDATE Package p " +
             "SET p.status = :status WHERE p.id = :id")
     void updatePackagesStatus(@Param("status") PACKAGE_STATUS status, @Param("id") Long id);
+
+    @Query("SELECT p " +
+            "FROM Package p JOIN FETCH p.packageReservations r " +
+            "WHERE r.deliveryPerson.id = :deliveryPersonID")
+    List<Package> findPackagesByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 }

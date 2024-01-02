@@ -5,7 +5,7 @@
     <transition name="fade">
           <div v-if="isActiveMenu" class="horizontal-menu">
             <ul>
-              <li><router-link to="/createPackage">{{$t('menuMyPackages')}}</router-link></li>
+              <li><router-link to="/myPackages">{{$t('menuMyPackages')}}</router-link></li>
               <li><router-link to="/createPackage">{{$t('menuNewPackage')}}</router-link></li>
               <li>CGU</li>
               <li>Politique des Cookies</li>

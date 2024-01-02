@@ -227,6 +227,31 @@ public class PackagesService implements IPackagesService {
         packages.updatePackagesStatus(status,id);
     }
 
+    @Override
+    public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID) {
+        List<Package> packageList = packages.findPackagesByDeliveryPerson(deliveryPersonID);
+        List<PackageDTO> packageDTOS = packageList.stream()
+                .map(aPackage  -> {
+                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+                    aPackage.getDocument().stream()
+                            .filter(document -> document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE))
+                            .map(document -> {
+                                FileDTO fileDTO = new FileDTO();
+                                fileDTO.setData(document.getDocContent());
+                                fileDTO.setFileName(document.getDocURL());
+                                packageDTO.getFiles().add(fileDTO);
+                                return packageDTO;
+                            });
+                    return packageDTO;
+                })
+                .collect(Collectors.toList());
+        Map<PACKAGE_STATUS, List<PackageDTO>> groupedPackages = packageDTOS.parallelStream()
+                .collect(Collectors.groupingByConcurrent(packaged -> {
+                    return packaged.getStatus();
+                }));
+        return groupedPackages;
+    }
+
     private Package createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
         packageDTO.getAddresses().stream().forEach(addressDTO -> {
             try {

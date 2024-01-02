@@ -7,6 +7,7 @@ const messages = {
     rootURL: 'http://localhost:8082/packages/v1/',
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
+    getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',

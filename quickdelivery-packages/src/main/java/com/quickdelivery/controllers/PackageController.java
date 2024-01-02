@@ -111,4 +111,8 @@ public class PackageController {
                                            @RequestParam("deliveryOTP") String deliveryOTP){
         return packagesService.checkOTPForPickUpPackage(packageID,deliveryPersonID,deliveryOTP);
     }
+    @GetMapping("/getPackagesByDeliveryPerson{deliveryPersonID}")
+    public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(@RequestParam("deliveryPersonID") Long deliveryPersonID){
+        return packagesService.getPackagesByDeliveryPerson(deliveryPersonID);
+    }
 }

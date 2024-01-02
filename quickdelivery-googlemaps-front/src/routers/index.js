@@ -1,5 +1,6 @@
 import * as VueRouter from 'vue-router'
 import PackageCreation from '../pages/CreatePackagePage.vue';
+import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
 
 const routes = [
@@ -12,6 +13,11 @@ const routes = [
         path: '/createPackage',
         name: 'createPackage',
         component: PackageCreation
+        },
+        {
+        path: '/myPackages',
+        name: 'myPackages',
+        component: MyPackages
         }
       ];
 const router = VueRouter.createRouter({

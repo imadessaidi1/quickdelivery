@@ -1,15 +1,8 @@
 package com.quickdelivery.services.interfaces;
 
-import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
-import com.quickdelivery.abstarct.dto.PositionDTO;
-import com.quickdelivery.abstarct.dto.UserDTO;
-import com.quickdelivery.abstarct.entities.Address;
-import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
-import org.apache.juli.logging.Log;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.NoSuchAlgorithmException;
@@ -31,4 +24,6 @@ public interface IPackagesService {
     List<PackageDTO> findPackagesByStatus(PACKAGE_STATUS status);
 
     void updatePackageStatus(PACKAGE_STATUS status, Long id);
+
+    Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID);
 }

@@ -1,6 +1,6 @@
 <template>
     <!--<h2>{{$t('packagesArround')}}</h2>-->
-    <carousel :items-to-show="2.5" :wrap-around="true" @slide-start="handleSlideStart">
+    <carousel :items-to-show="1" @slide-start="handleSlideStart">
     <slide v-for="package_ in packagesList" :key="package_">
         <MarkerDetails ref="marker.addressString+index" :package_="package_" />
     </slide>

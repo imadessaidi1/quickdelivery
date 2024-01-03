@@ -2,23 +2,28 @@
   <div class="marker-details">
     <!-- Zone gauche avec la photo -->
     <div class="left-section">
-      <img src="" alt="Image">
-      <!-- <img :src="getImageSrc()" alt="Image" /> -->
-    </div>
-
-    <!-- Zone droite avec le texte -->
-    <div class="right-section">
       <h3>{{ package_.id }}</h3>
-      <p>{{ $t('packageHeight') }}:
+      <!--<p>{{ $t('packageHeight') }}:
         {{ package_.height }}</p>
       <p>{{ $t('packageWidth') }}:
         {{ package_.width }} </p>
       <p>{{ $t('packageDepth') }}:
         {{ package_.dept }}</p>
       <p>{{ $t('packageWeight') }}:
-        {{ package_.weight }}</p>
+        {{ package_.weight }}</p>-->
       <p>{{ $t('packagePrice') }}:
         {{ package_.price }}</p>
+      <p>{{$t('packageDestination')}}:
+        {{destinationAddress()}}</p>
+      <p>{{$t('packageDistanceToDestination')}}:
+        {{package_.distanceToDestination}}</p>
+      <p>{{$t('packagesArroundDistanceFromYou')}}:
+        {{package_.fromYou}}</p>
+    </div>
+
+    <!-- Zone droite avec le texte -->
+    <div class="right-section">
+
       <!-- Zone inférieure avec des boutons -->
       <div class="bottom-section">
         <button class="primary_btn" ref="direction" :key="package_.id"
@@ -66,7 +71,6 @@ export default {
     },
     reserve() {
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
-      console.log(url);
       return axios.put(url)
         .then(response => {
           return response.data;
@@ -115,7 +119,7 @@ export default {
 }
 
 .left-section {
-  width: 35%;
+  width: 80%;
   text-align: center;
   background-color: #ccc;
   border-radius: 5px;

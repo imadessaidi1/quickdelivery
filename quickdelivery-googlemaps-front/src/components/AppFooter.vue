@@ -1,6 +1,6 @@
 <template>
   <div>
-    <footer>
+    <!--<footer>
       <div class="footer-column">
         <h4>{{$t('footerAssistance')}}</h4>
         <ul>
@@ -20,7 +20,7 @@
           <li>{{$t('footerWelcomeContact')}}</li>
         </ul>
       </div>
-    </footer>
+    </footer>-->
     <div class="copyright-info">
       <p>© 2023 {{$t('applicationName')}}, Inc.·{{$t('footerPrivacy')}} ·{{$t('footerConditions')}} ·{{$t('footerCompany')}}</p>
     </div>

@@ -110,8 +110,10 @@
 			const filteredOnMyRoadDirection = packagesOnMyRoadDirection.filter(filterOnMyRoadDirection);
 
 			if (filteredOnMyRoadDirection.length > 0) {
+			    console.log('existing');
 				directionsRenderer.setDirections(packagesOnMyRoadDirection[0].response);
 			}else{
+			    console.log('new');
 				const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
 				getPackagesOnMyRoad(packageStart, packageEnd)
 					.then(waypts => {
@@ -164,6 +166,7 @@
 					var xhr = new XMLHttpRequest();
 					const waypts = [];
 					var url = `http://localhost:8082/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
+					console.log(url);
 					xhr.open("GET", url, true);
 
 					xhr.onload = function () {

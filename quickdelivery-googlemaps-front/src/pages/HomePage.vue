@@ -1,17 +1,18 @@
 <template>
+    <Carrousel />
     <div class="main-content">
-        <MarkerList :style="{ width: '30%' }"/>
+        <!--<MarkerList :style="{ width: '30%' }"/>-->
         <GoogleMap ref="mapVue" :style="{ width: '60%' }"/>
     </div>
 </template>
 <script>
 import GoogleMap from '../components/GoogleMap.vue';
-import MarkerList from '../components/MarkerList.vue';
+import Carrousel from '../components/PackagesCarousel.vue'
 
 export default {
   components: {
     GoogleMap,
-    MarkerList,
+    Carrousel,
   },
 };
 </script>

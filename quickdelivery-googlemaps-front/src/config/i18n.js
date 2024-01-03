@@ -8,6 +8,7 @@ const messages = {
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
+    getPackagesAroundMe: 'packages-around-me?latitude=',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -25,7 +26,7 @@ const messages = {
     packageWidth: 'Width (cm)',
     packageWeight: 'Weight (kg)',
     packageDepth: 'Length (cm)',
-    packagePicture: 'Picture (packages with a photo are more likely to quickly find a delivery person)',
+    packagePicture: 'Picture (Packages with a photo are more likely to quickly find a delivery person)',
     packageInvoice: 'Receipt/Invoice (Necessary to collect your package from a professional)',
     packagePrice: 'Price',
     packageDistanceToDestination: 'Distance to destination',
@@ -52,7 +53,7 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     //Packages Arround
     packagesArround: 'Packages around you',
-    packagesArroundDistanceFromYou: 'from your position',
+    packagesArroundDistanceFromYou: 'From your position',
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
@@ -86,7 +87,7 @@ const messages = {
     packagePrice: 'Prix (€)',
     packageDistanceToDestination: 'Distance jusqu\'à destination',
     packageDestination: 'Destination',
-    packagePicture: 'Photo (les colis avec photos ont plus de chances de trouver rapidement un livreur)',
+    packagePicture: 'Photo (Les colis avec photos ont plus de chances de trouver rapidement un livreur)',
     packageInvoice: 'Ticket de caisse / Facture (Necessaire pour recuperer votre colis auprès d\'un professionnel)',
     packageNextAction: 'Suivant',
     packagePreviousAction: 'Precédent',
@@ -110,7 +111,7 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
-    packagesArroundDistanceFromYou: 'de votre position',
+    packagesArroundDistanceFromYou: 'De votre position',
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',

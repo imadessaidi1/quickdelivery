@@ -13,6 +13,8 @@ public interface IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files);
     void createNewPackages(List<PackageDTO> packageDTOS);
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
+
+    List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
     void reservePackage(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException;
     void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP) throws NoSuchAlgorithmException;

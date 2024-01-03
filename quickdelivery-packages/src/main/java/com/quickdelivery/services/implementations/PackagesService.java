@@ -104,12 +104,11 @@ public class PackagesService implements IPackagesService {
                     PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
                     aPackage.getDocument().stream()
                             .filter(document -> document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE))
-                            .map(document -> {
+                            .collect(Collectors.toList()).forEach(document -> {
                                 FileDTO fileDTO = new FileDTO();
                                 fileDTO.setData(document.getDocContent());
                                 fileDTO.setFileName(document.getDocURL());
                                 packageDTO.getFiles().add(fileDTO);
-                                return packageDTO;
                             });
                     return packageDTO;
                 })
@@ -124,6 +123,24 @@ public class PackagesService implements IPackagesService {
                             +" ("+distancePackageUser.rows[0].elements[0].duration+"/"+distancePackageUser.rows[0].elements[0].distance+")";
                 }));
         return groupedPackages;
+    }
+
+    @Override
+    public List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
+        List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
+        List<PackageDTO> packageDTOS = addresses.stream()
+                .map(address -> {
+                    Package aPackage = address.getPackaged();
+                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+                    AddressDTO departureAddress = getDepartureAddress(packageDTO.getAddresses());
+                    DistanceMatrix distancePackageUser = GeoHelper.getDistanceByCoordinates(geoApiContext, departureAddress.getLatitude().doubleValue(),
+                            departureAddress.getLongitude().doubleValue()
+                            , Double.parseDouble(latitude), Double.parseDouble(longitude));
+                    packageDTO.setFromYou(distancePackageUser.rows[0].elements[0].duration+"/"+distancePackageUser.rows[0].elements[0].distance);
+                    return packageDTO;
+                })
+                .collect(Collectors.toList());
+        return packageDTOS;
     }
 
     @Override
@@ -234,13 +251,12 @@ public class PackagesService implements IPackagesService {
                 .map(aPackage  -> {
                     PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
                     aPackage.getDocument().stream()
-                            .filter(document -> document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE))
-                            .map(document -> {
+                            .filter(document -> document.getType().toString().equals(DOCUMENT_TYPE.PACKAGE_PICTURE.toString()))
+                            .collect(Collectors.toList()).forEach(document -> {
                                 FileDTO fileDTO = new FileDTO();
                                 fileDTO.setData(document.getDocContent());
                                 fileDTO.setFileName(document.getDocURL());
                                 packageDTO.getFiles().add(fileDTO);
-                                return packageDTO;
                             });
                     return packageDTO;
                 })

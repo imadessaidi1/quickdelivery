@@ -29,6 +29,8 @@ public class PackageDTO {
     private BigDecimal lastPositionLatitude;
     private BigDecimal lastPositionLongitude;
 
+    private String fromYou;
+
     private List<FileDTO> files = new ArrayList<>();
     public PackageDTO(){}
     public Long getId() {
@@ -175,5 +177,13 @@ public class PackageDTO {
 
     public void setDistanceToDestination(String distanceToDestination) {
         this.distanceToDestination = distanceToDestination;
+    }
+
+    public String getFromYou() {
+        return fromYou;
+    }
+
+    public void setFromYou(String fromYou) {
+        this.fromYou = fromYou;
     }
 }

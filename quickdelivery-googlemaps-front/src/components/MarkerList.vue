@@ -5,8 +5,8 @@
       <li v-for="marker in makersList" :key="marker.addressString">
         <h2 :id="marker.addressString">{{displayAddress(marker.addressString)}} {{$t('packagesArroundDistanceFromYou')}}</h2>
 
-        <div v-for="package_ in marker.groupedPackagesList" :key="package_.id">
-          <MarkerDetails ref="markerDetail" :package_="package_" />
+        <div v-for="(package_,index) in marker.groupedPackagesList" :key="marker.addressString+index">
+          <MarkerDetails ref="marker.addressString+index" :package_="package_" />
         </div>
       </li>
     </ul>
@@ -28,16 +28,20 @@ export default {
    mounted() {
        window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
-           window.location.hash = `#${e.data}`;
-           const packageID = e.data.split(':')[1];
-           const markerDetailComponent = this.$refs.markerDetail;
-           //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
-           markerDetailComponent.forEach(markerDetail => {
-            if(markerDetail.package_.id+'' === packageID)
-             if (markerDetail && markerDetail.setFocusOnReserveButton) {
-                markerDetail.setFocusOnReserveButton();
-             }
-           });
+            const packageID = e.data.split(':')[1];
+            this.makersList.forEach(marker => {
+              marker.groupedPackagesList.forEach(package_ => {
+                if (package_.id === packageID) {
+                  // Trouver la référence au composant MarkerDetails
+                  const markerDetailComponent = this.$refs[package_.id];
+
+                  // Vérifier si la référence existe et appeler la méthode setFocusOnReserveButton
+                  if (markerDetailComponent && markerDetailComponent.setFocusOnReserveButton) {
+                    markerDetailComponent.setFocusOnReserveButton();
+                  }
+                }
+              });
+            });
         }else{
            Object.entries(e.data).forEach(([coordinates, packagesArray]) => {
               if(typeof coordinates === 'string' && Array.isArray(packagesArray)){

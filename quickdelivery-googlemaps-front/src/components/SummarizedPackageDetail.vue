@@ -1,15 +1,15 @@
 <template>
-    <img :src="getImageSrc()" alt="Image" class="item-image" />
+    <!--<img :src="getImageSrc()" alt="Image" class="item-image" />-->
     <div class="item-details">
         <h3>{{ package_.id }}</h3>
-        <p>{{$t('packageHeight')}}:
+        <!--<p>{{$t('packageHeight')}}:
             {{package_.height}}</p>
         <p>{{$t('packageWidth')}}:
             {{package_.width}} </p>
         <p>{{$t('packageDepth')}}:
             {{package_.dept}}</p>
         <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>
+            {{package_.weight}}</p>-->
         <p>{{$t('packagePrice')}}:
             {{package_.price}}</p>
         <p>{{$t('packageDestination')}}:

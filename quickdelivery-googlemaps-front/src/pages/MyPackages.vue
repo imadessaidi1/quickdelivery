@@ -21,13 +21,6 @@ export default {
   },
   data() {
     return {
-      items: [
-        { title: 'Objet 1', date: '2023-01-01', address: 'Adresse 1', imageUrl: 'path/to/image1.jpg' },
-        { title: 'Objet 2', date: '2023-01-02', address: 'Adresse 2', imageUrl: 'path/to/image2.jpg' },
-        { title: 'Objet 3', date: '2023-01-02', address: 'Adresse 2', imageUrl: 'path/to/image2.jpg' },
-        { title: 'Objet 4', date: '2023-01-02', address: 'Adresse 2', imageUrl: 'path/to/image2.jpg' },
-        { title: 'Objet 5', date: '2023-01-02', address: 'Adresse 2', imageUrl: 'path/to/image2.jpg' },
-      ],
       packagesByStatus:[] ,
     };
   },

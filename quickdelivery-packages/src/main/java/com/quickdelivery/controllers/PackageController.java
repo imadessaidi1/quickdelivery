@@ -53,6 +53,13 @@ public class PackageController {
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 
+    @GetMapping("/packages-around-me{latitude}{longitude}{rayonEnMetres}")
+    public List<PackageDTO> packagesAroundMyPosition(@RequestParam(name = "latitude", required = true) String latitude,
+                                                                @RequestParam(name = "longitude", required = true) String longitude,
+                                                                @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
+        return packagesService.getPackagesAroundPosition(latitude,longitude,rayonEnMetres);
+    }
+
     @GetMapping("/packages-on-my-road{departureLatitude}{departureLongitude}{arrivalLatitude}{arrivalLongitude}")
     public List<PackageDTO> findPackagesOnMyRoad(@RequestParam(name = "departureLatitude", required = true) String departureLatitude,
                                                    @RequestParam(name = "arrivalLatitude", required = true) String arrivalLatitude,

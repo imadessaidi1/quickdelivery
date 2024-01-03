@@ -4,6 +4,7 @@
     <ul>
       <li v-for="marker in makersList" :key="marker.addressString">
         <h2 :id="marker.addressString">{{displayAddress(marker.addressString)}} {{$t('packagesArroundDistanceFromYou')}}</h2>
+
         <div v-for="package_ in marker.groupedPackagesList" :key="package_.id">
           <MarkerDetails ref="markerDetail" :package_="package_" />
         </div>
@@ -20,6 +21,7 @@ export default {
   },
   data() {
     return {
+      packagesList: [],
       makersList: [],
     };
   },
@@ -55,15 +57,22 @@ export default {
 </script>
 
 <style scoped>
+.marker-list{
+  padding: 0 20px;
+  height: 75vh;
+}
+.marker-list h2{
+  margin-left: 10px;
+}
 .marker-list ul{
   width: 100%;
   flex: 1;
-  padding: 10px;
-  max-height: 530px;
+  max-height: 60vh;
   overflow-y: auto;
 }
 ul{
  list-style: none;
  padding: 0;
 }
+
 </style>

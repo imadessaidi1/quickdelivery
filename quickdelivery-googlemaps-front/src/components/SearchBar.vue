@@ -1,15 +1,23 @@
 <template>
   <div class="search-bar">
-    <router-link to="/">{{$t('menuHome')}}</router-link>
-    <button @click="toggleMenu">☰</button>
+     <a @click="toggleMenu" class="material-symbols-outlined ">menu</a>
     <transition name="fade">
-          <div v-if="isActiveMenu" class="horizontal-menu">
+          <div v-if="isActiveMenu" class="menu horizontal-menu">
             <ul>
-              <li><router-link to="/myPackages">{{$t('menuMyPackages')}}</router-link></li>
-              <li><router-link to="/createPackage">{{$t('menuNewPackage')}}</router-link></li>
+              <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
+              <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
+              <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
               <li>CGU</li>
               <li>Politique des Cookies</li>
               <li>Nous Contacter</li>
+            </ul>
+          </div>
+        </transition>
+        <transition name="fade">
+          <div v-if="isActiveLoginMenu" class="menu login-menu">
+            <ul>
+              <li>Connexion</li>
+              <li>Crée un compt</li>
             </ul>
           </div>
         </transition>
@@ -18,7 +26,7 @@
     <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
-    <button @click="login">Connexion</button>
+    <a class="material-symbols-outlined" @click="loginMenu">person</a>
   </div>
   <AppModal ref="AppModal" />
 </template>
@@ -32,15 +40,15 @@ export default {
   data() {
       return {
         isActiveMenu: false,
+        isActiveLoginMenu: false,
       };
     },
   methods: {
     toggleMenu() {
       this.isActiveMenu = !this.isActiveMenu;
     },
-    login() {
-      // Logique de connexion
-      console.log('User logged in');
+    loginMenu() {
+      this.isActiveLoginMenu = !this.isActiveLoginMenu;
     },
     openModal() {
       this.$refs.AppModal.openModal();
@@ -50,46 +58,82 @@ export default {
 </script>
 
 <style>
+
 .search-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background-color: #f0f0f0;
+  padding: 10px 40px;
+  margin: 0;
+  background-color: #e8e8e8;
   position: relative;
 }
-
+.material-symbols-outlined{
+  cursor: pointer;
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
 /* Styles pour le menu horizontal */
-.horizontal-menu {
+.horizontal-menu,
+.login-menu{
   position: absolute;
-  top: 100%; /* Ajustez la valeur en fonction de la hauteur de la barre de recherche */
-  left: 0;
-  width: 100%;
   background-color: #fff; /* Ajoutez une couleur de fond selon vos besoins */
   border: 1px solid #ccc; /* Ajoutez une bordure si nécessaire */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ajoutez une ombre si nécessaire */
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Ajoutez une ombre si nécessaire */
 }
-
-.horizontal-menu ul {
+.horizontal-menu {
+  top: 100%; /* Ajustez la valeur en fonction de la hauteur de la barre de recherche */
+  left: 10px;
+}
+.login-menu{
+  top: 100%; /* Ajustez la valeur en fonction de la hauteur de la barre de recherche */
+  right: 10px;
+}
+.menu ul {
   list-style-type: none;
   padding: 0;
   margin: 0;
-  display: flex;
+  display: inline-block;
   justify-content: space-around; /* Ajustez l'alignement horizontal selon vos besoins */
 }
 
-.horizontal-menu li {
-  padding: 10px;
+.menu li {
+  padding: 10px 15px;
   cursor: pointer;
+  transition: all 0.3s;
   /* Ajoutez d'autres styles de texte, bordure, etc. selon vos besoins */
 }
-
-/* Transition pour l'effet de fondu */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
+.menu li:hover {
+  background-color: #adadad67;
 }
 
-.fade-enter, .fade-leave-to {
+#searchInput {
+  width: 45%;
+  height: 35px;
+  border: none;
+  padding: 0 15px;
+  border: solid 2px rgba(120, 183, 255, 0);
+  border-radius: 6px;
+  transition: all 300ms;
+}
+#searchInput:hover{
+  border: solid 2px #0086df;
+}
+
+.primary_btn:hover{
+  background-color: #0086df;
+  color: #fff;
+}
+/* Transition pour l'effet de fondu */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 300ms;
+}
+
+.fade-enter-from, .fade-leave-to {
   opacity: 0;
 }
 </style>

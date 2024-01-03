@@ -5,7 +5,7 @@
     <iframe
             ref="map"
             width="100%"
-          height="591"
+          height="100%"
           :src="googleMapPath"
           style="border:0;"
           v-on:load="onLoadIframe"
@@ -32,9 +32,12 @@ export default {
 </script>
 
 <style scoped>
+#map{
+  height: 100%;
+}
 .google-map {
   width: 100%;
+  height: 75vh;
   flex: 1;
-  padding: 20px;
 }
 </style>

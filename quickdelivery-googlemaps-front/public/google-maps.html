@@ -31,7 +31,10 @@
 	   var url_string = window.location.href; 
 		var url = new URL(url_string);
 		userID = url.searchParams.get("userID");
-        directionsRenderer = new google.maps.DirectionsRenderer({suppressMarkers: false});
+        directionsRenderer = new google.maps.DirectionsRenderer({
+			suppressMarkers: false,
+			polylineOptions:{strokeColor: '#525CEB'}
+		});
         directionsService = new google.maps.DirectionsService();
 		infowindow = new google.maps.InfoWindow(
 		  { 
@@ -43,13 +46,15 @@
 			zoomControl: true,
 			scaleControl: true,
         });
-		const trafficLayer = new google.maps.TrafficLayer();
-		trafficLayer.setMap(map);
+		const transitLayer = new google.maps.TransitLayer();
+		transitLayer.setMap(map);
 		if (navigator.geolocation) {
 			 navigator.geolocation.getCurrentPosition(function (position) {
-				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+				 //initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+				 initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
 				 map.setCenter(initialLocation);
-				 getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
+				 getPackagesAroundMe(48.74412000, 2.47471000);
+				 //getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
 			 });
 		 }
         directionsRenderer.setMap(map);
@@ -264,7 +269,7 @@
       /* Optional: Makes the sample page fill the window. */
       html,
       body {
-        height: 100%;
+        height: 100vh;
         margin: 0;
         padding: 0;
       }
@@ -272,6 +277,7 @@
       #container {
         height: 100%;
         display: flex;
+		padding: 0;
       }
 
       #sidebar {

@@ -4,7 +4,7 @@
       <div class="footer-column">
         <h4>{{$t('footerAssistance')}}</h4>
         <ul>
-          <li>{{$t('footerAssistanceHelp')}}</li>
+          <li><a href="#">{{$t('footerAssistanceHelp')}}</a></li>
         </ul>
       </div>
       <div class="footer-column">
@@ -22,9 +22,7 @@
       </div>
     </footer>
     <div class="copyright-info">
-      <div class="left-align">
-        <p>© 2023 {{$t('applicationName')}}, Inc.·{{$t('footerPrivacy')}} ·{{$t('footerConditions')}} ·{{$t('footerCompany')}}</p>
-      </div>
+      <p>© 2023 {{$t('applicationName')}}, Inc.·{{$t('footerPrivacy')}} ·{{$t('footerConditions')}} ·{{$t('footerCompany')}}</p>
     </div>
   </div>
 </template>
@@ -34,7 +32,7 @@ footer {
   display: flex;
   justify-content: space-around;
   background-color: #f0f0f0;
-  padding: 20px;
+  padding: 0 20px;
 }
 
 .footer-column {
@@ -59,12 +57,10 @@ footer {
   background-color: #f0f0f0;
 }
 
-.left-align {
+.copyright-info p {
   flex: 1;
-}
-
-.right-align {
-  flex: 1;
-  text-align: right;
+  text-align: center;
+  font-size: 12px;
+  margin: 0;
 }
 </style>

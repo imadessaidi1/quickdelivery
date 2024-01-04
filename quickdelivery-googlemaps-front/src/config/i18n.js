@@ -21,6 +21,7 @@ const messages = {
     footerConditions: 'Terms and conditions',
     footerCompany: 'Company Info',
     //NEW PACKAGE
+    currency: '€',
     createNewPackage: 'Package info.',
     packageHeight: 'Height (cm)',
     packageWidth: 'Width (cm)',
@@ -80,6 +81,7 @@ const messages = {
     footerConditions: 'Conditions générales',
     footerCompany: 'Infos sur l\'entreprise',
     //Nouveau colis
+    currency: '€',
     createNewPackage: 'Info. du colis',
     packageHeight: 'Hauteur (cm)',
     packageWidth: 'Largeur (cm)',

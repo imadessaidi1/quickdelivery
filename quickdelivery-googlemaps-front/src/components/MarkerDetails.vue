@@ -11,7 +11,7 @@
       <p>{{ $t('packageWeight') }}:
         {{ package_.weight }}</p>-->
       <p>{{ $t('packagePrice') }}:
-        {{ package_.price }}</p>
+        {{ package_.deliveryPrice }}&nbsp;{{ $t('currency') }}</p>
     <p>{{$t('packageDeparture')}}:
       {{departureAddress()}}</p>
     <p>{{$t('packageDestination')}}:

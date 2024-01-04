@@ -67,6 +67,7 @@ export default {
   margin: 0;
   background-color: #e8e8e8;
   position: relative;
+  z-index: 2;
 }
 .material-symbols-outlined{
   cursor: pointer;

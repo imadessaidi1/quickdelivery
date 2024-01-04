@@ -50,11 +50,9 @@
 		transitLayer.setMap(map);
 		if (navigator.geolocation) {
 			 navigator.geolocation.getCurrentPosition(function (position) {
-				 //initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-				 initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
+				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 				 map.setCenter(initialLocation);
-				 getPackagesAroundMe(48.74412000, 2.47471000);
-				 //getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
+				 getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
 			 });
 		 }
         directionsRenderer.setMap(map);
@@ -87,7 +85,6 @@
 						travelMode: google.maps.TravelMode[selectedMode],
 					})
 					.then((response) => {
-					    console.log(response);
 						directionsRenderer.setDirections(response);
 						packagesSimpleDirection.push({ packageStart: start, packageEnd: end, response: response });
 					})
@@ -138,28 +135,41 @@
 					});
 				}
 		}
-		async function getPackagesAroundMe(latitude, longitude) {
-			try {
-				const url = `http://localhost:8082/packages/v1/packages-around?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=30000`;
-				const response = await fetch(url);
-
-				if (!response.ok) {
-					throw new Error(`Erreur de l'API : ${response.statusText}`);
+	  async function getPackagesAroundMe(latitude, longitude) {
+			return new Promise(async (resolve, reject) => {
+				try{
+					var xhr = new XMLHttpRequest();
+					var url = `http://localhost:8082/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=30000`;
+					xhr.open("GET", url, true);
+					xhr.onload = function() {
+						if (xhr.status >= 200 && xhr.status < 300) {
+							packagesArround = JSON.parse(xhr.responseText);
+							window.top.postMessage(packagesArround, '*');
+							packagesArround.forEach(function(package_) {
+								var arrivalAddress;
+								var departureAddress;
+								package_.addresses.forEach(function(adresse) {
+									if(adresse.type === "ARRIVAL"){
+										arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
+									}else{
+										departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
+									}
+								});
+								addMarker(departureAddress, arrivalAddress, map);
+							});
+						} else {
+							console.error("Erreur de l'API :", xhr.statusText);
+						}
+					};
+					xhr.onerror = function() {
+						console.error("Erreur de réseau lors de la requête vers l'API.");
+					};
+					xhr.send();
+				} catch (error) {
+					reject(error);
 				}
-				const data = await response.json();
-
-				// Utiliser Object.entries pour obtenir un tableau de paires clé-valeur
-				Object.entries(data).forEach(([coordinates, packagesArray]) => {
-						const splitedCoordinates = coordinates.split(',');
-						const departureAddress = { lat: Number(splitedCoordinates[0]), lng: Number(splitedCoordinates[1]) };
-						addMarker(departureAddress, coordinates, packagesArray.length, map);
 				});
-				window.top.postMessage(data, '*');
-			} catch (error) {
-				console.error("Erreur lors de la requête vers l'API :", error);
-			}
 		}
-
 		async function getPackagesOnMyRoad(departurePosition, arrivalPosition) {
 			return new Promise(async (resolve, reject) => {
 				try {
@@ -223,19 +233,25 @@
 				throw error; // Vous pouvez gérer l'erreur de manière appropriée en fonction de vos besoins
 			});
 		}
-		function addMarker(departureAddress, coordinates, packagesNumber, map) {
+		function addMarker(departureAddress, arrivalAddress, map) {
 		  if(departureAddress != undefined){
 				  var markerInfo;
-				  var marker = new google.maps.Marker({
-					  position: {lat: departureAddress.lat, lng: departureAddress.lng},
-					  //title: arrivalAddress.packageID+"",
+				  if(arrivalAddress != undefined){
+					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.line2} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction</a></p><p><a href="#" onclick="calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction with packages on my road</a></p>`;
+
+				  }
+
+					var marker = new google.maps.Marker({
+					  position: departureAddress,
+					  title: arrivalAddress.packageID+"",
 					  map:map,
 					  zIndex: Math.round(departureAddress.lat*-100000)<<5
 				  });
-				 google.maps.event.addListener(marker, 'click', function() { 
-					infowindow.setContent("Packages : "+packagesNumber);
+				  marker.myname = arrivalAddress.packageID;
+				google.maps.event.addListener(marker, 'click', function() {
+					infowindow.setContent(markerInfo);
 					infowindow.open(map,marker);
-					window.top.postMessage("SelectedPackage:"+coordinates, '*');
+					window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
 				});
 			}
 		}

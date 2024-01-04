@@ -1,5 +1,4 @@
 <template>
-    <!--<h2>{{$t('packagesArround')}}</h2>-->
     <carousel :items-to-show="1" @slide-start="handleSlideStart">
     <slide v-for="package_ in packagesList" :key="package_">
         <MarkerDetails ref="marker.addressString+index" :package_="package_" />
@@ -16,7 +15,6 @@
 import 'vue3-carousel/dist/carousel.css'
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import MarkerDetails from './MarkerDetails.vue';
-import axios from 'axios'
 
 export default {
   name: 'App',
@@ -33,34 +31,26 @@ export default {
     };
   },
   async mounted() {
-    await this.getUserLocation();
-    await this.fetchData();
+    window.onmessage = (e) => {
+        if (Array.isArray(e.data)) {
+                const rawData = e.data;
+                this.packagesList = JSON.parse(JSON.stringify(rawData));
+                this.displayDirection(0);
+        }
+        if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
+           const packageID = e.data.split(':')[1];
+           const markerDetailComponent = this.$refs.markerDetail;
+           //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
+           markerDetailComponent.forEach(markerDetail => {
+            if(markerDetail.package_.id+'' === packageID)
+             if (markerDetail && markerDetail.setFocusOnReserveButton) {
+                markerDetail.setFocusOnReserveButton();
+             }
+           });
+        }
+       };
   },
   methods: {
-    async getUserLocation() {
-      if (!("geolocation" in navigator)) {
-        console.log('Geolocation is not available.');
-        return;
-      }
-      try {
-        const pos = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-        this.location = pos;
-      } catch (err) {
-        console.log(err.message);
-      }
-    },
-    async fetchData() {
-      try {
-        const url = this.$i18n.t('rootURL')+this.$i18n.t('getPackagesAroundMe')+this.location.coords.latitude+"&longitude="+this.location.coords.longitude+"&rayonEnMetres=30000";
-        const response = await axios.get(url);
-        this.packagesList = response.data;
-        this.displayDirection(0);
-      } catch (error) {
-        console.error('Erreur lors de la requête API', error);
-      }
-    },
     handleSlideStart(data) {
       this.displayDirection(data.slidingToIndex);
     },

@@ -31,7 +31,7 @@ export default {
     AddressAutocomplete,
   },
   props: {
-    addressType: String,
+    addressType: null,
   },
   computed: {
     address() {

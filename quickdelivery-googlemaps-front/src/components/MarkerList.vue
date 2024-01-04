@@ -22,32 +22,24 @@ export default {
   data() {
     return {
       packagesList: [],
-      makersList: [],
     };
   },
    mounted() {
        window.onmessage = (e) => {
+        if (Array.isArray(e.data)) {
+                const rawData = e.data;
+                this.packagesList = JSON.parse(JSON.stringify(rawData));
+        }
         if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
-            const packageID = e.data.split(':')[1];
-            this.makersList.forEach(marker => {
-              marker.groupedPackagesList.forEach(package_ => {
-                if (package_.id === packageID) {
-                  // Trouver la référence au composant MarkerDetails
-                  const markerDetailComponent = this.$refs[package_.id];
-
-                  // Vérifier si la référence existe et appeler la méthode setFocusOnReserveButton
-                  if (markerDetailComponent && markerDetailComponent.setFocusOnReserveButton) {
-                    markerDetailComponent.setFocusOnReserveButton();
-                  }
-                }
-              });
-            });
-        }else{
-           Object.entries(e.data).forEach(([coordinates, packagesArray]) => {
-              if(typeof coordinates === 'string' && Array.isArray(packagesArray)){
-                this.makersList.push({addressString: coordinates, groupedPackagesList: packagesArray});
-              }
-            });
+           const packageID = e.data.split(':')[1];
+           const markerDetailComponent = this.$refs.markerDetail;
+           //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
+           markerDetailComponent.forEach(markerDetail => {
+            if(markerDetail.package_.id+'' === packageID)
+             if (markerDetail && markerDetail.setFocusOnReserveButton) {
+                markerDetail.setFocusOnReserveButton();
+             }
+           });
         }
        };
    },

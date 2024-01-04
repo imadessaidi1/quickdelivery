@@ -4,23 +4,27 @@
                 <div v-if="currentStep === 1">
                     <h2>{{$t('createNewPackage')}}</h2>
                     <PackageCreation ref="packageInfo"/>
-                    <button @click="nextStep">{{$t('packageNextAction')}}</button>
+                    <br/>
+                    <button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
                 </div>
                     <div v-if="currentStep === 2">
                         <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
-                        <PackageAddress ref="departureAddress" :addressType="DEPARTURE"/>
-                        <button @click="previousStep">{{$t('packagePreviousAction')}}</button><button @click="nextStep">{{$t('packageNextAction')}}</button>
+                        <PackageAddress ref="departureAddress" :addressType="departure"/>
+                        <br/>
+                        <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
                     </div>
                     <div v-if="currentStep === 3">
                         <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
-                        <PackageAddress ref="arrivalAddress" :addressType="ARRIVAL"/>
-                        <button @click="previousStep">{{$t('packagePreviousAction')}}</button><button @click="nextStep">{{$t('packageSummaryAction')}}</button>
+                        <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
+                        <br/>
+                        <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
                     </div>
                     <div v-if="currentStep === 4">
                         <h2>{{$t('packageSummaryAction')}}</h2>
                         <PackageSummary ref="packageSummary"/>
                     </div>
-        <button type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
+        <br/>
+        <button class="primary_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
         </form>
     </div>
 </template>
@@ -29,6 +33,8 @@ import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
 import axios from 'axios';
+//import { useVuelidate } from '@vuelidate/core';
+//import { validations } from '@/vuelidate/packageValidation';
 
 export default{
   components: {
@@ -36,9 +42,14 @@ export default{
     PackageAddress,
     PackageSummary,
   },
+  /*setup() {
+    const $v = useVuelidate(validations);
+  },*/
   data() {
     return {
       currentStep: 1,
+      departure: 'DEPARTURE',
+      arrival: 'ARRIVAL',
     };
   },
   computed: {
@@ -85,6 +96,7 @@ export default{
     },
     async submitForm() {
      const formData = new FormData();
+     console.log(this.package_);
      this.package_.senderID = this.$store.state.connectedUser.id
      formData.append('packageDTO', JSON.stringify(this.package_));
      formData.append('files', this.documentS[0]);

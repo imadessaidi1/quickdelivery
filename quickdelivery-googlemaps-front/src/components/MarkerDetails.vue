@@ -1,7 +1,6 @@
 <template>
   <div class="marker-details">
-    <!-- Zone gauche avec la photo -->
-    <div class="left-section">
+    <!-- Zone droite avec le texte -->
       <h3>{{ package_.id }}</h3>
       <!--<p>{{ $t('packageHeight') }}:
         {{ package_.height }}</p>
@@ -13,27 +12,21 @@
         {{ package_.weight }}</p>-->
       <p>{{ $t('packagePrice') }}:
         {{ package_.price }}</p>
-      <p>{{$t('packageDestination')}}:
+    <p>{{$t('packageDeparture')}}:
+      {{departureAddress()}}</p>
+    <p>{{$t('packageDestination')}}:
         {{destinationAddress()}}</p>
       <p>{{$t('packageDistanceToDestination')}}:
         {{package_.distanceToDestination}}</p>
       <p>{{$t('packagesArroundDistanceFromYou')}}:
         {{package_.fromYou}}</p>
-    </div>
-
-    <!-- Zone droite avec le texte -->
-    <div class="right-section">
-
       <!-- Zone inférieure avec des boutons -->
-      <div class="bottom-section">
-        <button class="primary_btn" ref="direction" :key="package_.id"
-          @click="showDirection">{{ $t('packagesArroundMArkerDetailActionsShowDirection') }}</button>
+      <p>
         <button class="primary_btn" ref="onMyRoad" :key="package_.id"
-          @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>
+          @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>&nbsp;
         <button class="primary_btn" ref="reserveButtons" :key="package_.id"
           @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-      </div>
-    </div>
+      </p>
   </div>
 </template>
 
@@ -45,18 +38,6 @@ export default {
     package_: Object,
   },
   methods: {
-    showDirection() {
-      var stringDeparture = "";
-      var stringArrival = "";
-      this.package_.addresses.forEach(address => {
-        if (address.type === "DEPARTURE") {
-          stringDeparture = address.latitude + "," + address.longitude;
-        } else {
-          stringArrival = address.latitude + "," + address.longitude;
-        }
-      });
-      this.$parent.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("SelectedDirection:" + stringDeparture + ";" + stringArrival, "*");
-    },
     onMyDirection() {
       var stringDeparture = "";
       var stringArrival = "";
@@ -94,6 +75,15 @@ export default {
       });
       return destinationAddressS;
     },
+    departureAddress() {
+      var destinationAddressS = '';
+      this.package_.addresses.forEach(address => {
+        if(address.type === 'DEPARTURE'){
+          destinationAddressS = address.line1+" "+address.zipCode+" "+address.town+" "+address.country;
+        }
+      });
+      return destinationAddressS;
+    },
     setFocusOnReserveButton() {
           const reserveButton = this.$refs.reserveButtons;
           if (reserveButton) {
@@ -101,25 +91,21 @@ export default {
           }
      },
   },
-  mounted() {
-
-  },
 };
 </script>
 
-<style scoped>
+<style>
 .marker-details {
-  display: flex;
-  flex-direction: row;
   justify-content: space-between;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background: rgba(255, 255, 255, 0.6); /* Couleur de fond avec transparence */
 }
 
 .left-section {
-  width: 80%;
+  width: 100%;
   text-align: center;
   background-color: #ccc;
   border-radius: 5px;
@@ -132,19 +118,20 @@ export default {
 .right-section {
   width: 60%;
 }
-.right-section h3{
+.marker-details h3{
   margin: 0 0 10px 0;
 }
-.right-section p {
+.marker-details p {
   margin: 5px 0;
   font-size: 12px;
 }
 
 .bottom-section {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 75%;
   margin: 10px auto;
+  align: center;
 }
 
 .bottom-section button {

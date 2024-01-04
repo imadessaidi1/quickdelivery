@@ -31,6 +31,7 @@ const messages = {
     packagePrice: 'Price',
     packageDistanceToDestination: 'Distance to destination',
     packageDestination: 'Destination',
+    packageDeparture: 'Departure',
     packageNextAction: 'Next',
     packagePreviousAction: 'Previous',
     packageSummaryAction: 'Summary',
@@ -53,7 +54,7 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     //Packages Arround
     packagesArround: 'Packages around you',
-    packagesArroundDistanceFromYou: 'From your position',
+    packagesArroundDistanceFromYou: 'Distance to package from your position',
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
@@ -87,6 +88,7 @@ const messages = {
     packagePrice: 'Prix (€)',
     packageDistanceToDestination: 'Distance jusqu\'à destination',
     packageDestination: 'Destination',
+    packageDeparture: 'Depart',
     packagePicture: 'Photo (Les colis avec photos ont plus de chances de trouver rapidement un livreur)',
     packageInvoice: 'Ticket de caisse / Facture (Necessaire pour recuperer votre colis auprès d\'un professionnel)',
     packageNextAction: 'Suivant',
@@ -111,7 +113,7 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
-    packagesArroundDistanceFromYou: 'De votre position',
+    packagesArroundDistanceFromYou: 'Vers le colis de votre position',
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',

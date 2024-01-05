@@ -1,6 +1,6 @@
 <template>
   <div class="search-bar">
-     <a @click="toggleMenu" class="material-symbols-outlined " style="display: none;">menu</a>
+     <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
      <div class="menu vertical-menu">
       <ul>
         <router-link to="/"><li class="material-symbols-outlined">home</li></router-link>
@@ -143,6 +143,18 @@ export default {
 
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+.burger_menu{
+  display: none;
+}
+
+@media screen and (max-width: 580px) {
+  .burger_menu{
+    display: block;
+  }
+  .vertical-menu{
+    display: none;
+  }
 }
 
 </style>

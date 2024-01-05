@@ -7,17 +7,15 @@
               <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
               <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
               <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
-                <li><a @click="openModal">CGU</a></li>
-              <li>Politique des Cookies</li>
-              <li>Nous Contacter</li>
             </ul>
           </div>
         </transition>
         <transition name="fade">
           <div v-if="isActiveLoginMenu" class="menu login-menu">
             <ul>
-              <li>Connexion</li>
-              <li>Crée un compt</li>
+              <li>{{$t('menuUserLogin')}}</li>
+              <li>{{$t('menuUserSignin')}}</li>
+              <li>{{$t('menuUuserAccount')}}</li>
             </ul>
           </div>
         </transition>

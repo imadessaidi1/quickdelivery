@@ -63,6 +63,9 @@ const messages = {
     menuHome: 'Home',
     menuMyPackages: 'My Packages',
     menuNewPackage: 'New Package',
+    menuUserLogin: 'Login',
+    menuUserSignin: 'Sign in',
+    menuUuserAccount: 'My account',
     //MESSAGES
     messageExistingAddressType: 'Address type already added',
     messageExistingAddress: 'You have already entered this address',
@@ -123,6 +126,9 @@ const messages = {
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',
     menuNewPackage: 'Neouveau Colis',
+    menuUserLogin: 'Se connecter',
+    menuUserSignin: 'Crée un compte',
+    menuUuserAccount: 'Mon compte',
     //MESSAGE
     messageExistingAddressType: 'Type d\'adresse existant',
     messageExistingAddress: 'Vous avez déjà renseigné cette adresse',

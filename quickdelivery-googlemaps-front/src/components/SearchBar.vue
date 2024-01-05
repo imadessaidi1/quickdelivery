@@ -1,6 +1,13 @@
 <template>
   <div class="search-bar">
-     <a @click="toggleMenu" class="material-symbols-outlined ">menu</a>
+     <a @click="toggleMenu" class="material-symbols-outlined " style="display: none;">menu</a>
+     <div class="menu vertical-menu">
+      <ul>
+        <router-link to="/"><li class="material-symbols-outlined">home</li></router-link>
+        <router-link to="/myPackages"><li class="material-symbols-outlined">deployed_code_account</li></router-link>
+        <router-link to="/createPackage"><li class="material-symbols-outlined">box_add</li></router-link>
+      </ul>
+     </div>
     <transition name="fade">
           <div v-if="isActiveMenu" class="menu horizontal-menu">
             <ul>
@@ -24,6 +31,13 @@
     <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
+    <div>
+      <ul>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+    </div>
     <a class="material-symbols-outlined" @click="loginMenu">person</a>
   </div>
 </template>
@@ -45,6 +59,7 @@ export default {
     },
   },
 };
+
 </script>
 
 <style>
@@ -127,4 +142,11 @@ export default {
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
 }
+.material-symbols-outlined {
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
+  }
 </style>

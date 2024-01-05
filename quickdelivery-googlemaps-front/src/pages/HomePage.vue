@@ -1,8 +1,10 @@
 <template>
-            <GoogleMap ref="mapVue" :style="{ width: '100%', height: '90vh' }"/>
-            <div class="carousel-overlay">
-                <Carrousel />
-            </div>
+  <div class="main_content">
+    <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }"/>
+    <div class="carousel-overlay">
+        <Carrousel />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -18,9 +20,9 @@ export default {
 </script>
 
 <style>
-.main-content {
-  display: flex;
-  position: relative;
+.main_content {
+  height: 87%;
+  box-sizing: border-box;
 }
 
 .carousel-overlay {
@@ -33,4 +35,5 @@ export default {
   z-index: 1; /* Mettez un z-index plus élevé que la carte pour le superposer */
   overflow: hidden; /* Empêche le contenu de déborder */
 }
+
 </style>

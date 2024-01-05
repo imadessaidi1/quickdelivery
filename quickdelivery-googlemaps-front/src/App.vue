@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="fullPage">
     <SearchBar />
     <router-view/>
     <AppFooter />
@@ -19,7 +19,7 @@ export default {
 </script>
 
 <style>
-.main-content {
-  display: flex;
+.fullPage{
+  height: 100%;
 }
 </style>

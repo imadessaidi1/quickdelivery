@@ -66,6 +66,8 @@ export default {
 
 .search-bar {
   display: flex;
+  min-height: 4%;
+  box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
   padding: 10px 40px;

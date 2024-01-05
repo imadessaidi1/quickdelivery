@@ -117,6 +117,7 @@ export default{
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 10px;
+  height: 81%;
 }
 .package-address {
   display: flex;

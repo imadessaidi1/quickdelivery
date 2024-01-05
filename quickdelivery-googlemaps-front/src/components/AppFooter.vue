@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="footer">
     <!--<footer>
       <div class="footer-column">
         <h4>{{$t('footerAssistance')}}</h4>
@@ -33,8 +33,10 @@ footer {
   justify-content: space-around;
   background-color: #f0f0f0;
   padding: 0 20px;
+  position: absolute;
+  bottom: 0;
+  box-sizing: border-box;
 }
-
 .footer-column {
   flex: 1;
   margin-right: 20px;

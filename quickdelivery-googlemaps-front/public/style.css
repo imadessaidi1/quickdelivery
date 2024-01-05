@@ -13,6 +13,12 @@ body{
   #app{
     height: 100%;
   }
+  ul li{
+    list-style: none;
+  }
+  a{
+    color: #000;
+  }
 .primary_btn{
     padding: 5px 20px;
     border: solid 2px #0086df;

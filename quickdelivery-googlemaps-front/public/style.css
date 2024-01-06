@@ -18,6 +18,7 @@ body{
   }
   a{
     color: #000;
+    text-decoration: none;
   }
 .primary_btn{
     padding: 5px 20px;

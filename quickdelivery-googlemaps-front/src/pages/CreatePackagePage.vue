@@ -1,31 +1,33 @@
 <template>
-    <div class="package-form">
+    <div class="packege_creation_main">
+      <div class="package-form">
         <form @submit.prevent="submitForm" ref="packageCreationForm">
-                <div v-if="currentStep === 1">
-                    <h2>{{$t('createNewPackage')}}</h2>
-                    <PackageCreation ref="packageInfo"/>
-                    <br/>
-                    <button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
-                </div>
-                    <div v-if="currentStep === 2">
-                        <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
-                        <PackageAddress ref="departureAddress" :addressType="departure"/>
-                        <br/>
-                        <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
-                    </div>
-                    <div v-if="currentStep === 3">
-                        <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
-                        <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
-                        <br/>
-                        <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
-                    </div>
-                    <div v-if="currentStep === 4">
-                        <h2>{{$t('packageSummaryAction')}}</h2>
-                        <PackageSummary ref="packageSummary"/>
-                    </div>
-        <br/>
-        <button class="primary_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
+          <div v-if="currentStep === 1">
+              <h2>{{$t('createNewPackage')}}</h2>
+              <PackageCreation ref="packageInfo"/>
+              <br/>
+              <button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
+          </div>
+          <div v-if="currentStep === 2">
+              <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
+              <PackageAddress ref="departureAddress" :addressType="departure"/>
+              <br/>
+              <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
+          </div>
+          <div v-if="currentStep === 3">
+              <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
+              <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
+              <br/>
+              <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
+          </div>
+          <div v-if="currentStep === 4">
+              <h2>{{$t('packageSummaryAction')}}</h2>
+              <PackageSummary ref="packageSummary"/>
+          </div>
+          <br/>
+          <button class="primary_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
         </form>
+      </div>
     </div>
 </template>
 <script>
@@ -112,15 +114,27 @@ export default{
 }
 </script>
 <style>
-.package-form {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 10px;
-  height: 81%;
+.packege_creation_main{
+  padding: 10px;
+  height: 82%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.package-address {
+.packege_creation_main .package-form {
+  width: 75%;
+  height: 80%;
+  padding: 20px;
+  margin: 0 auto;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+.packege_creation_main .package-form form{
+  width: max-content;
+  height: max-content;
+}
+.packege_creation_main .package-form .package-address {
   display: flex;
   flex-wrap: wrap;
 }
-</style>
+</style>  

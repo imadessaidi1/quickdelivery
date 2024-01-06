@@ -1,24 +1,28 @@
 <!-- PackageForm.vue -->
 
 <template>
-    <div>
+    <div class="input_container">
+      <div class="input_only">
         <label for="height">{{$t('packageHeight')}}:</label>
         <input id="height" type="number" v-model="package_.height" required="true" />
-
       </div>
-      <div>
+      <div class="input_only">
         <label for="width">{{$t('packageWidth')}}:</label>
         <input id="width" type="number" v-model="package_.width" required="true" />
       </div>
-      <div>
+    </div>
+    <div class="input_container">
+      <div class="input_only">
         <label for="depth">{{$t('packageDepth')}}:</label>
         <input id="depth" type="number" v-model="package_.depth" required="true" />
       </div>
-      <div>
+      <div class="input_only">
         <label for="weight">{{$t('packageWeight')}}:</label>
         <input id="weight" type="number" v-model="package_.weight" required="true" />
       </div>
-      <div>
+    </div>
+    <div class="picture_file_container">
+      <div class="input_only">
         <label for="pictureFile">{{$t('packagePicture')}} :</label>
         <input  ref="fileInput0"
                 :id="pictureFile"
@@ -26,6 +30,8 @@
                 accept="image/*, application/pdf"
         @change="handleFileChange(0)"
         />
+      </div>
+      <div class="input_only">
         <label for="documentFile">{{ $t('packageInvoice') }} :</label>
         <input  ref="fileInput1"
                 :id="documentFile"
@@ -34,6 +40,7 @@
                 @change="handleFileChange(1)"
         />
       </div>
+    </div>
 </template>
 <script>
 
@@ -60,7 +67,19 @@ export default {
 </script>
 
 <style>
-
+.input_container{
+  display: inline-block;
+  width: 50%;
+}
+.input_only{
+  height: 85px;
+}
+.input_container input{
+  width: 65%;
+}
+.picture_file_container input{
+  width: 100%;
+}
 label {
   display: block;
   margin-bottom: 5px;

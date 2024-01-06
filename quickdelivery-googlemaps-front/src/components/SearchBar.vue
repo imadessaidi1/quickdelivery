@@ -9,35 +9,28 @@
       </ul>
      </div>
     <transition name="fade">
-          <div v-if="isActiveMenu" class="menu horizontal-menu">
-            <ul>
-              <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
-              <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
-              <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
-            </ul>
-          </div>
-        </transition>
-        <transition name="fade">
-          <div v-if="isActiveLoginMenu" class="menu login-menu">
-            <ul>
-              <li>{{$t('menuUserLogin')}}</li>
-              <li>{{$t('menuUserSignin')}}</li>
-              <li>{{$t('menuUuserAccount')}}</li>
-            </ul>
-          </div>
-        </transition>
+      <div v-if="isActiveMenu" class="menu horizontal-menu">
+        <ul>
+          <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
+          <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
+          <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
+        </ul>
+      </div>
+    </transition>
+    <transition name="fade">
+      <div v-if="isActiveLoginMenu" class="menu login-menu">
+        <ul>
+          <li>{{$t('menuUserLogin')}}</li>
+          <li>{{$t('menuUserSignin')}}</li>
+          <li>{{$t('menuUuserAccount')}}</li>
+        </ul>
+      </div>
+    </transition>
 
     <!-- Barre de recherche -->
     <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
-    <div>
-      <ul>
-        <li></li>
-        <li></li>
-        <li></li>
-      </ul>
-    </div>
     <a class="material-symbols-outlined" @click="loginMenu">person</a>
   </div>
 </template>
@@ -102,7 +95,6 @@ export default {
   right: 10px;
 }
 .menu ul {
-  list-style-type: none;
   padding: 0;
   margin: 0;
   display: inline-block;
@@ -124,6 +116,7 @@ export default {
   height: 35px;
   border: none;
   padding: 0 15px;
+  margin: 0;
   border: solid 2px rgba(120, 183, 255, 0);
   border-radius: 6px;
   transition: all 300ms;

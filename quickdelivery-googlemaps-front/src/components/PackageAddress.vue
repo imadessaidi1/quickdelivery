@@ -1,24 +1,28 @@
 <template>
-      <div>
+    <div class="input_container">
+      <div class="input_only">
         <label for="firstName">{{$t('packageAddressFirstName')}}:</label>
         <input id="firstName" v-model="address.firstName" :required="true" />
       </div>
-      <div>
+      <div class="input_only">
         <label for="lastName">{{$t('packageAddressLastName')}}:</label>
         <input id="lastName" type="text" v-model="address.lastName" :required="true" />
       </div>
-        <div>
-          <label for="email">{{$t('packageAddressEmail')}}:</label>
-          <input id="email" type="email" v-model="address.email" :required="true" />
-        </div>
-        <div>
-          <label for="phone">{{$t('packageAddressPhone')}}:</label>
-          <input id="phone" type="text" v-model="address.phone" :required="true" />
-        </div>
-      <div>
-        <label for="address">{{$t('packageAddressAddress')}}:</label>
-          <AddressAutocomplete id="address" ref="addressAutoComplete"/>
+    </div>
+    <div class="input_container">
+      <div class="input_only">
+        <label for="email">{{$t('packageAddressEmail')}}:</label>
+        <input id="email" type="email" v-model="address.email" :required="true" />
       </div>
+      <div class="input_only">
+        <label for="phone">{{$t('packageAddressPhone')}}:</label>
+        <input id="phone" type="text" v-model="address.phone" :required="true" />
+      </div>
+    </div>
+    <div>
+      <label for="address">{{$t('packageAddressAddress')}}:</label>
+        <AddressAutocomplete id="address" ref="addressAutoComplete"/>
+    </div>
 </template>
 
 <script>
@@ -77,6 +81,7 @@ export default {
 .column-half:nth-child(even) {
   clear: both;
 }
+
 label {
   display: block;
   margin-bottom: 5px;

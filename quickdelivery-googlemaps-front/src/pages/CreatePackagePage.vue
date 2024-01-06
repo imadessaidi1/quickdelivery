@@ -132,11 +132,20 @@ export default{
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .packege_creation_main .package-form form{
-  width: max-content;
-  height: max-content;
+  width: 75%;
 }
 .packege_creation_main .package-form .package-address {
   display: flex;
   flex-wrap: wrap;
+}
+.input_container{
+  display: inline-block;
+  width: 50%;
+}
+.input_only{
+  height: 85px;
+}
+.input_container input{
+  width: 65%;
 }
 </style>  

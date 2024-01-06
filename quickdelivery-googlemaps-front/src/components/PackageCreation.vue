@@ -67,18 +67,9 @@ export default {
 </script>
 
 <style>
-.input_container{
-  display: inline-block;
-  width: 50%;
-}
-.input_only{
-  height: 85px;
-}
-.input_container input{
-  width: 65%;
-}
-.picture_file_container input{
-  width: 100%;
+.picture_file_container input,
+#address{
+  width: 80%;
 }
 label {
   display: block;

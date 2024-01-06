@@ -1,19 +1,23 @@
 <template>
-    <!--<img :src="getImageSrc()" alt="Image" class="item-image" />-->
+    <img :src="getImageSrc()" alt="Image" class="item-image" />
     <div class="item-details">
         <h3>{{ package_.id }}</h3>
-        <!--<p>{{$t('packageHeight')}}:
+        <p>{{$t('packageHeight')}}:
             {{package_.height}}</p>
         <p>{{$t('packageWidth')}}:
             {{package_.width}} </p>
         <p>{{$t('packageDepth')}}:
-            {{package_.dept}}</p>
+            {{package_.depth}}</p>
         <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>-->
+            {{package_.weight}}</p>
         <p>{{$t('packagePrice')}}:
-            {{package_.price}}</p>
-        <p>{{$t('packageDestination')}}:
-            {{destinationAddress()}}</p>
+            {{package_.deliveryPrice}}&nbsp;{{ $t('currency') }}</p>
+        <p>{{$t('packageDeparture')}}:</p>
+        <p>{{departureAddress.firstName}} {{departureAddress.lastName}} {{departureAddress.line1}} {{departureAddress.zipCode}} {{departureAddress.town}} {{departureAddress.country}}</p>
+        <p>{{departureAddress.phone}}</p>
+        <p>{{$t('packageDestination')}}:</p>
+        <p>{{arrivalAddress.firstName}} {{arrivalAddress.lastName}} {{arrivalAddress.line1}} {{arrivalAddress.zipCode}} {{arrivalAddress.town}} {{arrivalAddress.country}}</p>
+        <p>{{arrivalAddress.phone}}</p>
         <p>{{$t('packageDistanceToDestination')}}:
             {{package_.distanceToDestination}}</p>
     </div>
@@ -22,8 +26,16 @@
 
 export default{
     props: {
-        package_: Object,
-      },
+    package_: Object,
+  },
+  computed: {
+    departureAddress() {
+      return this.departureAddress_();
+    },
+    arrivalAddress() {
+      return this.destinationAddress_();
+    },
+  },
     methods: {
        getImageSrc() {
           let imgSrc = '';
@@ -32,14 +44,23 @@ export default{
           }
           return imgSrc;
         },
-        destinationAddress() {
-          var destinationAddressS = '';
+        destinationAddress_() {
+         let selectedAddress;
           this.package_.addresses.forEach(address => {
             if(address.type === 'ARRIVAL'){
-              destinationAddressS = address.line1+" "+address.zipCode+" "+address.town+" "+address.country;
+              selectedAddress = address;
             }
           });
-          return destinationAddressS;
+          return selectedAddress;
+        },
+        departureAddress_() {
+          let selectedAddress;
+          this.package_.addresses.forEach(address => {
+            if(address.type === 'DEPARTURE'){
+              selectedAddress = address;
+            }
+          });
+          return selectedAddress;
         },
     }
 }

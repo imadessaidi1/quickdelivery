@@ -96,7 +96,6 @@ export default{
     },
     async submitForm() {
      const formData = new FormData();
-     console.log(this.package_);
      this.package_.senderID = this.$store.state.connectedUser.id
      formData.append('packageDTO', JSON.stringify(this.package_));
      formData.append('files', this.documentS[0]);

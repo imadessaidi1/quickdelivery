@@ -3,26 +3,24 @@
             <div class="carousel-overlay">
                 <Carrousel />
             </div>
+            <PackageDetailsModal ref="AppModal" classe="modal"/>
 </template>
 
 <script>
 import GoogleMap from '../components/GoogleMap.vue';
 import Carrousel from '../components/PackagesCarousel.vue'
+import PackageDetailsModal from "../components/PackageDetailsModal.vue";
 
 export default {
   components: {
     GoogleMap,
     Carrousel,
+    PackageDetailsModal,
   },
 };
 </script>
 
 <style>
-.main-content {
-  display: flex;
-  position: relative;
-}
-
 .carousel-overlay {
   position: absolute;
   top: 58px;
@@ -32,5 +30,8 @@ export default {
   background: rgba(255, 255, 255, 0.3); /* Couleur de fond avec transparence */
   z-index: 1; /* Mettez un z-index plus élevé que la carte pour le superposer */
   overflow: hidden; /* Empêche le contenu de déborder */
+}
+.modal {
+    z-index: 3;
 }
 </style>

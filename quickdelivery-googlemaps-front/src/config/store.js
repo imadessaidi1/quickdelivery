@@ -3,7 +3,6 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
-    // Creat App Mobel
       package_: {
         id: null,
         version: null,

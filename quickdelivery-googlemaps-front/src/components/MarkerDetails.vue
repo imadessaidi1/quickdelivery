@@ -22,9 +22,11 @@
         {{package_.fromYou}}</p>
       <!-- Zone inférieure avec des boutons -->
       <p>
-        <button class="primary_btn" ref="onMyRoad" :key="package_.id"
+        <button class="primary_btn" ref="onMyRoad"
           @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>&nbsp;
-        <button class="primary_btn" ref="reserveButtons" :key="package_.id"
+        <button class="primary_btn" ref="reserveButtons"
+          @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
+        <button class="primary_btn" ref="detailsButtons"
           @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
       </p>
   </div>
@@ -32,10 +34,11 @@
 
 <script>
 import axios from 'axios';
-
 export default {
   props: {
     package_: Object,
+    mapVue: Object,
+    modal: Object,
   },
   methods: {
     onMyDirection() {
@@ -48,7 +51,8 @@ export default {
           stringArrival = address.latitude + "," + address.longitude;
         }
       });
-      this.$parent.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("OnMyDirection:" + stringDeparture + ";" + stringArrival, "*");
+      var message = "OnMyDirection:" + stringDeparture + ";" + stringArrival;
+      this.mapVue.$refs.map.contentWindow.postMessage(message, "*");
     },
     reserve() {
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
@@ -58,6 +62,10 @@ export default {
         }).catch(() => {
           console.log("unable to process your request this time. please try again latter.");
         });
+    },
+    details(){
+      this.$store.commit('updatePackage', this.package_);
+      this.modal.openModal();
     },
     getImageSrc() {
       let imgSrc = '';

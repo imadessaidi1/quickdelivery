@@ -7,7 +7,7 @@
               <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
               <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
               <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
-              <li>CGU</li>
+                <li><a @click="openModal">CGU</a></li>
               <li>Politique des Cookies</li>
               <li>Nous Contacter</li>
             </ul>
@@ -28,15 +28,10 @@
     <!-- Bouton de connexion -->
     <a class="material-symbols-outlined" @click="loginMenu">person</a>
   </div>
-  <AppModal ref="AppModal" />
 </template>
 
 <script>
-import AppModal from "@/components/CreatePackageModal.vue";
 export default {
-  components: {
-    AppModal,
-  },
   data() {
       return {
         isActiveMenu: false,
@@ -49,9 +44,6 @@ export default {
     },
     loginMenu() {
       this.isActiveLoginMenu = !this.isActiveLoginMenu;
-    },
-    openModal() {
-      this.$refs.AppModal.openModal();
     },
   },
 };

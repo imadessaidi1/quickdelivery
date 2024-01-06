@@ -59,6 +59,8 @@ const messages = {
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
+    packagesArroundMArkerDetailActionsDetails: 'Details',
+    packagesArroundMArkerDetailActionCloseModal: 'Close',
     //MENU
     menuHome: 'Home',
     menuMyPackages: 'My Packages',
@@ -119,6 +121,8 @@ const messages = {
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',
+    packagesArroundMArkerDetailActionsDetails: 'Details',
+    packagesArroundMArkerDetailActionCloseModal: 'Close',
     //MENU
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',

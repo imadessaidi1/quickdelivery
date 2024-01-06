@@ -1,5 +1,5 @@
 <template>
-    <idv v-for="status in packagesByStatus" :key="status.satuts_">
+    <div v-for="status in packagesByStatus" :key="status.satuts_">
         <h2 :id="status.satuts_">{{status.satuts_}}</h2>
     <div class="grid-container">
         <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
@@ -8,7 +8,7 @@
             </div>
         </div>
     </div>
-    </idv>
+    </div>
 </template>
 
 <script>
@@ -36,7 +36,6 @@ export default {
              this.packagesByStatus.push({satuts_: status, groupedPackagesList: packagesArray});
           }
         });
-        console.log(this.packagesByStatus);
       } catch (error) {
         console.error('Erreur lors de la requête API', error);
       }

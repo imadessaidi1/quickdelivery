@@ -1,77 +1,79 @@
 <template>
-    <div>
-        <h2>{{$t('createNewPackage')}}</h2>
-        <div>
-            {{$t('packageHeight')}}: {{package_.height}}
+    <div class="package_details_group">
+        <div class="package_details">
+            <h3>{{$t('createNewPackage')}}</h3>
+            <div>
+                {{$t('packageHeight')}}: {{package_.height}}
+            </div>
+            <div>
+                {{$t('packageWidth')}}: {{package_.width}}
+            </div>
+            <div>
+                {{$t('packageDepth')}}: {{package_.depth}}
+            </div>
+            <div>
+                {{$t('packageWeight')}}: {{package_.weight}}
+            </div>
+            <!--<div>
+                {{$t('packagePicture')}}: {{documentS[0].name}}
+            </div>
+            <div>
+                {{$t('packageInvoice')}}: {{documentS[1].name}}
+            </div>-->
         </div>
-        <div>
-            {{$t('packageWidth')}}: {{package_.width}}
+        <div class="package_details">
+            <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
+            <div>
+                {{$t('packageAddressFirstName')}}: {{package_.addresses[0].firstName}}
+            </div>
+            <div>
+                {{$t('packageAddressLastName')}}: {{package_.addresses[0].lastName}}
+            </div>
+            <div>
+                {{$t('packageAddressEmail')}}: {{package_.addresses[0].email}}
+            </div>
+            <div>
+                {{$t('packageAddressPhone')}}: {{package_.addresses[0].phone}}
+            </div>
+            <div>
+                {{$t('packageAddressLine1')}}: {{package_.addresses[0].line1}}
+            </div>
+            <div>
+                {{$t('packageAddressZip')}}: {{package_.addresses[0].zipCode}}
+            </div>
+            <div>
+                {{$t('packageAddressCity')}}: {{package_.addresses[0].town}}
+            </div>
+            <div>
+                {{$t('packageAddressCountry')}}: {{package_.addresses[0].country}}
+            </div>
         </div>
-        <div>
-            {{$t('packageDepth')}}: {{package_.depth}}
-        </div>
-        <div>
-            {{$t('packageWeight')}}: {{package_.weight}}
-        </div>
-        <!--<div>
-            {{$t('packagePicture')}}: {{documentS[0].name}}
-        </div>
-        <div>
-            {{$t('packageInvoice')}}: {{documentS[1].name}}
-        </div>-->
-    </div>
-    <div>
-        <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
-        <div>
-            {{$t('packageAddressFirstName')}}: {{package_.addresses[0].firstName}}
-        </div>
-        <div>
-            {{$t('packageAddressLastName')}}: {{package_.addresses[0].lastName}}
-        </div>
-        <div>
-            {{$t('packageAddressEmail')}}: {{package_.addresses[0].email}}
-        </div>
-        <div>
-            {{$t('packageAddressPhone')}}: {{package_.addresses[0].phone}}
-        </div>
-        <div>
-            {{$t('packageAddressLine1')}}: {{package_.addresses[0].line1}}
-        </div>
-        <div>
-            {{$t('packageAddressZip')}}: {{package_.addresses[0].zipCode}}
-        </div>
-        <div>
-            {{$t('packageAddressCity')}}: {{package_.addresses[0].town}}
-        </div>
-        <div>
-            {{$t('packageAddressCountry')}}: {{package_.addresses[0].country}}
-        </div>
-    </div>
-    <div>
-        <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
-        <div>
-            {{$t('packageAddressFirstName')}}: {{package_.addresses[1].firstName}}
-        </div>
-        <div>
-            {{$t('packageAddressLastName')}}: {{package_.addresses[1].lastName}}
-        </div>
-        <div>
-            {{$t('packageAddressEmail')}}: {{package_.addresses[1].email}}
-        </div>
-        <div>
-            {{$t('packageAddressPhone')}}: {{package_.addresses[1].phone}}
-        </div>
-        <div>
-            {{$t('packageAddressLine1')}}: {{package_.addresses[1].line1}}
-        </div>
-        <div>
-            {{$t('packageAddressZip')}}: {{package_.addresses[1].zipCode}}
-        </div>
-        <div>
-            {{$t('packageAddressCity')}}: {{package_.addresses[1].town}}
-        </div>
-        <div>
-            {{$t('packageAddressCountry')}}: {{package_.addresses[1].country}}
+        <div class="package_details">
+            <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
+            <div>
+                {{$t('packageAddressFirstName')}}: {{package_.addresses[1].firstName}}
+            </div>
+            <div>
+                {{$t('packageAddressLastName')}}: {{package_.addresses[1].lastName}}
+            </div>
+            <div>
+                {{$t('packageAddressEmail')}}: {{package_.addresses[1].email}}
+            </div>
+            <div>
+                {{$t('packageAddressPhone')}}: {{package_.addresses[1].phone}}
+            </div>
+            <div>
+                {{$t('packageAddressLine1')}}: {{package_.addresses[1].line1}}
+            </div>
+            <div>
+                {{$t('packageAddressZip')}}: {{package_.addresses[1].zipCode}}
+            </div>
+            <div>
+                {{$t('packageAddressCity')}}: {{package_.addresses[1].town}}
+            </div>
+            <div>
+                {{$t('packageAddressCountry')}}: {{package_.addresses[1].country}}
+            </div>
         </div>
     </div>
 </template>
@@ -88,4 +90,26 @@ export default {
 }
 </script>
 <style>
+.components{
+    width: 100% !important;
+}
+.package_details_group{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+.package_details_group .package_details{
+    width: 30%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f5f5f5ca;
+}
+.package_details_group .package_details h3{
+    margin-left: 15px;
+    padding-left: 6px;
+    border-left: solid 2px #002fff;
+} 
+.package_details_group .package_details div{
+    padding: 6px 0 6.5px 0;
+}
 </style>

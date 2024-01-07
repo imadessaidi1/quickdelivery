@@ -2,30 +2,30 @@
     <div class="packege_creation_main">
       <div class="package-form">
         <form @submit.prevent="submitForm" ref="packageCreationForm">
-          <div v-if="currentStep === 1">
+          <div class="components" v-if="currentStep === 1">
               <h2>{{$t('createNewPackage')}}</h2>
               <PackageCreation ref="packageInfo"/>
               <br/>
               <button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
           </div>
-          <div v-if="currentStep === 2">
+          <div class="components" v-if="currentStep === 2">
               <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
               <PackageAddress ref="departureAddress" :addressType="departure"/>
               <br/>
               <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
           </div>
-          <div v-if="currentStep === 3">
+          <div class="components" v-if="currentStep === 3">
               <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
               <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
               <br/>
               <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
           </div>
-          <div v-if="currentStep === 4">
+          <div class="components" v-if="currentStep === 4">
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
           <br/>
-          <button class="primary_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
+          <button class="primary_btn" @click="previousStep" v-if="currentStep === 4">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="confirm_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
         </form>
       </div>
     </div>
@@ -127,12 +127,19 @@ export default{
   padding: 20px;
   margin: 0 auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff0c), no-repeat url('../assets/box 2.png');
-  background-position: right -160px bottom 50%;
+  background: linear-gradient(0.25turn, #ffffff, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .packege_creation_main .package-form form{
-  width: 75%;
+  width: 100%;
+}
+.packege_creation_main .package-form form .components{
+  width: 88%;
+}
+.packege_creation_main .package-form form .components h2{
+  border-left: solid 5px #ff7b00;
+  padding-left: 8px;
+  margin-left: 20px;
 }
 .packege_creation_main .package-form .package-address {
   display: flex;

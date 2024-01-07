@@ -134,7 +134,7 @@ export default{
   width: 100%;
 }
 .packege_creation_main .package-form form .components{
-  width: 88%;
+  width: 75%;
 }
 .packege_creation_main .package-form form .components h2{
   border-left: solid 5px #ff7b00;

@@ -124,11 +124,6 @@ export default {
 #searchInput:hover{
   border: solid 2px #0086df;
 }
-
-.primary_btn:hover{
-  background-color: #0086df;
-  color: #fff;
-}
 /* Transition pour l'effet de fondu */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 300ms;

@@ -90,9 +90,6 @@ export default {
 }
 </script>
 <style>
-.components{
-    width: 100% !important;
-}
 .package_details_group{
     width: 100%;
     display: flex;

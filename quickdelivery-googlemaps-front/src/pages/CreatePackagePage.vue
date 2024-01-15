@@ -20,7 +20,7 @@
               <br/>
               <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
           </div>
-          <div class="components" v-if="currentStep === 4">
+          <div class="summary_component" v-if="currentStep === 4">
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
@@ -122,7 +122,7 @@ export default{
   align-items: center;
 }
 .packege_creation_main .package-form {
-  width: 75%;
+  width: 60%;
   height: 80%;
   padding: 20px;
   margin: 0 auto;
@@ -133,7 +133,8 @@ export default{
 .packege_creation_main .package-form form{
   width: 100%;
 }
-.packege_creation_main .package-form form .components{
+.packege_creation_main .package-form form .components,
+.packege_creation_main .package-form form .summary_component{
   width: 75%;
 }
 .packege_creation_main .package-form form .components h2{
@@ -154,5 +155,21 @@ export default{
 }
 .input_container input{
   width: 65%;
+}
+@media screen and (max-width: 1500px){
+  .packege_creation_main .package-form form .summary_component{
+    width: 100%;
+  }
+  .packege_creation_main .package-form form .components{
+    width: 100%;
+  }
+}
+@media screen and (max-width: 1100px) {
+  .input_container{
+    width: 100%;
+  }
+  .input_container input{
+    width: 83%;
+  }
 }
 </style>  

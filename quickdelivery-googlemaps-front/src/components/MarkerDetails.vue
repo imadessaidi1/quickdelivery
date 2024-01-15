@@ -139,7 +139,7 @@ export default {
   flex-direction: row;
   width: 75%;
   margin: 10px auto;
-  align: center;
+  text-align: center;
 }
 
 .bottom-section button {

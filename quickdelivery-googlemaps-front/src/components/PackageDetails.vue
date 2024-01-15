@@ -93,7 +93,7 @@ export default {
 .package_details_group{
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
 }
 .package_details_group .package_details{
     width: 30%;
@@ -104,7 +104,7 @@ export default {
 .package_details_group .package_details h3{
     margin-left: 15px;
     padding-left: 6px;
-    border-left: solid 2px #002fff;
+    border-left: solid 3px #42ba96;
 } 
 .package_details_group .package_details div{
     padding: 6px 0 6.5px 0;

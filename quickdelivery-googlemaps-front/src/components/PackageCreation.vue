@@ -23,7 +23,7 @@
     </div>
     <div class="picture_file_container">
       <div class="input_only">
-        <label for="pictureFile">{{$t('packagePicture')}} :</label>
+        <label for="pictureFile">{{$t('packagePicture')}} : <span class="info">{{$t('packagePictureInfo')}}</span></label>
         <input  ref="fileInput0"
                 :id="pictureFile"
                 type="file"
@@ -32,7 +32,7 @@
         />
       </div>
       <div class="input_only">
-        <label for="documentFile">{{ $t('packageInvoice') }} :</label>
+        <label for="documentFile">{{ $t('packageInvoice') }} : <span class="info">{{ $t('packageInvoiceInfo') }}</span></label>
         <input  ref="fileInput1"
                 :id="documentFile"
                 type="file"
@@ -69,10 +69,14 @@ export default {
 <style>
 .picture_file_container input,
 #address{
-  width: 80%;
+  width: 83%;
 }
 label {
   display: block;
   margin-bottom: 5px;
+}
+.info{
+  font-size: 12px;
+  color: #2a6fcf;
 }
 </style>

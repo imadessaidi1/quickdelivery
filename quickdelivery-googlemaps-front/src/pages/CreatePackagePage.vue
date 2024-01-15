@@ -116,18 +116,18 @@ export default{
 <style>
 .packege_creation_main{
   padding: 10px;
-  height: 82%;
+  height: 815px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .packege_creation_main .package-form {
   width: 60%;
-  height: 80%;
+  height: max-content;
   padding: 20px;
   margin: 0 auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
+  background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .packege_creation_main .package-form form{
@@ -170,6 +170,20 @@ export default{
   }
   .input_container input{
     width: 83%;
+  }
+}
+@media screen and (max-width: 600px) {
+  .packege_creation_main .package-form {
+    width: 75%;
+    padding: 30px;
+  }
+  .input_container input,
+  .picture_file_container .input_only input{
+    width: 93%;
+    height: 30px;
+  }
+  .input_container input{
+    height: 35px;
   }
 }
 </style>  

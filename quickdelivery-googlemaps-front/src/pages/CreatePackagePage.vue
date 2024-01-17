@@ -12,6 +12,11 @@
               <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
               <PackageAddress ref="departureAddress" :addressType="departure"/>
               <br/>
+              <!--<div>
+                <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
+                <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
+                <br/>
+              </div>-->
               <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
           </div>
           <div class="components" v-if="currentStep === 3">
@@ -20,7 +25,7 @@
               <br/>
               <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
           </div>
-          <div class="summary_component" v-if="currentStep === 4">
+          <div class="summary_component" v-show="currentStep === 4">
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
@@ -50,6 +55,7 @@ export default{
   data() {
     return {
       currentStep: 1,
+      widthSize: window.innerWidth,
       departure: 'DEPARTURE',
       arrival: 'ARRIVAL',
     };
@@ -123,7 +129,7 @@ export default{
 }
 .packege_creation_main .package-form {
   width: 60%;
-  height: 85%;
+  height: 70%;
   padding: 20px;
   margin: 0 auto;
   border-radius: 5px;
@@ -156,6 +162,9 @@ export default{
 .input_container input{
   width: 65%;
 }
+.small_width{
+  display: none;
+}
 @media screen and (max-width: 1500px){
   .packege_creation_main .package-form form .summary_component{
     width: 100%;
@@ -172,10 +181,25 @@ export default{
     width: 83%;
   }
   .packege_creation_main .package-form {
+    height: 85%;
+  }
+  .packege_creation_main{
     height: max-content;
   }
+  .packege_creation_main .package-form {
+    margin: 50px auto;
+  }
+  /*.large_width{
+    display: none;
+  }
+  .small_width{
+    display: block;
+  }*/
 }
 @media screen and (max-width: 600px) {
+  .packege_creation_main{
+    height: max-content;
+  }
   .packege_creation_main .package-form {
     width: 75%;
     padding: 30px;

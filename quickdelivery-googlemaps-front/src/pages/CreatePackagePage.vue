@@ -123,7 +123,7 @@ export default{
 }
 .packege_creation_main .package-form {
   width: 60%;
-  height: max-content;
+  height: 85%;
   padding: 20px;
   margin: 0 auto;
   border-radius: 5px;
@@ -170,6 +170,9 @@ export default{
   }
   .input_container input{
     width: 83%;
+  }
+  .packege_creation_main .package-form {
+    height: max-content;
   }
 }
 @media screen and (max-width: 600px) {

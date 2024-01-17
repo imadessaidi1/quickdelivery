@@ -4,16 +4,16 @@
             <h3>{{$t('createNewPackage')}}</h3>
             <div class="details">
                 <div>
-                    {{$t('packageHeight')}}: {{package_.height}}
+                    <strong>{{$t('packageHeight')}}:</strong> {{package_.height}}
                 </div>
                 <div>
-                    {{$t('packageWidth')}}: {{package_.width}}
+                    <strong>{{$t('packageWidth')}}:</strong> {{package_.width}}
                 </div>
                 <div>
-                    {{$t('packageDepth')}}: {{package_.depth}}
+                    <strong>{{$t('packageDepth')}}:</strong> {{package_.depth}}
                 </div>
                 <div>
-                    {{$t('packageWeight')}}: {{package_.weight}}
+                    <strong>{{$t('packageWeight')}}:</strong> {{package_.weight}}
                 </div>
             </div>
             <!--<div>
@@ -27,28 +27,28 @@
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
                 <div>
-                    {{$t('packageAddressFirstName')}}: {{package_.addresses[0].firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{package_.addresses[0].firstName}}
                 </div>
                 <div>
-                    {{$t('packageAddressLastName')}}: {{package_.addresses[0].lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{package_.addresses[0].lastName}}
                 </div>
                 <div>
-                    {{$t('packageAddressEmail')}}: {{package_.addresses[0].email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{package_.addresses[0].email}}
                 </div>
                 <div>
-                    {{$t('packageAddressPhone')}}: {{package_.addresses[0].phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{package_.addresses[0].phone}}
+                </div>
+                <div class="adresse_line">
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{package_.addresses[0].line1}}
                 </div>
                 <div>
-                    {{$t('packageAddressLine1')}}: {{package_.addresses[0].line1}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{package_.addresses[0].zipCode}}
                 </div>
                 <div>
-                    {{$t('packageAddressZip')}}: {{package_.addresses[0].zipCode}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{package_.addresses[0].town}}
                 </div>
                 <div>
-                    {{$t('packageAddressCity')}}: {{package_.addresses[0].town}}
-                </div>
-                <div>
-                    {{$t('packageAddressCountry')}}: {{package_.addresses[0].country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[0].country}}
                 </div>
             </div>
             
@@ -57,28 +57,28 @@
             <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
             <div class="details">
                 <div>
-                    {{$t('packageAddressFirstName')}}: {{package_.addresses[1].firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{package_.addresses[1].firstName}}
                 </div>
                 <div>
-                    {{$t('packageAddressLastName')}}: {{package_.addresses[1].lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{package_.addresses[1].lastName}}
                 </div>
                 <div>
-                    {{$t('packageAddressEmail')}}: {{package_.addresses[1].email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{package_.addresses[1].email}}
                 </div>
                 <div>
-                    {{$t('packageAddressPhone')}}: {{package_.addresses[1].phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{package_.addresses[1].phone}}
+                </div>
+                <div class="adresse_line">
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{package_.addresses[1].line1}}
                 </div>
                 <div>
-                    {{$t('packageAddressLine1')}}: {{package_.addresses[1].line1}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{package_.addresses[1].zipCode}}
                 </div>
                 <div>
-                    {{$t('packageAddressZip')}}: {{package_.addresses[1].zipCode}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{package_.addresses[1].town}}
                 </div>
                 <div>
-                    {{$t('packageAddressCity')}}: {{package_.addresses[1].town}}
-                </div>
-                <div>
-                    {{$t('packageAddressCountry')}}: {{package_.addresses[1].country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[1].country}}
                 </div>
             </div>
         </div>
@@ -116,6 +116,9 @@ export default {
 .package_details_group .package_details div{
     padding: 6px 0 6.5px 0;
 }
+.package_details_group .package_details .details div{
+    font-size: 14px;
+}
 @media screen and (max-width: 1100px){
     .package_details_group {
         flex-direction: column;
@@ -125,12 +128,16 @@ export default {
         margin: 5px 0;
     }
     .package_details_group .package_details .details{
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        width: 100%;
+        display: inline-grid;
+        grid-template-columns: auto auto;
+    }
+    .package_details_group .package_details .details .adresse_line{
+        grid-column-start: 1;
+        grid-column-end: 3;
     }
     .package_details_group .package_details .details div{
-        width: 50%;
+        font-size: 13px;
     }
 }
 </style>

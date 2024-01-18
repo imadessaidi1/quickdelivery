@@ -27,8 +27,6 @@
 
 <script>
 import AddressAutocomplete from './AddressAutocomplete.vue';
-import useValidate from '@vuelidate/core';
-import { required } from '@vuelidate/validators';
 
 export default {
   components: {
@@ -46,20 +44,6 @@ export default {
       }
     },
   },
-  data() {
-    return {
-      v$: useValidate(),
-    };
-  },
-  validations() {
-      return {
-        address: {
-          firstName: { required },
-          lastName: { required },
-          type: { required },
-        },
-      }
-    },
 };
 </script>
 

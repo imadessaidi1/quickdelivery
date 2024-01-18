@@ -28,7 +28,7 @@
 	   let packagesOnMyRoadDirection = [];
 	   let infowindow;
 	   function initMap() {
-	   var url_string = window.location.href; 
+	   var url_string = window.location.href;
 		var url = new URL(url_string);
 		userID = url.searchParams.get("userID");
         directionsRenderer = new google.maps.DirectionsRenderer({
@@ -137,7 +137,7 @@
 			return new Promise(async (resolve, reject) => {
 				try{
 					var xhr = new XMLHttpRequest();
-					var url = `http://localhost:8082/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=30000`;
+					var url = `http://localhost:8082/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=300000`;
 					xhr.open("GET", url, true);
 					xhr.onload = function() {
 						if (xhr.status >= 200 && xhr.status < 300) {
@@ -234,7 +234,11 @@
 		  if(departureAddress != undefined){
 				  var markerInfo;
 				  if(arrivalAddress != undefined){
-					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.line2} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p><p><a href="#" onclick="calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction</a></p><p><a href="#" onclick="calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, {lat: ${departureAddress.lat}, lng: ${departureAddress.lng}}, {lat: ${arrivalAddress.lat}, lng: ${arrivalAddress.lng}})">Show direction with packages on my road</a></p>`;
+				    if(arrivalAddress.line2 != null){
+					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.line2} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p>`;
+					}else{
+					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p>`;
+					}
 
 				  }
 
@@ -248,7 +252,7 @@
 				google.maps.event.addListener(marker, 'click', function() {
 					infowindow.setContent(markerInfo);
 					infowindow.open(map,marker);
-					window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
+					//window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
 				});
 			}
 		}

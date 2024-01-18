@@ -1,5 +1,6 @@
 import * as VueRouter from 'vue-router'
 import PackageCreation from '../pages/CreatePackagePage.vue';
+//import PackageCreation from '../pages/ValidationTestPage.vue';
 import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
 

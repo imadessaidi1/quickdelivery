@@ -4,7 +4,8 @@
     <div class="input_container">
       <div class="input_only">
         <label for="height">{{$t('packageHeight')}}:</label>
-        <input id="height" type="number" v-model="package_.height" required="true" />
+          <Field id="height" type="number" name="package_.height" :rules="validatePackageHeight"/>
+          <ErrorMessage name="package_.height" />
       </div>
       <div class="input_only">
         <label for="width">{{$t('packageWidth')}}:</label>
@@ -43,8 +44,12 @@
     </div>
 </template>
 <script>
-
+import { Field, ErrorMessage } from 'vee-validate';
 export default {
+    components: {
+        Field,
+        ErrorMessage,
+    },
   computed: {
     package_() {
       return this.$store.state.package_;
@@ -61,6 +66,13 @@ export default {
       if (file) {
         this.documentS[index] = file;
       }
+    },
+    validatePackageHeight(value) {
+       console.log(value);
+      if (!value) {
+        return 'This field is required';
+      }
+      return true;
     },
   },
 };

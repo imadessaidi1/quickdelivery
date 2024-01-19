@@ -1,37 +1,29 @@
 <template>
     <div class="packege_creation_main">
       <div class="package-form">
-        <form @submit.prevent="submitForm" ref="packageCreationForm">
+        <Form @submit="submitForm" ref="packageCreationForm">
           <div class="components" v-if="currentStep === 1">
               <h2>{{$t('createNewPackage')}}</h2>
               <PackageCreation ref="packageInfo"/>
-              <br/>
-              <button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
           </div>
           <div class="components" v-if="currentStep === 2">
               <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
               <PackageAddress ref="departureAddress" :addressType="departure"/>
               <br/>
-              <!--<div>
-                <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
-                <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
-                <br/>
-              </div>-->
-              <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageNextAction')}}</button>
           </div>
           <div class="components" v-if="currentStep === 3">
               <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
               <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
               <br/>
-              <button class="primary_btn" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="primary_btn" @click="nextStep">{{$t('packageSummaryAction')}}</button>
           </div>
           <div class="summary_component" v-show="currentStep === 4">
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
           <br/>
-          <button class="primary_btn" @click="previousStep" v-if="currentStep === 4">{{$t('packagePreviousAction')}}</button>&nbsp;<button class="confirm_btn" type="submit" v-if="currentStep === 4">{{$t('packageCreateAction')}}</button>
-        </form>
+          <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
+        <button class="primary_btn" @click="nextStep"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
+        </Form>
       </div>
     </div>
 </template>
@@ -40,18 +32,15 @@ import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
 import axios from 'axios';
-//import { useVuelidate } from '@vuelidate/core';
-//import { validations } from '@/vuelidate/packageValidation';
+import { Form } from 'vee-validate';
 
 export default{
   components: {
     PackageCreation,
     PackageAddress,
     PackageSummary,
+    Form,
   },
-  /*setup() {
-    const $v = useVuelidate(validations);
-  },*/
   data() {
     return {
       currentStep: 1,

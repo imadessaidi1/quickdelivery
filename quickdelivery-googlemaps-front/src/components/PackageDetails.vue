@@ -129,6 +129,7 @@ export default {
         width: 95%;
         margin: 12px 0;
         box-shadow: 2px 2px 11px -2px rgba(0, 0, 0, 0.37);
+        border:1px solid rgba(255, 255, 255, 0.18);
     }
     .package_details_group .package_details .details{
         width: 100%;

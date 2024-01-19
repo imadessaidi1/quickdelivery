@@ -87,4 +87,12 @@ body{
   select:hover{
     border: solid 2px #0086df;
   }
+  @media screen and (max-width: 600px){
+    .warning_btn,
+    .danger_btn,
+    .confirm_btn,
+    .primary_btn{
+      padding: 5px 15px;
+  }
+  }
   

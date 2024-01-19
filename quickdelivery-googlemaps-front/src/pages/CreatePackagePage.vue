@@ -1,5 +1,6 @@
 <template>
     <div class="packege_creation_main">
+      <button onclick="topFunction()" id="myBtn" title="Go to top">Top</button>
       <div class="package-form">
         <form @submit.prevent="submitForm" ref="packageCreationForm">
           <div class="components" v-if="currentStep === 1">
@@ -163,8 +164,20 @@ export default{
 .input_container input{
   width: 65%;
 }
-.small_width{
+#myBtn {
   display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
 }
 @media screen and (max-width: 1500px){
   .packege_creation_main .package-form form .summary_component{

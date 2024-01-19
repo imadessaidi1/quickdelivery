@@ -143,7 +143,8 @@ export default{
 .packege_creation_main .package-form form .summary_component{
   width: 75%;
 }
-.packege_creation_main .package-form form .components h2{
+.packege_creation_main .package-form form .components h2,
+.packege_creation_main .package-form form .summary_component h2{
   border-left: solid 5px #ff7b00;
   padding-left: 8px;
   margin-left: 20px;

@@ -82,10 +82,19 @@
                 </div>
             </div>
         </div>
+        <div>
+            <Field name="drink" type="checkbox" value="Coffee" /> <strong>{{$t('packageCreationAgreement')}}</strong>
+            <ErrorMessage name="drink" />
+        </div>
     </div>
 </template>
 <script>
+import { Field, ErrorMessage } from 'vee-validate';
 export default {
+    components: {
+        Field,
+        ErrorMessage,
+    },
     computed: {
     package_() {
       return this.$store.state.package_;

@@ -4,22 +4,25 @@
     <div class="input_container">
       <div class="input_only">
         <label for="height">{{$t('packageHeight')}}:</label>
-          <Field id="height" type="number" name="package_.height" :rules="validatePackageHeight"/>
-          <ErrorMessage name="package_.height" />
+          <Field id="height" type="number" v-model="package_.height" name="package_.height" :rules="validateNumericField"/>
+          <ErrorMessage class="errorMessage" name="package_.height" />
       </div>
       <div class="input_only">
         <label for="width">{{$t('packageWidth')}}:</label>
-        <input id="width" type="number" v-model="package_.width" required="true" />
+        <Field id="width" type="number" v-model="package_.width" name="package_.width" :rules="validateNumericField"/>
+        <ErrorMessage class="errorMessage" name="package_.width" />
       </div>
     </div>
     <div class="input_container">
       <div class="input_only">
         <label for="depth">{{$t('packageDepth')}}:</label>
-        <input id="depth" type="number" v-model="package_.depth" required="true" />
+        <Field id="depth" type="number" v-model="package_.depth" name="package_.depth" :rules="validateNumericField"/>
+        <ErrorMessage class="errorMessage" name="package_.depth" />
       </div>
       <div class="input_only">
         <label for="weight">{{$t('packageWeight')}}:</label>
-        <input id="weight" type="number" v-model="package_.weight" required="true" />
+        <Field id="weight" type="number" v-model="package_.weight" name="package_.weight" :rules="validateNumericField"/>
+        <ErrorMessage class="errorMessage" name="package_.weight" />
       </div>
     </div>
     <div class="picture_file_container">
@@ -45,6 +48,7 @@
 </template>
 <script>
 import { Field, ErrorMessage } from 'vee-validate';
+import { validateNumericField } from '@/config/comonFunction';
 export default {
     components: {
         Field,
@@ -67,13 +71,7 @@ export default {
         this.documentS[index] = file;
       }
     },
-    validatePackageHeight(value) {
-       console.log(value);
-      if (!value) {
-        return 'This field is required';
-      }
-      return true;
-    },
+    validateNumericField,
   },
 };
 </script>

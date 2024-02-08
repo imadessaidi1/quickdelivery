@@ -87,4 +87,9 @@ body{
   select:hover{
     border: solid 2px #0086df;
   }
+
+  .errorMessage{
+    font-style: italic;
+    color: red;
+  }
   

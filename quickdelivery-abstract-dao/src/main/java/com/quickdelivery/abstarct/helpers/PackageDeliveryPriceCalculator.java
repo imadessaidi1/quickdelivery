@@ -17,7 +17,7 @@ public class PackageDeliveryPriceCalculator {
         double distance = calculateDistance(context, packageDTO.getAddresses());
         double weight = packageDTO.getWeight();
         double volumetricWeight = calculateVolumetricWeight(packageDTO.getDepth(), packageDTO.getWidth(), packageDTO.getHeight(),weight);
-        double additionalFees = calculateAdditionalFees(distance, weight, volumetricWeight);
+        double additionalFees = calculateAdditionalFees(distance, weight, volumetricWeight, packageDTO.getAddresses().get(0).getFloor(), packageDTO.getAddresses().get(1).getFloor());
         double totalPrice = basePrice + additionalFees;
 
         return totalPrice;
@@ -48,7 +48,7 @@ public class PackageDeliveryPriceCalculator {
         return (length * width * height)/densityFactor;
     }
 
-    private static double calculateAdditionalFees(double distance, double weight, double volumetricWeight) {
-        return (0.1 * distance)+(2 * weight)+(0 * volumetricWeight);
+    private static double calculateAdditionalFees(double distance, double weight, double volumetricWeight, Integer floor1, Integer floor2) {
+        return (0.1 * distance)+(1.5 * weight)+(0 * volumetricWeight)+(1*weight*floor1)+(1*weight*floor2);
     }
 }

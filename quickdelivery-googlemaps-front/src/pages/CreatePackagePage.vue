@@ -22,7 +22,7 @@
           </div>
           <br/>
           <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
-        <button class="primary_btn" @click="nextStep"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
+        <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
         </Form>
       </div>
     </div>
@@ -31,8 +31,9 @@
 import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
-import axios from 'axios';
+//import axios from 'axios';
 import { Form } from 'vee-validate';
+import { validateAddress } from '@/config/comonFunction';
 
 export default{
   components: {
@@ -64,26 +65,39 @@ export default{
            this.$refs.packageInfo.package_.status='PAYMENTPENDING';
            this.$store.commit('updatePackage', this.$refs.packageInfo.package_);
            this.$store.commit('updateDocuments', this.$refs.packageInfo.documentS);
+           this.currentStep++;
         }else if(this.currentStep === 2){
            this.$refs.departureAddress.address.type = 'DEPARTURE';
            const addressAuto=this.$refs.departureAddress.$refs.addressAutoComplete;
-           const address = addressAuto.address.split(',');
-           this.$refs.departureAddress.address.line1 = address[0].trim();
-           this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
-           this.$refs.departureAddress.address.town = address[1].trim().split(' ')[1];
-           this.$refs.departureAddress.address.country = address[2].trim();
-           this.$store.commit('updatePackageDepartureAddress', this.$refs.departureAddress.address);
+           if(!validateAddress(addressAuto.address)){
+                this.$refs.departureAddress.isAddressError = true;
+                this.$refs.departureAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
+           }else{
+               const address = addressAuto.address.split(',');
+               this.$refs.departureAddress.address.line1 = address[0].trim();
+               this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
+               this.$refs.departureAddress.address.town = address[1].trim().split(' ')[1];
+               this.$refs.departureAddress.address.country = address[2].trim();
+               this.$store.commit('updatePackageDepartureAddress', this.$refs.departureAddress.address);
+               this.currentStep++;
+           }
         }else if(this.currentStep === 3){
            this.$refs.arrivalAddress.address.type = 'ARRIVAL';
            const addressAuto_=this.$refs.arrivalAddress.$refs.addressAutoComplete;
-           const address_ = addressAuto_.address.split(',');
-           this.$refs.arrivalAddress.address.line1 = address_[0].trim();
-           this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
-           this.$refs.arrivalAddress.address.town = address_[1].trim().split(' ')[1];
-           this.$refs.arrivalAddress.address.country = address_[2].trim();
-           this.$store.commit('updatePackageArrivalAddress', this.$refs.arrivalAddress.address);
+           if(!validateAddress(addressAuto_.address)){
+                this.$refs.arrivalAddress.isAddressError = true;
+                this.$refs.arrivalAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
+           } else {
+               this.$refs.arrivalAddress.isAddressError = false;
+               const address_ = addressAuto_.address.split(',');
+               this.$refs.arrivalAddress.address.line1 = address_[0].trim();
+               this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
+               this.$refs.arrivalAddress.address.town = address_[1].trim().split(' ')[1];
+               this.$refs.arrivalAddress.address.country = address_[2].trim();
+               this.$store.commit('updatePackageArrivalAddress', this.$refs.arrivalAddress.address);
+               this.currentStep++;
+           }
         }
-        this.currentStep++;
       }
     },
     previousStep() {
@@ -92,18 +106,23 @@ export default{
       }
     },
     async submitForm() {
-     const formData = new FormData();
-     this.package_.senderID = this.$store.state.connectedUser.id
-     formData.append('packageDTO', JSON.stringify(this.package_));
-     formData.append('files', this.documentS[0]);
-     formData.append('files', this.documentS[1]);
-     return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
-        .then(response => {
-            this.$store.commit('updatePackage', response.data);
-            return response.data;
-        }).catch(() => {
-            console.log("unable to process your request this time. please try again latter.");
-        });
+     if(this.currentStep === 4){
+         console.log('submition...');
+         /*const formData = new FormData();
+         this.package_.senderID = this.$store.state.connectedUser.id
+         formData.append('packageDTO', JSON.stringify(this.package_));
+         formData.append('files', this.documentS[0]);
+         formData.append('files', this.documentS[1]);
+         return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
+            .then(response => {
+                this.$store.commit('updatePackage', response.data);
+                return response.data;
+            }).catch(() => {
+                console.log("unable to process your request this time. please try again latter.");
+            });*/
+     }else{
+        this.nextStep();
+     }
     },
   },
 }

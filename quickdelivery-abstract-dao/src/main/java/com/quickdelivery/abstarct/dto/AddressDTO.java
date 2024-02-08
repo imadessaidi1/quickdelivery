@@ -16,6 +16,7 @@ public class AddressDTO {
     private String town;
     private String zipCode;
     private String country;
+    private Integer floor;
     private ADDRESS_TYPE type;
     private BigDecimal latitude;
     private BigDecimal longitude;
@@ -133,6 +134,14 @@ public class AddressDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Integer getFloor() {
+        return floor;
+    }
+
+    public void setFloor(Integer floor) {
+        this.floor = floor;
     }
 
     @Override

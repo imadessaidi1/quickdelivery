@@ -289,6 +289,7 @@ public class PackagesService implements IPackagesService {
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
+        packageDTO.setCreationDate(aPackage.getCreationDate());
         packages.save(aPackage);
         GeoHelper.getDirection(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(), getArrivalAddress(packageDTO.getAddresses()).toString());
         packageDTO.setId(aPackage.getId());

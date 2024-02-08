@@ -32,6 +32,8 @@ public class Address {
     @Column
     private String country;
     @Column
+    private Integer floor;
+    @Column
     @Enumerated(EnumType.STRING)
     private ADDRESS_TYPE type;
     @Column(precision = 11, scale = 8)
@@ -171,5 +173,13 @@ public class Address {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public Integer getFloor() {
+        return floor;
+    }
+
+    public void setFloor(Integer floor) {
+        this.floor = floor;
     }
 }

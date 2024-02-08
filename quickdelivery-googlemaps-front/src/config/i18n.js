@@ -51,10 +51,12 @@ const messages = {
     packageAddressCountry: 'Country',
     packageAddressEmail: 'Email',
     packageAddressPhone: 'Phone',
+    packageAddressFloor: 'Package pickup/delivery floor',
     packageAddressType: 'Type',
     packageAddressAddAction: 'Add address',
     packageAddressListActions: 'Actions',
     packageAddressListActionsDelete: 'Delete',
+    packageCreationAgreement: 'Consent to Terms of Use',
     //Packages Arround
     packagesArround: 'Packages around you',
     packagesArroundDistanceFromYou: 'Distance to package from your position',
@@ -73,10 +75,15 @@ const messages = {
     //MESSAGES
     messageExistingAddressType: 'Address type already added',
     messageExistingAddress: 'You have already entered this address',
+    mandatoryField: 'This field is required',
+    nonNegativeField: 'This field value must be greater than zero',
+    invalidEmail: 'This field must be a valid email',
+    invalidString: 'This field value must contain only alphabetical characters',
+    invalidPhone: 'This field value must be a valid phone number like (+123456789 or +1 234-567-8901 or 001234567890)',
+    invalidAddress: ' and must be a valid address format like (x Street/Avenue xxxxx, xxxxx City, Country)',
   },
   fr: {
   //FOOTER LABELS
-    greeting: 'Bonjour !',
     footerAssistance: 'Assistance',
     footerAssistanceHelp: 'Centre d\'aide',
     footerWelcome: 'Accueil',
@@ -118,10 +125,12 @@ const messages = {
     packageAddressCountry: 'Pays',
     packageAddressEmail: 'Email',
     packageAddressPhone: 'Téléphone',
+    packageAddressFloor: 'Etage de collecte/livraison du colis',
     packageAddressType: 'Type',
     packageAddressAddAction: 'Ajouter l\'adresse',
     packageAddressListActions: 'Actions',
     packageAddressListActionsDelete: 'Supprimer',
+    packageCreationAgreement: 'Consentement pour les conditions d\'utilisation',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
     packagesArroundDistanceFromYou: 'Vers le colis de votre position',
@@ -140,6 +149,12 @@ const messages = {
     //MESSAGE
     messageExistingAddressType: 'Type d\'adresse existant',
     messageExistingAddress: 'Vous avez déjà renseigné cette adresse',
+    mandatoryField: 'Ce champs est obligatoir',
+    nonNegativeField: 'La valaur de ce champs doit être supérieure à zéro',
+    invalidEmail: 'La valaur de ce champs doit être une adresse email valide',
+    invalidString: 'La valaur de ce champs doit contenir que des caractères alphabétique',
+    invalidPhone: 'La valaur de ce champs doit être un numéro de téléphone valide comme (+123456789 ou +1 234-567-8901 ou 001234567890)',
+    invalidAddress: ' et doit être une addresse valide comme (x Rue/Av xxxxx, xxxxx Ville, Pays)',
   },
   // Ajoutez d'autres langues si nécessaire...
 };

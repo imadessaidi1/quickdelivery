@@ -38,7 +38,7 @@
     <div class="input_container">
         <div class="input_only">
             <label for="dateTime">{{$t('packageAddressDepartureTime',{ state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') })}}:</label>
-            <VueDatePicker id="dateTime" v-model="address.dateTime" time-picker-inline :min-date="minDate" :max-date="maxDate"/>
+            <VueDatePicker id="dateTime" v-model="address.dateTime" time-picker-inline :min-date="minDate" :max-date="maxDate" :min-time="{ hours: 8, minutes: 0 }" :max-time="{ hours: 22, minutes: 59 }"/>
         </div>
     </div>
 </template>

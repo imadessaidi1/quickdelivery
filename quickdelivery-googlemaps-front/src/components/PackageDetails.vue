@@ -50,6 +50,12 @@
                 <div>
                     <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[0].country}}
                 </div>
+                <div>
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].floor}}
+                </div>
+                <div>
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].dateTime}}
+                </div>
             </div>
             
         </div>
@@ -79,6 +85,12 @@
                 </div>
                 <div>
                     <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[1].country}}
+                </div>
+                <div>
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[0].floor}}
+                </div>
+                <div>
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[0].dateTime}}
                 </div>
             </div>
         </div>

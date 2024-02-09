@@ -3,6 +3,8 @@ import App from "./App.vue";
 import i18n from './config/i18n';
 import store from './config/store';
 import router from './routers';
+
+
 // Create the app instance
 const app = createApp(App);
 

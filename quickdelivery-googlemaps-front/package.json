@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@vee-validate/yup": "^4.12.4",
+    "@vuepic/vue-datepicker": "^8.0.0",
     "axios": "^1.6.2",
     "core-js": "^3.8.3",
     "vee-validate": "^4.12.4",

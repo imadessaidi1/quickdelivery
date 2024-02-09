@@ -31,7 +31,7 @@
         <input  ref="fileInput0"
                 :id="pictureFile"
                 type="file"
-                accept="image/*, application/pdf"
+                accept="image/*"
         @change="handleFileChange(0)"
         />
       </div>

@@ -28,10 +28,18 @@
         <AddressAutocomplete id="address" ref="addressAutoComplete"/>
         <span v-if="isAddressError" class="errorMessage">{{errorAddressMessage}}</span>
     </div>
-    <div>
-        <label for="floor">{{$t('packageAddressFloor')}}:</label>
-        <Field id="floor" type="number" v-model="address.floor" name="address.floor" :rules="validateNumericFieldAcceptZero"/>
-        <ErrorMessage class="errorMessage" name="address.floor" />
+    <div class="input_container">
+        <div class="input_only">
+            <label for="floor">{{$t('packageAddressFloor',{ state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') })}}:</label>
+            <Field id="floor" type="number" v-model="address.floor" name="address.floor" :rules="validateNumericFieldAcceptZero"/>
+            <ErrorMessage class="errorMessage" name="address.floor" />
+        </div>
+    </div>
+    <div class="input_container">
+        <div class="input_only">
+            <label for="dateTime">{{$t('packageAddressDepartureTime',{ state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') })}}:</label>
+            <VueDatePicker id="dateTime" v-model="address.dateTime" time-picker-inline :min-date="minDate" :max-date="maxDate"/>
+        </div>
     </div>
 </template>
 
@@ -39,12 +47,15 @@
 import AddressAutocomplete from './AddressAutocomplete.vue';
 import { Field, ErrorMessage } from 'vee-validate';
 import { validatePhone, validateEmail, validateString, validateNumericFieldAcceptZero } from '@/config/comonFunction';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 export default {
   components: {
     AddressAutocomplete,
     Field,
     ErrorMessage,
+    VueDatePicker,
   },
   props: {
     addressType: null,
@@ -57,11 +68,21 @@ export default {
     },
   computed: {
     address() {
-    if(this.addressType === "ARRIVAL"){
-        return this.$store.state.package_.addresses[1];
-      }else{
-        return this.$store.state.package_.addresses[0];
-      }
+          if(this.addressType === "ARRIVAL"){
+            return this.$store.state.package_.addresses[1];
+          }else{
+            return this.$store.state.package_.addresses[0];
+          }
+    },
+    minDate() {
+        const d = new Date()
+        d.setDate(d.getDate() + 1)
+        return d
+    },
+    maxDate() {
+        const d = new Date()
+        d.setDate(d.getDate() + 7)
+        return d
     },
   },
   methods: {

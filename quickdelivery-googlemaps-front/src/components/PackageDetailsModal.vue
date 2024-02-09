@@ -2,7 +2,7 @@
 <template>
   <div v-if="isOpen" class="modal">
     <div class="modal-content">
-      <SummarizedPackageDetail :package_="package_()" />
+      <PackageSummary />
       <br/>
       <p>
         <button class="primary_btn" ref="closeModalButtons"
@@ -15,12 +15,14 @@
 </template>
 
 <script>
-import SummarizedPackageDetail from './SummarizedPackageDetail.vue';
+//import SummarizedPackageDetail from './SummarizedPackageDetail.vue';
+import PackageSummary from '../components/PackageDetails.vue';
 import axios from 'axios';
 
 export default {
   components: {
-      SummarizedPackageDetail,
+      //SummarizedPackageDetail,
+      PackageSummary,
     },
   data() {
     return {

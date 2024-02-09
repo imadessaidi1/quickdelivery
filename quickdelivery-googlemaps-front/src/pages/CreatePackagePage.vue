@@ -31,9 +31,9 @@
 import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
-//import axios from 'axios';
+import axios from 'axios';
 import { Form } from 'vee-validate';
-import { validateAddress } from '@/config/comonFunction';
+import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
 
 export default{
   components: {
@@ -87,8 +87,12 @@ export default{
            if(!validateAddress(addressAuto_.address)){
                 this.$refs.arrivalAddress.isAddressError = true;
                 this.$refs.arrivalAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
-           } else {
+           } if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
+                this.$refs.arrivalAddress.isDateTimeError = true;
+                this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
+           }else {
                this.$refs.arrivalAddress.isAddressError = false;
+               this.$refs.arrivalAddress.isDateTimeError = false;
                const address_ = addressAuto_.address.split(',');
                this.$refs.arrivalAddress.address.line1 = address_[0].trim();
                this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
@@ -107,8 +111,7 @@ export default{
     },
     async submitForm() {
      if(this.currentStep === 4){
-         console.log('submition...');
-         /*const formData = new FormData();
+         const formData = new FormData();
          this.package_.senderID = this.$store.state.connectedUser.id
          formData.append('packageDTO', JSON.stringify(this.package_));
          formData.append('files', this.documentS[0]);
@@ -119,7 +122,7 @@ export default{
                 return response.data;
             }).catch(() => {
                 console.log("unable to process your request this time. please try again latter.");
-            });*/
+            });
      }else{
         this.nextStep();
      }

@@ -39,6 +39,7 @@
         <div class="input_only">
             <label for="dateTime">{{$t('packageAddressDepartureTime',{ state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') })}}:</label>
             <VueDatePicker id="dateTime" v-model="address.dateTime" time-picker-inline :min-date="minDate" :max-date="maxDate" :min-time="{ hours: 8, minutes: 0 }" :max-time="{ hours: 22, minutes: 59 }"/>
+            <span v-if="isDateTimeError" class="errorMessage">{{errorDeliveryDateTimeMessage}}</span>
         </div>
     </div>
 </template>
@@ -63,7 +64,9 @@ export default {
   data() {
       return {
         isAddressError: false,
+        isDateTimeError: false,
         errorAddressMessage: null,
+        errorDeliveryDateTimeMessage: null,
       };
     },
   computed: {
@@ -94,7 +97,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .package-address {
   display: flex;
   flex-wrap: wrap;

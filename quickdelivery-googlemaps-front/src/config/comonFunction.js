@@ -59,3 +59,12 @@ export function validateAddress(value){
         return true;
     }
 }
+
+export function validateDeliveryDateTime(pickupDateTime, deliveryDateTime){
+    console.log(pickupDateTime+" , "+deliveryDateTime)
+    if(deliveryDateTime < pickupDateTime){
+        return false;
+    }else{
+        return true;
+    }
+}

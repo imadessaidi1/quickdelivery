@@ -87,10 +87,10 @@
                     <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[1].country}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[0].floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].floor}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[0].dateTime}}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].dateTime}}
                 </div>
             </div>
         </div>

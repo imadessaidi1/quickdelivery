@@ -17,6 +17,7 @@ public class AddressDTO {
     private String zipCode;
     private String country;
     private Integer floor;
+    private Timestamp dateTime;
     private ADDRESS_TYPE type;
     private BigDecimal latitude;
     private BigDecimal longitude;
@@ -142,6 +143,14 @@ public class AddressDTO {
 
     public void setFloor(Integer floor) {
         this.floor = floor;
+    }
+
+    public Timestamp getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(Timestamp dateTime) {
+        this.dateTime = dateTime;
     }
 
     @Override

@@ -3,9 +3,9 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <router-link to="/"><li class="material-symbols-outlined">home</li></router-link>
-        <router-link to="/myPackages"><li class="material-symbols-outlined">deployed_code_account</li></router-link>
-        <router-link to="/createPackage"><li class="material-symbols-outlined">box_add</li></router-link>
+        <span data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
@@ -110,7 +110,31 @@ export default {
 .menu li:hover {
   background-color: #adadad67;
 }
-
+ /**info bull */
+ .vertical-menu span{
+    position: relative;
+    display: inline-block;
+ }
+ .vertical-menu span::after{
+    content: attr(data-tooltip);
+    width: max-content;
+    font-size: 12px;
+    position: absolute;
+    top: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    background-color: #3333339a;
+    color: #fff;
+    border-radius: 5px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+ }
+ .vertical-menu span:hover::after{
+    opacity: 1;
+    visibility: visible;
+ }
 #searchInput {
   width: 45%;
   height: 35px;

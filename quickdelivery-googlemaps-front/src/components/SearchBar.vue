@@ -3,9 +3,9 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span class="infobull" data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span class="infobull" data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
@@ -31,7 +31,7 @@
     <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
-    <a class="material-symbols-outlined" @click="loginMenu">person</a>
+    <span class="infobull" data-tooltip='Account'><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
   </div>
 </template>
 
@@ -111,11 +111,11 @@ export default {
   background-color: #adadad67;
 }
  /**info bull */
- .vertical-menu span{
+ .infobull{
     position: relative;
     display: inline-block;
  }
- .vertical-menu span::after{
+ .infobull::after{
     content: attr(data-tooltip);
     width: max-content;
     font-size: 12px;
@@ -131,7 +131,7 @@ export default {
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
  }
- .vertical-menu span:hover::after{
+ .infobull:hover::after{
     opacity: 1;
     visibility: visible;
  }

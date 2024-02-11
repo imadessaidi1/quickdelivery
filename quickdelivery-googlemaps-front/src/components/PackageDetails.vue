@@ -53,7 +53,7 @@
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].floor}}
                 </div>
-                <div>
+                <div class="dateTime_line">
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].dateTime}}
                 </div>
             </div>
@@ -89,7 +89,7 @@
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].floor}}
                 </div>
-                <div>
+                <div class="dateTime_line">
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].dateTime}}
                 </div>
             </div>
@@ -153,7 +153,8 @@ export default {
         display: inline-grid;
         grid-template-columns: auto auto;
     }
-    .package_details_group .package_details .details .adresse_line{
+    .package_details_group .package_details .details .adresse_line,
+    .dateTime_line{
         grid-column-start: 1;
         grid-column-end: 3;
     }

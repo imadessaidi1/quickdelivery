@@ -38,7 +38,7 @@
     <div class="input_container">
         <div class="input_only">
             <label for="dateTime">{{$t('packageAddressDepartureTime',{ state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') })}}:</label>
-            <VueDatePicker id="dateTime" v-model="address.dateTime" time-picker-inline :min-date="minDate" :max-date="maxDate" :min-time="{ hours: 8, minutes: 0 }" :max-time="{ hours: 22, minutes: 59 }"/>
+            <VueDatePicker placeholder="Select Date and time" id="dateTime" v-model="address.dateTime" model-type="dd.MM.yyyy - k:mm" time-picker-inline :min-date="minDate" :max-date="maxDate" :min-time="{ hours: 8, minutes: 0 }" :max-time="{ hours: 22, minutes: 59 }"/>
             <span v-if="isDateTimeError" class="errorMessage">{{errorDeliveryDateTimeMessage}}</span>
         </div>
     </div>
@@ -125,5 +125,15 @@ label {
 }
 .dp__clear_icon{
     right: 34%;
+}
+@media screen and (max-width: 1100px){
+  .dp__clear_icon {
+    right: 17%;
+  }
+}
+@media screen and (max-width: 600px){
+  .dp__clear_icon {
+    right: 6%;
+  }
 }
 </style>

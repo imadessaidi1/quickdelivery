@@ -90,6 +90,7 @@ export default{
            } if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
                 this.$refs.arrivalAddress.isDateTimeError = true;
                 this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
+                console.log(this.$store.state.package_.addresses[1].dateTime);
            }else {
                this.$refs.arrivalAddress.isAddressError = false;
                this.$refs.arrivalAddress.isDateTimeError = false;

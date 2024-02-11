@@ -133,14 +133,14 @@ export default{
 <style>
 .packege_creation_main{
   padding: 10px;
-  height: 815px;
+  height: 700px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .packege_creation_main .package-form {
-  width: 60%;
-  height: 70%;
+  width: 75%;
+  height: max-content;
   padding: 20px;
   margin: 0 auto;
   border-radius: 5px;

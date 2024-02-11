@@ -123,4 +123,7 @@ label {
 .invalid-field {
   border: 1px solid red;
 }
+.dp__clear_icon{
+    right: 34%;
+}
 </style>

@@ -110,31 +110,6 @@ export default {
 .menu li:hover {
   background-color: #adadad67;
 }
- /**info bull */
- .infobull{
-    position: relative;
-    display: inline-block;
- }
- .infobull::after{
-    content: attr(data-tooltip);
-    width: max-content;
-    font-size: 12px;
-    position: absolute;
-    top: 105%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 5px 10px;
-    background-color: #3333339a;
-    color: #fff;
-    border-radius: 5px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
- }
- .infobull:hover::after{
-    opacity: 1;
-    visibility: visible;
- }
 #searchInput {
   width: 45%;
   height: 35px;

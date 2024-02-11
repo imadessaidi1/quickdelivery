@@ -89,4 +89,9 @@ label {
   font-size: 12px;
   color: #2a6fcf;
 }
+.errorMessage{
+  display: block;
+  font-size: 12px;
+}
+
 </style>

@@ -94,10 +94,10 @@
                 </div>
             </div>
         </div>
-        <div>
-            <Field name="drink" type="checkbox" value="Coffee" /> <strong>{{$t('packageCreationAgreement')}}</strong>
-            <ErrorMessage name="drink" />
-        </div>
+    </div>
+    <div>
+        <Field name="drink" type="checkbox" value="Coffee" />{{$t('packageCreationAgreement')}}
+        <ErrorMessage name="drink" />
     </div>
 </template>
 <script>

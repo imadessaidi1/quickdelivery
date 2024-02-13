@@ -3,26 +3,26 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span class="infobull" data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span class="infobull" data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span class="infobull" data-tooltip='New package'><router-link @click="toggleMenu" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
       <div v-if="isActiveMenu" class="menu horizontal-menu">
         <ul>
-          <router-link to="/"><li>{{$t('menuHome')}}</li></router-link>
-          <router-link to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
-          <router-link to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
+          <router-link @click="toggleMenu" to="/"><li>{{$t('menuHome')}}</li></router-link>
+          <router-link @click="toggleMenu" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
+          <router-link @click="toggleMenu" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
         </ul>
       </div>
     </transition>
     <transition name="fade">
       <div v-if="isActiveLoginMenu" class="menu login-menu">
         <ul>
-          <li>{{$t('menuUserLogin')}}</li>
-          <li>{{$t('menuUserSignin')}}</li>
-          <li>{{$t('menuUuserAccount')}}</li>
+          <li @click="loginMenu">{{$t('menuUserLogin')}}</li>
+          <li @click="loginMenu">{{$t('menuUserSignin')}}</li>
+          <li @click="loginMenu">{{$t('menuUuserAccount')}}</li>
         </ul>
       </div>
     </transition>

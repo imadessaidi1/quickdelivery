@@ -117,3 +117,9 @@ body{
   opacity: 1;
   visibility: visible;
 }
+@media screen and (max-width: 580px){
+  .infobull:hover::after{
+    opacity: 0;
+    visibility: hidden;
+  }
+}

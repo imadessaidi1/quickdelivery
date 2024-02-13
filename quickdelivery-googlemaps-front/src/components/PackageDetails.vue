@@ -95,9 +95,9 @@
             </div>
         </div>
     </div>
-    <div>
-        <Field name="drink" type="checkbox" value="Coffee" />{{$t('packageCreationAgreement')}}
-        <ErrorMessage name="drink" />
+    <div class="conditionCheckbox">
+        <Field name="userCondition" type="checkbox" value="Coffee" /><span>{{$t('packageCreationAgreement')}}</span>
+        <ErrorMessage name="userCondition" />
     </div>
 </template>
 <script>
@@ -118,6 +118,14 @@ export default {
 }
 </script>
 <style>
+.conditionCheckbox{
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 20px;
+}
+.conditionCheckbox span{
+    font-size: 12px;
+}
 .package_details_group{
     width: 100%;
     display: flex;

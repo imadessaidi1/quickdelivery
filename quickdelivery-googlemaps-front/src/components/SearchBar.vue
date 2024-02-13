@@ -65,6 +65,8 @@ export default {
   align-items: center;
   padding: 0px 40px;
   background-color: #e8e8e8;
+  position: relative;
+  z-index: 2;
 }
 .material-symbols-outlined{
   cursor: pointer;

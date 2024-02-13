@@ -3,9 +3,9 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span class="infobull" data-tooltip='New package'><router-link @click="toggleMenu" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span class="infobull" data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span class="infobull" data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
@@ -59,15 +59,12 @@ export default {
 
 .search-bar {
   display: flex;
-  min-height: 4%;
+  height: 7%;
   box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 40px;
-  margin: 0;
+  padding: 0px 40px;
   background-color: #e8e8e8;
-  position: relative;
-  z-index: 2;
 }
 .material-symbols-outlined{
   cursor: pointer;

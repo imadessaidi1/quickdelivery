@@ -28,13 +28,8 @@
 </template>
 
 <style scoped>
-footer {
-  display: flex;
-  justify-content: space-around;
-  background-color: #f0f0f0;
-  padding: 0 20px;
-  position: absolute;
-  bottom: 0;
+.footer {
+  height: 6%;
   box-sizing: border-box;
 }
 .footer-column {
@@ -53,9 +48,10 @@ footer {
 }
 
 .copyright-info {
+  height: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 20px;
+  align-items: center;
   background-color: #f0f0f0;
 }
 

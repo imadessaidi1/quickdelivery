@@ -13,7 +13,7 @@ import java.net.MalformedURLException;
 import java.util.stream.Collectors;
 
 public class PDFGenerator {
-    public static void generatePdf(PackageDTO packageDTO, String qrfilePath, String filePath) throws FileNotFoundException, MalformedURLException {
+    public static void generatePdf(PackageDTO packageDTO, String qrFilePath, String filePath) throws FileNotFoundException, MalformedURLException {
         // Create a PdfWriter object
         PdfWriter writer = new PdfWriter(filePath);
 
@@ -29,7 +29,7 @@ public class PDFGenerator {
         // Add a table to the document
         Table table = new Table(2);
         table.addCell(new Cell().add(new Paragraph(new Text(packageDTO.getAddresses().stream().filter(addressDTO -> addressDTO.getType().equals(ADDRESS_TYPE.DEPARTURE)).collect(Collectors.toList()).get(0).formatedtoString()))));
-        table.addCell(new Cell().add(new Image(ImageDataFactory.create(qrfilePath))));
+        table.addCell(new Cell().add(new Image(ImageDataFactory.create(qrFilePath))));
         table.addCell(new Cell().add(new Paragraph(new Text(packageDTO.getAddresses().stream().filter(addressDTO -> addressDTO.getType().equals(ADDRESS_TYPE.ARRIVAL)).collect(Collectors.toList()).get(0).formatedtoString()))));
         table.addCell(new Cell().add(new Paragraph(new Text("Comment"))));
 

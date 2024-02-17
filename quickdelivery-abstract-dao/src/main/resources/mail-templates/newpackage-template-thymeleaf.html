@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        p, li {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📦 <span th:text="#{email.packageDetails}"></span> 🎉🎉🎉</h1>
+    <p><span th:text="#{email.greetings(${recipientName})}"></span></p>
+    <p><span th:text="#{email.packageDetails}"></span></p>
+
+    <p><span style="font-size: 24px;">ℹ️</span><strong><span th:text="#{email.details}"></span><strong></p>
+    <ul>
+        <ul>
+            <li><strong><span th:text="#{email.dimensions}"></span></strong><span th:text="${height}"></span> x <span th:text="${width}"></span> x <span th:text="${depth}"></span></li>
+            <li><strong><span th:text="#{email.weight}"></span></strong><span th:text="${weight}"></span></li>
+            <li><strong><span th:text="#{email.deliveryPrice}"></span></strong><span th:text="${deliveryPrice}"></span></li>
+            <li><strong><span th:text="#{email.departureAddress}"></span></strong><span th:text="${departureAddress}"></span></li>
+            <li><strong><span th:text="#{email.pickupDateTime}"></span></strong><span th:text="${pickupDateTime}"></span></li>
+            <li><strong><span th:text="#{email.arrivalAddress}"></span></strong><span th:text="${arrivalAddress}"></span></li>
+            <li><strong><span th:text="#{email.deliveryDateTime}"></span></strong><span th:text="${deliveryDateTime}"></span></li>
+        </ul>
+
+    </ul>
+
+    <p><span style="font-size: 24px;">🚀</span><strong><span th:text="#{email.nextSteps}"></span><strong></p>
+    <ol>
+        <li><span th:text="#{email.step1}"></span></li>
+        <li><span th:text="#{email.step2}"></span></li>
+        <li><span th:text="#{email.step3}"></span></li>
+        <li><span th:text="#{email.step4}"></span></li>
+    </ol>
+
+    <p class="footer"><span th:text="#{email.signature}"></span>,<br/>
+        <img src="url_to_your_logo" alt="logo" style="width: 100px;"><br/>
+        <span th:text="#{email.service}"></span><br/>
+        <span th:text="#{email.address}"></span><br/>
+        <span th:text="#{email.email}"></span><br/>
+        <span th:text="#{email.tel}"></span></p>
+
+    <p style="text-align: center;">
+        <a href="link_to_facebook"><img src="url_to_facebook_icon" alt="Facebook" style="width: 30px; margin-right: 10px;"></a>
+        <a href="link_to_instagram"><img src="url_to_instagram_icon" alt="Instagram" style="width: 30px; margin-right: 10px;"></a>
+        <a href="link_to_twitter"><img src="url_to_twitter_icon" alt="Twitter" style="width: 30px;"></a>
+    </p>
+</div>
+</body>
+</html>

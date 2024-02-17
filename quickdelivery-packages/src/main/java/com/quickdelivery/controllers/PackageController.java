@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -27,7 +28,8 @@ public class PackageController {
     private ModelMapper modelMapper;
     @PostMapping("/create")
     public PackageDTO createNewPackage(@RequestParam("packageDTO") String packageDTO,
-                                       @RequestParam("files") MultipartFile[] files){
+                                       @RequestParam("files") MultipartFile[] files,
+                                       @RequestParam("locale") Locale locale){
         ObjectMapper objectMapper = new ObjectMapper();
         PackageDTO packageDTO1 = null;
         try {
@@ -35,7 +37,7 @@ public class PackageController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return packagesService.createNewPackage(packageDTO1, files);
+        return packagesService.createNewPackage(packageDTO1, files, locale);
     }
 
     @PostMapping("/bulk-create")

@@ -7,10 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public interface IPackagesService {
-    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files);
+    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale);
     void createNewPackages(List<PackageDTO> packageDTOS);
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
 

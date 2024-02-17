@@ -54,7 +54,7 @@
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].dateTime}}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(package_.addresses[0].dateTime) }}
                 </div>
             </div>
             
@@ -90,7 +90,7 @@
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].dateTime}}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(package_.addresses[1].dateTime) }}
                 </div>
             </div>
         </div>
@@ -108,13 +108,27 @@ export default {
         ErrorMessage,
     },
     computed: {
-    package_() {
-      return this.$store.state.package_;
+        package_() {
+          return this.$store.state.package_;
+        },
+        documentS() {
+          return this.$store.state.documentS;
+        },
     },
-    documentS() {
-      return this.$store.state.documentS;
+    methods: {
+        formatDate(dateTime) {
+            const date = new Date(dateTime);
+            const options = {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            };
+            const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+            return date.toLocaleDateString(userLanguage, options);
+        }
     },
-  },
 }
 </script>
 <style>

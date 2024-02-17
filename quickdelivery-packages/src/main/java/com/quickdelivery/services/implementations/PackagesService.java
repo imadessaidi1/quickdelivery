@@ -16,6 +16,7 @@ import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IPackagesService;
+import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +61,7 @@ public class PackagesService implements IPackagesService {
     @Autowired
     private GeoApiContext geoApiContext;
     @Override
-    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files) {
+    public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
         try {
             Package aPackage = createPackage(packageDTO);
             IntStream.range(0, files.length)
@@ -78,6 +79,22 @@ public class PackagesService implements IPackagesService {
                         aPackage.getDocument().add(document);
                     });
             packages.save(aPackage);
+            Map<String, Object> templateModel = new HashMap<>();
+            templateModel.put("recipientName", getDepartureAddress(packageDTO.getAddresses()).getFirstName()+" "+getDepartureAddress(packageDTO.getAddresses()).getLastName());
+            templateModel.put("height", aPackage.getHeight());
+            templateModel.put("width", aPackage.getWidth());
+            templateModel.put("depth", aPackage.getDepth());
+            templateModel.put("weight", aPackage.getWeight());
+            templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
+            templateModel.put("departureAddress", getDepartureAddress(packageDTO.getAddresses()).formatedtoString());
+            templateModel.put("pickupDateTime", getDepartureAddress(packageDTO.getAddresses()).getDateTime());
+            templateModel.put("arrivalAddress", getArrivalAddress(packageDTO.getAddresses()).formatedtoString());
+            templateModel.put("deliveryDateTime", getArrivalAddress(packageDTO.getAddresses()).getDateTime());
+            try {
+                MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"Subject",templateModel, locale, qrCodePath+packageDTO.getId()+".pdf");
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
         } catch (MalformedURLException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }

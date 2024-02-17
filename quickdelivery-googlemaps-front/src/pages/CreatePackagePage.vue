@@ -20,6 +20,10 @@
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
+          <div class="components" v-show="currentStep === 5">
+              <h2>{{$t('packageSummaryAction')}}</h2>
+              <PackagePayement ref="PackagePayement"/>
+          </div>
           <br/>
           <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
         <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
@@ -31,6 +35,7 @@
 import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
+import PackagePayement from '../components/PackagePayement.vue';
 import axios from 'axios';
 import { Form } from 'vee-validate';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
@@ -41,6 +46,7 @@ export default{
     PackageAddress,
     PackageSummary,
     Form,
+    PackagePayement,
   },
   data() {
     return {
@@ -60,7 +66,7 @@ export default{
   },
   methods: {
     nextStep() {
-      if (this.currentStep < 4) {
+      if (this.currentStep < 5) {
         if(this.currentStep === 1){
            this.$refs.packageInfo.package_.status='PAYMENTPENDING';
            this.$store.commit('updatePackage', this.$refs.packageInfo.package_);
@@ -117,6 +123,8 @@ export default{
          formData.append('packageDTO', JSON.stringify(this.package_));
          formData.append('files', this.documentS[0]);
          formData.append('files', this.documentS[1]);
+         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+         formData.append('locale', userLanguage);
          return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
             .then(response => {
                 this.$store.commit('updatePackage', response.data);
@@ -124,6 +132,7 @@ export default{
             }).catch(() => {
                 console.log("unable to process your request this time. please try again latter.");
             });
+
      }else{
         this.nextStep();
      }

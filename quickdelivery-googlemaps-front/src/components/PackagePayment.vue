@@ -105,38 +105,11 @@ export default {
   margin-bottom: 20px;
 }
 
-label {
-  display: block;
-}
-
-input[type="text"] {
-  width: 100%;
-  padding: 8px;
-  font-size: 16px;
-}
-
-button {
-  background-color: #0070ba;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 18px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-button:hover {
-  background-color: #005187;
-}
-
 .payment-method {
   margin-bottom: 20px;
   display: flex;
   align-items: center;
 }
 
-input[type="radio"] {
-  margin-right: 10px;
-}
 </style>
 

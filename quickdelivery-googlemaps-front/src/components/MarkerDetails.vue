@@ -1,7 +1,7 @@
 <template>
   <div class="marker-details">
     <!-- Zone droite avec le texte -->
-      <h3>{{ package_.id }}</h3>
+      <h3>Packet N° : {{ package_.id }}</h3>
       <!--<p>{{ $t('packageHeight') }}:
         {{ package_.height }}</p>
       <p>{{ $t('packageWidth') }}:
@@ -109,42 +109,13 @@ export default {
   margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.6); /* Couleur de fond avec transparence */
-}
-
-.left-section {
-  width: 100%;
-  text-align: center;
-  background-color: #ccc;
-  border-radius: 5px;
-}
-
-.left-section img {
-  height: auto;
-}
-
-.right-section {
-  width: 60%;
-}
-.marker-details h3{
-  margin: 0 0 10px 0;
+  background: linear-gradient(0.25turn, #ffffff37, #ffffffcb, #ffffff, #ffffffdb), no-repeat url('../assets/box 2.png') left -100px bottom 50%;
+  background-size: contain;
+  opacity: 0.8;
+  /*background: rgba(255, 255, 255, 0.6);*/
 }
 .marker-details p {
   margin: 5px 0;
   font-size: 12px;
-}
-
-.bottom-section {
-  display: flex;
-  flex-direction: row;
-  width: 75%;
-  margin: 10px auto;
-  text-align: center;
-}
-
-.bottom-section button {
-  font-size: 11px;
-  padding: 5px 0;
-  margin: 3px 0;
 }
 </style>

@@ -51,8 +51,10 @@
 		if (navigator.geolocation) {
 			 navigator.geolocation.getCurrentPosition(function (position) {
 				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+				 //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
 				 map.setCenter(initialLocation);
 				 getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
+				 //getPackagesAroundMe(48.74412000, 2.47471000);
 			 });
 		 }
         directionsRenderer.setMap(map);

@@ -61,7 +61,6 @@ export function validateAddress(value){
 }
 
 export function validateDeliveryDateTime(pickupDateTime, deliveryDateTime){
-    console.log(pickupDateTime+" , "+deliveryDateTime)
     if(deliveryDateTime < pickupDateTime){
         return false;
     }else{

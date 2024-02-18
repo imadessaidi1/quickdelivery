@@ -63,7 +63,7 @@ public class PackagesService implements IPackagesService {
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
         try {
-            Package aPackage = createPackage(packageDTO);
+            Package aPackage = createPackage(packageDTO, locale);
             IntStream.range(0, files.length)
                     .forEach(index -> {
                         MultipartFile file = files[index];
@@ -102,10 +102,10 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
-    public void createNewPackages(List<PackageDTO> packageDTOS) {
+    public void createNewPackages(List<PackageDTO> packageDTOS, Locale locale) {
         packageDTOS.stream().forEach(packageDTO -> {
             try {
-                createPackage(packageDTO);
+                createPackage(packageDTO, locale);
             } catch (MalformedURLException | FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -285,7 +285,7 @@ public class PackagesService implements IPackagesService {
         return groupedPackages;
     }
 
-    private Package createPackage(PackageDTO packageDTO) throws MalformedURLException, FileNotFoundException {
+    private Package createPackage(PackageDTO packageDTO, Locale locale) throws MalformedURLException, FileNotFoundException {
         packageDTO.getAddresses().stream().forEach(addressDTO -> {
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
@@ -318,7 +318,7 @@ public class PackagesService implements IPackagesService {
         qrDocument.setDocURL(qrCodePath+packageDTO.getId()+".png");
         Set<Document> documents = new HashSet<>();
         documents.add(qrDocument);
-        PDFGenerator.generatePdf(packageDTO, qrCodePath+packageDTO.getId()+".png", qrCodePath+packageDTO.getId()+".pdf");
+        PDFGenerator.generatePdf(packageDTO, qrCodePath+packageDTO.getId()+".png", qrCodePath+packageDTO.getId()+".pdf", locale);
         Document pdfDocument = new Document();
         pdfDocument.setaPackage(aPackage);
         pdfDocument.setType(DOCUMENT_TYPE.PACKAGE_PDF_LABEL);

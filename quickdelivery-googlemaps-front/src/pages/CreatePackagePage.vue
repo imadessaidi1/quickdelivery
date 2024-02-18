@@ -20,10 +20,6 @@
               <h2>{{$t('packageSummaryAction')}}</h2>
               <PackageSummary ref="packageSummary"/>
           </div>
-          <div class="components" v-show="currentStep === 5">
-              <h2>{{$t('packageSummaryAction')}}</h2>
-              <PackagePayement ref="PackagePayement"/>
-          </div>
           <br/>
           <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
         <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
@@ -35,7 +31,6 @@
 import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
-import PackagePayement from '../components/PackagePayement.vue';
 import axios from 'axios';
 import { Form } from 'vee-validate';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
@@ -46,7 +41,6 @@ export default{
     PackageAddress,
     PackageSummary,
     Form,
-    PackagePayement,
   },
   data() {
     return {
@@ -82,7 +76,10 @@ export default{
                const address = addressAuto.address.split(',');
                this.$refs.departureAddress.address.line1 = address[0].trim();
                this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
-               this.$refs.departureAddress.address.town = address[1].trim().split(' ')[1];
+               let index = address[1].trim().indexOf(' ');
+                if (index !== -1) {
+                    this.$refs.departureAddress.address.town = address[1].substring(index + 1); // Extrait la partie après le premier espace
+                }
                this.$refs.departureAddress.address.country = address[2].trim();
                this.$store.commit('updatePackageDepartureAddress', this.$refs.departureAddress.address);
                this.currentStep++;
@@ -96,14 +93,16 @@ export default{
            } if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
                 this.$refs.arrivalAddress.isDateTimeError = true;
                 this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
-                console.log(this.$store.state.package_.addresses[1].dateTime);
            }else {
                this.$refs.arrivalAddress.isAddressError = false;
                this.$refs.arrivalAddress.isDateTimeError = false;
                const address_ = addressAuto_.address.split(',');
                this.$refs.arrivalAddress.address.line1 = address_[0].trim();
                this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
-               this.$refs.arrivalAddress.address.town = address_[1].trim().split(' ')[1];
+               let index = address_[1].trim().indexOf(' ');
+                if (index !== -1) {
+                    this.$refs.arrivalAddress.address.town = address_[1].substring(index + 1);
+                }
                this.$refs.arrivalAddress.address.country = address_[2].trim();
                this.$store.commit('updatePackageArrivalAddress', this.$refs.arrivalAddress.address);
                this.currentStep++;
@@ -128,11 +127,12 @@ export default{
          return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
             .then(response => {
                 this.$store.commit('updatePackage', response.data);
-                return response.data;
+                if(response.status == '200'){
+                    this.$router.push('/paymentPage');
+                }
             }).catch(() => {
                 console.log("unable to process your request this time. please try again latter.");
             });
-
      }else{
         this.nextStep();
      }

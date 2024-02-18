@@ -12,7 +12,7 @@ import java.util.Map;
 
 public interface IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale);
-    void createNewPackages(List<PackageDTO> packageDTOS);
+    void createNewPackages(List<PackageDTO> packageDTOS, Locale locale);
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
 
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);

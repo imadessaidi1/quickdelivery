@@ -41,8 +41,8 @@ public class PackageController {
     }
 
     @PostMapping("/bulk-create")
-    public void createNewPackages(@RequestBody List<PackageDTO> packageDTOS){
-        packagesService.createNewPackages(packageDTOS);
+    public void createNewPackages(@RequestBody List<PackageDTO> packageDTOS, Locale locale){
+        packagesService.createNewPackages(packageDTOS, locale);
     }
 
     @GetMapping("/packages-around{latitude}{longitude}{rayonEnMetres}")
@@ -74,9 +74,9 @@ public class PackageController {
     }
 
     @PostMapping("/upload")
-    public void createNewPackagesFromCSV(@RequestParam("file") MultipartFile file){
+    public void createNewPackagesFromCSV(@RequestParam("file") MultipartFile file, Locale locale){
         List<PackageDTO> packageDTOList = PackegeCSVReader.CSVToPackages(file);
-        packagesService.createNewPackages(packageDTOList);
+        packagesService.createNewPackages(packageDTOList, locale);
     }
 
     @PutMapping("/update-packages-status")

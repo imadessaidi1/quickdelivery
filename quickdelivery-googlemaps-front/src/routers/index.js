@@ -3,6 +3,7 @@ import PackageCreation from '../pages/CreatePackagePage.vue';
 //import PackageCreation from '../pages/ValidationTestPage.vue';
 import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
+import PaymentPage from '../pages/PaymentPage.vue';
 
 const routes = [
         {
@@ -19,6 +20,11 @@ const routes = [
         path: '/myPackages',
         name: 'myPackages',
         component: MyPackages
+        },
+        {
+        path: '/paymentPage',
+        name: 'paymentPage',
+        component:PaymentPage
         }
       ];
 const router = VueRouter.createRouter({

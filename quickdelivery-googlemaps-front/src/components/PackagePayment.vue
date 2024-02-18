@@ -37,6 +37,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   data() {
     return {
@@ -56,7 +57,25 @@ export default {
         amount: this.amount
       };
       console.log('Card payment processed:', paymentData);
-      // Logique pour traiter le paiement par carte
+    const packageStatus = 'NEW';
+    const packageId =  this.$store.state.package_.id;
+
+    // Données à envoyer au contrôleur
+    const requestData = {
+      [packageId]: packageStatus
+    };
+
+    // Appel de l'API avec Axios
+    axios.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus'), requestData)
+      .then(response => {
+        console.log('Package status updated successfully');
+        if(response.status == '200'){
+           this.$router.push('/');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating package status:', error);
+      });
     },
     redirectToPayPal() {
       // Redirection vers PayPal pour finaliser le paiement
@@ -65,8 +84,7 @@ export default {
   }
 };
 </script>
-
-<style scoped>
+<style>
 .payment-form {
   max-width: 400px;
   margin: 0 auto;

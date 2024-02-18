@@ -9,6 +9,7 @@ const messages = {
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     getPackagesAroundMe: 'packages-around-me?latitude=',
+    updatePackageStatus: 'update-packages-status',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',

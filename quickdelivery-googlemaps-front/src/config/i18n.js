@@ -86,6 +86,8 @@ const messages = {
     invalidPhone: 'This field value must be a valid phone number like (+123456789 or +1 234-567-8901 or 001234567890)',
     invalidAddress: ' and must be a valid address format like (x Street/Avenue xxxxx, xxxxx City, Country)',
     packageDeliveryInvalidDateTime: 'The delivery date and time must be later than the pickup date and time.',
+    requestSuccessful: 'Your request was processed successfully',
+    requestUnsuccessful: 'An error occurred. Please try again later !',
   },
   fr: {
   //FOOTER LABELS
@@ -164,6 +166,8 @@ const messages = {
     invalidPhone: 'La valaur de ce champs doit être un numéro de téléphone valide comme (+123456789 ou +1 234-567-8901 ou 001234567890)',
     invalidAddress: ' et doit être une addresse valide comme (x Rue/Av xxxxx, xxxxx Ville, Pays)',
     packageDeliveryInvalidDateTime: 'La date et l\'heure de livraison doivent être postérieure à la date et à l\'heure de récupération',
+    requestSuccessful: 'Votre demande a été traitée avec succès',
+    requestUnsuccessful: 'Une erreur est survenue. Veuillez réessayer plus tard !',
   },
   // Ajoutez d'autres langues si nécessaire...
 };

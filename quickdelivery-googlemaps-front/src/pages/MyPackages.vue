@@ -13,7 +13,7 @@
 
 <script>
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 
 export default {
   components: {
@@ -30,7 +30,7 @@ export default {
   methods: {
     async fetchData() {
       try {
-        const response = await axios.get(this.$i18n.t('rootURL')+this.$i18n.t('getPackagesByDeliveryPersonUrl')+this.$store.state.connectedUser.id);
+        const response = await http.get(this.$i18n.t('rootURL')+this.$i18n.t('getPackagesByDeliveryPersonUrl')+this.$store.state.connectedUser.id);
         Object.entries(response.data).forEach(([status, packagesArray]) => {
           if(typeof status === 'string' && Array.isArray(packagesArray)){
              this.packagesByStatus.push({satuts_: status, groupedPackagesList: packagesArray});

@@ -27,6 +27,9 @@
 	   let packagesSimpleDirection = [];
 	   let packagesOnMyRoadDirection = [];
 	   let infowindow;
+	   let markers = [];
+	   let initialLocation;
+	   let actualPosition;
 	   function initMap() {
 	   var url_string = window.location.href;
 		var url = new URL(url_string);
@@ -50,6 +53,7 @@
 		transitLayer.setMap(map);
 		if (navigator.geolocation) {
 			 navigator.geolocation.getCurrentPosition(function (position) {
+			     actualPosition = position;
 				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 				 //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
 				 map.setCenter(initialLocation);
@@ -256,6 +260,7 @@
 					infowindow.open(map,marker);
 					//window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
 				});
+				markers.push(marker);
 			}
 		}
       window.initMap = initMap;
@@ -278,8 +283,22 @@
 			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
 			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
 			calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, departurePosition, arrivalPosition);
+        }else if (typeof e.data === 'string' && e.data.includes('RefreshPackagesList')) {
+			refreshPackagesList();
         }
       }
+	  function refreshPackagesList(){
+		removeAllMarkers();
+		console.log(initialLocation);
+		getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude);
+	  
+	  }
+	  function removeAllMarkers() {
+		for (let i = 0; i < markers.length; i++) {
+			markers[i].setMap(null);
+		}
+		markers.splice(0, markers.length);
+	  }
     </script>
     <style>
       /**

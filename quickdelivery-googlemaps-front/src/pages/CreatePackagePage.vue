@@ -31,7 +31,7 @@
 import PackageCreation from '../components/PackageCreation.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageSummary from '../components/PackageDetails.vue';
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
 
@@ -124,7 +124,7 @@ export default{
          formData.append('files', this.documentS[1]);
          const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
          formData.append('locale', userLanguage);
-         return axios.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
+         return http.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
             .then(response => {
                 this.$store.commit('updatePackage', response.data);
                 if(response.status == '200'){

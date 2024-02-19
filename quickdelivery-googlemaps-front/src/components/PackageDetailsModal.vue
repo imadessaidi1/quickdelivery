@@ -17,7 +17,7 @@
 <script>
 //import SummarizedPackageDetail from './SummarizedPackageDetail.vue';
 import PackageSummary from '../components/PackageDetails.vue';
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 
 export default {
   components: {
@@ -36,13 +36,15 @@ export default {
     closeModal() {
       this.isOpen = false;
     },
-    package_() {
-      return this.$store.state.package_;
-    },
     reserve() {
-      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
-      return axios.put(url)
+      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.$store.state.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
+      console.log(url);
+      return http.put(url)
         .then(response => {
+          if(response.status == '200'){
+            this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
+            this.isOpen = false;
+          }
           return response.data;
         }).catch(() => {
           console.log("unable to process your request this time. please try again latter.");

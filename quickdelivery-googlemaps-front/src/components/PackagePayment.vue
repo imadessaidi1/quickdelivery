@@ -70,6 +70,7 @@ export default {
       .then(response => {
         console.log('Package status updated successfully');
         if(response.status == '200'){
+           this.$store.commit('updatePackage', Object);
            this.$router.push('/');
         }
       })

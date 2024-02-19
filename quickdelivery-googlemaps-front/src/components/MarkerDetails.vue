@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 export default {
   props: {
     package_: Object,
@@ -54,14 +54,19 @@ export default {
       var message = "OnMyDirection:" + stringDeparture + ";" + stringArrival;
       this.mapVue.$refs.map.contentWindow.postMessage(message, "*");
     },
-    reserve() {
+    async reserve() {
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
-      return axios.put(url)
+      return new Promise((resolve, reject) => {
+        http.put(url)
         .then(response => {
-          return response.data;
-        }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          this.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
+          resolve(response.data);
+        })
+        .catch(error => {
+          console.log("Unable to process your request at this time. Please try again later.", error);
+          reject(error);
         });
+      });
     },
     details(){
       this.$store.commit('updatePackage', this.package_);

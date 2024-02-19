@@ -3,6 +3,10 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
+      isLoading: false,
+      showMessage: false,
+      requestSuccess: false,
+      requestMessage: '',
       package_: {
         id: null,
         version: null,
@@ -71,6 +75,18 @@ export default createStore({
       },
       updatePackageArrivalAddress(state, updatedAddress) {
         state.package_.addresses[1] = updatedAddress;
+      },
+      updateLoaderStatus(state, isLoading_) {
+        state.isLoading = isLoading_;
+      },
+      updateShowMessage(state, showMessage_) {
+        state.showMessage = showMessage_;
+      },
+      updateRequestSuccess(state, requestSuccess_) {
+        state.requestSuccess = requestSuccess_;
+      },
+      updateRequestMessage(state, requestMessage_) {
+        state.requestMessage = requestMessage_;
       },
     },
   actions: {

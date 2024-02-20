@@ -14,6 +14,9 @@ instance.interceptors.request.use(
     store.commit('updateShowMessage', true);
     store.commit('updateRequestSuccess', false);
     store.commit('updateRequestMessage', 'error');
+    setTimeout(() => {
+        store.commit('updateShowMessage', false);
+    }, 5000);
     return Promise.reject(error);
   }
 );
@@ -22,12 +25,14 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   function(response) {
     store.commit('updateLoaderStatus', false);
-    store.commit('updateShowMessage', true);
-    store.commit('updateRequestSuccess', true);
-    store.commit('updateRequestMessage', 'success');
-      setTimeout(() => {
-        store.commit('updateShowMessage', false);
-      }, 5000);
+    if (response.config.method === 'post' || response.config.method === 'put') {
+        store.commit('updateShowMessage', true);
+        store.commit('updateRequestSuccess', true);
+        store.commit('updateRequestMessage', 'success');
+          setTimeout(() => {
+            store.commit('updateShowMessage', false);
+          }, 5000);
+      }
     return response;
   },
   function(error) {
@@ -35,6 +40,9 @@ instance.interceptors.response.use(
     store.commit('updateShowMessage', true);
     store.commit('updateRequestSuccess', false);
     store.commit('updateRequestMessage', 'error');
+    setTimeout(() => {
+        store.commit('updateShowMessage', false);
+    }, 5000);
     return Promise.reject(error);
   }
 );

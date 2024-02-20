@@ -31,44 +31,67 @@
 	   let initialLocation;
 	   let actualPosition;
 	   function initMap() {
-	   var url_string = window.location.href;
-		var url = new URL(url_string);
-		userID = url.searchParams.get("userID");
-        directionsRenderer = new google.maps.DirectionsRenderer({
-			suppressMarkers: false,
-			polylineOptions:{strokeColor: '#525CEB'}
-		});
-        directionsService = new google.maps.DirectionsService();
-		infowindow = new google.maps.InfoWindow(
-		  { 
-			size: new google.maps.Size(150,50)
-		  });
-        map = new google.maps.Map(document.getElementById("map"), {
-			zoom: 13,
-			disableDefaultUI: true,
-			zoomControl: true,
-			scaleControl: true,
-        });
-		const transitLayer = new google.maps.TransitLayer();
-		transitLayer.setMap(map);
-		if (navigator.geolocation) {
-			 navigator.geolocation.getCurrentPosition(function (position) {
-			     actualPosition = position;
-				 initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-				 //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
-				 map.setCenter(initialLocation);
-				 getPackagesAroundMe(position.coords.latitude, position.coords.longitude);
-				 //getPackagesAroundMe(48.74412000, 2.47471000);
-			 });
-		 }
-        directionsRenderer.setMap(map);
-        //directionsRenderer.setPanel(document.getElementById("sidebar"));
+          window.top.postMessage('StartLoading', '*');
+          var url_string = window.location.href;
+          var url = new URL(url_string);
+          userID = url.searchParams.get("userID");
+          directionsRenderer = new google.maps.DirectionsRenderer({
+              suppressMarkers: false,
+              polylineOptions:{strokeColor: '#525CEB'}
+          });
+          directionsService = new google.maps.DirectionsService();
+          infowindow = new google.maps.InfoWindow(
+              {
+                  size: new google.maps.Size(150,50)
+              });
+          map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 13,
+              disableDefaultUI: true,
+              zoomControl: true,
+              scaleControl: true,
+          });
 
-        const control = document.getElementById("floating-panel");
+          const transitLayer = new google.maps.TransitLayer();
+          transitLayer.setMap(map);
 
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
+          const geolocationPromise = new Promise((resolve, reject) => {
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(function (position) {
+                      actualPosition = position;
+                      //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
+                      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                      map.setCenter(initialLocation);
+                      resolve();
+                  });
+              }
+          });
+          let packagesPromise;
+          Promise.all([geolocationPromise]).then(() => {
+          const packagesPromise = new Promise((resolve, reject) => {
+              //getPackagesAroundMe(48.74412000, 2.47471000);
+              getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
+                  resolve();
+              }).catch(error => {
+                  reject(error);
+              });
+          });
+          }).catch(error => {
+              console.error("Une erreur s'est produite :", error);
+          });
+
+          // Attente de la résolution des promesses
+          Promise.all([geolocationPromise, packagesPromise]).then(() => {
+              directionsRenderer.setMap(map);
+              const control = document.getElementById("floating-panel");
+              map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
+              // Envoie du message de fin de chargement
+              window.top.postMessage('EndLoading', '*');
+          }).catch(error => {
+              console.error("Une erreur s'est produite :", error);
+          });
       }
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
+	        window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;
 			const filterSipleDirection = (simpleDirection) => (
@@ -98,9 +121,11 @@
 						window.alert("Directions request failed due to " + status)
 					);
 			}
+			window.top.postMessage('EndLoading', '*');
 		}
 
 	  function calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, packageStart, packageEnd) {
+			window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;
 			const filterOnMyRoadDirection = (simpleDirection) => (
@@ -138,6 +163,7 @@
 						console.error(error);
 					});
 				}
+			window.top.postMessage('EndLoading', '*');
 		}
 	  async function getPackagesAroundMe(latitude, longitude) {
 			return new Promise(async (resolve, reject) => {
@@ -215,27 +241,6 @@
 			});
 		}
 
-		function reservePackage(userID, packageID) {
-			var url = `http://localhost:8082/packages/v1/reserve?packageID=${packageID}&deliveryPersonID=${userID}`;
-			return fetch(url, {
-				method: 'PUT',
-				/*headers: {
-					'Content-Type': 'application/json', // Assurez-vous d'ajuster le type de contenu en fonction de vos besoins
-					// Ajoutez d'autres en-têtes si nécessaire
-				},
-				body: JSON.stringify(dataToUpdate), // Convertit les données en JSON*/
-			})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error(`Erreur HTTP, statut : ${response.status}`);
-				}
-				return response.json(); // Vous pouvez ajuster ceci en fonction du format de réponse de votre API
-			})
-			.catch(error => {
-				console.error('Erreur lors de la requête PUT :', error);
-				throw error; // Vous pouvez gérer l'erreur de manière appropriée en fonction de vos besoins
-			});
-		}
 		function addMarker(departureAddress, arrivalAddress, map) {
 		  if(departureAddress != undefined){
 				  var markerInfo;
@@ -288,10 +293,11 @@
         }
       }
 	  function refreshPackagesList(){
+	    window.top.postMessage('StartLoading', '*');
 		removeAllMarkers();
 		console.log(initialLocation);
 		getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude);
-	  
+	    window.top.postMessage('EndLoading', '*');
 	  }
 	  function removeAllMarkers() {
 		for (let i = 0; i < markers.length; i++) {

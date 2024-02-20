@@ -64,20 +64,22 @@ public class PackagesService implements IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
         try {
             Package aPackage = createPackage(packageDTO, locale);
-            IntStream.range(0, files.length)
-                    .forEach(index -> {
-                        MultipartFile file = files[index];
-                        Document document = new Document();
-                        document.setaPackage(aPackage);
-                        document.setDocURL(file.getName());
-                        document.setType(index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE);
-                        try {
-                            document.setDocContent(file.getBytes());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        aPackage.getDocument().add(document);
-                    });
+            if(files != null && files.length > 0) {
+                IntStream.range(0, files.length)
+                        .forEach(index -> {
+                            MultipartFile file = files[index];
+                            Document document = new Document();
+                            document.setaPackage(aPackage);
+                            document.setDocURL(file.getName());
+                            document.setType(index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE);
+                            try {
+                                document.setDocContent(file.getBytes());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            aPackage.getDocument().add(document);
+                        });
+            }
             packages.save(aPackage);
             Map<String, Object> templateModel = new HashMap<>();
             templateModel.put("recipientName", getDepartureAddress(packageDTO.getAddresses()).getFirstName()+" "+getDepartureAddress(packageDTO.getAddresses()).getLastName());

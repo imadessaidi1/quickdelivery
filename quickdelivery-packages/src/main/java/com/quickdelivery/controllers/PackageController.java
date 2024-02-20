@@ -28,7 +28,7 @@ public class PackageController {
     private ModelMapper modelMapper;
     @PostMapping("/create")
     public PackageDTO createNewPackage(@RequestParam("packageDTO") String packageDTO,
-                                       @RequestParam("files") MultipartFile[] files,
+                                       @RequestParam(value = "files", required = false) MultipartFile[] files,
                                        @RequestParam("locale") Locale locale){
         ObjectMapper objectMapper = new ObjectMapper();
         PackageDTO packageDTO1 = null;

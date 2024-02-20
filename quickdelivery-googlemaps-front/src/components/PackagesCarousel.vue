@@ -36,8 +36,7 @@ export default {
                 const rawData = e.data;
                 this.packagesList = JSON.parse(JSON.stringify(rawData));
                 this.displayDirection(0);
-        }
-        if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
+        }else if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
            const packageID = e.data.split(':')[1];
            const markerDetailComponent = this.$refs.markerDetail;
            //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
@@ -47,6 +46,10 @@ export default {
                 markerDetail.setFocusOnReserveButton();
              }
            });
+        }else if (typeof e.data === 'string' && e.data === 'StartLoading') {
+            this.$store.commit('updateLoaderStatus', true);
+        }else if (typeof e.data === 'string' && e.data === 'EndLoading') {
+            this.$store.commit('updateLoaderStatus', false);
         }
        };
   },

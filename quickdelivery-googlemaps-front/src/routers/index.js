@@ -4,6 +4,7 @@ import PackageCreation from '../pages/CreatePackagePage.vue';
 import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
 import PaymentPage from '../pages/PaymentPage.vue';
+import UserSignInPage from '../pages/UserSignInPage.vue';
 
 const routes = [
         {
@@ -25,6 +26,11 @@ const routes = [
         path: '/paymentPage',
         name: 'paymentPage',
         component:PaymentPage
+        },
+        {
+        path: '/userSignInPage',
+        name: 'userSignInPage',
+        component:UserSignInPage
         }
       ];
 const router = VueRouter.createRouter({

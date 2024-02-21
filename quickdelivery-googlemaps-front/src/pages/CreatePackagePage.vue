@@ -22,7 +22,7 @@
           </div>
           <br/>
           <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
-        <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
+          <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
         </Form>
       </div>
     </div>
@@ -73,6 +73,7 @@ export default{
                 this.$refs.departureAddress.isAddressError = true;
                 this.$refs.departureAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
            }else{
+               this.$refs.departureAddress.isAddressError = false;
                const address = addressAuto.address.split(',');
                this.$refs.departureAddress.address.line1 = address[0].trim();
                this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
@@ -90,10 +91,12 @@ export default{
            if(!validateAddress(addressAuto_.address)){
                 this.$refs.arrivalAddress.isAddressError = true;
                 this.$refs.arrivalAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
-           } if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
+           }
+           if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
                 this.$refs.arrivalAddress.isDateTimeError = true;
                 this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
-           }else {
+           }
+           if(validateAddress(addressAuto_.address) && validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
                this.$refs.arrivalAddress.isAddressError = false;
                this.$refs.arrivalAddress.isDateTimeError = false;
                const address_ = addressAuto_.address.split(',');
@@ -180,7 +183,7 @@ export default{
 .input_only{
   height: 85px;
 }
-.input_container input{
+.input_container select{
   width: 65%;
 }
 .small_width{
@@ -198,7 +201,7 @@ export default{
   .input_container{
     width: 100%;
   }
-  .input_container input{
+  .input_container select{
     width: 83%;
   }
   .packege_creation_main .package-form {

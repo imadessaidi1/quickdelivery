@@ -14,38 +14,80 @@
             <label for="payByPayPal">Pay with PayPal</label>
         </div>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
-        <div class="form-group">
-            <label for="cardNumber">Card Number</label>
-            <input type="text" id="cardNumber" v-model="cardNumber" required />
-        </div>
-        <div class="form-group">
-            <label for="expiryDate">Expiry Date</label>
-            <input type="text" id="expiryDate" v-model="expiryDate" required />
-        </div>
-        <div class="form-group">
-            <label for="cvv">CVV</label>
-            <input type="text" id="cvv" v-model="cvv" required />
-        </div>
-        <div class="form-group">
-            <label for="amount">Amount</label>
-            <input type="text" id="amount" v-model="amount" required />
-        </div>
-        <button type="submit">Pay by Card</button>
-    </form>
-    <button v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">Pay with PayPal</button>
-        </div>
+            <CreditCard />
+            <button type="submit">Pay by Card</button>
+        </form>
+        <button v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">Pay with PayPal</button>
+    </div>
 </template>
 
 <script>
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
+import CreditCard from './CreditCard.vue';
 export default {
+  computed: {
+    package_() {
+      return this.$store.state.package_;
+    },
+  },
+  components :{
+    CreditCard,
+  },
   data() {
     return {
       paymentMethod: 'card',
       cardNumber: '',
       expiryDate: '',
       cvv: '',
-      amount: ''
+      amount: '',
+      package: {
+        id: null,
+        version: null,
+        creationDate: null,
+        height: 0,
+        width: 0,
+        depth: 0,
+        weight: 0,
+        pictureURL: "",
+        status: "",
+        deliveryPrice: null,
+        senderID: null,
+        packageReservations: [],
+        addresses: [{
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        floor:0,
+        dateTime: null,
+        email: "",
+        phone: "",
+        type: "DEPARTURE",
+        latitude: 0,
+        longitude: 0,
+      },
+      {
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        floor:0,
+        dateTime: null,
+        email: "",
+        phone: "",
+        type: "ARRIVAL",
+        latitude: 0,
+        longitude: 0,
+      }],
+      lastPositionLatitude: null,
+      lastPositionLongitude: null
+    }
     };
   },
   methods: {
@@ -58,19 +100,20 @@ export default {
       };
       console.log('Card payment processed:', paymentData);
     const packageStatus = 'NEW';
-    const packageId =  this.$store.state.package_.id;
+    const packageId =  this.package_.id;
 
     // Données à envoyer au contrôleur
     const requestData = {
+      [packageId]: packageId,
       [packageId]: packageStatus
     };
 
     // Appel de l'API avec Axios
-    axios.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus'), requestData)
+    http.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus'), requestData)
       .then(response => {
         console.log('Package status updated successfully');
         if(response.status == '200'){
-           this.$store.commit('updatePackage', Object);
+           this.$store.commit('updatePackage', this.package);
            this.$router.push('/');
         }
       })

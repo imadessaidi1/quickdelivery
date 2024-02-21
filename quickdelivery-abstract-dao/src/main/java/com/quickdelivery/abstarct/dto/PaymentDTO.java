@@ -1,10 +1,14 @@
 package com.quickdelivery.abstarct.dto;
 
+import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
+
 import java.sql.Timestamp;
 
 public class PaymentDTO {
     private Long id;
     private Timestamp version;
+
+    private PAYMENT_TYPE paymentType;
     protected Boolean validated;
     public PaymentDTO(){}
 
@@ -30,5 +34,13 @@ public class PaymentDTO {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public PAYMENT_TYPE getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(PAYMENT_TYPE paymentType) {
+        this.paymentType = paymentType;
     }
 }

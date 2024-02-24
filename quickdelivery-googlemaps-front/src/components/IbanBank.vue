@@ -1,7 +1,7 @@
 <template>
     <div class="input_container">
         <div class="input_only">
-            <label for="iban">IBAN:</label>
+            <label for="iban">{{$t('userIBAN')}}:</label>
             <Field
                     type="text"
                     id="iban"
@@ -13,7 +13,7 @@
     </div>
     <div class="input_container">
         <div class="input_only">
-            <label for="bic">Code BIC:</label>
+            <label for="bic">{{$t('userIBANBIC')}}:</label>
             <Field
                     type="text"
                     id="bic"
@@ -25,7 +25,7 @@
     </div>
     <div class="picture_file_container">
         <div class="input_only">
-            <label for="RIB">RIB :</label>
+            <label for="RIB">{{$t('userRIB')}} :</label>
             <input  ref="fileInput4"
                     :id="RIB"
                     type="file"

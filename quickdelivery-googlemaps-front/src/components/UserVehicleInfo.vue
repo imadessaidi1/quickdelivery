@@ -3,24 +3,24 @@
         <h2>Vehicle info.</h2>
     <div class="input_container">
         <div class="input_only">
-            <label for="registrationNumber">Registration number:</label>
+            <label for="registrationNumber">{{$t('userVehicleRegistration')}}:</label>
             <Field type="text" id="registrationNumber" v-model="user.vehicle.registrationNumber" name="registrationNumber" :rules="validateCarRegistrationNumber" />
             <ErrorMessage class="errorMessage" name="registrationNumber" />
         </div>
         <div class="input_only">
-            <label for="brand">Brand:</label>
+            <label for="brand">{{$t('userVehicleBrand')}}:</label>
             <Field type="text" id="brand" v-model="user.vehicle.brand" name="brand" :rules="validateRequired" />
             <ErrorMessage class="errorMessage" name="brand" />
         </div>
     </div>
     <div class="input_container">
         <div class="input_only">
-            <label for="model">Model:</label>
+            <label for="model">{{$t('userVehicleModel')}}:</label>
             <Field type="text" id="model" v-model="user.vehicle.model" name="model" :rules="validateRequired" />
             <ErrorMessage class="errorMessage" name="model" />
         </div>
         <div class="input_only">
-            <label for="energyType">Energy Type:</label>
+            <label for="energyType">{{$t('userVehicleEnergy')}}:</label>
             <select id="energyType" v-model="user.vehicle.energyType">
                 <option value="ELECTRIC">Electric</option>
                 <option value="HYBRID">Hybrid</option>
@@ -33,7 +33,7 @@
     </div>
         <div class="picture_file_container">
             <div class="input_only">
-                <label for="GRAY_CARD">Gray card :</label>
+                <label for="GRAY_CARD">{{$t('userVehicleGryCard')}} :</label>
                 <input  ref="fileInput0"
                         :id="GRAY_CARD"
                         type="file"
@@ -43,7 +43,7 @@
                 <br/><span v-if="user.vehicle.vehicleDocuments[0] != undefined"><strong>{{user.vehicle.vehicleDocuments[0].file.name}}</strong></span>
             </div>
             <div class="input_only">
-                <label for="INSURANCE">Insurance :</label>
+                <label for="INSURANCE">{{$t('userVehicleInsurance')}} :</label>
                 <input  ref="fileInput1"
                         :id="INSURANCE"
                         type="file"

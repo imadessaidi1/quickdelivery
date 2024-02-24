@@ -3,7 +3,7 @@
         <h2>User Documents.</h2>
         <div class="picture_file_container">
             <div class="input_only">
-                <label for="ID">ID :</label>
+                <label for="ID">{{$t('userDocumentID')}} :</label>
                 <input  ref="fileInput0"
                         :id="ID"
                         type="file"
@@ -13,7 +13,7 @@
                 <br/><span v-if="user.documents[0] != undefined"><strong>{{user.documents[0].file.name}}</strong></span>
             </div>
             <div class="input_only">
-                <label for="DRIVER_LICENCE">Driver licence :</label>
+                <label for="DRIVER_LICENCE">{{$t('userDocumentDriverLicence')}} :</label>
                 <input  ref="fileInput1"
                         :id="DRIVER_LICENCE"
                         type="file"
@@ -23,7 +23,7 @@
                 <br/><span v-if="user.documents[1] != undefined"><strong>{{user.documents[1].file.name}}</strong></span>
             </div>
             <div class="input_only">
-                <label for="USER_COMPANY_EXTRACT">Company extract :</label>
+                <label for="USER_COMPANY_EXTRACT">{{$t('userDocumentCompanyExtract')}} :</label>
                 <input  ref="fileInput2"
                         :id="USER_COMPANY_EXTRACT"
                         type="file"
@@ -33,7 +33,7 @@
                 <br/><span v-if="user.documents[2] != undefined"><strong>{{user.documents[2].file.name}}</strong></span>
             </div>
             <div class="input_only">
-                <label for="USER_COMPANY_INSURANCE">Company insurance :</label>
+                <label for="USER_COMPANY_INSURANCE">{{$t('userDocumentCompanyInsurance')}} :</label>
                 <input  ref="fileInput3"
                         :id="USER_COMPANY_INSURANCE"
                         type="file"
@@ -44,19 +44,19 @@
             </div>
         </div>
         <div>
-            <h2>Payment mode</h2>
+            <h2>{{$t('userPaymentModes')}}</h2>
             <div class="payment-method">
                 <label for="card-option">
                     <input type="radio" id="card-option" name="payment-type" v-model="selectedPaymentType" value="CARD"/>
-                    Carte bancaire
+                    {{$t('userPaymentCreditCard')}}
                 </label>
                 <label for="iban-option">
                     <input type="radio" id="iban-option" name="payment-type" v-model="selectedPaymentType" value="IBAN"/>
-                    Virement bancaire (IBAN)
+                    {{$t('userIBAN')}}
                 </label>
                 <label for="paypal-option">
                     <input type="radio" id="paypal-option" name="payment-type" v-model="selectedPaymentType" value="PAYPAL"/>
-                    PayPal
+                    {{$t('userPayPal')}}
                 </label>
             </div>
             <div class="payment-details">

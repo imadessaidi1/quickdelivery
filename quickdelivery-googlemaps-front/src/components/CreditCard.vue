@@ -2,14 +2,14 @@
     <div class="input_container">
         <div class="input_only">
             <div class="form-group">
-                <label for="cardNumber">Card Number</label>
+                <label for="cardNumber">{{$t('userCardNumber')}}:</label>
                 <Field type="text" id="cardNumber" v-model="user.paymentModes['CREDIT_CARD'].cardNumber" name="cardNumber" :rules="validateCreditCardNumber" />
                 <ErrorMessage class="errorMessage" name="cardNumber" />
             </div>
         </div>
         <div class="input_only">
             <div class="form-group">
-                <label for="expiryDate">Expiry Date</label>
+                <label for="expiryDate">{{$t('userCardExpiryDate')}}:</label>
                 <Field type="text" id="expiryDate" v-model="user.paymentModes['CREDIT_CARD'].expiryDate" name="expiryDate" :rules="validateCreditCardExpiration" />
                 <ErrorMessage class="errorMessage" name="expiryDate" />
             </div>
@@ -18,7 +18,7 @@
     <div class="input_container">
         <div class="input_only">
             <div class="form-group">
-                <label for="cvv">CVV</label>
+                <label for="cvv">{{$t('userCardCVV')}}:</label>
                 <Field type="text" id="cvv" v-model="user.paymentModes['CREDIT_CARD'].cvv" name="cvv" :rules="validateCreditCardCVV" />
                 <ErrorMessage class="errorMessage" name="cvv" />
             </div>

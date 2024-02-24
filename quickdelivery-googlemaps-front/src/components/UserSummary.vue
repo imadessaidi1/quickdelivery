@@ -3,56 +3,54 @@
         <div class="package_details">
             <h3>User Info.</h3>
             <div class="details">
-                <div><strong>First Name:</strong> {{ user.firstName }}</div>
-                <div><strong>Last Name:</strong> {{ user.lastName }}</div>
-                <div><strong>Email Address:</strong> {{ user.emailAddress }}</div>
-                <div><strong>Phone:</strong> {{ user.phone }}</div>
+                <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
+                <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
+                <div><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
+                <div><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
             </div>
             <h3>Address:</h3>
             <div v-for="(address, index) in user.personalAddress" :key="index">
-                <div><strong>Line 1:</strong> {{ address.line1 }}</div>
-                <div><strong>Line 2:</strong> {{ address.line2 }}</div>
-                <div><strong>Town:</strong> {{ address.town }}</div>
-                <div><strong>Zip Code:</strong> {{ address.zipCode }}</div>
-                <div><strong>Country:</strong> {{ address.country }}</div>
+                <div><strong>{{$t('packageAddressLine1')}}:</strong> {{ address.line1 }}</div>
+                <div><strong>{{$t('packageAddressCity')}}:</strong> {{ address.town }}</div>
+                <div><strong>{{$t('packageAddressZip')}}:</strong> {{ address.zipCode }}</div>
+                <div><strong>{{$t('packageAddressCountry')}}:</strong> {{ address.country }}</div>
             </div>
         </div>
         <div class="package_details">
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
-                <h3>Documents</h3>
+                <h3>{{$t('userDocuments')}}</h3>
                 <div v-if="user.documents && user.documents.length">
                     <div v-for="(document, index) in user.documents" :key="index">
                         <div><strong>{{ document.type }}:</strong> {{ document.file.name }}</div>
                     </div>
                 </div>
 
-                <h3>Payment Modes</h3>
+                <h3>{{$t('userPaymentModes')}}</h3>
                 <div v-if="user.paymentModes">
                     <div v-for="(paymentMode, key) in user.paymentModes" :key="key">
                         <h4>{{ key }}</h4>
                         <div v-if="key === 'CREDIT_CARD'">
-                            <div><strong>Payment Method:</strong> {{ paymentMode.paymentMethod }}</div>
-                            <div><strong>Card number:</strong> {{ paymentMode.cardNumber }}</div>
-                            <div><strong>Expiry date:</strong> {{ paymentMode.expiryDate }}</div>
-                            <div><strong>cvv:</strong> {{ paymentMode.cvv }}</div>
+                            <div><strong>{{$t('userCardNumber')}}:</strong> {{ paymentMode.cardNumber }}</div>
+                            <div><strong>{{$t('userCardExpiryDate')}}:</strong> {{ paymentMode.expiryDate }}</div>
+                            <div><strong>{{$t('userCardCVV')}}:</strong> {{ paymentMode.cvv }}</div>
                         </div>
                         <div v-if="key === 'IBAN'">
-                            <div><strong>Iban:</strong> {{ paymentMode.iban }}</div>
-                            <div><strong>BIC:</strong> {{ paymentMode.bic }}</div>
-                            <div><strong>RIB:</strong> {{ paymentMode.ribDocument.file.name }}</div>
+                            <div><strong>{{$t('userIBAN')}}:</strong> {{ paymentMode.iban }}</div>
+                            <div><strong>{{$t('userIBANBIC')}}:</strong> {{ paymentMode.bic }}</div>
+                            <div><strong>{{$t('userRIB')}}:</strong> {{ paymentMode.ribDocument.file.name }}</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="package_details">
-            <h3>Vehicle</h3>
+            <h3>{{$t('userVehicle')}}</h3>
             <div class="details">
-                <div><strong>Registration Number:</strong> {{ user.vehicle.registrationNumber }}</div>
-                <div><strong>Brand:</strong> {{ user.vehicle.brand }}</div>
-                <div><strong>Model:</strong> {{ user.vehicle.model }}</div>
-                <div><strong>Energy Type:</strong> {{ user.vehicle.energyType }}</div>
+                <div><strong>{{$t('userVehicleRegistration')}}:</strong> {{ user.vehicle.registrationNumber }}</div>
+                <div><strong>{{$t('userVehicleBrand')}}:</strong> {{ user.vehicle.brand }}</div>
+                <div><strong>{{$t('userVehicleModel')}}:</strong> {{ user.vehicle.model }}</div>
+                <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ user.vehicle.energyType }}</div>
                 <h4>Vehicle Documents</h4>
                 <div v-if="user.vehicle.vehicleDocuments && user.vehicle.vehicleDocuments.length">
                     <div v-for="(document, index) in user.vehicle.vehicleDocuments" :key="index">

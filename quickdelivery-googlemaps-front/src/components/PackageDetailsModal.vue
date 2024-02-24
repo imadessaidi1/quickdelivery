@@ -38,7 +38,6 @@ export default {
     },
     reserve() {
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.$store.state.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
-      console.log(url);
       return http.put(url)
         .then(response => {
           if(response.status == '200'){

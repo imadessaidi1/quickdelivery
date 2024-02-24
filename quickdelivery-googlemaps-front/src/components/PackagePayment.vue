@@ -92,13 +92,6 @@ export default {
   },
   methods: {
     processCardPayment() {
-      const paymentData = {
-        cardNumber: this.cardNumber,
-        expiryDate: this.expiryDate,
-        cvv: this.cvv,
-        amount: this.amount
-      };
-      console.log('Card payment processed:', paymentData);
     const packageStatus = 'NEW';
     const packageId =  this.package_.id;
 
@@ -111,7 +104,6 @@ export default {
     // Appel de l'API avec Axios
     http.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus'), requestData)
       .then(response => {
-        console.log('Package status updated successfully');
         if(response.status == '200'){
            this.$store.commit('updatePackage', this.package);
            this.$router.push('/');

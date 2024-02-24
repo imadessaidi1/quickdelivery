@@ -62,6 +62,62 @@ export default createStore({
       email: 'im.essaidi@gmail.com',
       id: 904,
     },
+    user: {
+                id: null,
+                version: null,
+                type: 'DELIVERY_PERSON',
+                firstName: '',
+                lastName: '',
+                emailAddress: '',
+                emailAddressValidation: false,
+                phone: '',
+                phoneValidation: false,
+                activeAccount: false,
+                password: '',
+                passwordConfirmation: '',
+                personalAddress: [
+                  {
+                    id: null,
+                    version: null,
+                    firstName: '',
+                    lastName: '',
+                    line1: '',
+                    line2: '',
+                    town: '',
+                    zipCode: '',
+                    country: '',
+                    floor: 0,
+                    dateTime: null,
+                    type: 'RESIDENCE',
+                    latitude: 0,
+                    longitude: 0,
+                    email: '',
+                    phone: ''
+                  }
+                ],
+                documents: [],
+                paymentModes: {
+                    "CREDIT_CARD": {
+                                     paymentMethod: 'card',
+                                     cardNumber: '',
+                                     expiryDate: '',
+                                     cvv: '',
+                                    },
+                    "IBAN": {
+                             paymentMethod: 'IBAN',
+                             iban: '',
+                             bic: '',
+                             ribDocument:{},
+                            },
+                },
+                vehicle: {
+                  registrationNumber: '',
+                  brand: '',
+                  model: '',
+                  energyType: '',
+                  vehicleDocuments: []
+                }
+              },
   },
   mutations: {
       updatePackage(state, updatedPackage) {
@@ -87,6 +143,9 @@ export default createStore({
       },
       updateRequestMessage(state, requestMessage_) {
         state.requestMessage = requestMessage_;
+      },
+      updateUser(state, updatedUser) {
+              state.user = updatedUser;
       },
     },
   actions: {

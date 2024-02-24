@@ -1,24 +1,27 @@
 <template>
     <div class="vehicle-form">
-        <h2>Add Vehicle</h2>
+        <h2>Vehicle info.</h2>
     <div class="input_container">
         <div class="input_only">
-            <label for="brand">Registration number:</label>
-            <input type="text" id="brand" v-model="vehicle.brand" />
+            <label for="registrationNumber">Registration number:</label>
+            <Field type="text" id="registrationNumber" v-model="user.vehicle.registrationNumber" name="registrationNumber" :rules="validateCarRegistrationNumber" />
+            <ErrorMessage class="errorMessage" name="registrationNumber" />
         </div>
         <div class="input_only">
             <label for="brand">Brand:</label>
-            <input type="text" id="brand" v-model="vehicle.brand" />
+            <Field type="text" id="brand" v-model="user.vehicle.brand" name="brand" :rules="validateRequired" />
+            <ErrorMessage class="errorMessage" name="brand" />
         </div>
     </div>
     <div class="input_container">
         <div class="input_only">
             <label for="model">Model:</label>
-            <input type="text" id="model" v-model="vehicle.model" />
+            <Field type="text" id="model" v-model="user.vehicle.model" name="model" :rules="validateRequired" />
+            <ErrorMessage class="errorMessage" name="model" />
         </div>
         <div class="input_only">
             <label for="energyType">Energy Type:</label>
-            <select id="energyType" v-model="vehicle.energyType">
+            <select id="energyType" v-model="user.vehicle.energyType">
                 <option value="ELECTRIC">Electric</option>
                 <option value="HYBRID">Hybrid</option>
                 <option value="METHANE">Methane</option>
@@ -30,38 +33,56 @@
     </div>
         <div class="picture_file_container">
             <div class="input_only">
-                <label for="pictureFile">Gray card :</label>
+                <label for="GRAY_CARD">Gray card :</label>
                 <input  ref="fileInput0"
-                        :id="pictureFile"
+                        :id="GRAY_CARD"
                         type="file"
                         accept="image/*"
-                @change="handleFileChange(0)"
+                @change="handleVehicleFileChange(0,'GRAY_CARD')"
                 />
+                <br/><span v-if="user.vehicle.vehicleDocuments[0] != undefined"><strong>{{user.vehicle.vehicleDocuments[0].file.name}}</strong></span>
             </div>
             <div class="input_only">
-                <label for="documentFile">Insurance :</label>
+                <label for="INSURANCE">Insurance :</label>
                 <input  ref="fileInput1"
-                        :id="documentFile"
+                        :id="INSURANCE"
                         type="file"
                         accept="image/*, application/pdf"
-                @change="handleFileChange(1)"
+                @change="handleVehicleFileChange(1, 'INSURANCE')"
                 />
+                <br/><span v-if="user.vehicle.vehicleDocuments[1] != undefined"><strong>{{user.vehicle.vehicleDocuments[1].file.name}}</strong></span>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import { Field, ErrorMessage } from 'vee-validate';
+import { validateCarRegistrationNumber, validateRequired } from '@/config/comonFunction';
 export default {
-  data() {
-    return {
-      vehicle: {
-        type: Object,
-        required: true,
-      },
-      newDocumentURL: '',
-      newDocumentType: 'VEHICLE_GRY_CARD',
-    };
+  components: {
+    Field,
+    ErrorMessage,
+  },
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+  },
+  methods: {
+    validateCarRegistrationNumber,
+    validateRequired,
+    handleVehicleFileChange(index, type) {
+      const fileInput = this.$refs[`fileInput${index}`];
+      const file_ = fileInput.files[0];
+      if (file_) {
+        let vehicleDocument = {
+            type: type,
+            file: file_,
+        };
+        this.user.vehicle.vehicleDocuments[index] = vehicleDocument;
+      }
+    },
   },
 };
 </script>

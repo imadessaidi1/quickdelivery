@@ -34,6 +34,7 @@
                 accept="image/*"
         @change="handleFileChange(0)"
         />
+        <br/><span v-if="documentS[0] != undefined"><strong>{{documentS[0].name}}</strong></span>
       </div>
       <div class="input_only">
         <label for="documentFile">{{ $t('packageInvoice') }} : <span class="info">{{ $t('packageInvoiceInfo') }}</span></label>
@@ -43,6 +44,7 @@
                 accept="image/*, application/pdf"
                 @change="handleFileChange(1)"
         />
+        <br/><span v-if="documentS[1] != undefined"><strong>{{documentS[1].name}}</strong></span>
       </div>
     </div>
 </template>

@@ -21,7 +21,7 @@
             <div class="details">
                 <div v-if="user.documents && user.documents.length">
                     <div v-for="(document, index) in user.documents" :key="index">
-                        <div><strong>{{ document.type }}:</strong> {{ document.file.name }}</div>
+                        <div><strong>{{ $t(document.type) }}:</strong> {{ document.file.name }}</div>
                     </div>
                 </div>
 
@@ -53,7 +53,7 @@
                 <h4>Vehicle Documents</h4>
                 <div v-if="user.vehicle.vehicleDocuments && user.vehicle.vehicleDocuments.length">
                     <div v-for="(document, index) in user.vehicle.vehicleDocuments" :key="index">
-                        <div><strong>{{ document.type }}:</strong> {{ document.file.name }}</div>
+                        <div><strong>{{ $t(document.type) }}:</strong> {{ document.file.name }}</div>
                     </div>
                 </div>
             </div>

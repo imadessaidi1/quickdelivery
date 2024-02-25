@@ -105,7 +105,7 @@ export default {
 <style>
 .packege_creation_main{
   padding: 10px;
-  height: 700px;
+  height: 84%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -172,12 +172,6 @@ export default {
   .packege_creation_main .package-form {
     margin: 50px auto;
   }
-  /*.large_width{
-    display: none;
-  }
-  .small_width{
-    display: block;
-  }*/
 }
 @media screen and (max-width: 600px) {
   .packege_creation_main{

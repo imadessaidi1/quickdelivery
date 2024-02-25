@@ -1,25 +1,25 @@
 <template>
-    <img :src="getImageSrc()" alt="Image" class="item-image" />
+    <!--<img :src="getImageSrc()" alt="Image" class="item-image" />-->
+    <img src="../assets/box.png" alt="Image" class="item-image" />
     <div class="item-details">
-        <h3>{{ package_.id }}</h3>
-        <p>{{$t('packageHeight')}}:
+        <h3>Collie N° : {{ package_.id }}</h3>
+        <!--<p>{{$t('packageHeight')}}:
             {{package_.height}}</p>
         <p>{{$t('packageWidth')}}:
             {{package_.width}} </p>
         <p>{{$t('packageDepth')}}:
             {{package_.depth}}</p>
         <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>
-        <p>{{$t('packagePrice')}}:
-            {{package_.deliveryPrice}}&nbsp;{{ $t('currency') }}</p>
-        <p>{{$t('packageDeparture')}}:</p>
-        <p>{{departureAddress.firstName}} {{departureAddress.lastName}} {{departureAddress.line1}} {{departureAddress.zipCode}} {{departureAddress.town}} {{departureAddress.country}}</p>
-        <p>{{departureAddress.phone}}</p>
-        <p>{{$t('packageDestination')}}:</p>
-        <p>{{arrivalAddress.firstName}} {{arrivalAddress.lastName}} {{arrivalAddress.line1}} {{arrivalAddress.zipCode}} {{arrivalAddress.town}} {{arrivalAddress.country}}</p>
-        <p>{{arrivalAddress.phone}}</p>
+            {{package_.weight}}</p>-->
+        <p><strong>{{$t('packagePrice')}} : </strong>{{package_.deliveryPrice}}&nbsp;{{ $t('currency') }}</p>
+        <p><strong>{{$t('packageDeparture')}} : </strong>
+        {{departureAddress.firstName}} {{departureAddress.lastName}} {{departureAddress.line1}} {{departureAddress.zipCode}} {{departureAddress.town}} {{departureAddress.country}}</p>
+        <!--<p>{{departureAddress.phone}}</p>-->
+        <p><strong>{{$t('packageDestination')}} : </strong>
+        {{arrivalAddress.firstName}} {{arrivalAddress.lastName}} {{arrivalAddress.line1}} {{arrivalAddress.zipCode}} {{arrivalAddress.town}} {{arrivalAddress.country}}</p>
+        <!--<p>{{arrivalAddress.phone}}</p>
         <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>
+            {{package_.distanceToDestination}}</p>-->
     </div>
 </template>
 <script>
@@ -65,3 +65,16 @@ export default{
     }
 }
 </script>
+<style>
+.item-details{
+  height: 100%;
+  padding: 5px 10px;
+}
+.item-image{
+  max-width: 100%;
+  height: auto;
+}
+.item-details p {
+  font-size: 13px;
+}
+</style>

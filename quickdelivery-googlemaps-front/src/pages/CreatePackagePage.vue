@@ -146,7 +146,7 @@ export default{
 <style>
 .packege_creation_main{
   padding: 10px;
-  height: 700px;
+  height: 84%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -183,7 +183,7 @@ export default{
 .input_only{
   height: 85px;
 }
-.input_container select{
+.input_container input{
   width: 65%;
 }
 .small_width{
@@ -201,7 +201,7 @@ export default{
   .input_container{
     width: 100%;
   }
-  .input_container select{
+  .input_container input{
     width: 83%;
   }
   .packege_creation_main .package-form {
@@ -213,12 +213,6 @@ export default{
   .packege_creation_main .package-form {
     margin: 50px auto;
   }
-  /*.large_width{
-    display: none;
-  }
-  .small_width{
-    display: block;
-  }*/
 }
 @media screen and (max-width: 600px) {
   .packege_creation_main{

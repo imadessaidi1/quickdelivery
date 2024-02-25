@@ -83,6 +83,10 @@ export default {
     return {
       userDocuments: [],
       selectedPaymentType: '',
+      ID: 'ID',
+      DRIVER_LICENCE: 'DRIVER_LICENCE',
+      USER_COMPANY_EXTRACT: 'USER_COMPANY_EXTRACT',
+      USER_COMPANY_INSURANCE: 'USER_COMPANY_INSURANCE'
     };
   },
   methods: {

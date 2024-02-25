@@ -49,6 +49,11 @@ export default {
       return this.$store.state.user;
     },
   },
+  data() {
+    return {
+     RIB: 'RIB'
+    };
+  },
   methods: {
     validateIBAN,
     validateBIC,

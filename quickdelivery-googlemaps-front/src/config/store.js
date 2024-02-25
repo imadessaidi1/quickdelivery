@@ -75,6 +75,7 @@ export default createStore({
                 activeAccount: false,
                 password: '',
                 passwordConfirmation: '',
+                addressAuto: '',
                 personalAddress: [
                   {
                     id: null,

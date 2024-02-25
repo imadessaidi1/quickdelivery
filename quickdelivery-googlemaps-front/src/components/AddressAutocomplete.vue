@@ -13,6 +13,12 @@ export default {
     components: {
           GoogleAddressAutocomplete,
         },
+    props: {
+        existingAddress: String,
+    },
+    mounted() {
+        this.address = this.existingAddress;
+    },
     data() {
         return {
             address: ref('')

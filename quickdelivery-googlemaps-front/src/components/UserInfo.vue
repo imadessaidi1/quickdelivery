@@ -17,7 +17,7 @@
         <div class="input_container">
             <div class="input_only">
                 <label for="email">{{$t('packageAddressEmail')}}:</label>
-                <Field id="email" type="email" v-model="user.email" name="email" :rules="validateEmail"/>
+                <Field id="email" type="email" v-model="user.emailAddress" name="email" :rules="validateEmail"/>
                 <ErrorMessage class="errorMessage" name="email" />
             </div>
             <div class="input_only">
@@ -28,7 +28,8 @@
         </div>
         <div>
             <label for="address">{{$t('packageAddressAddress')}}:</label>
-            <AddressAutocomplete id="address" ref="addressAutoComplete"/>
+            <AddressAutocomplete id="address" ref="addressAutoComplete" :existingAddress="user.addressAuto"/>
+            <br/><span><strong>{{ user.addressAuto }}</strong></span>
             <span v-if="isAddressError" class="errorMessage">{{errorAddressMessage}}</span>
         </div>
         <div class="input_container">

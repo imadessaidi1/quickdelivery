@@ -17,9 +17,8 @@
             </div>
         </div>
         <div class="package_details">
-            <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
+            <h3>{{$t('userDocuments')}}</h3>
             <div class="details">
-                <h3>{{$t('userDocuments')}}</h3>
                 <div v-if="user.documents && user.documents.length">
                     <div v-for="(document, index) in user.documents" :key="index">
                         <div><strong>{{ document.type }}:</strong> {{ document.file.name }}</div>

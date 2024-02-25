@@ -1,7 +1,7 @@
 <template>
     <div class="packege_creation_main">
       <div class="package-form">
-        <Form @submit="submitForm" ref="packageCreationForm">
+        <Form @submit="submitFormPackage" ref="packageCreationForm">
           <div class="components" v-if="currentStep === 1">
               <h2>{{$t('createNewPackage')}}</h2>
               <PackageCreation ref="packageInfo"/>
@@ -118,7 +118,7 @@ export default{
         this.currentStep--;
       }
     },
-    async submitForm() {
+    async submitFormPackage() {
      if(this.currentStep === 4){
          const formData = new FormData();
          this.package_.senderID = this.$store.state.connectedUser.id

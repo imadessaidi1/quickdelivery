@@ -93,6 +93,7 @@ const messages = {
     userVehicleEnergy: 'Energy type',
     userVehicleGryCard: 'Gray card',
     userVehicleInsurance: 'Insurance',
+    userCreateAction: 'Create Account',
     //MENU
     menuHome: 'Home',
     menuMyPackages: 'My Packages',
@@ -214,6 +215,7 @@ const messages = {
     userVehicleEnergy: 'Type d\'énergie',
     userVehicleGryCard: 'Carte grise',
     userVehicleInsurance: 'Assurance',
+    userCreateAction: 'Créer mon compte',
     //MENU
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',

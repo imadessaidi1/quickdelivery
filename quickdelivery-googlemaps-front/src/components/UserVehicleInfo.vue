@@ -69,6 +69,12 @@ export default {
       return this.$store.state.user;
     },
   },
+  data() {
+    return {
+      GRAY_CARD: 'GRAY_CARD',
+      INSURANCE: 'INSURANCE'
+    };
+  },
   methods: {
     validateCarRegistrationNumber,
     validateRequired,

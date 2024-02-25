@@ -64,6 +64,12 @@ export default {
       return this.$store.state.documentS;
     },
   },
+  data() {
+    return {
+      pictureFile: 'pictureFile',
+      documentFile: 'documentFile'
+    };
+  },
   methods: {
     handleFileChange(index) {
       const fileInput = this.$refs[`fileInput${index}`];

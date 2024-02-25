@@ -1,22 +1,22 @@
 <template>
     <div class="user_creation_main">
         <div class="user-form">
-            <Form @submit="submitForm" ref="userCreationForm">
-                <div class="components" >
-                    <UserInfo ref="userInfo" v-if="currentStep === 1"/>
+            <Form @submit="submitFormUser" ref="userCreationForm">
+                <div class="components" v-if="currentStep === 1">
+                    <UserInfo ref="userInfo"/>
                 </div>
-                <div class="components" >
-                    <UserDocuments v-if="currentStep === 2"/>
+                <div class="components" v-if="currentStep === 2">
+                    <UserDocuments ref="userDocuments"/>
                 </div>
-                <div class="components" >
-                    <UserVehicleInfo ref="vehicleInfo" v-if="currentStep === 3"/>
+                <div class="components" v-if="currentStep === 3">
+                    <UserVehicleInfo ref="vehicleInfo" />
                 </div>
                 <div class="components" v-if="currentStep === 4">
-                    <UserSummary />
+                    <UserSummary ref="userSummary" />
                 </div>
                 <br/>
-                <button class="primary_btn" v-if="currentStep > 1" @click="previousStep">{{$t('packagePreviousAction')}}</button>&nbsp;
-                <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
+                <button class="primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
+                <button class="primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('userCreateAction')}}</span></button>
             </Form>
         </div>
     </div>
@@ -52,7 +52,8 @@ export default {
             if(this.currentStep === 1){
                 const userInfo = this.$refs.userInfo;
                 const addressAuto = userInfo.$refs.addressAutoComplete;
-                const validAddress = validateAddress(addressAuto.address);
+                userInfo.user.addressAuto = addressAuto.address;
+                const validAddress = validateAddress(userInfo.user.addressAuto);
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
                 if(!validPasswordConfirm){
                     userInfo.isPasswordConfirmationError = true;
@@ -88,11 +89,10 @@ export default {
         }
     },
     previousStep() {
-      if (this.currentStep > 1) {
+        console.log('previousStep '+this.currentStep);
         this.currentStep--;
-      }
     },
-    async submitForm() {
+    async submitFormUser() {
      if(this.currentStep === 4){
          console.log('submiting ...');
      }else{

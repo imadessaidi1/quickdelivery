@@ -1,6 +1,6 @@
 <template>
-    <div class="packege_creation_main">
-        <div class="package-form">
+    <div class="user_creation_main">
+        <div class="user-form">
             <Form @submit="submitForm" ref="userCreationForm">
                 <div class="components" >
                     <UserInfo ref="userInfo" v-if="currentStep === 1"/>
@@ -103,35 +103,35 @@ export default {
 };
 </script>
 <style>
-.packege_creation_main{
+.user_creation_main{
   padding: 10px;
   height: 84%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  overflow: scroll;
 }
-.packege_creation_main .package-form {
-  width: 75%;
+.user_creation_main .user-form {
+  width: 60%;
   height: max-content;
   padding: 20px;
-  margin: 0 auto;
+  margin: auto auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
+  background: linear-gradient(0.25turn, #ffffff, #ffffff40), no-repeat url('../assets/avatar.png') right -180px bottom 50%;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
-.packege_creation_main .package-form form{
+.user_creation_main .user-form form{
   width: 100%;
 }
-.packege_creation_main .package-form form .components,
-.packege_creation_main .package-form form .summary_component{
+.user_creation_main .user-form form .components,
+.user_creation_main .user-form form .summary_component{
   width: 75%;
 }
-.packege_creation_main .package-form form .components h2{
-  border-left: solid 5px #ff7b00;
+.user_creation_main .user-form form .components h2{
+  border-left: solid 5px #467fd0;
   padding-left: 8px;
   margin-left: 20px;
 }
-.packege_creation_main .package-form .package-address {
+.user_creation_main .user-form .package-address {
   display: flex;
   flex-wrap: wrap;
 }
@@ -149,10 +149,10 @@ export default {
   display: none;
 }
 @media screen and (max-width: 1500px){
-  .packege_creation_main .package-form form .summary_component{
+  .user_creation_main .user-form form .summary_component{
     width: 100%;
   }
-  .packege_creation_main .package-form form .components{
+  .user_creation_main .user-form form .components{
     width: 100%;
   }
 }
@@ -163,21 +163,18 @@ export default {
   .input_container input{
     width: 83%;
   }
-  .packege_creation_main .package-form {
-    height: 85%;
-  }
-  .packege_creation_main{
+  .user_creation_main{
     height: max-content;
   }
-  .packege_creation_main .package-form {
-    margin: 50px auto;
+  .usercreation_main .user-form {
+    margin: 25px auto;
   }
 }
 @media screen and (max-width: 600px) {
-  .packege_creation_main{
+  .user_creation_main{
     height: max-content;
   }
-  .packege_creation_main .package-form {
+  .user_creation_main .user-form {
     width: 75%;
     padding: 30px;
   }

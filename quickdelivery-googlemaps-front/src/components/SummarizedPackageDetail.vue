@@ -1,6 +1,8 @@
 <template>
-    <!--<img :src="getImageSrc()" alt="Image" class="item-image" />-->
-    <img src="../assets/box.png" alt="Image" class="item-image" />
+    <div class="item-image">
+      <!--<img :src="getImageSrc()" alt="Image" class="item-image" />-->
+      <img src="../assets/box.png" alt="Image" />
+    </div>
     <div class="item-details">
         <h3>Collie N° : {{ package_.id }}</h3>
         <!--<p>{{$t('packageHeight')}}:
@@ -20,6 +22,9 @@
         <!--<p>{{arrivalAddress.phone}}</p>
         <p>{{$t('packageDistanceToDestination')}}:
             {{package_.distanceToDestination}}</p>-->
+    </div>
+    <div class="item-buttons">
+      <button class="primary_btn">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
     </div>
 </template>
 <script>
@@ -71,10 +76,23 @@ export default{
   padding: 5px 10px;
 }
 .item-image{
+  width: 100%;
+}
+.item-image img{
+  display: block;
   max-width: 100%;
-  height: auto;
+  max-height: 250px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .item-details p {
   font-size: 13px;
+}
+.item-buttons{
+  width: 100%;
+}
+.item-buttons button{
+  display: block;
+  margin: 0 auto;
 }
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div class="myPackeges">
-    <h2>{{$t('menuMyPackages')}}</h2>
     <div v-for="status in packagesByStatus" :key="status.satuts_">
         <h2 :id="status.satuts_">{{status.satuts_}}</h2>
       <div class="grid-container">
@@ -64,11 +63,10 @@ export default {
 .grid-item{
   width: 30%;
   margin: 15px 15px;
-}
-.item-content{
-  border: solid 1px rgb(72, 72, 72);
   border-radius: 10px;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
 }
+
 #RESERVED{
   padding-left: 10px;
   margin-left: 50px;

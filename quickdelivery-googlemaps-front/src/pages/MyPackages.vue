@@ -52,6 +52,10 @@ export default {
   padding: 0 15px;
   overflow: scroll;
 }
+.myPackeges h2{
+  padding-left: 10px;
+  margin-left: 50px;
+}
 .grid-container{
   width: 85%;
   margin: 0 auto;
@@ -66,11 +70,28 @@ export default {
   border-radius: 10px;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
 }
-
 #RESERVED{
-  padding-left: 10px;
-  margin-left: 50px;
-  border-left: solid 5px #ff7b00;
-  color: #ff7b00;
+  border-left: solid 5px #8350c2;
+  color: #8350c2;
+}
+#NEW{
+  border-left: solid 5px #009a00;
+  color: #009a00;
+}
+#PICKEDUP{
+  border-left: solid 5px #800080;
+  color: #800080;
+}
+#PAYMENTPENDING{
+  border-left: solid 5px #ff2f00;
+  color: #ff2f00;
+}
+#DELIVERED{
+  border-left: solid 5px #228B22;
+  color: #228B22;
+}
+#INDELIVERY{
+  border-left: solid 5px #FFA500;
+  color: #FFA500;
 }
 </style>

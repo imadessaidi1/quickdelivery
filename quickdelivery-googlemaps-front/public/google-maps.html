@@ -58,8 +58,8 @@
               if (navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition(function (position) {
                       actualPosition = position;
-                      initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
-                      //initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                      //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
+                      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
                       map.setCenter(initialLocation);
                       resolve();
                   });
@@ -68,8 +68,8 @@
           let packagesPromise;
           Promise.all([geolocationPromise]).then(() => {
           const packagesPromise = new Promise((resolve, reject) => {
-              getPackagesAroundMe(48.74412000, 2.47471000).then(() => {
-              //getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
+              //getPackagesAroundMe(48.74412000, 2.47471000).then(() => {
+              getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
                   resolve();
               }).catch(error => {
                   reject(error);

@@ -24,7 +24,8 @@
             {{package_.distanceToDestination}}</p>-->
     </div>
     <div class="item-buttons">
-      <button class="primary_btn">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
+      <button class="primary_btn"
+        @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
     </div>
 </template>
 <script>
@@ -32,6 +33,7 @@
 export default{
     props: {
     package_: Object,
+    modal: Object,
   },
   computed: {
     departureAddress() {
@@ -87,12 +89,5 @@ export default{
 }
 .item-details p {
   font-size: 13px;
-}
-.item-buttons{
-  width: 100%;
-}
-.item-buttons button{
-  display: block;
-  margin: 0 auto;
 }
 </style>

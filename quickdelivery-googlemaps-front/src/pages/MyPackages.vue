@@ -5,21 +5,24 @@
       <div class="grid-container">
           <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
               <div class="item-content">
-                  <SummarizedPackageDetail :package_="package_" />
+                  <SummarizedPackageDetail :package_="package_"/>
               </div>
           </div>
       </div>
     </div>
   </div>
+  <PackageDetailsModal ref="AppModal" classe="modal"/>
 </template>
 
 <script>
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
+import PackageDetailsModal from "../components/PackageDetailsModal.vue";
 import http from '@/config/httpInterceptor';
 
 export default {
   components: {
     SummarizedPackageDetail,
+    PackageDetailsModal,
   },
   data() {
     return {
@@ -67,8 +70,10 @@ export default {
 .grid-item{
   width: 30%;
   margin: 15px 15px;
+  padding-bottom: 40px;
   border-radius: 10px;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  position: relative;
 }
 #RESERVED{
   border-left: solid 5px #8350c2;
@@ -93,5 +98,17 @@ export default {
 #INDELIVERY{
   border-left: solid 5px #FFA500;
   color: #FFA500;
+}
+.item-buttons{
+  width: 100%;
+  height: 60px;
+  position: absolute;
+  bottom: 0;
+  display: flex;  
+  justify-content: center;  
+  align-items: center;
+}
+.item-buttons button{
+  display: block;
 }
 </style>

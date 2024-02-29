@@ -145,20 +145,23 @@ export default{
 </script>
 <style>
 .packege_creation_main{
-  padding: 10px;
-  height: 84%;
+  height: 87%;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: scroll;
 }
 .packege_creation_main .package-form {
   width: 75%;
-  height: max-content;
-  padding: 20px;
+  min-height: 70%;
+  padding: 0 20px;
   margin: 0 auto;
   border-radius: 5px;
   background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+.packege_creation_main .package-form button{
+  margin-bottom: 20px;
 }
 .packege_creation_main .package-form form{
   width: 100%;
@@ -201,23 +204,18 @@ export default{
   .input_container{
     width: 100%;
   }
+  .packege_creation_main {
+    align-items: baseline;
+  }
   .input_container input{
     width: 83%;
-  }
-  .packege_creation_main .package-form {
-    height: 85%;
-  }
-  .packege_creation_main{
-    height: max-content;
   }
   .packege_creation_main .package-form {
     margin: 50px auto;
   }
 }
 @media screen and (max-width: 600px) {
-  .packege_creation_main{
-    height: max-content;
-  }
+  
   .packege_creation_main .package-form {
     width: 75%;
     padding: 30px;

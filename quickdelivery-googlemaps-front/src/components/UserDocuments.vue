@@ -106,16 +106,15 @@ export default {
 </script>
 <style>
 .payment-method {
-  width: max-content;
-  margin: 0 auto;
+  width: 100%;
   margin-bottom: 20px;
   display: flex;
+  justify-content: space-evenly;
 }
 .payment-method label{
   font-size: 12px;
   display: flex;
   align-items: center;
-  padding: 0 0 0 20px;
 }
 .payment-method input{
   margin-right: 5px;

@@ -104,91 +104,78 @@ export default {
 </script>
 <style>
 .user_creation_main{
-  padding: 10px;
-  height: 84%;
+  height: 87%;
   display: flex;
   justify-content: center;
+  align-items: center;
   overflow: scroll;
 }
 .user_creation_main .user-form {
-  width: 60%;
-  height: max-content;
-  padding: 20px;
-  margin: auto auto;
+  width: 75%;
+  min-height: 70%;
+  padding: 0 20px;
+  margin: 0 auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff40), no-repeat url('../assets/avatar.png') right -180px bottom 50%;
+  background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/avatar.png') right -160px bottom 50%;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
-.user_creation_main .user-form form{
+.file_name{
+  font-size: 13px;
+  display: block;
+  padding-left: 15px;
+}
+.file_name::before{
+  width: 180px;
+  height: 18px;
+  background-image: url('../assets/check.png');
+}
+.input_only{
+  margin-top: 15px;
+  height: max-content;
+}
+.user_creation_main .package-form button{
+  margin-bottom: 20px;
+}
+.user_creation_main .package-form form{
   width: 100%;
 }
-.user_creation_main .user-form form .components,
-.user_creation_main .user-form form .summary_component{
+.user_creation_main .package-form form .components,
+.user_creation_main .package-form form .summary_component{
   width: 75%;
 }
-.user_creation_main .user-form form .components h2{
-  border-left: solid 5px #467fd0;
+.user_creation_main .package-form form .components h2{
+  border-left: solid 5px #ff7b00;
   padding-left: 8px;
   margin-left: 20px;
 }
-.user_creation_main .user-form .package-address {
+.user_creation_main .package-form .package-address {
   display: flex;
   flex-wrap: wrap;
-}
-.input_container{
-  display: inline-block;
-  width: 50%;
-}
-.input_only{
-  height: max-content;
-}
-.file_name{
-  font-size: .8rem;
-  margin-left: 30px;
-}
-.input_container input{
-  width: 65%;
 }
 .small_width{
   display: none;
 }
 @media screen and (max-width: 1500px){
-  .user_creation_main .user-form form .summary_component{
+  .user_creation_main .package-form form .summary_component{
     width: 100%;
   }
-  .user_creation_main .user-form form .components{
+  .user_creation_main .package-form form .components{
     width: 100%;
   }
 }
 @media screen and (max-width: 1100px) {
-  .input_container{
-    width: 100%;
+  .user_creation_main {
+    align-items: baseline;
   }
-  .input_container input{
-    width: 83%;
-  }
-  .user_creation_main{
-    height: max-content;
-  }
-  .usercreation_main .user-form {
-    margin: 25px auto;
+  .user_creation_main .user-form {
+    margin: 50px auto;
   }
 }
 @media screen and (max-width: 600px) {
-  .user_creation_main{
-    height: max-content;
-  }
+  
   .user_creation_main .user-form {
     width: 75%;
     padding: 30px;
-  }
-  .input_container input,
-  .picture_file_container .input_only input{
-    width: 93%;
-    height: 30px;
-  }
-  .input_container input{
-    height: 35px;
   }
 }
 </style>

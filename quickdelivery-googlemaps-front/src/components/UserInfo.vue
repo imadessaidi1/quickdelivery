@@ -30,7 +30,7 @@
             <label for="address">{{$t('packageAddressAddress')}}:</label>
             <AddressAutocomplete id="address" ref="addressAutoComplete" :existingAddress="user.addressAuto"/>
             <br/><span><strong>{{ user.addressAuto }}</strong></span>
-            <span v-if="isAddressError" class="errorMessage">{{errorAddressMessage}}</span>
+            <span v-if="isAddressError" class="errorMessage file_name" >{{errorAddressMessage}}</span>
         </div>
         <div class="input_container">
             <div class="input_only">

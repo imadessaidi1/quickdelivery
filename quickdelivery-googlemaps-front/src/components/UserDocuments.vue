@@ -10,7 +10,7 @@
                         accept="image/*"
                 @change="handleUserFileChange(0, 'ID')"
                 />
-                <br/><span v-if="user.documents[0] != undefined"><strong>{{user.documents[0].file.name}}</strong></span>
+                <span v-if="user.documents[0] != undefined" class="file_name"><strong>{{user.documents[0].file.name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="DRIVER_LICENCE">{{$t('userDocumentDriverLicence')}} :</label>
@@ -20,7 +20,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(1,'DRIVER_LICENCE')"
                 />
-                <br/><span v-if="user.documents[1] != undefined"><strong>{{user.documents[1].file.name}}</strong></span>
+                <span v-if="user.documents[1] != undefined" class="file_name"><strong>{{user.documents[1].file.name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_EXTRACT">{{$t('userDocumentCompanyExtract')}} :</label>
@@ -30,7 +30,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(2, 'USER_COMPANY_EXTRACT')"
                 />
-                <br/><span v-if="user.documents[2] != undefined"><strong>{{user.documents[2].file.name}}</strong></span>
+                <span v-if="user.documents[2] != undefined" class="file_name"><strong>{{user.documents[2].file.name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_INSURANCE">{{$t('userDocumentCompanyInsurance')}} :</label>
@@ -40,7 +40,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(3, 'USER_COMPANY_INSURANCE')"
                 />
-                <br/><span v-if="user.documents[3] != undefined"><strong>{{user.documents[3].file.name}}</strong></span>
+                <span v-if="user.documents[3] != undefined" class="file_name"><strong>{{user.documents[3].file.name}}</strong></span>
             </div>
         </div>
         <div>
@@ -119,5 +119,6 @@ export default {
 }
 .payment-method input{
   margin-right: 5px;
+  display: block;
 }
 </style>

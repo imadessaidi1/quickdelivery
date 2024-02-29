@@ -140,7 +140,11 @@ export default {
   width: 50%;
 }
 .input_only{
-  height: 85px;
+  height: max-content;
+}
+.file_name{
+  font-size: .8rem;
+  margin-left: 30px;
 }
 .input_container input{
   width: 65%;

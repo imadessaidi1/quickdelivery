@@ -1,7 +1,7 @@
 <template>
   <div class="myPackeges">
     <div v-for="status in packagesByStatus" :key="status.satuts_">
-        <h2 :id="status.satuts_">{{status.satuts_}}</h2>
+      <h2 :id="status.satuts_">{{status.satuts_}}</h2>
       <div class="grid-container">
           <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
               <div class="item-content">
@@ -68,7 +68,7 @@ export default {
   justify-content: space-evenly;
 }
 .grid-item{
-  width: 30%;
+  width: 380px;
   margin: 15px 15px;
   padding-bottom: 40px;
   border-radius: 10px;
@@ -110,5 +110,10 @@ export default {
 }
 .item-buttons button{
   display: block;
+}
+@media screen and (max-width: 600px) {
+  .grid-container{
+    width: 95%;
+  }
 }
 </style>

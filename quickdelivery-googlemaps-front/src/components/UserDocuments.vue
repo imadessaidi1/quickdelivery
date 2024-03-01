@@ -106,10 +106,10 @@ export default {
 </script>
 <style>
 .payment-method {
-  width: 100%;
-  margin-bottom: 20px;
+  width: 50%;
+  margin: 0 auto 10px auto;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-evenly; 
 }
 .payment-method label{
   font-size: 12px;

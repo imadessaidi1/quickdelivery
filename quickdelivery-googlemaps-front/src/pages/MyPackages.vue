@@ -1,15 +1,18 @@
 <template>
-  <div class="myPackeges">
-    <div v-for="status in packagesByStatus" :key="status.satuts_">
-      <h2 :id="status.satuts_">{{status.satuts_}}</h2>
-      <div class="grid-container">
-          <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
-              <div class="item-content">
-                  <SummarizedPackageDetail :package_="package_"/>
-              </div>
-          </div>
+  <div ref="targetComponent" class="myPackeges">
+    <div ref="scrollContainer">
+      <div v-for="status in packagesByStatus" :key="status.satuts_">
+        <h2 :id="status.satuts_">{{status.satuts_}}</h2>
+        <div class="grid-container">
+            <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
+                <div class="item-content">
+                    <SummarizedPackageDetail :package_="package_"/>
+                </div>
+            </div>
+        </div>
       </div>
     </div>
+    <ScrollUp @click="scrollToTop">Scroll to Top</ScrollUp>
   </div>
   <PackageDetailsModal ref="AppModal" classe="modal"/>
 </template>
@@ -17,22 +20,47 @@
 <script>
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
 import PackageDetailsModal from "../components/PackageDetailsModal.vue";
+import ScrollUp from "../components/ScrollUp.vue";
 import http from '@/config/httpInterceptor';
 
 export default {
   components: {
     SummarizedPackageDetail,
     PackageDetailsModal,
+    ScrollUp,
   },
   data() {
     return {
-      packagesByStatus:[] ,
+      packagesByStatus: [],
     };
   },
   mounted() {
     this.fetchData();
   },
   methods: {
+    scrollToTop() {
+      // Get the reference to the scrollable container inside the target component
+      const scrollContainer = this.$refs.targetComponent;
+
+      // Check if scrollContainer is not null and requestAnimationFrame is supported
+      if (scrollContainer && window.requestAnimationFrame) {
+        const scrollStep = -scrollContainer.scrollTop / (300 / 20); // Adjust the speed (500 is the duration in milliseconds)
+
+        const animateScroll = () => {
+          scrollContainer.scrollTop += scrollStep;
+          if (scrollContainer.scrollTop <= 0) return;
+          window.requestAnimationFrame(animateScroll);
+        };
+
+        // Start the animation
+        animateScroll();
+      } else if (scrollContainer) {
+        // Fallback for browsers that don't support requestAnimationFrame
+        scrollContainer.scrollTop = 0;
+      } else {
+        console.error('Scroll container not found.');
+      }
+    },
     async fetchData() {
       try {
         const response = await http.get(this.$i18n.t('rootURL')+this.$i18n.t('getPackagesByDeliveryPersonUrl')+this.$store.state.connectedUser.id);
@@ -45,6 +73,7 @@ export default {
         console.error('Erreur lors de la requête API', error);
       }
     },
+
   },
 };
 </script>

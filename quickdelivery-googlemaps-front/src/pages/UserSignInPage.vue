@@ -155,6 +155,9 @@ export default {
 .small_width{
   display: none;
 }
+.user-form .primary_btn{
+  margin-bottom: 20px;
+}
 @media screen and (max-width: 1500px){
   .user_creation_main .package-form form .summary_component{
     width: 100%;

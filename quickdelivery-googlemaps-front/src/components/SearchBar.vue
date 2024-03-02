@@ -1,6 +1,6 @@
 <template>
   <div class="search-bar">
-     <a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a>
+     <div ref="handleClickOutsideBurgerMenu"><a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a></div>
      <div class="menu vertical-menu">
       <ul>
         <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
@@ -31,7 +31,7 @@
     <input type="text" id="searchInput" placeholder="Rechercher...">
 
     <!-- Bouton de connexion -->
-    <span class="infobull" data-tooltip='Account'><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
+    <span class="infobull" data-tooltip='Account' ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
   </div>
 </template>
 
@@ -43,6 +43,16 @@ export default {
         isActiveLoginMenu: false,
       };
     },
+  mounted() {
+  // Ajouter un écouteur d'événements sur la fenêtre
+    window.addEventListener('click', this.handleClickOutsideUserMenu);
+    window.addEventListener('click', this.handleClickOutsideBurgerMenu);
+  }, 
+  beforeUnmount() {
+    // Supprimer l'écouteur d'événements lors de la destruction du composant
+    window.removeEventListener('click', this.handleClickOutsideUserMenu);
+    window.removeEventListener('click', this.handleClickOutsideBurgerMenu);
+  },
   methods: {
     toggleMenu() {
       this.isActiveMenu = !this.isActiveMenu;
@@ -50,9 +60,22 @@ export default {
     loginMenu() {
       this.isActiveLoginMenu = !this.isActiveLoginMenu;
     },
+    handleClickOutsideUserMenu(event) {
+      // Vérifier si le clic provient de l'élément à masquer ou de ses enfants
+      if(this.$refs.handleClickOutsideUserMenu && !this.$refs.handleClickOutsideUserMenu.contains(event.target)){
+        // Cacher l'élément si le clic ne provient pas de l'élément à masquer
+        this.isActiveLoginMenu = false;
+      }
+    },
+    handleClickOutsideBurgerMenu(event) {
+      // Vérifier si le clic provient de l'élément à masquer ou de ses enfants
+      if(this.$refs.handleClickOutsideBurgerMenu && !this.$refs.handleClickOutsideBurgerMenu.contains(event.target)){
+        // Cacher l'élément si le clic ne provient pas de l'élément à masquer
+        this.isActiveMenu = false;
+      }
+    },
   },
 };
-
 </script>
 
 <style>

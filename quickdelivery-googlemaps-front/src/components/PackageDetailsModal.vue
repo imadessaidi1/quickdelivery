@@ -27,6 +27,54 @@ export default {
   data() {
     return {
       isOpen: false,
+      emptyPackage: {
+        id: null,
+        version: null,
+        creationDate: null,
+        height: 0,
+        width: 0,
+        depth: 0,
+        weight: 0,
+        pictureURL: "",
+        status: "",
+        deliveryPrice: null,
+        senderID: null,
+        packageReservations: [],
+        addresses: [{
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        floor:0,
+        dateTime: null,
+        email: "",
+        phone: "",
+        type: "DEPARTURE",
+        latitude: 0,
+        longitude: 0,
+      },
+      {
+        firstName: "",
+        lastName: "",
+        line1: "",
+        line2: "",
+        town: "",
+        zipCode: "",
+        country: "",
+        floor:0,
+        dateTime: null,
+        email: "",
+        phone: "",
+        type: "ARRIVAL",
+        latitude: 0,
+        longitude: 0,
+      }],
+      lastPositionLatitude: null,
+      lastPositionLongitude: null
+    }
     };
   },
   methods: {
@@ -34,6 +82,7 @@ export default {
       this.isOpen = true;
     },
     closeModal() {
+      this.$store.commit('updatePackage', this.emptyPackage);
       this.isOpen = false;
     },
     reserve() {

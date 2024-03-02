@@ -69,6 +69,10 @@ export default{
           });
           return selectedAddress;
         },
+        details(){
+          this.$store.commit('updatePackage', this.package_);
+          this.modal.openModal();
+        },
     }
 }
 </script>

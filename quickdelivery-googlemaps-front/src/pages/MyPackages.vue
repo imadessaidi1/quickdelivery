@@ -6,21 +6,22 @@
         <div class="grid-container">
             <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
                 <div class="item-content">
-                    <SummarizedPackageDetail :package_="package_"/>
+                    <SummarizedPackageDetail :package_="package_" :modal ="getPackageModal()"/>
                 </div>
             </div>
         </div>
       </div>
     </div>
     <ScrollUp @click="scrollToTop" v-if="showScrollButton">Scroll to Top</ScrollUp>
+    <PackageDetailsModal ref="AppModal" classe="modal"/>
   </div>
   <PackageDetailsModal ref="AppModal" classe="modal"/>
 </template>
 
 <script>
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
-import PackageDetailsModal from "../components/PackageDetailsModal.vue";
-import ScrollUp from "../components/ScrollUp.vue";
+import PackageDetailsModal from '../components/PackageDetailsModal.vue';
+import ScrollUp from '../components/ScrollUp.vue';
 import http from '@/config/httpInterceptor';
 
 export default {
@@ -68,6 +69,9 @@ export default {
       if (scrollContainer) {
         this.showScrollButton = scrollContainer.scrollTop > 500;
       }
+    },
+    getPackageModal(){
+        return this.$refs.AppModal;
     },
     async fetchData() {
       try {

@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import java.util.Locale;
+import java.util.Map;
 
 
 @RestController
@@ -26,9 +28,7 @@ public class UsersController {
     private IUserServices userServices;
     @PostMapping("/create")
     public UserDTO createUser(MultipartHttpServletRequest request, @RequestParam("user") String user,
-                              @RequestParam(value = "files", required = false) MultipartFile[] userFiles,
                               @RequestParam("vehicle") String vehicle,
-                              @RequestParam(value = "vehicleFiles", required = false) MultipartFile[] vehicleFiles,
                               @RequestParam("locale") Locale locale){
         ObjectMapper objectMapper = new ObjectMapper();
         UserDTO userDTO = null;
@@ -39,8 +39,9 @@ public class UsersController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+        userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
         return userDTO;
-        //return userServices.createNewUser(userDTO, userFiles, vehicleFiles, locale);
+        //return
     }
     @PutMapping("/update")
     public UserDTO updateUser(@RequestBody UserDTO user){

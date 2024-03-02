@@ -13,16 +13,14 @@
         <div class="package_details">
             <h3>{{$t('userDocuments')}}</h3>
             <div class="details">
-                <div v-if="userDocuments && userDocuments.length">
-                    <div v-for="(document, index) in userDocuments" :key="index">
-                        <div v-if="document != undefined"><strong>{{ $t(document.type) }}:</strong> {{ document.name }}</div>
-                    </div>
-                </div>
-
-                <h2>{{$t('userPaymentModes')}}</h2>
+                <div><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
+                <div><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
+                <div><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
+                <div><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
+                <h3>{{$t('userPaymentModes')}}</h3>
                 <div v-if="user.paymentModes">
                     <div v-for="(paymentMode, key) in user.paymentModes" :key="key">
-                        <h4>{{ key }}</h4>
+                        <h4>{{ $t(key) }}</h4>
                         <div v-if="key === 'CREDIT_CARD'">
                             <div><strong>{{$t('userCardNumber')}}:</strong> {{ paymentMode.cardNumber }}</div>
                             <div><strong>{{$t('userCardExpiryDate')}}:</strong> {{ paymentMode.expiryDate }}</div>
@@ -31,7 +29,7 @@
                         <div v-if="key === 'IBAN'">
                             <div><strong>{{$t('userIBAN')}}:</strong> {{ paymentMode.iban }}</div>
                             <div><strong>{{$t('userIBANBIC')}}:</strong> {{ paymentMode.bic }}</div>
-                            <div v-if="paymentMode.ribDocument != undefined"><strong>{{$t('userRIB')}}:</strong> {{ paymentMode }}</div>
+                            <div v-if="userDocuments && userDocuments['RIB'] != undefined"><strong>{{$t('userRIB')}}:</strong> {{ userDocuments['RIB'].name }}</div>
                         </div>
                     </div>
                 </div>
@@ -45,11 +43,8 @@
                 <div><strong>{{$t('userVehicleModel')}}:</strong> {{ vehicle.model }}</div>
                 <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
                 <h4>Vehicle Documents</h4>
-                <div v-if="vehicleDocuments && vehicleDocuments.length">
-                    <div v-for="(document, index) in vehicleDocuments" :key="index">
-                        <div v-if="document != undefined"><strong>{{ $t(document.type) }}:</strong> {{ document.name }}</div>
-                    </div>
-                </div>
+                <div><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
+                <div><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>
             </div>
         </div>
     </div>

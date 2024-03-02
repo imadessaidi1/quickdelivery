@@ -40,7 +40,7 @@
                         accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(0,'GRAY_CARD')"
                 />
-                <br/><span v-if="vehicleDocuments[0] != undefined"><strong>{{vehicleDocuments[0].name}}</strong></span>
+                <br/><span v-if="vehicleDocuments['GRAY_CARD'] != undefined"><strong>{{vehicleDocuments['GRAY_CARD'].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="INSURANCE">{{$t('userVehicleInsurance')}} :</label>
@@ -50,7 +50,7 @@
                         accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(1, 'INSURANCE')"
                 />
-                <br/><span v-if="vehicleDocuments[1] != undefined"><strong>{{vehicleDocuments[1].name}}</strong></span>
+                <br/><span v-if="vehicleDocuments['INSURANCE'] != undefined"><strong>{{vehicleDocuments['INSURANCE'].name}}</strong></span>
             </div>
         </div>
     </div>
@@ -90,7 +90,7 @@ export default {
             file: file_,
         };
         console.log(vehicleDocument);
-        this.vehicleDocuments[index] = file_;
+        this.vehicleDocuments[type] = file_;
       }
     },
   },

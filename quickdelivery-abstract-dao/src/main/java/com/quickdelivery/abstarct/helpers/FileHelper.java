@@ -1,5 +1,6 @@
 package com.quickdelivery.abstarct.helpers;
 
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -11,10 +12,11 @@ import java.util.stream.Stream;
 
 public class FileHelper {
 
-    public static void saveFilesInParallel(MultipartFile[] files, ExecutorService executorService, String path) {
-        if (files != null && files.length > 0) {
-            Stream.of(files)
-                    .forEach(file -> executorService.submit(() -> saveFile(file, path)));
+    public static void saveFilesInParallel(MultiValueMap<String, MultipartFile> filesMap, ExecutorService executorService, String path) {
+        if (filesMap != null) {
+            filesMap.entrySet().stream()
+                    .flatMap(entry -> entry.getValue().stream())
+                        .forEach(file -> executorService.submit(() -> saveFile(file, path)));
         }
     }
 

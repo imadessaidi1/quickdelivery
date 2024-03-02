@@ -3,6 +3,7 @@ package com.quickdelivery.users.services.implementations;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.UserDTO;
+import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.helpers.FileHelper;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,7 +32,7 @@ public class UserServices implements IUserServices {
     private String mapQuestURL2;
     @Value("${mapquest.key}")
     private String mapQUestKey;
-    @Value("${mapquest.key}")
+    @Value("${user.docs.directory}")
     private String userDocPath;
     @Value("${mapquest.key}")
     private String userVehiclePath;
@@ -41,11 +43,10 @@ public class UserServices implements IUserServices {
     @Autowired
     private GeoApiContext geoApiContext;
     @Override
-    public UserDTO createNewUser(UserDTO user, MultipartFile[] userFiles, MultipartFile[] vehicleFiles, Locale locale) {
+    public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-        FileHelper.saveFilesInParallel(userFiles, executorService, userDocPath);
-        FileHelper.saveFilesInParallel(vehicleFiles, executorService, userVehiclePath);
+        FileHelper.saveFilesInParallel(filesMap, executorService, userDocPath);
         executorService.shutdown();
 
         user.getPersonalAddress().stream().forEach(addressDTO -> {

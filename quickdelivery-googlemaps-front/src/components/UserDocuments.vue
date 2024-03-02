@@ -10,7 +10,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(0, 'ID')"
                 />
-                <br/><span v-if="userDocuments[0] != undefined"><strong>{{userDocuments[0].name}}</strong></span>
+                <br/><span v-if="userDocuments['ID'] != undefined"><strong>{{userDocuments['ID'].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="DRIVER_LICENCE">{{$t('userDocumentDriverLicence')}} :</label>
@@ -20,7 +20,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(1,'DRIVER_LICENCE')"
                 />
-                <br/><span v-if="userDocuments[1] != undefined"><strong>{{userDocuments[1].name}}</strong></span>
+                <br/><span v-if="userDocuments['DRIVER_LICENCE'] != undefined"><strong>{{userDocuments['DRIVER_LICENCE'].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_EXTRACT">{{$t('userDocumentCompanyExtract')}} :</label>
@@ -30,7 +30,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(2, 'USER_COMPANY_EXTRACT')"
                 />
-                <br/><span v-if="userDocuments[2] != undefined"><strong>{{userDocuments[2].name}}</strong></span>
+                <br/><span v-if="userDocuments['USER_COMPANY_EXTRACT'] != undefined"><strong>{{userDocuments['USER_COMPANY_EXTRACT'].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_INSURANCE">{{$t('userDocumentCompanyInsurance')}} :</label>
@@ -40,7 +40,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(3, 'USER_COMPANY_INSURANCE')"
                 />
-                <br/><span v-if="userDocuments[3] != undefined"><strong>{{userDocuments[3].name}}</strong></span>
+                <br/><span v-if="userDocuments['USER_COMPANY_INSURANCE'] != undefined"><strong>{{userDocuments['USER_COMPANY_INSURANCE'].name}}</strong></span>
             </div>
         </div>
         <div>
@@ -101,7 +101,8 @@ export default {
             file: file_,
         };
         console.log(userDocument);
-        this.userDocuments[index] = file_;
+        console.log(this.userDocuments);
+        this.userDocuments[type] = file_;
       }
     },
   },

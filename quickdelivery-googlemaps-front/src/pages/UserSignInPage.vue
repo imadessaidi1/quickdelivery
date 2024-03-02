@@ -97,9 +97,15 @@ export default {
      if(this.currentStep === 4){
          const formData = new FormData();
          formData.append('user', JSON.stringify(this.$store.state.user));
-         formData.append('files', this.$store.state.userDocuments);
+         const entries = Object.entries(this.$store.state.userDocuments);
+         entries.forEach(([key, value]) => {
+            formData.append(key, value);
+         });
          formData.append('vehicle', JSON.stringify(this.$store.state.vehicle));
-         formData.append('files', this.$store.state.vehicleDocuments);
+         const entriesV = Object.entries(this.$store.state.vehicleDocuments);
+         entriesV.forEach(([key, value]) => {
+            formData.append(key, value);
+         });
          const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
          formData.append('locale', userLanguage);
          return http.post(this.$i18n.t('userRootURL') + this.$i18n.t('createUser'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })

@@ -9,126 +9,6 @@
                     <SummarizedPackageDetail :package_="package_"/>
                 </div>
             </div>
-            <div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
-<div class="grid-item"><div class="item-content"><div class="item-image"><!--<img :src="getImageSrc()" alt="Image" class="item-image" />--><img src="/img/box.1a46770a.png" alt="Image"></div><div class="item-details"><h3>Collie N° : 302</h3><!--<p>{{$t('packageHeight')}}:
-            {{package_.height}}</p>
-        <p>{{$t('packageWidth')}}:
-            {{package_.width}} </p>
-        <p>{{$t('packageDepth')}}:
-            {{package_.depth}}</p>
-        <p>{{$t('packageWeight')}}:
-            {{package_.weight}}</p>--><p><strong>Prix (€) : </strong>100&nbsp;€</p><p><strong>Depart : </strong>   3 Rue Pasteur 94450  France</p><!--<p>{{departureAddress.phone}}</p>--><p><strong>Destination : </strong>   8 Rue de Villebon 91160  France</p><!--<p>{{arrivalAddress.phone}}</p>
-        <p>{{$t('packageDistanceToDestination')}}:
-            {{package_.distanceToDestination}}</p>--></div><div class="item-buttons"><button class="primary_btn">Details</button></div></div></div>
         </div>
       </div>
     </div>
@@ -185,9 +65,8 @@ export default {
     },
     handleScroll() {
       const scrollContainer = this.$refs.targetComponent;
-      console.log(scrollContainer);
       if (scrollContainer) {
-        this.showScrollButton = scrollContainer.scrollTop > 0;
+        this.showScrollButton = scrollContainer.scrollTop > 500;
       }
     },
     async fetchData() {
@@ -226,7 +105,7 @@ export default {
   justify-content: space-evenly;
 }
 .grid-item{
-  width: 380px;
+  width: 350px;
   margin: 15px 15px;
   padding-bottom: 40px;
   border-radius: 10px;

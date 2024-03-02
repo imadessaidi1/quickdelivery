@@ -4,24 +4,24 @@
     <div class="input_container">
         <div class="input_only">
             <label for="registrationNumber">{{$t('userVehicleRegistration')}}:</label>
-            <Field type="text" id="registrationNumber" v-model="user.vehicle.registrationNumber" name="registrationNumber" :rules="validateCarRegistrationNumber" />
+            <Field type="text" id="registrationNumber" v-model="vehicle.registrationNumber" name="registrationNumber" :rules="validateCarRegistrationNumber" />
             <ErrorMessage class="errorMessage" name="registrationNumber" />
         </div>
         <div class="input_only">
             <label for="brand">{{$t('userVehicleBrand')}}:</label>
-            <Field type="text" id="brand" v-model="user.vehicle.brand" name="brand" :rules="validateRequired" />
+            <Field type="text" id="brand" v-model="vehicle.brand" name="brand" :rules="validateRequired" />
             <ErrorMessage class="errorMessage" name="brand" />
         </div>
     </div>
     <div class="input_container">
         <div class="input_only">
             <label for="model">{{$t('userVehicleModel')}}:</label>
-            <Field type="text" id="model" v-model="user.vehicle.model" name="model" :rules="validateRequired" />
+            <Field type="text" id="model" v-model="vehicle.model" name="model" :rules="validateRequired" />
             <ErrorMessage class="errorMessage" name="model" />
         </div>
         <div class="input_only">
             <label for="energyType">{{$t('userVehicleEnergy')}}:</label>
-            <select id="energyType" v-model="user.vehicle.energyType">
+            <select id="energyType" v-model="vehicle.energyType">
                 <option value="ELECTRIC">Electric</option>
                 <option value="HYBRID">Hybrid</option>
                 <option value="METHANE">Methane</option>
@@ -37,10 +37,10 @@
                 <input  ref="fileInput0"
                         :id="GRAY_CARD"
                         type="file"
-                        accept="image/*"
+                        accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(0,'GRAY_CARD')"
                 />
-                <br/><span v-if="user.vehicle.vehicleDocuments[0] != undefined" class="file_name">{{user.vehicle.vehicleDocuments[0].file.name}}</span>
+                <br/><span v-if="vehicleDocuments[0] != undefined"><strong>{{vehicleDocuments[0].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="INSURANCE">{{$t('userVehicleInsurance')}} :</label>
@@ -50,7 +50,7 @@
                         accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(1, 'INSURANCE')"
                 />
-                <br/><span v-if="user.vehicle.vehicleDocuments[1] != undefined"  class="file_name">{{user.vehicle.vehicleDocuments[1].file.name}}</span>
+                <br/><span v-if="vehicleDocuments[1] != undefined"><strong>{{vehicleDocuments[1].name}}</strong></span>
             </div>
         </div>
     </div>
@@ -65,8 +65,11 @@ export default {
     ErrorMessage,
   },
   computed: {
-    user() {
-      return this.$store.state.user;
+    vehicle() {
+      return this.$store.state.vehicle;
+    },
+    vehicleDocuments() {
+      return this.$store.state.vehicleDocuments;
     },
   },
   data() {
@@ -86,7 +89,8 @@ export default {
             type: type,
             file: file_,
         };
-        this.user.vehicle.vehicleDocuments[index] = vehicleDocument;
+        console.log(vehicleDocument);
+        this.vehicleDocuments[index] = file_;
       }
     },
   },

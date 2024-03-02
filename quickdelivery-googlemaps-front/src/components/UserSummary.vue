@@ -7,25 +7,19 @@
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
                 <div><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
                 <div><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
-            </div>
-            <h3>Address:</h3>
-            <div v-for="(address, index) in user.personalAddress" :key="index">
-                <div><strong>{{$t('packageAddressLine1')}}:</strong> {{ address.line1 }}</div>
-                <div><strong>{{$t('packageAddressCity')}}:</strong> {{ address.town }}</div>
-                <div><strong>{{$t('packageAddressZip')}}:</strong> {{ address.zipCode }}</div>
-                <div><strong>{{$t('packageAddressCountry')}}:</strong> {{ address.country }}</div>
+                <div><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
             </div>
         </div>
         <div class="package_details">
             <h3>{{$t('userDocuments')}}</h3>
             <div class="details">
-                <div v-if="user.documents && user.documents.length">
-                    <div v-for="(document, index) in user.documents" :key="index">
-                        <div><strong>{{ $t(document.type) }}:</strong> {{ document.file.name }}</div>
+                <div v-if="userDocuments && userDocuments.length">
+                    <div v-for="(document, index) in userDocuments" :key="index">
+                        <div v-if="document != undefined"><strong>{{ $t(document.type) }}:</strong> {{ document.name }}</div>
                     </div>
                 </div>
 
-                <h3>{{$t('userPaymentModes')}}</h3>
+                <h2>{{$t('userPaymentModes')}}</h2>
                 <div v-if="user.paymentModes">
                     <div v-for="(paymentMode, key) in user.paymentModes" :key="key">
                         <h4>{{ key }}</h4>
@@ -37,7 +31,7 @@
                         <div v-if="key === 'IBAN'">
                             <div><strong>{{$t('userIBAN')}}:</strong> {{ paymentMode.iban }}</div>
                             <div><strong>{{$t('userIBANBIC')}}:</strong> {{ paymentMode.bic }}</div>
-                            <div><strong>{{$t('userRIB')}}:</strong> {{ paymentMode.ribDocument.file.name }}</div>
+                            <div v-if="paymentMode.ribDocument != undefined"><strong>{{$t('userRIB')}}:</strong> {{ paymentMode }}</div>
                         </div>
                     </div>
                 </div>
@@ -46,14 +40,14 @@
         <div class="package_details">
             <h3>{{$t('userVehicle')}}</h3>
             <div class="details">
-                <div><strong>{{$t('userVehicleRegistration')}}:</strong> {{ user.vehicle.registrationNumber }}</div>
-                <div><strong>{{$t('userVehicleBrand')}}:</strong> {{ user.vehicle.brand }}</div>
-                <div><strong>{{$t('userVehicleModel')}}:</strong> {{ user.vehicle.model }}</div>
-                <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ user.vehicle.energyType }}</div>
+                <div><strong>{{$t('userVehicleRegistration')}}:</strong> {{ vehicle.registrationNumber }}</div>
+                <div><strong>{{$t('userVehicleBrand')}}:</strong> {{ vehicle.brand }}</div>
+                <div><strong>{{$t('userVehicleModel')}}:</strong> {{ vehicle.model }}</div>
+                <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
                 <h4>Vehicle Documents</h4>
-                <div v-if="user.vehicle.vehicleDocuments && user.vehicle.vehicleDocuments.length">
-                    <div v-for="(document, index) in user.vehicle.vehicleDocuments" :key="index">
-                        <div><strong>{{ $t(document.type) }}:</strong> {{ document.file.name }}</div>
+                <div v-if="vehicleDocuments && vehicleDocuments.length">
+                    <div v-for="(document, index) in vehicleDocuments" :key="index">
+                        <div v-if="document != undefined"><strong>{{ $t(document.type) }}:</strong> {{ document.name }}</div>
                     </div>
                 </div>
             </div>
@@ -73,8 +67,16 @@ export default {
     },
     computed: {
         user() {
-            console.log(this.$store.state.user);
             return this.$store.state.user;
+        },
+        vehicle() {
+          return this.$store.state.vehicle;
+        },
+        vehicleDocuments() {
+          return this.$store.state.vehicleDocuments;
+        },
+        userDocuments() {
+          return this.$store.state.userDocuments;
         },
     },
     methods: {

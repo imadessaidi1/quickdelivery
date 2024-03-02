@@ -99,26 +99,26 @@ export default createStore({
                 documents: [],
                 paymentModes: {
                     "CREDIT_CARD": {
-                                     paymentMethod: 'card',
                                      cardNumber: '',
                                      expiryDate: '',
                                      cvv: '',
                                     },
                     "IBAN": {
-                             paymentMethod: 'IBAN',
                              iban: '',
                              bic: '',
-                             ribDocument:{},
                             },
                 },
-                vehicle: {
+              },
+              vehicle: {
                   registrationNumber: '',
                   brand: '',
                   model: '',
                   energyType: '',
                   vehicleDocuments: []
-                }
               },
+              userDocuments: [],
+              vehicleDocuments: [],
+              userRIB: {},
   },
   mutations: {
       updatePackage(state, updatedPackage) {

@@ -2,7 +2,7 @@ package com.quickdelivery.abstarct.parameters;
 
 public enum PAYMENT_TYPE {
     CREDIT_CARD("CREDIT_CARD"),
-    BANK_ID("BANK_ID"),
+    IBAN("IBAN"),
 
     PAYPAL("PAYPAL");
     private String paymentType;

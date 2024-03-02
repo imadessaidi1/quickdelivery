@@ -7,10 +7,10 @@
                 <input  ref="fileInput0"
                         :id="ID"
                         type="file"
-                        accept="image/*"
+                        accept="image/*, application/pdf"
                 @change="handleUserFileChange(0, 'ID')"
                 />
-                <span v-if="user.documents[0] != undefined" class="file_name"><strong>{{user.documents[0].file.name}}</strong></span>
+                <br/><span v-if="userDocuments[0] != undefined"><strong>{{userDocuments[0].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="DRIVER_LICENCE">{{$t('userDocumentDriverLicence')}} :</label>
@@ -20,7 +20,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(1,'DRIVER_LICENCE')"
                 />
-                <span v-if="user.documents[1] != undefined" class="file_name"><strong>{{user.documents[1].file.name}}</strong></span>
+                <br/><span v-if="userDocuments[1] != undefined"><strong>{{userDocuments[1].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_EXTRACT">{{$t('userDocumentCompanyExtract')}} :</label>
@@ -30,7 +30,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(2, 'USER_COMPANY_EXTRACT')"
                 />
-                <span v-if="user.documents[2] != undefined" class="file_name"><strong>{{user.documents[2].file.name}}</strong></span>
+                <br/><span v-if="userDocuments[2] != undefined"><strong>{{userDocuments[2].name}}</strong></span>
             </div>
             <div class="input_only">
                 <label for="USER_COMPANY_INSURANCE">{{$t('userDocumentCompanyInsurance')}} :</label>
@@ -40,7 +40,7 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(3, 'USER_COMPANY_INSURANCE')"
                 />
-                <span v-if="user.documents[3] != undefined" class="file_name"><strong>{{user.documents[3].file.name}}</strong></span>
+                <br/><span v-if="userDocuments[3] != undefined"><strong>{{userDocuments[3].name}}</strong></span>
             </div>
         </div>
         <div>
@@ -78,10 +78,12 @@ export default {
     user() {
       return this.$store.state.user;
     },
+    userDocuments() {
+      return this.$store.state.userDocuments;
+    },
   },
   data() {
     return {
-      userDocuments: [],
       selectedPaymentType: '',
       ID: 'ID',
       DRIVER_LICENCE: 'DRIVER_LICENCE',
@@ -98,7 +100,8 @@ export default {
             type: type,
             file: file_,
         };
-        this.user.documents[index] = userDocument;
+        console.log(userDocument);
+        this.userDocuments[index] = file_;
       }
     },
   },
@@ -109,7 +112,7 @@ export default {
   width: 50%;
   margin: 0 auto 10px auto;
   display: flex;
-  justify-content: space-evenly; 
+  justify-content: space-evenly;
 }
 .payment-method label{
   font-size: 12px;

@@ -287,3 +287,8 @@ export function validatePasswordConfirmation(password, confirmation) {
                return true;
            }
 }
+
+export function validateInputFile(value){
+    console.log(value);
+    return true;
+}

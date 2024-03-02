@@ -10,6 +10,8 @@ const messages = {
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     getPackagesAroundMe: 'packages-around-me?latitude=',
     updatePackageStatus: 'update-packages-status',
+    userRootURL: 'http://localhost:8081/users/v1/',
+    createUser: 'create',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',

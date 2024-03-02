@@ -32,7 +32,7 @@
                     accept="image/*, application/pdf"
                     @change="handleRibFileChange(4, 'RIB')"
             />
-            <br/><span v-if="user.paymentModes['IBAN'].ribDocument.file != undefined"><strong>{{user.paymentModes['IBAN'].ribDocument.file.name}}</strong></span>
+            <!--<br/><span v-if="user.paymentModes['IBAN'].ribDocument.file != undefined"><strong>{{user.paymentModes['IBAN'].ribDocument.file.name}}</strong></span>-->
         </div>
     </div>
 </template>
@@ -48,6 +48,9 @@ export default {
     user() {
       return this.$store.state.user;
     },
+    userDocuments() {
+      return this.$store.state.userDocuments;
+    },
   },
   data() {
     return {
@@ -61,11 +64,12 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        this.ribDocument = {
+        let ribDocument = {
             type: type,
             file: file_,
         };
-        this.user.paymentModes['IBAN'].ribDocument = this.ribDocument;
+        console.log(ribDocument);
+        this.userDocuments.push(file_);
       }
     },
   },

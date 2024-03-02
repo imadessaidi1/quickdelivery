@@ -9,7 +9,14 @@ public class PaymentDTO {
     private Timestamp version;
 
     private PAYMENT_TYPE paymentType;
-    protected Boolean validated;
+    private Boolean validated;
+
+    private String cardNumber;
+    private String expiryDate;
+    private String cvv;
+
+    private String iban;
+    private String bic;
     public PaymentDTO(){}
 
     public Long getId() {
@@ -42,5 +49,45 @@ public class PaymentDTO {
 
     public void setPaymentType(PAYMENT_TYPE paymentType) {
         this.paymentType = paymentType;
+    }
+
+    public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
+    }
+
+    public String getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public String getCvv() {
+        return cvv;
+    }
+
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
+    }
+
+    public String getIban() {
+        return iban;
+    }
+
+    public void setIban(String iban) {
+        this.iban = iban;
+    }
+
+    public String getBic() {
+        return bic;
+    }
+
+    public void setBic(String bic) {
+        this.bic = bic;
     }
 }

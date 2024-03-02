@@ -8,12 +8,11 @@ import java.util.Set;
 public class VehicleDTO {
     private Long id;
     private Timestamp version;
-    private String type;
+    private String registrationNumber;
     private String brand;
     private String model;
     private String energyType;
-    private Set<DocumentDTO> documentDTO;
-    @JsonCreator
+    private Set<DocumentDTO> vehicleDocuments;
     public VehicleDTO(){}
 
     public Long getId() {
@@ -22,14 +21,6 @@ public class VehicleDTO {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getBrand() {
@@ -56,19 +47,27 @@ public class VehicleDTO {
         this.energyType = energyType;
     }
 
-    public Set<DocumentDTO> getDocument() {
-        return documentDTO;
-    }
-
-    public void setDocument(Set<DocumentDTO> documentDTO) {
-        this.documentDTO = documentDTO;
-    }
-
     public Timestamp getVersion() {
         return version;
     }
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public Set<DocumentDTO> getVehicleDocuments() {
+        return vehicleDocuments;
+    }
+
+    public void setVehicleDocuments(Set<DocumentDTO> vehicleDocuments) {
+        this.vehicleDocuments = vehicleDocuments;
     }
 }

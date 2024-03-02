@@ -27,7 +27,7 @@ import UserInfo from '../components/UserInfo.vue';
 import UserVehicleInfo from '../components/UserVehicleInfo.vue';
 import UserDocuments from '../components/UserDocuments.vue';
 import UserSummary from '../components/UserSummary.vue';
-
+import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
 import { validatePasswordConfirmation, validateAddress } from '@/config/comonFunction';
 
@@ -52,6 +52,7 @@ export default {
             if(this.currentStep === 1){
                 const userInfo = this.$refs.userInfo;
                 const addressAuto = userInfo.$refs.addressAutoComplete;
+                console.log(addressAuto.address);
                 userInfo.user.addressAuto = addressAuto.address;
                 const validAddress = validateAddress(userInfo.user.addressAuto);
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
@@ -94,7 +95,19 @@ export default {
     },
     async submitFormUser() {
      if(this.currentStep === 4){
-         console.log('submiting ...');
+         const formData = new FormData();
+         formData.append('user', JSON.stringify(this.$store.state.user));
+         formData.append('files', this.$store.state.userDocuments);
+         formData.append('vehicle', JSON.stringify(this.$store.state.vehicle));
+         formData.append('files', this.$store.state.vehicleDocuments);
+         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+         formData.append('locale', userLanguage);
+         return http.post(this.$i18n.t('userRootURL') + this.$i18n.t('createUser'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
+            .then(response => {
+                console.log('success'+response);
+            }).catch(() => {
+                console.log("unable to process your request this time. please try again latter.");
+            });
      }else{
         this.nextStep();
      }

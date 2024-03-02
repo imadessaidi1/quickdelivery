@@ -1,9 +1,12 @@
 package com.quickdelivery.abstarct.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserDTO {
     private Long id;
@@ -16,13 +19,17 @@ public class UserDTO {
     private String phone;
     private Boolean phoneValidation;
     private Boolean activeAccount;
+
+    private String password;
+
+    private String addressAuto;
+
+    private String passwordConfirmation;
     private List<AddressDTO> personalAddress;
-    private List<PaymentDTO> paymentDTOS;
-    private List<DocumentDTO> documentDTO;
+    private Map<PAYMENT_TYPE, PaymentDTO> paymentModes = new HashMap<>();
+    private List<DocumentDTO> documents;
     private List<PackageReservationDTO> packagesDELIVERED;
     private List<PackageDTO> packagesSent;
-    private List<VehicleDTO> vehicleDTOS;
-    @JsonCreator
     public UserDTO(){}
 
     public Long getId() {
@@ -97,22 +104,6 @@ public class UserDTO {
         this.activeAccount = activeAccount;
     }
 
-    public List<PaymentDTO> getPayments() {
-        return paymentDTOS;
-    }
-
-    public void setPayments(List<PaymentDTO> paymentDTOS) {
-        this.paymentDTOS = paymentDTOS;
-    }
-
-    public List<DocumentDTO> getDocument() {
-        return documentDTO;
-    }
-
-    public void setDocument(List<DocumentDTO> documentDTO) {
-        this.documentDTO = documentDTO;
-    }
-
     public List<PackageReservationDTO> getPackagesDELIVERED() {
         return packagesDELIVERED;
     }
@@ -137,22 +128,6 @@ public class UserDTO {
         this.personalAddress = personalAddress;
     }
 
-    public List<PaymentDTO> getPaymentDTOS() {
-        return paymentDTOS;
-    }
-
-    public void setPaymentDTOS(List<PaymentDTO> paymentDTOS) {
-        this.paymentDTOS = paymentDTOS;
-    }
-
-    public List<DocumentDTO> getDocumentDTO() {
-        return documentDTO;
-    }
-
-    public void setDocumentDTO(List<DocumentDTO> documentDTO) {
-        this.documentDTO = documentDTO;
-    }
-
     public List<PackageDTO> getPackagesSent() {
         return packagesSent;
     }
@@ -161,11 +136,43 @@ public class UserDTO {
         this.packagesSent = packagesSent;
     }
 
-    public List<VehicleDTO> getVehicleDTOS() {
-        return vehicleDTOS;
+    public Map<PAYMENT_TYPE, PaymentDTO> getPaymentModes() {
+        return paymentModes;
     }
 
-    public void setVehicleDTOS(List<VehicleDTO> vehicleDTOS) {
-        this.vehicleDTOS = vehicleDTOS;
+    public void setPaymentModes(Map<PAYMENT_TYPE, PaymentDTO> paymentModes) {
+        this.paymentModes = paymentModes;
+    }
+
+    public List<DocumentDTO> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(List<DocumentDTO> documents) {
+        this.documents = documents;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPasswordConfirmation() {
+        return passwordConfirmation;
+    }
+
+    public void setPasswordConfirmation(String passwordConfirmation) {
+        this.passwordConfirmation = passwordConfirmation;
+    }
+
+    public String getAddressAuto() {
+        return addressAuto;
+    }
+
+    public void setAddressAuto(String addressAuto) {
+        this.addressAuto = addressAuto;
     }
 }

@@ -39,9 +39,7 @@ public class UsersController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
-        return userDTO;
-        //return
+        return userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
     }
     @PutMapping("/update")
     public UserDTO updateUser(@RequestBody UserDTO user){

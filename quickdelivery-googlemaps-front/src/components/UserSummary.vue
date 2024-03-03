@@ -1,49 +1,55 @@
 <template>
-    <div class="package_details_group">
-        <div class="package_details">
+    <div class="user_details_group">
+        <div class="user_details">
             <h3>User Info.</h3>
             <div class="details">
                 <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
-                <div><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
-                <div><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
-                <div><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
+                <div class="long_text"><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
+                <div class="long_text"><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
+                <div class="long_text"><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
             </div>
         </div>
-        <div class="package_details">
-            <h3>{{$t('userDocuments')}} & {{$t('userPaymentModes')}}</h3>
+        <div class="user_details">
+            <h3>{{$t('userVehicle')}}</h3>
             <div class="details">
-                <div><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
-                <div><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
-                <div><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
-                <div><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
+                <div class="long_text"><strong>{{$t('userVehicleRegistration')}}:</strong> {{ vehicle.registrationNumber }}</div>
+                <div><strong>{{$t('userVehicleBrand')}}:</strong> {{ vehicle.brand }}</div>
+                <div><strong>{{$t('userVehicleModel')}}:</strong> {{ vehicle.model }}</div>
+                <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
+            </div>
+        </div>
+        <div class="user_details">
+            <h3>{{$t('userPaymentModes')}}</h3>
                 <div v-if="user.paymentModes">
                     <div v-for="(paymentMode, key) in user.paymentModes" :key="key">
-                        <h4>{{ $t(key) }}</h4>
-                        <div v-if="key === 'CREDIT_CARD'">
-                            <div><strong>{{$t('userCardNumber')}}:</strong> {{ paymentMode.cardNumber }}</div>
-                            <div><strong>{{$t('userCardExpiryDate')}}:</strong> {{ paymentMode.expiryDate }}</div>
+                        <span class="mini_title">{{ $t(key) }}</span>
+                        <div v-if="key === 'CREDIT_CARD'" class="details">
+                            <div class="long_text"><strong>{{$t('userCardNumber')}}:</strong> {{ paymentMode.cardNumber }}</div>
+                            <div class="long_text"><strong>{{$t('userCardExpiryDate')}}:</strong> {{ paymentMode.expiryDate }}</div>
                             <div><strong>{{$t('userCardCVV')}}:</strong> {{ paymentMode.cvv }}</div>
                         </div>
-                        <div v-if="key === 'IBAN'">
-                            <div><strong>{{$t('userIBAN')}}:</strong> {{ paymentMode.iban }}</div>
-                            <div><strong>{{$t('userIBANBIC')}}:</strong> {{ paymentMode.bic }}</div>
+                        <div v-if="key === 'IBAN'" class="details">
+                            <div class="long_text"><strong>{{$t('userIBAN')}}:</strong> {{ paymentMode.iban }}</div>
+                            <div class="long_text"><strong>{{$t('userIBANBIC')}}:</strong> {{ paymentMode.bic }}</div>
                             <div v-if="userDocuments && userDocuments['RIB'] != undefined"><strong>{{$t('userRIB')}}:</strong> {{ userDocuments['RIB'].name }}</div>
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
-        <div class="package_details">
-            <h3>{{$t('userVehicle')}}</h3>
+        <div class="user_details">
+            <h3>{{$t('userDocuments')}}</h3>
+            <span class="mini_title">User Documents</span>
             <div class="details">
-                <div><strong>{{$t('userVehicleRegistration')}}:</strong> {{ vehicle.registrationNumber }}</div>
-                <div><strong>{{$t('userVehicleBrand')}}:</strong> {{ vehicle.brand }}</div>
-                <div><strong>{{$t('userVehicleModel')}}:</strong> {{ vehicle.model }}</div>
-                <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
-                <h4>Vehicle Documents</h4>
-                <div><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
-                <div><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>
+                <div><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
+                <div class="long_text"><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
+                <div class="long_text"><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
+                <div class="long_text"><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
+            </div>
+            <span class="mini_title">Vehicle Documents</span>
+            <div class="details">
+                <div class="long_text"><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
+                <div class="long_text"><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>
             </div>
         </div>
     </div>
@@ -98,48 +104,55 @@ export default {
 .conditionCheckbox span{
     font-size: 12px;
 }
-.package_details_group{
+.user_details_group{
     width: 100%;
     display: flex;
     justify-content: space-evenly;
 }
-.package_details_group .package_details{
-    width: 30%;
+.user_details_group .user_details{
+    width: 25%;
     padding: 10px;
+    margin-top: 10px;
     border-radius: 5px;
     background-color: #f5f5f5ca;
 }
-.package_details_group .package_details h3{
+.user_details_group .user_details h3{
     margin-left: 15px;
     padding-left: 6px;
     border-left: solid 3px #42ba96;
 } 
-.package_details_group .package_details div{
+.user_details_group .user_details div{
     padding: 6px 0 6.5px 0;
 }
-.package_details_group .package_details .details div{
+.user_details_group .user_details .details div{
     font-size: 14px;
 }
+.mini_title{
+    padding-left: 10px;
+    font-size: 14px;
+    font-weight: 700;
+}
 @media screen and (max-width: 1100px){
-    .package_details_group {
+    .user_details_group {
         flex-direction: column;
     }
-    .package_details_group .package_details{
+    .user_details_group .user_details{
         width: 95%;
         margin: 5px 0;
     }
-    .package_details_group .package_details .details{
+    .user_details_group .user_details .details{
         width: 100%;
         display: inline-grid;
         grid-template-columns: auto auto;
     }
-    .package_details_group .package_details .details .adresse_line,
-    .dateTime_line{
+    .user_details_group .user_details .details div{
+        font-size: 13px;
+    }
+}
+@media screen and (max-width: 600px){
+    .user_details_group .user_details .details .long_text{
         grid-column-start: 1;
         grid-column-end: 3;
-    }
-    .package_details_group .package_details .details div{
-        font-size: 13px;
     }
 }
 </style>

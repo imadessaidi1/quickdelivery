@@ -118,4 +118,9 @@ export default {
   margin-right: 5px;
   display: block;
 }
+@media screen and (max-width: 600px) {
+  .payment-method{
+    width: 100%;
+  }
+}
 </style>

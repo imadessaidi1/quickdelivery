@@ -53,6 +53,7 @@
   justify-content: space-between;
   align-items: center;
   background-color: #f0f0f0;
+  padding: 0 10px;
 }
 
 .copyright-info p {

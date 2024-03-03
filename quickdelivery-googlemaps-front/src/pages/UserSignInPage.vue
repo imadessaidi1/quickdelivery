@@ -12,6 +12,7 @@
                     <UserVehicleInfo ref="vehicleInfo" />
                 </div>
                 <div class="components" v-if="currentStep === 4">
+                  <h2>{{$t('packageSummaryAction')}}</h2>
                     <UserSummary ref="userSummary" />
                 </div>
                 <br/>

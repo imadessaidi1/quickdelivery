@@ -1,4 +1,5 @@
 <template>
+    <h2>Collie N° : {{ package_.id }}</h2>
     <div class="package_details_group">
         <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>
@@ -95,18 +96,10 @@
             </div>
         </div>
     </div>
-    <div class="conditionCheckbox">
-        <Field name="userCondition" type="checkbox" value="Coffee" /><span>{{$t('packageCreationAgreement')}}</span>
-        <ErrorMessage name="userCondition" />
-    </div>
+
 </template>
 <script>
-import { Field, ErrorMessage } from 'vee-validate';
 export default {
-    components: {
-        Field,
-        ErrorMessage,
-    },
     computed: {
         package_() {
           return this.$store.state.package_;

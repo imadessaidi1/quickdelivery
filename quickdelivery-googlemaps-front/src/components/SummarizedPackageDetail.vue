@@ -24,7 +24,7 @@
             {{package_.distanceToDestination}}</p>-->
     </div>
     <div class="item-buttons">
-      <button class="primary_btn"
+      <button class="btn primary_btn"
         @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
     </div>
 </template>

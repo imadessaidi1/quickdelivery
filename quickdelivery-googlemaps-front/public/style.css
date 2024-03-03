@@ -19,53 +19,40 @@ body{
     color: #000;
     text-decoration: none;
   }
+.btn{
+  padding: 5px 20px;
+  border-radius: 5px;
+  transition: all 300ms;
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+}
 .primary_btn{
-    padding: 5px 20px;
     border: solid 2px #467fd0;
-    border-radius: 5px;
-    transition: all 300ms;
-    cursor: pointer;
     background-color: #467fd022;
-    font-family: 'Open Sans', sans-serif;
   }
   .primary_btn:hover{
     background-color: #467fd0;
     color: #fff;
   }
   .confirm_btn{
-    padding: 5px 20px;
     border: solid 2px #42ba96;
-    border-radius: 5px;
-    transition: all 300ms;
-    cursor: pointer;
     background-color: #42ba9622;
-    font-family: 'Open Sans', sans-serif;
   }
   .confirm_btn:hover{
     background-color: #42ba96;
     color: #fff;
   }
   .danger_btn{
-    padding: 5px 20px;
     border: solid 2px #df4759;
-    border-radius: 5px;
-    transition: all 300ms;
-    cursor: pointer;
     background-color: #df475922;
-    font-family: 'Open Sans', sans-serif;
   }
   .danger_btn:hover{
     background-color: #df4759;
     color: #fff;
   }
   .warning_btn{
-    padding: 5px 20px;
     border: solid 2px #fd9644;
-    border-radius: 5px;
-    transition: all 300ms;
-    cursor: pointer;
     background-color: #fd964422;
-    font-family: 'Open Sans', sans-serif;
   }
   .warning_btn:hover{
     background-color: #fd9644;
@@ -117,9 +104,17 @@ body{
   opacity: 1;
   visibility: visible;
 }
-@media screen and (max-width: 580px){
+@media screen and (max-width: 600px){
   .infobull:hover::after{
     opacity: 0;
     visibility: hidden;
+  }
+  input,
+  select{
+    height: 40px;
+    font-size: 15px;
+  }
+  .btn{
+    font-size: 16px;
   }
 }

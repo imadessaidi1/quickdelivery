@@ -5,9 +5,9 @@
       <PackageSummary />
       <br/>
       <p>
-        <button class="primary_btn" ref="closeModalButtons"
+        <button class="btn primary_btn" ref="closeModalButtons"
         @click="closeModal">{{ $t('packagesArroundMArkerDetailActionCloseModal') }}</button>&nbsp;
-      <button class="primary_btn" ref="detailsButtons"
+      <button class="btn primary_btn" ref="detailsButtons"
       @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
 </p>
     </div>

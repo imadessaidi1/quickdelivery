@@ -1,6 +1,6 @@
 <template>
   <div class="search-bar">
-     <div ref="handleClickOutsideBurgerMenu"><a @click="toggleMenu" class="material-symbols-outlined burger_menu">menu</a></div>
+     <a @click="toggleMenu" class="material-symbols-outlined burger_menu" ref="handleClickOutsideBurgerMenu">menu</a>
      <div class="menu vertical-menu">
       <ul>
         <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>

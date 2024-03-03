@@ -22,11 +22,11 @@
         {{package_.fromYou}}</p>
       <!-- Zone inférieure avec des boutons -->
       <p>
-        <button class="primary_btn" ref="onMyRoad"
+        <button class="btn primary_btn" ref="onMyRoad"
           @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>&nbsp;
-        <button class="primary_btn" ref="reserveButtons"
+        <button class="btn primary_btn" ref="reserveButtons"
           @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
-        <button class="primary_btn" ref="detailsButtons"
+        <button class="btn primary_btn" ref="detailsButtons"
           @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
       </p>
   </div>

@@ -1,6 +1,7 @@
 <template>
   <div ref="targetComponent" class="myPackeges" @scroll="handleScroll">
     <div ref="scrollContainer">
+      <PackagesFilter />
       <div v-for="status in packagesByStatus" :key="status.satuts_">
         <h2 :id="status.satuts_">{{status.satuts_}}</h2>
         <div class="grid-container">
@@ -18,6 +19,7 @@
 </template>
 
 <script>
+import PackagesFilter from '../components/PackagesFilter.vue';
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
 import PackageDetailsModal from "../components/PackageDetailsModal.vue";
 import ScrollUp from "../components/ScrollUp.vue";
@@ -25,6 +27,7 @@ import http from '@/config/httpInterceptor';
 
 export default {
   components: {
+    PackagesFilter,
     SummarizedPackageDetail,
     PackageDetailsModal,
     ScrollUp,

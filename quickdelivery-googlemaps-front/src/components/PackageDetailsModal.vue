@@ -5,7 +5,7 @@
       <PackageSummary />
       <br/>
         <button class="close-btn" ref="closeModalButtons"
-        @click="closeModal"><span class="material-symbols-outlined">cancel</span></button>
+        @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
     </div>
   </div>
 </template>

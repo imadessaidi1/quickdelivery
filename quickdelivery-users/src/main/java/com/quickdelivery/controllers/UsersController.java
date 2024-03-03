@@ -1,23 +1,22 @@
-package com.quickdelivery.users.controllers;
+package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
-import com.quickdelivery.users.services.interfaces.IUserServices;
+import com.quickdelivery.services.interfaces.IUserServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import java.util.Locale;
-import java.util.Map;
 
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@EnableAspectJAutoProxy
 @RequestMapping("/users/v1")
 public class UsersController {
     //@Value("${spring.application.name}")

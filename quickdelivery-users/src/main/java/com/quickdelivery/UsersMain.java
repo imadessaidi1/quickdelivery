@@ -2,6 +2,8 @@ package com.quickdelivery;
 
 import com.google.maps.GeoApiContext;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,6 +31,10 @@ public class UsersMain {
                 .apiKey(googleMapsApiKey)
                 .build();
         return context;
+    }
+    @Bean
+    public Logger initLogger(){
+        return LoggerFactory.getLogger(this.getClass());
     }
     public static void main(String[] args) {
         SpringApplication.run(UsersMain.class, args);

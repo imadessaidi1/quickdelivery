@@ -1,4 +1,4 @@
-package com.quickdelivery.users.services.interfaces;
+package com.quickdelivery.services.interfaces;
 
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;

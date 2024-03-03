@@ -93,7 +93,7 @@ public class PackagesService implements IPackagesService {
             templateModel.put("arrivalAddress", getArrivalAddress(packageDTO.getAddresses()).formatedtoString());
             templateModel.put("deliveryDateTime", getArrivalAddress(packageDTO.getAddresses()).getDateTime());
             try {
-                MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"Subject",templateModel, locale, qrCodePath+packageDTO.getId()+".pdf");
+                MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"New Package Created",templateModel, locale, "newpackage-template-thymeleaf.html",qrCodePath+packageDTO.getId()+".pdf");
             } catch (MessagingException e) {
                 throw new RuntimeException(e);
             }

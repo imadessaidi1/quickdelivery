@@ -19,6 +19,7 @@
                 <label for="email">{{$t('packageAddressEmail')}}:</label>
                 <Field id="email" type="email" v-model="user.emailAddress" name="email" :rules="validateEmail"/>
                 <ErrorMessage class="errorMessage" name="email" />
+                <span v-if="isExistingEmail" class="errorMessage">{{existingEmailErrorMessage}}</span>
             </div>
             <div class="input_only">
                 <label for="phone">{{$t('packageAddressPhone')}}:</label>
@@ -70,6 +71,8 @@ export default {
       errorAddressMessage:'',
       isPasswordConfirmationError: false,
       passwordConfirmationErrorMessage: '',
+      isExistingEmail: false,
+      existingEmailErrorMessage: '',
     };
   },
   methods: {

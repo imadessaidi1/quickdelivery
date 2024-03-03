@@ -85,11 +85,6 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        let vehicleDocument = {
-            type: type,
-            file: file_,
-        };
-        console.log(vehicleDocument);
         this.vehicleDocuments[type] = file_;
       }
     },

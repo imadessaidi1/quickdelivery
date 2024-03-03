@@ -12,6 +12,7 @@ const messages = {
     updatePackageStatus: 'update-packages-status',
     userRootURL: 'http://localhost:8081/users/v1/',
     createUser: 'create',
+    getUserByEmail: 'userByEmail?email=',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -138,6 +139,7 @@ const messages = {
     incorrectCarRegistrationNumber: 'Incorrect registration number format.',
     incorrectPasswordFormat: 'The password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one digit, and one special character.',
     PasswordConfirmation: 'The password confirmation must be equal to your password ',
+    ExistingEmail: 'There is an existing account using this email address',
   },
   fr: {
   //FOOTER LABELS
@@ -266,6 +268,7 @@ const messages = {
     incorrectCarRegistrationNumber: 'Format du numéro d\'immatriculation incorrecte.',
     incorrectPasswordFormat: 'Le mot de passe doit contenir au moins 8 caractères, dont au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial.',
     PasswordConfirmation: 'La confirmation du mot de passe doit être identique à votre mot de passe',
+    ExistingEmail: 'Il existe un compte utilisant cette adresse e-mail',
   },
   // Ajoutez d'autres langues si nécessaire...
 };

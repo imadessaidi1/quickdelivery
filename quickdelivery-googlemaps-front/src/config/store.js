@@ -60,7 +60,7 @@ export default createStore({
       firstName: 'Imad',
       lastName: 'ESSAIDI',
       email: 'im.essaidi@gmail.com',
-      id: 904,
+      id: 1652,
     },
     user: {
                 id: null,
@@ -146,7 +146,16 @@ export default createStore({
         state.requestMessage = requestMessage_;
       },
       updateUser(state, updatedUser) {
-              state.user = updatedUser;
+        state.user = updatedUser;
+      },
+      updateVehicle(state, updatedVehicle) {
+        state.vehicle = updatedVehicle;
+      },
+      updateUserDocuments(state, updatedUserDocuments) {
+        state.userDocuments = updatedUserDocuments;
+      },
+      updateVehicleDocuments(state, updatedVehicleDocuments) {
+        state.vehicleDocuments = updatedVehicleDocuments;
       },
     },
   actions: {

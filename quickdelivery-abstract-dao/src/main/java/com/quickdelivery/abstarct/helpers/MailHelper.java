@@ -66,9 +66,11 @@ public class MailHelper {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlBody, true);
-        FileSystemResource file
-                = new FileSystemResource(new File(pathToAttachment));
-        helper.addAttachment(file.getFilename(), file);
+        if(pathToAttachment != null) {
+            FileSystemResource file
+                    = new FileSystemResource(new File(pathToAttachment));
+            helper.addAttachment(file.getFilename(), file);
+        }
         getJavaMailSender().send(message);
     }
 
@@ -103,12 +105,12 @@ public class MailHelper {
     }
 
     public static void sendMessageUsingThymeleafTemplate(
-            String to, String subject, Map<String, Object> templateModel, Locale locale, String pathToAttachment)
+            String to, String subject, Map<String, Object> templateModel, Locale locale, String template, String pathToAttachment)
             throws MessagingException {
 
         Context thymeleafContext = new Context(locale);
         thymeleafContext.setVariables(templateModel);
-        String htmlBody = thymeleafTemplateEngine(thymeleafTemplateResolver()).process("newpackage-template-thymeleaf.html", thymeleafContext);
+        String htmlBody = thymeleafTemplateEngine(thymeleafTemplateResolver()).process(template, thymeleafContext);
 
         sendHtmlMessage(to, subject, htmlBody, pathToAttachment);
     }

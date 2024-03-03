@@ -288,7 +288,3 @@ export function validatePasswordConfirmation(password, confirmation) {
            }
 }
 
-export function validateInputFile(value){
-    console.log(value);
-    return true;
-}

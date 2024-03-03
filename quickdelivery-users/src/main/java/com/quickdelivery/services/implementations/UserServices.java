@@ -8,10 +8,13 @@ import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.entities.Vehicle;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
+import com.quickdelivery.abstarct.helpers.MailHelper;
+import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IUserServices;
+import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +28,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,6 +48,8 @@ public class UserServices implements IUserServices {
     private String userDocPath;
     @Value("${mapquest.key}")
     private String userVehiclePath;
+    @Value("${email.validation.link}")
+    private String emailValidationLink;
     @Autowired
     private Users users;
     @Autowired
@@ -89,6 +96,14 @@ public class UserServices implements IUserServices {
         userEntity.getPersonalAddress().stream().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
         user.setId(userEntity.getId());
         user.setVersion(userEntity.getVersion());
+        Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
+        templateModel.put("validationLink", emailValidationLink+userEntity.getId());
+        try {
+            MailHelper.sendMessageUsingThymeleafTemplate(userEntity.getEmailAddress(),"Email Validation",templateModel, locale, "newdeliveryperson-mailvalidation-template-thymeleaf.html", null);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
         return user;
     }
 
@@ -106,6 +121,24 @@ public class UserServices implements IUserServices {
     @Override
     public void deleteUSer(UserDTO user) {
          users.delete(modelMapper.map(user,User.class));
+    }
+
+    @Override
+    public CHECK_STATUS validateUserEmail(Long id) {
+        User user = users.findById(id).get();
+        user.setActiveAccount(true);
+        user.setEmailAddressValidation(true);
+        users.save(user);
+        return CHECK_STATUS.OK;
+    }
+
+    @Override
+    public UserDTO findByEmail(String email) {
+        User user = users.finByEmail(email);
+        if(user != null)
+            return modelMapper.map(user, UserDTO.class);
+        else
+            return null;
     }
 
     private void saveFilesInParallel(MultiValueMap<String, MultipartFile> filesMap, ExecutorService executorService, String path, String userEmail, Long userID) {

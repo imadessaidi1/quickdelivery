@@ -11,13 +11,12 @@
             </div>
         </div>
         <div class="package_details">
-            <h3>{{$t('userDocuments')}}</h3>
+            <h3>{{$t('userDocuments')}} & {{$t('userPaymentModes')}}</h3>
             <div class="details">
                 <div><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
                 <div><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
                 <div><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
                 <div><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
-                <h3>{{$t('userPaymentModes')}}</h3>
                 <div v-if="user.paymentModes">
                     <div v-for="(paymentMode, key) in user.paymentModes" :key="key">
                         <h4>{{ $t(key) }}</h4>

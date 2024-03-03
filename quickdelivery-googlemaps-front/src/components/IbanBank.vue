@@ -64,11 +64,6 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        let ribDocument = {
-            type: type,
-            file: file_,
-        };
-        console.log(ribDocument);
         this.userDocuments[type] = file_;
       }
     },

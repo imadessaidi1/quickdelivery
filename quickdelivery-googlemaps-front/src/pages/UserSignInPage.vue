@@ -42,25 +42,86 @@ export default {
   data() {
     return {
       currentStep: 1,
+      emptyUser: {
+                id: null,
+                version: null,
+                type: 'DELIVERY_PERSON',
+                firstName: '',
+                lastName: '',
+                emailAddress: '',
+                emailAddressValidation: false,
+                phone: '',
+                phoneValidation: false,
+                activeAccount: false,
+                password: '',
+                passwordConfirmation: '',
+                addressAuto: '',
+                personalAddress: [
+                  {
+                    id: null,
+                    version: null,
+                    firstName: '',
+                    lastName: '',
+                    line1: '',
+                    line2: '',
+                    town: '',
+                    zipCode: '',
+                    country: '',
+                    floor: 0,
+                    dateTime: null,
+                    type: 'RESIDENCE',
+                    latitude: 0,
+                    longitude: 0,
+                    email: '',
+                    phone: ''
+                  }
+                ],
+                documents: [],
+                paymentModes: {
+                    "CREDIT_CARD": {
+                                     cardNumber: '',
+                                     expiryDate: '',
+                                     cvv: '',
+                                    },
+                    "IBAN": {
+                             iban: '',
+                             bic: '',
+                            },
+                },
+      },
+      emptyVehicle: {
+                  registrationNumber: '',
+                  brand: '',
+                  model: '',
+                  energyType: '',
+                  vehicleDocuments: []
+              },
     };
   },
   methods: {
     validatePasswordConfirmation,
     validateAddress,
-    nextStep() {
+    async nextStep() {
         if (this.currentStep < 4) {
             if(this.currentStep === 1){
                 const userInfo = this.$refs.userInfo;
                 const addressAuto = userInfo.$refs.addressAutoComplete;
-                console.log(addressAuto.address);
                 userInfo.user.addressAuto = addressAuto.address;
                 const validAddress = validateAddress(userInfo.user.addressAuto);
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
+                const existingEmail = await this.existingEmail(userInfo.user.emailAddress);
                 if(!validPasswordConfirm){
                     userInfo.isPasswordConfirmationError = true;
                     userInfo.passwordConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('PasswordConfirmation');
                 }else{
                     userInfo.isPasswordConfirmationError = false;
+                }
+                if(existingEmail){
+                    userInfo.isExistingEmail = true;
+                    userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
+                }
+                else{
+                    userInfo.isExistingEmail = false;
                 }
                 if(!validAddress){
                     userInfo.isAddressError = true;
@@ -68,7 +129,7 @@ export default {
                 }else{
                     userInfo.isAddressError = false;
                 }
-                if(validPasswordConfirm && validAddress){
+                if(validPasswordConfirm && validAddress && !existingEmail){
                     userInfo.isAddressError = false;
                     userInfo.isPasswordConfirmationError = false;
                     const address = addressAuto.address.split(',');
@@ -90,9 +151,25 @@ export default {
         }
     },
     previousStep() {
-        console.log('previousStep '+this.currentStep);
         this.currentStep--;
     },
+    existingEmail(email) {
+        return new Promise((resolve) => {
+            http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${email}`)
+                .then(response => {
+                    if (response.status === 200 && response.data) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la requête API', error);
+                    resolve(false);
+                });
+        });
+    },
+
     async submitFormUser() {
      if(this.currentStep === 4){
          const formData = new FormData();
@@ -110,7 +187,13 @@ export default {
          formData.append('locale', userLanguage);
          return http.post(this.$i18n.t('userRootURL') + this.$i18n.t('createUser'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
             .then(response => {
-                console.log('success'+response);
+                if(response.status == '200'){
+                   this.$store.commit('updateUser', this.emptyUser);
+                   this.$store.commit('updateVehicle', this.emptyVehicle);
+                   this.$store.commit('updateUserDocuments', []);
+                   this.$store.commit('updateVehicleDocuments', []);
+                   this.$router.push('/');
+                }
             }).catch(() => {
                 console.log("unable to process your request this time. please try again latter.");
             });

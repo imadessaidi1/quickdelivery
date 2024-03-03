@@ -96,12 +96,6 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        let userDocument = {
-            type: type,
-            file: file_,
-        };
-        console.log(userDocument);
-        console.log(this.userDocuments);
         this.userDocuments[type] = file_;
       }
     },

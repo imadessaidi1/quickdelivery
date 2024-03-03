@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
+import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.services.interfaces.IUserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
@@ -19,10 +22,6 @@ import java.util.Locale;
 @EnableAspectJAutoProxy
 @RequestMapping("/users/v1")
 public class UsersController {
-    //@Value("${spring.application.name}")
-    private String appname;
-    //@Value("${spring.neo4j.uri}")
-    private String neo4jUri;
     @Autowired
     private IUserServices userServices;
     @PostMapping("/create")
@@ -52,10 +51,18 @@ public class UsersController {
     public UserDTO findUserById(@RequestParam(name = "id", required = true) Long id){
         return userServices.findByID(id);
     }
-
-    @GetMapping("/hello")
-    public String findUserById(){
-        return "hello App : "+appname+", URI : "+neo4jUri;
+    @GetMapping("/userByEmail{email}")
+    public UserDTO findUserByEmail(@RequestParam(name = "email", required = true) String email){
+        return userServices.findByEmail(email);
     }
-
+    @GetMapping("/validateEmail{id}")
+    public ResponseEntity<Void> validateUserEmail(@RequestParam(name = "id", required = true) Long id){
+        CHECK_STATUS status = userServices.validateUserEmail(id);
+        if(status.equals(CHECK_STATUS.OK)) {
+            String frontendURL = "http://localhost:8080/";
+            return ResponseEntity.status(HttpStatus.FOUND).header("Location", frontendURL).build();
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

@@ -4,12 +4,8 @@
     <div class="modal-content">
       <PackageSummary />
       <br/>
-      <p>
-        <button class="btn primary_btn" ref="closeModalButtons"
-        @click="closeModal">{{ $t('packagesArroundMArkerDetailActionCloseModal') }}</button>&nbsp;
-      <button class="btn primary_btn" ref="detailsButtons"
-      @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-</p>
+        <button class="close-btn" ref="closeModalButtons"
+        @click="closeModal"><span class="material-symbols-outlined">cancel</span></button>
     </div>
   </div>
 </template>
@@ -110,15 +106,23 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.25);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background: white;
-  padding: 20px;
+  width: 70%;
+  padding: 0 20px 20px 20px;
+  border-radius: 10px;
+  position: relative;
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(6.6px);
+  -webkit-backdrop-filter: blur(6.6px);
 }
 
 .close-btn {
@@ -126,8 +130,27 @@ export default {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 20px;
   cursor: pointer;
   color: #555;
+  border: none;
+  background: none;
+  transition: all .3s;
+}
+.close-btn:hover{
+  color: #000000;
+}
+@media screen and (max-width: 1100px){
+  .modal {
+    align-items: baseline;
+    overflow: scroll;
+  }
+  .modal-content{
+    margin: 60px 0;
+  }
+}
+@media screen and (max-width: 600px){
+  .modal-content{
+    width: 85%;
+  }
 }
 </style>

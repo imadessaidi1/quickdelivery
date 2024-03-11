@@ -18,6 +18,8 @@ public class Package {
     @Column
     private Timestamp creationDate;
     @Column
+    private String reference;
+    @Column
     private Timestamp reservationDate;
     @Column
     private Float height;
@@ -194,5 +196,13 @@ public class Package {
 
     public void setDistanceToDestination(String distanceToDestination) {
         this.distanceToDestination = distanceToDestination;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 }

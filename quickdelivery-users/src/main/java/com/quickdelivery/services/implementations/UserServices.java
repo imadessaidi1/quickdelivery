@@ -7,6 +7,7 @@ import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.entities.Vehicle;
+import com.quickdelivery.abstarct.helpers.FileHelper;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.MailHelper;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
@@ -60,9 +61,10 @@ public class UserServices implements IUserServices {
     private GeoApiContext geoApiContext;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        user.getPersonalAddress().stream().forEach(addressDTO -> {
+        User userEntity = modelMapper.map(user,User.class);
+        user.getPersonalAddress().stream().forEach(address -> {
             try {
-                GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
+                GeoHelper.AddressGeoCoding(geoApiContext, address);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
@@ -71,7 +73,6 @@ public class UserServices implements IUserServices {
                 throw new RuntimeException(e);
             }
         });
-        User userEntity = modelMapper.map(user,User.class);
         userEntity.getPersonalAddress().stream().forEach(address -> address.setResidents(userEntity));
         Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
         vehicle.setUser(userEntity);
@@ -90,20 +91,14 @@ public class UserServices implements IUserServices {
                     userEntity.getDocument().add(document);
                 });
         users.save(userEntity);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        saveFilesInParallel(filesMap, executorService, userDocPath, user.getEmailAddress(), userEntity.getId());
-        executorService.shutdown();
+        FileHelper.saveFilesInParallel(filesMap, userDocPath, user.getEmailAddress());
         userEntity.getPersonalAddress().stream().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
         user.setId(userEntity.getId());
         user.setVersion(userEntity.getVersion());
-        Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
-        templateModel.put("validationLink", emailValidationLink+userEntity.getId());
-        try {
-            MailHelper.sendMessageUsingThymeleafTemplate(userEntity.getEmailAddress(),"Email Validation",templateModel, locale, "newdeliveryperson-mailvalidation-template-thymeleaf.html", null);
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        executorService.submit(() -> {
+            sendUserAccountCreationEmail(user, userEntity, locale);
+        });
         return user;
     }
 
@@ -141,43 +136,14 @@ public class UserServices implements IUserServices {
             return null;
     }
 
-    private void saveFilesInParallel(MultiValueMap<String, MultipartFile> filesMap, ExecutorService executorService, String path, String userEmail, Long userID) {
-        if (filesMap != null) {
-            File userDirectory = new File(path+(userEmail.replace('.','_')));
-            boolean dirCreation = userDirectory.mkdir();
-            if(dirCreation){
-                filesMap.entrySet().stream()
-                        .forEach(entry -> {
-                            String fileName = entry.getKey();
-                            MultipartFile file = entry.getValue().get(0);
-                            executorService.submit(() -> {
-                                saveFile(file, userDirectory.getPath(), fileName, userID);
-                            });
-                        });
-            }
+    private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){
+        Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
+        templateModel.put("validationLink", emailValidationLink+userEntity.getId());
+        try {
+            MailHelper.sendMessageUsingThymeleafTemplate(userEntity.getEmailAddress(),"Email Validation",templateModel, locale, "newdeliveryperson-mailvalidation-template-thymeleaf.html", null);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
         }
     }
-
-    private void saveFile(MultipartFile file,String filePath, String fileName, Long userID) {
-        if (!file.isEmpty()) {
-            try {
-                String currentFileName = file.getOriginalFilename();
-                String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
-                byte[] bytes = file.getBytes();
-                Path path = Paths.get(filePath).resolve(newFileName);
-                Files.write(path, bytes);
-                User user = users.findById(userID).get();
-                Document document = new Document();
-                document.setType(DOCUMENT_TYPE.valueOf(fileName));
-                document.setDocURL(filePath+"/"+newFileName);
-                document.setUser(user);
-                user.getDocument().add(document);
-                users.save(user);
-                System.out.println("Document enregistré : "+document.getId());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 }

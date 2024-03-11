@@ -41,4 +41,9 @@ public interface Packages extends CrudRepository<Package, Long> {
             "FROM Package p JOIN FETCH p.packageReservations r " +
             "WHERE r.deliveryPerson.id = :deliveryPersonID")
     List<Package> findPackagesByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
+
+    @Query("SELECT p " +
+            "FROM Package p " +
+            "WHERE p.reference = :reference")
+    Package findPackageByReference(@Param("reference") String reference);
 }

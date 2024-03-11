@@ -1,6 +1,6 @@
 <template>
     <GoogleAddressAutocomplete
-            apiKey="AIzaSyCBZNoGNPCcqSsTYTlOUhkXLhb47HqF9mM"
+            apiKey="AIzaSyC1JZHQfC9EUWUFKeHEBFnOMlZOUESxqog"
             v-model="address"
     />
 </template>

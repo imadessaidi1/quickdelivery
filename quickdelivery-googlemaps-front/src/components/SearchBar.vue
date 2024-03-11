@@ -20,9 +20,9 @@
     <transition name="fade">
       <div v-if="isActiveLoginMenu" class="menu login-menu">
         <ul>
-          <li @click="loginMenu">{{$t('menuUserLogin')}}</li>
-          <router-link @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
-          <li @click="loginMenu">{{$t('menuUuserAccount')}}</li>
+            <router-link @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
+            <li @click="loginMenu">{{$t('menuUserLogin')}}</li>
+            <li @click="loginMenu">{{$t('menuUuserAccount')}}</li>
         </ul>
       </div>
     </transition>

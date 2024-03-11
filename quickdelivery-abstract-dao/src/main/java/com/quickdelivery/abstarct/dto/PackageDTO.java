@@ -10,6 +10,7 @@ import java.util.List;
 public class PackageDTO {
     private Long id;
     private Timestamp version;
+    private String reference;
     private Timestamp creationDate;
 
     private Float height;
@@ -185,5 +186,13 @@ public class PackageDTO {
 
     public void setFromYou(String fromYou) {
         this.fromYou = fromYou;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 }

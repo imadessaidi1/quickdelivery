@@ -11,6 +11,8 @@ public enum DOCUMENT_TYPE {
     USER_COMPANY_INSURANCE("USER_COMPANY_INSURANCE"),
     RIB("RIB"),
     PACKAGE_QR("PACKAGE_QR"),
+
+    PICTURE("PICTURE"),
     PACKAGE_PDF_LABEL("PACKAGE_PDF_LABEL");
     private String addressType;
 

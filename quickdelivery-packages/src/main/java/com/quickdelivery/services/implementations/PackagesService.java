@@ -1,10 +1,13 @@
 package com.quickdelivery.services.implementations;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
 import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.FileDTO;
+import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
@@ -15,14 +18,16 @@ import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
+import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
@@ -32,6 +37,8 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,6 +59,8 @@ public class PackagesService implements IPackagesService {
     private String getPackageByIdURL;
     @Value("${package.services.qrcode.file.location}")
     private String qrCodePath;
+    @Value("${packages.docs.directory}")
+    private String packagesDirectory;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -60,43 +69,54 @@ public class PackagesService implements IPackagesService {
     private Users users;
     @Autowired
     private GeoApiContext geoApiContext;
+    @Autowired
+    WebSocketHandler webSocketHandler;
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
+        MultiValueMap<String, MultipartFile> filesMap = new LinkedMultiValueMap<>();
+        ExecutorService executorService;
+        Package aPackage;
         try {
-            Package aPackage = createPackage(packageDTO, locale);
-            if(files != null && files.length > 0) {
+            executorService = Executors.newFixedThreadPool(3);
+            packageAddressGeocoding(packageDTO);
+            packageDistanceCalculation(packageDTO);
+            aPackage = preparPackage(packageDTO, locale);
+            if (files != null && files.length > 0) {
                 IntStream.range(0, files.length)
                         .forEach(index -> {
                             MultipartFile file = files[index];
+                            DOCUMENT_TYPE docType = index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE;
+                            String fileName = docType.toString();
+                            String currentFileName = file.getOriginalFilename();
+                            String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
                             Document document = new Document();
                             document.setaPackage(aPackage);
-                            document.setDocURL(file.getName());
-                            document.setType(index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE);
-                            try {
-                                document.setDocContent(file.getBytes());
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
+                            document.setDocURL(packagesDirectory + aPackage.getReference() + "\\" + newFileName);
+                            document.setType(docType);
+                            filesMap.add(fileName, file);
                             aPackage.getDocument().add(document);
                         });
             }
             packages.save(aPackage);
-            Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("recipientName", getDepartureAddress(packageDTO.getAddresses()).getFirstName()+" "+getDepartureAddress(packageDTO.getAddresses()).getLastName());
-            templateModel.put("height", aPackage.getHeight());
-            templateModel.put("width", aPackage.getWidth());
-            templateModel.put("depth", aPackage.getDepth());
-            templateModel.put("weight", aPackage.getWeight());
-            templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-            templateModel.put("departureAddress", getDepartureAddress(packageDTO.getAddresses()).formatedtoString());
-            templateModel.put("pickupDateTime", getDepartureAddress(packageDTO.getAddresses()).getDateTime());
-            templateModel.put("arrivalAddress", getArrivalAddress(packageDTO.getAddresses()).formatedtoString());
-            templateModel.put("deliveryDateTime", getArrivalAddress(packageDTO.getAddresses()).getDateTime());
-            try {
-                MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"New Package Created",templateModel, locale, "newpackage-template-thymeleaf.html",qrCodePath+packageDTO.getId()+".pdf");
-            } catch (MessagingException e) {
-                throw new RuntimeException(e);
-            }
+            packageDTO.setId(aPackage.getId());
+            packageDTO.setVersion(aPackage.getVersion());
+            FileHelper.saveFilesInParallel(filesMap, packagesDirectory, aPackage.getReference());
+            executorService.submit(() -> {
+                QRCodeGenerator.generateQRCode(getPackageByIdURL + packageDTO.getId(), packagesDirectory + packageDTO.getReference() + "\\package_qr.png", 150, 150);
+            });
+            executorService.submit(() -> {
+                try {
+                    PDFGenerator.generatePdf(packageDTO, packagesDirectory + packageDTO.getReference() + "\\package_qr.png", packagesDirectory + packageDTO.getReference() + "\\package_label.pdf", locale);
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            executorService.submit(() -> {
+                sendPackageCreationEMail(packageDTO, aPackage, locale);
+            });
+
         } catch (MalformedURLException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -107,7 +127,7 @@ public class PackagesService implements IPackagesService {
     public void createNewPackages(List<PackageDTO> packageDTOS, Locale locale) {
         packageDTOS.stream().forEach(packageDTO -> {
             try {
-                createPackage(packageDTO, locale);
+                preparPackage(packageDTO, locale);
             } catch (MalformedURLException | FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -287,8 +307,36 @@ public class PackagesService implements IPackagesService {
         return groupedPackages;
     }
 
-    private Package createPackage(PackageDTO packageDTO, Locale locale) throws MalformedURLException, FileNotFoundException {
-        packageDTO.getAddresses().stream().forEach(addressDTO -> {
+    private Package preparPackage(PackageDTO packageDTO, Locale locale) throws MalformedURLException, FileNotFoundException {
+        Package aPackage = modelMapper.map(packageDTO, Package.class);
+        StringBuffer reference = new StringBuffer();
+        aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
+        packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
+        aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
+        aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
+        aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
+        reference.append("PACK").append(packageDTO.getAddresses().get(0).getCountry().substring(0,2).toUpperCase()).append(aPackage.getCreationDate().toString().replaceAll("[\\s\\-:.]", ""));
+        aPackage.setReference(reference.toString());
+        packageDTO.setReference(reference.toString());
+        packageDTO.setCreationDate(aPackage.getCreationDate());
+        //GeoHelper.getDirection(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(), getArrivalAddress(packageDTO.getAddresses()).toString());
+        packageDTO.setId(aPackage.getId());
+        packageDTO.setVersion(aPackage.getVersion());
+        Document qrDocument = new Document();
+        qrDocument.setaPackage(aPackage);
+        qrDocument.setType(DOCUMENT_TYPE.PACKAGE_QR);
+        qrDocument.setDocURL(packagesDirectory+packageDTO.getReference()+"\\package_qr.png");
+        aPackage.getDocument().add(qrDocument);
+        Document pdfDocument = new Document();
+        pdfDocument.setaPackage(aPackage);
+        pdfDocument.setType(DOCUMENT_TYPE.PACKAGE_PDF_LABEL);
+        pdfDocument.setDocURL(packagesDirectory+packageDTO.getReference()+"\\package_label.pdf");
+        aPackage.getDocument().add(pdfDocument);
+        return aPackage;
+    }
+
+    private void packageAddressGeocoding(PackageDTO aPackage){
+        aPackage.getAddresses().stream().forEach(addressDTO -> {
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
@@ -299,40 +347,43 @@ public class PackagesService implements IPackagesService {
                 throw new RuntimeException(e);
             }
         });
-        Package aPackage = modelMapper.map(packageDTO, Package.class);
-        DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(),
-                getArrivalAddress(packageDTO.getAddresses()).toString());
+    }
+
+    private void packageDistanceCalculation(PackageDTO aPackage){
+        DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(aPackage.getAddresses()).toString(),
+                getArrivalAddress(aPackage.getAddresses()).toString());
         aPackage.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
-        aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
-        packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
-        aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
-        aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
-        aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
-        packageDTO.setCreationDate(aPackage.getCreationDate());
-        packages.save(aPackage);
-        GeoHelper.getDirection(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(), getArrivalAddress(packageDTO.getAddresses()).toString());
-        packageDTO.setId(aPackage.getId());
-        packageDTO.setVersion(aPackage.getVersion());
-        QRCodeGenerator.generateQRCode(getPackageByIdURL+packageDTO.getId(),qrCodePath+packageDTO.getId()+".png",150,150);
-        Document qrDocument = new Document();
-        qrDocument.setaPackage(aPackage);
-        qrDocument.setType(DOCUMENT_TYPE.PACKAGE_QR);
-        qrDocument.setDocURL(qrCodePath+packageDTO.getId()+".png");
-        Set<Document> documents = new HashSet<>();
-        documents.add(qrDocument);
-        PDFGenerator.generatePdf(packageDTO, qrCodePath+packageDTO.getId()+".png", qrCodePath+packageDTO.getId()+".pdf", locale);
-        Document pdfDocument = new Document();
-        pdfDocument.setaPackage(aPackage);
-        pdfDocument.setType(DOCUMENT_TYPE.PACKAGE_PDF_LABEL);
-        pdfDocument.setDocURL(qrCodePath+packageDTO.getId()+".pdf");
-        documents.add(pdfDocument);
-        aPackage.setDocument(documents);
-        packages.save(aPackage);
-        return aPackage;
+    }
+
+    private void sendPackageCreationEMail(PackageDTO packageDTO, Package aPackage, Locale locale){
+        Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put("recipientName", getDepartureAddress(packageDTO.getAddresses()).getFirstName()+" "+getDepartureAddress(packageDTO.getAddresses()).getLastName());
+        templateModel.put("height", aPackage.getHeight());
+        templateModel.put("width", aPackage.getWidth());
+        templateModel.put("depth", aPackage.getDepth());
+        templateModel.put("weight", aPackage.getWeight());
+        templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
+        templateModel.put("departureAddress", getDepartureAddress(packageDTO.getAddresses()).formatedtoString());
+        templateModel.put("pickupDateTime", getDepartureAddress(packageDTO.getAddresses()).getDateTime());
+        templateModel.put("arrivalAddress", getArrivalAddress(packageDTO.getAddresses()).formatedtoString());
+        templateModel.put("deliveryDateTime", getArrivalAddress(packageDTO.getAddresses()).getDateTime());
+        try {
+            MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"New Package Created",templateModel, locale, "newpackage-template-thymeleaf.html",packagesDirectory+packageDTO.getReference()+"\\package_label.pdf");
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {
         for (AddressDTO address : addresses) {
+            if (ADDRESS_TYPE.DEPARTURE.equals(address.getType())) {
+                return address;
+            }
+        }
+        return null;
+    }
+    private Address getDepartureAddress(Set<Address> addresses) {
+        for (Address address : addresses) {
             if (ADDRESS_TYPE.DEPARTURE.equals(address.getType())) {
                 return address;
             }
@@ -346,5 +397,15 @@ public class PackagesService implements IPackagesService {
             }
         }
         return null;
+    }
+
+    public List<Address> findUsersAroundPosition(String aPackage){
+        Address address = getDepartureAddress(packages.findPackageByReference(aPackage).getAddresses());
+        return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 2000000);
+    }
+
+    @Override
+    public PackageDTO findPackageByReference(String reference) {
+        return modelMapper.map(packages.findPackageByReference(reference), PackageDTO.class);
     }
 }

@@ -21,6 +21,7 @@
               <PackageSummary ref="packageSummary"/>
           </div>
           <br/>
+          <!--<button class="btn primary_btn" @click="callNotification">notification</button>&nbsp;-->
           <button class="btn primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
           <button class="btn primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
         </Form>
@@ -118,6 +119,14 @@ export default{
         this.currentStep--;
       }
     },
+    /*callNotification(){
+        http.get(this.$i18n.t('rootURL') + this.$i18n.t('notify'))
+            .then(response => {
+                console.log(response);
+            }).catch(() => {
+                console.log("unable to process your request this time. please try again latter.");
+            });
+    },*/
     async submitFormPackage() {
      if(this.currentStep === 4){
          const formData = new FormData();

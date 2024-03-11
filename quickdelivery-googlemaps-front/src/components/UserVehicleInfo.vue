@@ -41,6 +41,7 @@
                 @change="handleVehicleFileChange(0,'GRAY_CARD')"
                 />
                 <br/><span v-if="vehicleDocuments['GRAY_CARD'] != undefined"><strong>{{vehicleDocuments['GRAY_CARD'].name}}</strong></span>
+                <span v-if="filesErrorMessages['GRAY_CARD']" class="errorMessage" >{{filesErrorMessages['GRAY_CARD']}}</span>
             </div>
             <div class="input_only">
                 <label for="INSURANCE">{{$t('userVehicleInsurance')}} :</label>
@@ -51,6 +52,7 @@
                 @change="handleVehicleFileChange(1, 'INSURANCE')"
                 />
                 <br/><span v-if="vehicleDocuments['INSURANCE'] != undefined"><strong>{{vehicleDocuments['INSURANCE'].name}}</strong></span>
+                <span v-if="filesErrorMessages['INSURANCE']" class="errorMessage" >{{filesErrorMessages['INSURANCE']}}</span>
             </div>
         </div>
     </div>
@@ -75,7 +77,8 @@ export default {
   data() {
     return {
       GRAY_CARD: 'GRAY_CARD',
-      INSURANCE: 'INSURANCE'
+      INSURANCE: 'INSURANCE',
+      filesErrorMessages: [],
     };
   },
   methods: {

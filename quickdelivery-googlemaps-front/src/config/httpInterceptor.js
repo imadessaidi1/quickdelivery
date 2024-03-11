@@ -16,7 +16,7 @@ instance.interceptors.request.use(
     store.commit('updateRequestMessage', 'error');
     setTimeout(() => {
         store.commit('updateShowMessage', false);
-    }, 5000);
+    }, 9000);
     return Promise.reject(error);
   }
 );
@@ -31,7 +31,7 @@ instance.interceptors.response.use(
         store.commit('updateRequestMessage', 'success');
           setTimeout(() => {
             store.commit('updateShowMessage', false);
-          }, 5000);
+          }, 9000);
       }
     return response;
   },
@@ -42,7 +42,7 @@ instance.interceptors.response.use(
     store.commit('updateRequestMessage', 'error');
     setTimeout(() => {
         store.commit('updateShowMessage', false);
-    }, 5000);
+    }, 9000);
     return Promise.reject(error);
   }
 );

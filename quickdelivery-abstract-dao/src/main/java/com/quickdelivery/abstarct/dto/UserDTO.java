@@ -1,8 +1,9 @@
 package com.quickdelivery.abstarct.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.quickdelivery.abstarct.parameters.GENDER_TYPE;
 import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +14,15 @@ public class UserDTO {
     private Timestamp version;
     private String type;
     private String firstName;
+    private Integer age;
+    private GENDER_TYPE sex;
+    private Date birthDate;
     private String lastName;
     private String emailAddress;
+
+    private String emailAddressConfirmation;
+
+    private String phoneConfirmation;
     private Boolean emailAddressValidation;
     private String phone;
     private Boolean phoneValidation;
@@ -174,5 +182,45 @@ public class UserDTO {
 
     public void setAddressAuto(String addressAuto) {
         this.addressAuto = addressAuto;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public GENDER_TYPE getSex() {
+        return sex;
+    }
+
+    public void setSex(GENDER_TYPE sex) {
+        this.sex = sex;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getEmailAddressConfirmation() {
+        return emailAddressConfirmation;
+    }
+
+    public void setEmailAddressConfirmation(String emailAddressConfirmation) {
+        this.emailAddressConfirmation = emailAddressConfirmation;
+    }
+
+    public String getPhoneConfirmation() {
+        return phoneConfirmation;
+    }
+
+    public void setPhoneConfirmation(String phoneConfirmation) {
+        this.phoneConfirmation = phoneConfirmation;
     }
 }

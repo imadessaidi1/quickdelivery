@@ -16,8 +16,10 @@
                     <UserSummary ref="userSummary" />
                 </div>
                 <br/>
-                <button class="btn primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
-                <button class="btn primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('userCreateAction')}}</span></button>
+                <button class="btn primary_btn" type="button" @click="previousStep" v-show="currentStep > 1">{{$t('packagePreviousAction')}}</button>
+                <button class="btn primary_btn" type="submit" v-show="currentStep < 3">{{$t('packageNextAction')}}</button>
+                <button class="btn primary_btn" type="submit" v-show="currentStep === 3">{{$t('packageSummaryAction')}}</button>
+                <button class="btn primary_btn" type="submit" v-show="currentStep === 4">{{$t('userCreateAction')}}</button>
             </Form>
         </div>
     </div>
@@ -30,7 +32,7 @@ import UserDocuments from '../components/UserDocuments.vue';
 import UserSummary from '../components/UserSummary.vue';
 import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
-import { validatePasswordConfirmation, validateAddress } from '@/config/comonFunction';
+import { validatePasswordConfirmation, validateAddress, validateEmailConfirmation, validatePhoneConfirmation, validateFileInput } from '@/config/comonFunction';
 
 export default {
   components: {
@@ -49,6 +51,9 @@ export default {
                 type: 'DELIVERY_PERSON',
                 firstName: '',
                 lastName: '',
+                age: null,
+                birthDate: null,
+                sex: '',
                 emailAddress: '',
                 emailAddressValidation: false,
                 phone: '',
@@ -56,6 +61,8 @@ export default {
                 activeAccount: false,
                 password: '',
                 passwordConfirmation: '',
+                emailAddressConfirmation: '',
+                phoneConfirmation:'',
                 addressAuto: '',
                 personalAddress: [
                   {
@@ -101,7 +108,10 @@ export default {
   },
   methods: {
     validatePasswordConfirmation,
+    validateEmailConfirmation,
     validateAddress,
+    validatePhoneConfirmation,
+    validateFileInput,
     async nextStep() {
         if (this.currentStep < 4) {
             if(this.currentStep === 1){
@@ -110,6 +120,8 @@ export default {
                 userInfo.user.addressAuto = addressAuto.address;
                 const validAddress = validateAddress(userInfo.user.addressAuto);
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
+                const validEmailConfirmation = validateEmailConfirmation(userInfo.user.emailAddress, userInfo.user.emailAddressConfirmation);
+                const validPhoneConfirmation = validatePhoneConfirmation(userInfo.user.phone, userInfo.user.phoneConfirmation);
                 const existingEmail = await this.existingEmail(userInfo.user.emailAddress);
                 if(!validPasswordConfirm){
                     userInfo.isPasswordConfirmationError = true;
@@ -123,6 +135,18 @@ export default {
                 }
                 else{
                     userInfo.isExistingEmail = false;
+                }
+                if(!validEmailConfirmation){
+                    userInfo.isEmailConfirmationError = true;
+                    userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('emailConfirmation');
+                }else{
+                    userInfo.isEmailConfirmationError = false;
+                }
+                if(!validPhoneConfirmation){
+                    userInfo.isPhoneConfirmationError = true;
+                    userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('phoneConfirmation');
+                }else{
+                    userInfo.isPhoneConfirmationError = false;
                 }
                 if(!validAddress){
                     userInfo.isAddressError = true;
@@ -145,14 +169,50 @@ export default {
                     this.currentStep++;
                 }
             }else if(this.currentStep === 2){
-                this.currentStep++;
+                const selectedFilesKeys = [
+                  'ID',
+                  'DRIVER_LICENCE',
+                  'USER_COMPANY_EXTRACT',
+                  'USER_COMPANY_INSURANCE',
+                  'PICTURE',
+                ];
+                const userDocs = this.$refs.userDocuments;
+                if(userDocs.selectedPaymentType === 'IBAN'){
+                    selectedFilesKeys.push('RIB');
+                }
+                const fileValidation = validateFileInput(selectedFilesKeys,this.$store.state.userDocuments);
+                userDocs.filesErrorMessages = [];
+                if(fileValidation && fileValidation.length > 0){
+                    fileValidation.forEach(result => {
+                          userDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
+                    });
+                }else{
+                    this.currentStep++;
+                }
+            }else if(this.currentStep === 3){
+                const selectedFilesKeys = [
+                  'GRAY_CARD',
+                  'INSURANCE'
+                ];
+                const vehicleDocs = this.$refs.vehicleInfo;
+                const fileValidation = validateFileInput(selectedFilesKeys,this.$store.state.vehicleDocuments);
+                vehicleDocs.filesErrorMessages = [];
+                if(fileValidation && fileValidation.length > 0){
+                    fileValidation.forEach(result => {
+                          vehicleDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
+                    });
+                }else{
+                    this.currentStep++;
+                }
             }else{
                 this.currentStep++;
             }
         }
     },
     previousStep() {
-        this.currentStep--;
+        if (this.currentStep > 1) {
+            this.currentStep--;
+        }
     },
     existingEmail(email) {
         return new Promise((resolve) => {

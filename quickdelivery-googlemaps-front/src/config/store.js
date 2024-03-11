@@ -11,6 +11,7 @@ export default createStore({
         id: null,
         version: null,
         creationDate: null,
+        reference: "",
         height: 0,
         width: 0,
         depth: 0,
@@ -61,6 +62,7 @@ export default createStore({
       lastName: 'ESSAIDI',
       email: 'im.essaidi@gmail.com',
       id: 1652,
+      type: 'DELIVERY_PERSON',
     },
     user: {
                 id: null,
@@ -68,6 +70,9 @@ export default createStore({
                 type: 'DELIVERY_PERSON',
                 firstName: '',
                 lastName: '',
+                age: null,
+                birthDate: null,
+                sex: '',
                 emailAddress: '',
                 emailAddressValidation: false,
                 phone: '',
@@ -75,6 +80,8 @@ export default createStore({
                 activeAccount: false,
                 password: '',
                 passwordConfirmation: '',
+                emailAddressConfirmation: '',
+                phoneConfirmation:'',
                 addressAuto: '',
                 personalAddress: [
                   {

@@ -44,6 +44,7 @@ export default {
         id: null,
         version: null,
         creationDate: null,
+        reference: "",
         height: 0,
         width: 0,
         depth: 0,
@@ -106,6 +107,7 @@ export default {
       .then(response => {
         if(response.status == '200'){
            this.$store.commit('updatePackage', this.package);
+           this.$store.commit('updateDocuments', []);
            this.$router.push('/');
         }
       })

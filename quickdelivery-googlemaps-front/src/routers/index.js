@@ -5,6 +5,7 @@ import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
 import PaymentPage from '../pages/PaymentPage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
+import PackageConsultation from '../pages/PackageConsultation.vue';
 
 const routes = [
         {
@@ -31,6 +32,11 @@ const routes = [
         path: '/userSignInPage',
         name: 'userSignInPage',
         component:UserSignInPage
+        },
+        {
+        path: '/package/:id', // Définir le paramètre ':id'
+        name: 'PackageConsultation',
+        component: PackageConsultation
         }
       ];
 const router = VueRouter.createRouter({

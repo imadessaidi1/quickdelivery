@@ -2,10 +2,15 @@ package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.entities.Address;
+import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
+import com.quickdelivery.abstarct.repositories.Users;
+import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,9 @@ public class PackageController {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    WebSocketHandler webSocketHandler;
+
     @PostMapping("/create")
     public PackageDTO createNewPackage(@RequestParam("packageDTO") String packageDTO,
                                        @RequestParam(value = "files", required = false) MultipartFile[] files,
@@ -40,7 +48,9 @@ public class PackageController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return packagesService.createNewPackage(packageDTO1, files, locale);
+        PackageDTO aPackage = packagesService.createNewPackage(packageDTO1, files, locale);
+        notify(aPackage.getReference());
+        return  aPackage;
     }
 
     @PostMapping("/bulk-create")
@@ -124,5 +134,47 @@ public class PackageController {
     @GetMapping("/getPackagesByDeliveryPerson{deliveryPersonID}")
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(@RequestParam("deliveryPersonID") Long deliveryPersonID){
         return packagesService.getPackagesByDeliveryPerson(deliveryPersonID);
+    }
+
+    @GetMapping("/getPackage{reference}")
+    public PackageDTO getPackagesByID(@RequestParam("reference") String reference){
+        return packagesService.findPackageByReference(reference);
+    }
+
+    @GetMapping("/notify")
+    public void notifyClient(){
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setFrom("PACKAGE_SERVICE");
+        messageDTO.setType("NEW_PACKAGE_NOTIFICATION");
+        messageDTO.setTo("1652");
+        messageDTO.setMessage("There is a new package around you :)");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(messageDTO);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        webSocketHandler.sendMessageToAll(json);
+    }
+
+    private void notify(String aPackage){
+        List<Address> addressAroundNewPackage = packagesService.findUsersAroundPosition(aPackage);
+        for (Address address : addressAroundNewPackage){
+            MessageDTO messageDTO = new MessageDTO();
+            messageDTO.setFrom("PACKAGE_SERVICE");
+            messageDTO.setType("NEW_PACKAGE_NOTIFICATION");
+            messageDTO.setTo(address.getResidents().getId().toString());
+            messageDTO.setMessage("There is a new package around you :)");
+            messageDTO.setUrl("http://localhost:8080/package/"+aPackage);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json;
+            try {
+                json = objectMapper.writeValueAsString(messageDTO);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            webSocketHandler.sendMessageToAll(json);
+        };
     }
 }

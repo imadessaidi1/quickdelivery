@@ -288,3 +288,29 @@ export function validatePasswordConfirmation(password, confirmation) {
            }
 }
 
+export function validateEmailConfirmation(email, confirmation) {
+           if (!confirmation || email != confirmation) {
+               return false;
+           } else {
+               return true;
+           }
+}
+export function validatePhoneConfirmation(phone, confirmation) {
+           if (!confirmation || phone != confirmation) {
+               return false;
+           } else {
+               return true;
+           }
+}
+
+export function validateFileInput(selectedFilesKeys, documentsList){
+    let results = [];
+    if(selectedFilesKeys){
+        selectedFilesKeys.forEach(key => {
+              if(!documentsList[key]){
+                results.push({status : false, missingKey: key});
+              }
+        });
+    }
+    return results;
+}

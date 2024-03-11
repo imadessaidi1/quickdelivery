@@ -33,6 +33,7 @@
                     @change="handleRibFileChange(4, 'RIB')"
             />
             <br/><span v-if="userDocuments['RIB'] != undefined"><strong>{{userDocuments['RIB'].name}}</strong></span>
+            <span v-if="filesErrorMessages['RIB']" class="errorMessage" >{{filesErrorMessages['RIB']}}</span>
         </div>
     </div>
 </template>
@@ -56,6 +57,9 @@ export default {
     return {
      RIB: 'RIB'
     };
+  },
+  props: {
+    filesErrorMessages: [],
   },
   methods: {
     validateIBAN,

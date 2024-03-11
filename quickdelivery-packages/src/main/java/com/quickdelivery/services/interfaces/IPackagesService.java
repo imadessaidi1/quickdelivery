@@ -1,6 +1,8 @@
 package com.quickdelivery.services.interfaces;
 
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.entities.Address;
+import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,4 +31,8 @@ public interface IPackagesService {
     void updatePackageStatus(PACKAGE_STATUS status, Long id);
 
     Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID);
+
+    public List<Address> findUsersAroundPosition(String aPackage);
+
+    public PackageDTO findPackageByReference(String reference);
 }

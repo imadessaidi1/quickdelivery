@@ -1,5 +1,5 @@
 <template>
-    <h2>Collie N° : {{ package_.id }}</h2>
+    <h2 v-show="package_.reference">{{$t('packageReference')}}: {{ package_.reference }}</h2>
     <div class="package_details_group">
         <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>

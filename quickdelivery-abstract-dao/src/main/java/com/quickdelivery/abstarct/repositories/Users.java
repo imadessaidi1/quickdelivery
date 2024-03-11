@@ -1,5 +1,6 @@
 package com.quickdelivery.abstarct.repositories;
 
+import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -14,4 +15,11 @@ public interface Users extends CrudRepository<User, Long> {
     @Query("SELECT u " +
             "FROM User u WHERE u.emailAddress = :email")
     User finByEmail(@Param("email") String email);
+    @Query("SELECT a FROM Address a " +
+            "WHERE st_distance_sphere(POINT(a.latitude, a.longitude), POINT(:latitude, :longitude)) <= :rayonEnMetres " +
+            "AND a.residents.type='DELIVERY_PERSON' " +
+            "AND a.type = 'RESIDENCE'")
+    List<Address> findUsersAroundPosition(@Param("latitude") String latitude,
+                                          @Param("longitude") String longitude,
+                                          @Param("rayonEnMetres") double rayonEnMetres);
 }

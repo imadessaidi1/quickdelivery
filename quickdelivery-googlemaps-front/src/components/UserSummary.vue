@@ -41,15 +41,15 @@
             <h3>{{$t('userDocuments')}}</h3>
             <span class="mini_title">User Documents</span>
             <div class="details">
-                <div><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
-                <div class="long_text"><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
-                <div class="long_text"><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
-                <div class="long_text"><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
+                <div class="long_text" v-if="userDocuments['ID']"><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
+                <div class="long_text" v-if="userDocuments['DRIVER_LICENCE']"><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
+                <div class="long_text" v-if="userDocuments['USER_COMPANY_EXTRACT']"><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
+                <div class="long_text" v-if="userDocuments['USER_COMPANY_INSURANCE']"><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
             </div>
             <span class="mini_title">Vehicle Documents</span>
             <div class="details">
-                <div class="long_text"><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
-                <div class="long_text"><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>
+                <div class="long_text" v-if="vehicleDocuments['GRAY_CARD']"><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
+                <div class="long_text" v-if="vehicleDocuments['INSURANCE']"><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>
             </div>
         </div>
     </div>

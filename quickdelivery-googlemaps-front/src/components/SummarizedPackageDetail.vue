@@ -4,7 +4,7 @@
       <img src="../assets/box.png" alt="Image" />
     </div>
     <div class="item-details">
-        <h3>Collie N° : {{ package_.id }}</h3>
+        <h3 v-if="package_.reference">Collie N° : {{ package_.reference }}</h3>
         <!--<p>{{$t('packageHeight')}}:
             {{package_.height}}</p>
         <p>{{$t('packageWidth')}}:

@@ -1,7 +1,9 @@
 package com.quickdelivery.abstarct.entities;
 
+import com.quickdelivery.abstarct.parameters.GENDER_TYPE;
 import jakarta.persistence.*;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,6 +21,12 @@ public class User {
     private String firstName;
     @Column
     private String lastName;
+    @Column
+    private Integer age;
+    @Column
+    private Date birthDate;
+    @Column
+    private GENDER_TYPE sex;
     @Column
     private String emailAddress;
     @Column
@@ -168,5 +176,29 @@ public class User {
 
     public void setVehicles(Set<Vehicle> vehicles) {
         this.vehicles = vehicles;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public GENDER_TYPE getSex() {
+        return sex;
+    }
+
+    public void setSex(GENDER_TYPE sex) {
+        this.sex = sex;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
     }
 }

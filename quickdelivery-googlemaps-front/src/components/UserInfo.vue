@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>User Info.</h2>
+        <h2>User Informations</h2>
 
         <div class="input_container">
             <div class="input_only">

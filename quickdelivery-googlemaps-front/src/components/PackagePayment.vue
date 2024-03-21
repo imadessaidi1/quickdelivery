@@ -1,12 +1,7 @@
 <template>
+  <div class="payment-vue">
     <div class="payment-form">
         <h2>Payment Information</h2>
-        <div class="payment-icons">
-            <img src="/visa-ico.png" class="payment-icon"/>
-            <img src="/master-card-ico.png" class="payment-icon"/>
-            <img src="/amex-ico.png" class="payment-icon"/>
-            <img src="/paypal-ico.png" class="payment-icon"/>
-        </div>
         <div class="payment-method">
             <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
             <label for="payByCard">Pay by Card</label>
@@ -15,10 +10,17 @@
         </div>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
             <CreditCard />
-            <button type="submit">Pay by Card</button>
+            <button class="btn primary_btn" type="submit">Pay by Card</button>
         </form>
-        <button v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">Pay with PayPal</button>
+        <button class="btn primary_btn" v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">Pay with PayPal</button>
+        <div class="payment-icons">
+          <img src="/visa-ico.png" class="payment-icon"/>
+          <img src="/master-card-ico.png" class="payment-icon"/>
+          <img src="/amex-ico.png" class="payment-icon"/>
+          <img src="/paypal-ico.png" class="payment-icon"/>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -123,15 +125,26 @@ export default {
 };
 </script>
 <style>
-.payment-form {
-  max-width: 400px;
-  margin: 0 auto;
+.payment-vue{
+  height: 87%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
+.payment-form {
+  width: max-content;
+  height: max-content;
+  padding: 20px 20px;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+.payment-form h2 {
+  margin: 0;
+}
 .payment-icons {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .payment-icon {

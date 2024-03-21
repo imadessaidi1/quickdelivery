@@ -195,8 +195,11 @@ export default{
 .input_only{
   height: 85px;
 }
-.input_container input{
+.input_container input,
+.input_container select
+{
   width: 65%;
+  background-color: #fff;
 }
 .small_width{
   display: none;
@@ -216,7 +219,8 @@ export default{
   .packege_creation_main {
     align-items: baseline;
   }
-  .input_container input{
+  .input_container input,
+  .input_container select{
     width: 83%;
   }
   .packege_creation_main .package-form {
@@ -230,12 +234,10 @@ export default{
     padding: 30px;
   }
   .input_container input,
-  .picture_file_container .input_only input{
+  .picture_file_container .input_only input,
+  .input_container select{
     width: 93%;
     height: 30px;
-  }
-  .input_container input{
-    height: 35px;
   }
 }
 </style>  

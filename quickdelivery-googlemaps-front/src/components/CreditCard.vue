@@ -2,6 +2,13 @@
     <div class="input_container">
         <div class="input_only">
             <div class="form-group">
+                <label for="cardNumber">Nom:</label>
+                <Field type="text" id="cardNumber" v-model="user.paymentModes['CREDIT_CARD'].cardNumber" name="cardNumber" :rules="validateCreditCardNumber" />
+                <ErrorMessage class="errorMessage" name="cardNumber" />
+            </div>
+        </div>
+        <div class="input_only">
+            <div class="form-group">
                 <label for="cardNumber">{{$t('userCardNumber')}}:</label>
                 <Field type="text" id="cardNumber" v-model="user.paymentModes['CREDIT_CARD'].cardNumber" name="cardNumber" :rules="validateCreditCardNumber" />
                 <ErrorMessage class="errorMessage" name="cardNumber" />

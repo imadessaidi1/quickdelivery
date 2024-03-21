@@ -4,6 +4,7 @@ import { createI18n } from 'vue-i18n';
 const messages = {
   en: {
     //API URLS
+    wsURL: 'ws://localhost:8082/ws',
     rootURL: 'http://localhost:8082/packages/v1/',
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
@@ -12,6 +13,9 @@ const messages = {
     updatePackageStatus: 'update-packages-status',
     getPackage: 'getPackage?reference=',
     notify: 'notify',
+    pickup: 'pickup?',
+    deliver: 'deliver?',
+    userWithOngoingDelivery: 'isUserWithOngoingDelivery?userId=',
     userRootURL: 'http://localhost:8081/users/v1/',
     createUser: 'create',
     getUserByEmail: 'userByEmail?email=',
@@ -67,12 +71,16 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     packageCreationAgreement: 'Consent to Terms of Use',
     packageReference: 'Package N°',
+    packagePickupPassword: 'Mot de passe de collecte',
+    packageDeliveryPassword: 'Mot de passe de livraison',
     //Packages Arround
     packagesArround: 'Packages around you',
     packagesArroundDistanceFromYou: 'Distance to package from your position',
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
+    packagesArroundMArkerDetailActionsPickUp: 'Pickup',
+    packagesArroundMArkerDetailActionsDeliver: 'Deliver',
     packagesArroundMArkerDetailActionsDetails: 'Details',
     packagesArroundMArkerDetailActionCloseModal: 'Close',
     //USER
@@ -210,12 +218,16 @@ const messages = {
     packageAddressListActionsDelete: 'Supprimer',
     packageCreationAgreement: 'Consentement pour les conditions d\'utilisation',
     packageReference: 'Collis N°',
+    packagePickupPassword: 'Pickup password',
+    packageDeliveryPassword: 'Delivery password',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
     packagesArroundDistanceFromYou: 'Vers le colis de votre position',
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',
+    packagesArroundMArkerDetailActionsPickUp: 'Collecter',
+    packagesArroundMArkerDetailActionsDeliver: 'Livrer',
     packagesArroundMArkerDetailActionsDetails: 'Details',
     packagesArroundMArkerDetailActionCloseModal: 'Close',
     //USER

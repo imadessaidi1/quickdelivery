@@ -26,6 +26,7 @@
     <div>
       <label for="address">{{$t('packageAddressAddress')}}:</label>
         <AddressAutocomplete id="address" ref="addressAutoComplete"/>
+        <br/><span><strong>{{address.addressAuto}}</strong></span>
         <span v-if="isAddressError" class="errorMessage">{{errorAddressMessage}}</span>
     </div>
     <div class="input_container">

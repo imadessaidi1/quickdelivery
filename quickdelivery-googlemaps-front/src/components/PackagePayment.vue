@@ -93,27 +93,17 @@ export default {
   },
   methods: {
     processCardPayment() {
-    const packageStatus = 'NEW';
-    const packageId =  this.package_.id;
-
-    // Données à envoyer au contrôleur
-    const requestData = {
-      [packageId]: packageId,
-      [packageId]: packageStatus
-    };
-
-    // Appel de l'API avec Axios
-    http.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus'), requestData)
-      .then(response => {
-        if(response.status == '200'){
-           this.$store.commit('updatePackage', this.package);
-           this.$store.commit('updateDocuments', []);
-           this.$router.push('/');
-        }
-      })
-      .catch(error => {
-        console.error('Error updating package status:', error);
-      });
+        http.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus')+'?'+this.package_.id+'=NEW')
+          .then(response => {
+            if(response.status == '200'){
+               this.$store.commit('updatePackage', this.package);
+               this.$store.commit('updateDocuments', []);
+               this.$router.push('/');
+            }
+          })
+          .catch(error => {
+            console.error('Error updating package status:', error);
+          });
     },
     redirectToPayPal() {
       // Redirection vers PayPal pour finaliser le paiement

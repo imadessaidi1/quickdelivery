@@ -36,7 +36,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>📦 <span th:text="#{email.packageDetails}"></span> 🎉🎉🎉</h1>
+    <h1>📦 <span th:text="#{email.packageReservationDetails(${packageReference})}"></span> 🎉🎉🎉</h1>
     <p><span th:text="#{email.greetings(${recipientName})}"></span></p>
     <p><span th:text="#{email.packageDetails}"></span></p>
 
@@ -49,7 +49,6 @@
             <li><strong><span th:text="#{email.departureAddress}"></span></strong><span th:text="${departureAddress}"></span></li>
             <li><strong><span th:text="#{email.pickupDateTime}"></span></strong><span th:text="${pickupDateTime}"></span></li>
             <li><strong><span th:text="#{email.arrivalAddress}"></span></strong><span th:text="${arrivalAddress}"></span></li>
-            <!--<li><strong><span th:text="#{email.deliveryDateTime}"></span></strong><span th:text="${deliveryDateTime}"></span></li>-->
         </ul>
 
     </ul>
@@ -57,10 +56,11 @@
     <p><span style="font-size: 24px;">🚀</span><strong><span th:text="#{email.nextSteps}"></span><strong></p>
     <ol>
         <li><span th:text="#{email.step1}"></span></li>
-        <li><span th:text="#{email.step2}"></span></li>
+        <li><span th:text="#{email.step2b}"></span></li>
         <li><span th:text="#{email.step3}"></span></li>
         <li><span th:text="#{email.step4}"></span></li>
     </ol>
+    <p><span style="font-size: 24px;">🔒</span><strong><span th:text="#{email.password}"></span></strong> <span th:text="${otp}"></span></p>
 
     <p class="footer"><span th:text="#{email.signature}"></span>,<br/>
         <img src="url_to_your_logo" alt="logo" style="width: 100px;"><br/>

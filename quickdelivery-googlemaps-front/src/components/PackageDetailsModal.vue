@@ -6,7 +6,7 @@
       <br/>
         <button class="close-btn" ref="closeModalButtons"
         @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
-        <button class="primary_btn" ref="detailsButtons"
+        <button class="btn primary_btn" ref="detailsButtons" v-show="package_.status === 'NEW'"
         @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
     </div>
   </div>
@@ -22,6 +22,11 @@ export default {
       //SummarizedPackageDetail,
       PackageSummary,
     },
+  computed: {
+        package_() {
+          return this.$store.state.package_;
+        },
+  },
   data() {
     return {
       isOpen: false,
@@ -84,7 +89,8 @@ export default {
       this.isOpen = false;
     },
     reserve() {
-      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.$store.state.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
+      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
       return http.put(url)
         .then(response => {
           if(response.status == '200'){

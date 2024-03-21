@@ -41,7 +41,7 @@ public class PDFGenerator {
                 .setMarginBottom(10));
 
         // Add package details
-        document.add(new Paragraph(bundle.getString("package.id") + packageDTO.getId())
+        document.add(new Paragraph(bundle.getString("package.id") + packageDTO.getReference())
                 .setMarginBottom(5));
         document.add(new Paragraph(bundle.getString("package.date") + packageDTO.getCreationDate())
                 .setMarginBottom(5));

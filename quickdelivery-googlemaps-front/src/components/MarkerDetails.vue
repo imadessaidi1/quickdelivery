@@ -1,7 +1,7 @@
 <template>
   <div class="marker-details">
     <!-- Zone droite avec le texte -->
-      <h3>Packet N° : {{ package_.id }}</h3>
+      <h3>{{$t('packageReference')}} : {{ package_.reference }}</h3>
       <!--<p>{{ $t('packageHeight') }}:
         {{ package_.height }}</p>
       <p>{{ $t('packageWidth') }}:
@@ -55,7 +55,8 @@ export default {
       this.mapVue.$refs.map.contentWindow.postMessage(message, "*");
     },
     async reserve() {
-      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id;
+      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
       return new Promise((resolve, reject) => {
         http.put(url)
         .then(response => {

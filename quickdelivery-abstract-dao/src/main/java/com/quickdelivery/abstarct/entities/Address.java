@@ -192,4 +192,24 @@ public class Address {
     public void setDateTime(Timestamp dateTime) {
         this.dateTime = dateTime;
     }
+
+    public String formatedtoString(){
+        StringBuilder address= new StringBuilder();
+        if(firstName != null)
+            address.append("\n").append(firstName);
+        if(lastName != null)
+            address.append(" "+lastName);
+        if (line1 != null)
+            address.append("\n").append(line1);
+        if (line2 != null)
+            address.append("\n").append(line2);
+        if (zipCode != null)
+            address.append("\n").append(zipCode);
+        if (town!=null)
+            address.append("\n").append(town);
+        if (country != null)
+            address.append("\n").append(country);
+
+        return address.toString();
+    }
 }

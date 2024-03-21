@@ -12,23 +12,24 @@ import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.*;
-import com.quickdelivery.abstarct.parameters.ADDRESS_TYPE;
-import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
-import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
-import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
+import com.quickdelivery.abstarct.parameters.*;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -61,6 +62,12 @@ public class PackagesService implements IPackagesService {
     private String qrCodePath;
     @Value("${packages.docs.directory}")
     private String packagesDirectory;
+    @Value("${package.doc.labelends}")
+    private String packageLabelEnds;
+    @Value("${package.doc.qrends}")
+    private String packageQrEnds;
+    @Value("${package.referece.start}")
+    private String packageReferenceStart;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -71,6 +78,13 @@ public class PackagesService implements IPackagesService {
     private GeoApiContext geoApiContext;
     @Autowired
     WebSocketHandler webSocketHandler;
+    @Autowired
+    private Logger logger;
+    @Autowired
+    private ResourceBundleMessageSource messageSource;
+    @Autowired()
+    @Qualifier("myTemplateResolver")
+    private ITemplateResolver templateResolver;
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
         MultiValueMap<String, MultipartFile> filesMap = new LinkedMultiValueMap<>();
@@ -102,11 +116,13 @@ public class PackagesService implements IPackagesService {
             packageDTO.setVersion(aPackage.getVersion());
             FileHelper.saveFilesInParallel(filesMap, packagesDirectory, aPackage.getReference());
             executorService.submit(() -> {
-                QRCodeGenerator.generateQRCode(getPackageByIdURL + packageDTO.getId(), packagesDirectory + packageDTO.getReference() + "\\package_qr.png", 150, 150);
+                QRCodeGenerator.generateQRCode(getPackageByIdURL + packageDTO.getReference(),
+                        packagesDirectory + packageDTO.getReference() + packageQrEnds, 150, 150);
             });
             executorService.submit(() -> {
                 try {
-                    PDFGenerator.generatePdf(packageDTO, packagesDirectory + packageDTO.getReference() + "\\package_qr.png", packagesDirectory + packageDTO.getReference() + "\\package_label.pdf", locale);
+                    PDFGenerator.generatePdf(packageDTO, packagesDirectory + packageDTO.getReference() + packageQrEnds,
+                            packagesDirectory + packageDTO.getReference() + packageLabelEnds, locale);
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 } catch (MalformedURLException e) {
@@ -114,9 +130,8 @@ public class PackagesService implements IPackagesService {
                 }
             });
             executorService.submit(() -> {
-                sendPackageCreationEMail(packageDTO, aPackage, locale);
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_CREATION.getType(),messageSource.getMessage("email.subject.newPackage", null, locale),EMAIL_TYPE.PACKAGE_CREATION);
             });
-
         } catch (MalformedURLException | FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -192,7 +207,7 @@ public class PackagesService implements IPackagesService {
             departureLongitude = arrivalLongitude;
             arrivalLongitude = permut;
         }
-        List<Package> packages = this.packages.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude,arrivalLongitude);
+        List<Package> packages = this.packages.findPackagesOnMyRoadByRadius(departureLatitude,departureLongitude,5000,arrivalLatitude,arrivalLongitude,5000);
         List<PackageDTO> packageDTOS = new ArrayList<>();
         packages.stream().filter(aPackage -> aPackage.getAddresses().size()==2).collect(Collectors.toList())
                 .stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
@@ -200,36 +215,78 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
-    public void reservePackage(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException {
+    public PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException {
         Package aPackage = packages.findById(packageID).get();
         User user = users.findById(deliveryPersonID).get();
         aPackage.setStatus(PACKAGE_STATUS.RESERVED);
         PackageReservation packageReservation = new PackageReservation();
+        packageReservation.setStatus(PACKAGE_RESERVATION_STATUS.ONGOING);
         packageReservation.setaPackage(aPackage);
         packageReservation.setDeliveryPerson(user);
         packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
-        packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, OTPCounter));
+        String otp = OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis());
+        packageReservation.setPickUpOTP(otp);
         aPackage.getPackageReservations().add(packageReservation);
-        //To-Do Send OTP to delivery person & Sender
         packages.save(aPackage);
+        /*ExecutorService executorService = Executors.newFixedThreadPool(2);
+        executorService.submit(() -> {*/
+            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(), messageSource.getMessage("email.subject.packageReserved", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
+        /*});
+        executorService.submit(() -> {*/
+            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(), messageSource.getMessage("email.subject.packageReservationCofirm", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
+        //});
+        return packageReservation;
     }
 
     @Override
-    public void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP) throws NoSuchAlgorithmException {
+    public void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException {
         Package aPackage = packages.findById(packageID).get();
-        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryPerson().getId() == deliveryPersonID).collect(Collectors.toList());
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryPerson().getId().equals(deliveryPersonID)).collect(Collectors.toList());
         if(packageReservation_.size()>0 && packageReservation_.get(0).getPickUpOTP().equals(pickUpOTP)) {
             aPackage.setStatus(PACKAGE_STATUS.PICKEDUP);
-            aPackage.getPackageReservations().stream().forEach(packageReservation -> {
-                try {
-                    packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, OTPCounter));
-                    //To-Do Send OTP to delivery person & receiver
-                } catch (NoSuchAlgorithmException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            try {
+                packageReservation_.get(0).setDeliveryOTP(OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis()));
+                //To-Do Send OTP to delivery person & receiver
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+            packages.save(aPackage);
+            /*ExecutorService executorService = Executors.newFixedThreadPool(3);
+            executorService.submit(() -> {*/
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_SENDER.getType(),
+                        messageSource.getMessage("email.subject.packagePickup", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_SENDER);
+            /*});
+            executorService.submit(() -> {*/
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_RECEIVER.getType(),
+                        messageSource.getMessage("email.subject.packagePickupR", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER);
+            /*});
+            executorService.submit(() -> {*/
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_DELIVERY.getType(),
+                        messageSource.getMessage("email.subject.packagePickupCofirm", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY);
+            //});
         }else{
-            System.out.println("Unauthorized USER");
+            logger.info("Unauthorized USER");
+        }
+    }
+
+    public void deliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryPerson().getId().equals(deliveryPersonID)).collect(Collectors.toList());
+        if(packageReservation_.size()>0 && packageReservation_.get(0).getDeliveryOTP().equals(pickUpOTP)) {
+            aPackage.setStatus(PACKAGE_STATUS.DELIVERED);
+            packageReservation_.get(0).setStatus(PACKAGE_RESERVATION_STATUS.FINISHED);
+            packages.save(aPackage);
+            /*ExecutorService executorService = Executors.newFixedThreadPool(3);
+            executorService.submit(() -> {*/
+            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_RECEIVER.getType(),
+                    messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER);
+            /*});
+            executorService.submit(() -> {*/
+            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_SENDER.getType(),
+                    messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_SENDER);
+            //});
+        }else{
+            logger.info("Unauthorized USER");
         }
     }
 
@@ -313,9 +370,9 @@ public class PackagesService implements IPackagesService {
         aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
         packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
-        aPackage.setSender(users.findById(packageDTO.getSenderID()).get());
+        aPackage.setSender(null);
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
-        reference.append("PACK").append(packageDTO.getAddresses().get(0).getCountry().substring(0,2).toUpperCase()).append(aPackage.getCreationDate().toString().replaceAll("[\\s\\-:.]", ""));
+        reference.append(packageReferenceStart).append(packageDTO.getAddresses().get(0).getCountry().substring(0,2).toUpperCase()).append(aPackage.getCreationDate().toString().replaceAll("[\\s\\-:.]", ""));
         aPackage.setReference(reference.toString());
         packageDTO.setReference(reference.toString());
         packageDTO.setCreationDate(aPackage.getCreationDate());
@@ -325,12 +382,12 @@ public class PackagesService implements IPackagesService {
         Document qrDocument = new Document();
         qrDocument.setaPackage(aPackage);
         qrDocument.setType(DOCUMENT_TYPE.PACKAGE_QR);
-        qrDocument.setDocURL(packagesDirectory+packageDTO.getReference()+"\\package_qr.png");
+        qrDocument.setDocURL(packagesDirectory+packageDTO.getReference()+packageQrEnds);
         aPackage.getDocument().add(qrDocument);
         Document pdfDocument = new Document();
         pdfDocument.setaPackage(aPackage);
         pdfDocument.setType(DOCUMENT_TYPE.PACKAGE_PDF_LABEL);
-        pdfDocument.setDocURL(packagesDirectory+packageDTO.getReference()+"\\package_label.pdf");
+        pdfDocument.setDocURL(packagesDirectory+packageDTO.getReference()+packageLabelEnds);
         aPackage.getDocument().add(pdfDocument);
         return aPackage;
     }
@@ -355,23 +412,66 @@ public class PackagesService implements IPackagesService {
         aPackage.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
     }
 
-    private void sendPackageCreationEMail(PackageDTO packageDTO, Package aPackage, Locale locale){
+    private void sendPackageCreationEMail(Package aPackage, Locale locale, String template, String subject, EMAIL_TYPE type){
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", getDepartureAddress(packageDTO.getAddresses()).getFirstName()+" "+getDepartureAddress(packageDTO.getAddresses()).getLastName());
+        if(type.equals(EMAIL_TYPE.PACKAGE_CREATION) || type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_SENDER) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_SENDER)
+                ||type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_SENDER)) {
+            templateModel.put("recipientName", getDepartureAddress(aPackage.getAddresses()).getFirstName() + " " + getDepartureAddress(aPackage.getAddresses()).getLastName());
+        }else if(type.equals(EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER) ||type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER)) {
+            templateModel.put("recipientName", getArrivalAddress(aPackage.getAddresses()).getFirstName() + " " + getArrivalAddress(aPackage.getAddresses()).getLastName());
+        }
         templateModel.put("height", aPackage.getHeight());
         templateModel.put("width", aPackage.getWidth());
         templateModel.put("depth", aPackage.getDepth());
         templateModel.put("weight", aPackage.getWeight());
+        templateModel.put("packageReference", aPackage.getReference());
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("departureAddress", getDepartureAddress(packageDTO.getAddresses()).formatedtoString());
-        templateModel.put("pickupDateTime", getDepartureAddress(packageDTO.getAddresses()).getDateTime());
-        templateModel.put("arrivalAddress", getArrivalAddress(packageDTO.getAddresses()).formatedtoString());
-        templateModel.put("deliveryDateTime", getArrivalAddress(packageDTO.getAddresses()).getDateTime());
+        templateModel.put("followupLink", "http://192.168.1.91:8080/followpackage/"+aPackage.getReference());
+        templateModel.put("evaluationLink", "http://192.168.1.91:8080/evaluate/"+aPackage.getReference());
+        if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
+            aPackage.getPackageReservations().stream().forEach(packageReservation -> {
+                if (packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING)) {
+                    templateModel.put("otp", packageReservation.getPickUpOTP());
+                    templateModel.put("deliveryOtp", packageReservation.getDeliveryOTP());
+                    if(type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY)||type.equals(EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY)) {
+                        templateModel.put("recipientName", packageReservation.getDeliveryPerson().getFirstName() + " " + packageReservation.getDeliveryPerson().getLastName());
+                    }
+                }
+            });
+        }
+        templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
+        templateModel.put("departureAddress", getDepartureAddress(aPackage.getAddresses()).formatedtoString());
+        templateModel.put("pickupDateTime", getDepartureAddress(aPackage.getAddresses()).getDateTime());
+        templateModel.put("arrivalAddress", getArrivalAddress(aPackage.getAddresses()).formatedtoString());
+        templateModel.put("deliveryDateTime", getArrivalAddress(aPackage.getAddresses()).getDateTime());
+        String attachement;
+        if(type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER)
+                || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_SENDER) || type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER) || type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_SENDER)){
+            attachement = null;
+        }else{
+            attachement = packagesDirectory+aPackage.getReference()+packageLabelEnds;
+        }
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(getDepartureAddress(packageDTO.getAddresses()).getEmail(),"New Package Created",templateModel, locale, "newpackage-template-thymeleaf.html",packagesDirectory+packageDTO.getReference()+"\\package_label.pdf");
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource,templateResolver,getDepartureAddress(aPackage.getAddresses()).getEmail(),
+                    subject,templateModel, locale, template,attachement);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Address> findUsersAroundPosition(String aPackage){
+        Address address = getDepartureAddress(packages.findPackageByReference(aPackage).getAddresses());
+        return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 2000000);
+    }
+
+    @Override
+    public PackageDTO findPackageByReference(String reference) {
+        return modelMapper.map(packages.findPackageByReference(reference), PackageDTO.class);
+    }
+
+    @Override
+    public boolean isUserWithOngoingDelivery(Long userId) {
+        return packages.existsOngoingReservationsForUserWithPickedUpPackage(userId);
     }
 
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {
@@ -398,14 +498,12 @@ public class PackagesService implements IPackagesService {
         }
         return null;
     }
-
-    public List<Address> findUsersAroundPosition(String aPackage){
-        Address address = getDepartureAddress(packages.findPackageByReference(aPackage).getAddresses());
-        return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 2000000);
-    }
-
-    @Override
-    public PackageDTO findPackageByReference(String reference) {
-        return modelMapper.map(packages.findPackageByReference(reference), PackageDTO.class);
+    private Address getArrivalAddress(Set<Address> addresses) {
+        for (Address address : addresses) {
+            if (ADDRESS_TYPE.ARRIVAL.equals(address.getType())) {
+                return address;
+            }
+        }
+        return null;
     }
 }

@@ -22,8 +22,10 @@
           </div>
           <br/>
           <!--<button class="btn primary_btn" @click="callNotification">notification</button>&nbsp;-->
-          <button class="btn primary_btn" @click="previousStep" v-if="currentStep > 1">{{$t('packagePreviousAction')}}</button>&nbsp;
-          <button class="btn primary_btn" type="submit"><span v-if="currentStep < 3">{{$t('packageNextAction')}}</span><span v-if="currentStep === 3">{{$t('packageSummaryAction')}}</span><span v-if="currentStep === 4">{{$t('packageCreateAction')}}</span></button>
+        <button class="btn primary_btn" type="button" @click="previousStep" v-show="currentStep > 1">{{$t('packagePreviousAction')}}</button>
+        <button class="btn primary_btn" type="submit" v-show="currentStep < 3">{{$t('packageNextAction')}}</button>
+        <button class="btn primary_btn" type="submit" v-show="currentStep === 3">{{$t('packageSummaryAction')}}</button>
+        <button class="btn primary_btn" type="submit" v-show="currentStep === 4">{{$t('packageCreateAction')}}</button>
         </Form>
       </div>
     </div>
@@ -70,12 +72,15 @@ export default{
         }else if(this.currentStep === 2){
            this.$refs.departureAddress.address.type = 'DEPARTURE';
            const addressAuto=this.$refs.departureAddress.$refs.addressAutoComplete;
-           if(!validateAddress(addressAuto.address)){
+           if(addressAuto.address){
+                this.$refs.departureAddress.address.addressAuto = addressAuto.address;
+           }
+           if(!validateAddress(this.$refs.departureAddress.address.addressAuto)){
                 this.$refs.departureAddress.isAddressError = true;
                 this.$refs.departureAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
            }else{
                this.$refs.departureAddress.isAddressError = false;
-               const address = addressAuto.address.split(',');
+               const address = this.$refs.departureAddress.address.addressAuto.split(',');
                this.$refs.departureAddress.address.line1 = address[0].trim();
                this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
                let index = address[1].trim().indexOf(' ');
@@ -89,7 +94,10 @@ export default{
         }else if(this.currentStep === 3){
            this.$refs.arrivalAddress.address.type = 'ARRIVAL';
            const addressAuto_=this.$refs.arrivalAddress.$refs.addressAutoComplete;
-           if(!validateAddress(addressAuto_.address)){
+           if(addressAuto_.address){
+                this.$refs.arrivalAddress.address.addressAuto = addressAuto_.address;
+           }
+           if(!validateAddress(this.$refs.arrivalAddress.address.addressAuto)){
                 this.$refs.arrivalAddress.isAddressError = true;
                 this.$refs.arrivalAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
            }
@@ -97,10 +105,10 @@ export default{
                 this.$refs.arrivalAddress.isDateTimeError = true;
                 this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
            }
-           if(validateAddress(addressAuto_.address) && validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
+           if(validateAddress(this.$refs.arrivalAddress.address.addressAuto) && validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
                this.$refs.arrivalAddress.isAddressError = false;
                this.$refs.arrivalAddress.isDateTimeError = false;
-               const address_ = addressAuto_.address.split(',');
+               const address_ = this.$refs.arrivalAddress.address.addressAuto.split(',');
                this.$refs.arrivalAddress.address.line1 = address_[0].trim();
                this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
                let index = address_[1].trim().indexOf(' ');

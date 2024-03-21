@@ -3,6 +3,7 @@ package com.quickdelivery.services.interfaces;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Package;
+import com.quickdelivery.abstarct.entities.PackageReservation;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,8 +20,9 @@ public interface IPackagesService {
 
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
-    void reservePackage(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException;
-    void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP) throws NoSuchAlgorithmException;
+    PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException;
+    void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException;
+    void deliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException;
     CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP);
     CHECK_STATUS checkOTPForDeliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP);
     PackageDTO findPackageByID(Long id);
@@ -32,7 +34,9 @@ public interface IPackagesService {
 
     Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID);
 
-    public List<Address> findUsersAroundPosition(String aPackage);
+    List<Address> findUsersAroundPosition(String aPackage);
 
-    public PackageDTO findPackageByReference(String reference);
+    PackageDTO findPackageByReference(String reference);
+
+    boolean isUserWithOngoingDelivery(Long usedId);
 }

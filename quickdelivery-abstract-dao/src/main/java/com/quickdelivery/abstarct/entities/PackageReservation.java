@@ -1,5 +1,6 @@
 package com.quickdelivery.abstarct.entities;
 
+import com.quickdelivery.abstarct.parameters.PACKAGE_RESERVATION_STATUS;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
@@ -17,6 +18,9 @@ public class PackageReservation {
     private String pickUpOTP;
     @Column
     private String deliveryOTP;
+
+    @Column
+    private PACKAGE_RESERVATION_STATUS status;
     @ManyToOne
     @JoinColumn(name="deliveryPerson_id")
     private User deliveryPerson;
@@ -78,5 +82,13 @@ public class PackageReservation {
 
     public void setaPackage(Package aPackage) {
         this.aPackage = aPackage;
+    }
+
+    public PACKAGE_RESERVATION_STATUS getStatus() {
+        return status;
+    }
+
+    public void setStatus(PACKAGE_RESERVATION_STATUS status) {
+        this.status = status;
     }
 }

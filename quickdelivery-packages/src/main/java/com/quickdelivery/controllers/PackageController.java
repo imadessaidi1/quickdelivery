@@ -5,11 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
-import com.quickdelivery.abstarct.entities.Package;
+import com.quickdelivery.abstarct.entities.PackageReservation;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
-import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
@@ -49,7 +48,7 @@ public class PackageController {
             throw new RuntimeException(e);
         }
         PackageDTO aPackage = packagesService.createNewPackage(packageDTO1, files, locale);
-        notify(aPackage.getReference());
+        notifyPackageCreation(aPackage.getReference());
         return  aPackage;
     }
 
@@ -94,25 +93,42 @@ public class PackageController {
 
     @PutMapping("/update-packages-status")
     public void updatePackageStatus(@RequestParam Map<String, String> requestMap){
-        requestMap.forEach((id, status) -> packagesService.updatePackageStatus(PACKAGE_STATUS.valueOf(status),Long.valueOf(id)));
+        requestMap.forEach((packageId, packageStatus) -> {
+            packagesService.updatePackageStatus(PACKAGE_STATUS.valueOf(packageStatus),Long.valueOf(packageId));
+        });
     }
 
-    @PutMapping("/reserve{packageID}{deliveryPersonID}")
+    @PutMapping("/reserve{packageID}{deliveryPersonID}{locale}")
     public void reservePackage(@RequestParam("packageID") Long packageID,
-                               @RequestParam("deliveryPersonID") Long deliveryPersonID){
+                               @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                               @RequestParam("locale") Locale locale){
         try {
-            packagesService.reservePackage(packageID,deliveryPersonID);
+            PackageReservation packageReservation = packagesService.reservePackage(packageID, deliveryPersonID, locale);
+            notifyPackageReservation(packageReservation.getPickUpOTP(), deliveryPersonID, packageReservation.getaPackage().getReference());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @PutMapping("/pickup{packageID}{deliveryPersonID}{pickUpOTP}")
+    @PutMapping("/pickup{packageID}{deliveryPersonID}{pickUpOTP}{locale}")
     public void pickUpPackage(@RequestParam("packageID") Long packageID,
                               @RequestParam("deliveryPersonID") Long deliveryPersonID,
-                              @RequestParam("pickUpOTP") String pickUpOTP){
+                              @RequestParam("pickUpOTP") String pickUpOTP,
+                              @RequestParam("locale") Locale locale){
         try {
-            packagesService.pickUpPackage(packageID,deliveryPersonID,pickUpOTP);
+            packagesService.pickUpPackage(packageID,deliveryPersonID,pickUpOTP,locale);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PutMapping("/deliver{packageID}{deliveryPersonID}{pickUpOTP}{locale}")
+    public void deliverPackage(@RequestParam("packageID") Long packageID,
+                              @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                              @RequestParam("deliveryOTP") String deliveryOTP,
+                              @RequestParam("locale") Locale locale){
+        try {
+            packagesService.deliverPackage(packageID,deliveryPersonID,deliveryOTP,locale);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -158,7 +174,11 @@ public class PackageController {
         webSocketHandler.sendMessageToAll(json);
     }
 
-    private void notify(String aPackage){
+    @GetMapping("/isUserWithOngoingDelivery{userId}")
+    public Boolean isUserWithOngoingDelivery(@RequestParam("userId") Long userId){
+        return packagesService.isUserWithOngoingDelivery(userId);
+    }
+    private void notifyPackageCreation(String aPackage){
         List<Address> addressAroundNewPackage = packagesService.findUsersAroundPosition(aPackage);
         for (Address address : addressAroundNewPackage){
             MessageDTO messageDTO = new MessageDTO();
@@ -174,7 +194,25 @@ public class PackageController {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+            System.out.println(json);
             webSocketHandler.sendMessageToAll(json);
         };
+    }
+
+    private void notifyPackageReservation(String otp, Long userID, String packageReference){
+            MessageDTO messageDTO = new MessageDTO();
+            messageDTO.setFrom("PACKAGE_SERVICE");
+            messageDTO.setType("PACKAGE_RESERVATION_OTP_NOTIFICATION");
+            messageDTO.setTo(userID.toString());
+            messageDTO.setMessage("You reserved a package. Here is the password to pick it up : "+otp);
+            messageDTO.setUrl("http://localhost:8080/package/"+packageReference);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json;
+            try {
+                json = objectMapper.writeValueAsString(messageDTO);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            webSocketHandler.sendMessageToAll(json);
     }
 }

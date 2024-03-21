@@ -1,5 +1,7 @@
 package com.quickdelivery.config;
 
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,19 +13,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
+    @Autowired
+    private Logger logger;
 
     private final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.add(session);
-        System.out.println("WebSocket connection established: " + session.getId());
+        logger.info("WebSocket connection established: " + session.getId());
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("Received message from client " + session.getId() + ": " + message.getPayload());
-        // Traitez le message reçu du client
+        logger.info("Received message from client " + session.getId() + ": " + message.getPayload());
     }
 
     public void sendMessageToAll(String message) {

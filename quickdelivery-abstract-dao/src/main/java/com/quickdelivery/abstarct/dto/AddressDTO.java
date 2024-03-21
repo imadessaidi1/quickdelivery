@@ -24,6 +24,8 @@ public class AddressDTO {
     private String email;
     private String phone;
 
+    private String addressAuto;
+
     public AddressDTO(){}
 
     public Long getId() {
@@ -151,6 +153,14 @@ public class AddressDTO {
 
     public void setDateTime(Timestamp dateTime) {
         this.dateTime = dateTime;
+    }
+
+    public String getAddressAuto() {
+        return addressAuto;
+    }
+
+    public void setAddressAuto(String addressAuto) {
+        this.addressAuto = addressAuto;
     }
 
     @Override

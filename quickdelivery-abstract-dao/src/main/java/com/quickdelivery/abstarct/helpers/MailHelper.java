@@ -37,26 +37,12 @@ public class MailHelper {
         return mailSender;
     }
 
-    private static ITemplateResolver thymeleafTemplateResolver() {
-        ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-        templateResolver.setPrefix("mail-templates/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode("HTML");
-        templateResolver.setCharacterEncoding("UTF-8");
-        return templateResolver;
-    }
 
-    private static ResourceBundleMessageSource emailMessageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasenames("mailMessages", "mailMessages_fr", "mailMessages_en");
-        messageSource.setDefaultEncoding("UTF-8");
-        return messageSource;
-    }
 
-    private static SpringTemplateEngine thymeleafTemplateEngine(ITemplateResolver templateResolver) {
+    private static SpringTemplateEngine thymeleafTemplateEngine(ITemplateResolver templateResolver, ResourceBundleMessageSource messageSource) {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         templateEngine.setTemplateResolver(templateResolver);
-        templateEngine.setTemplateEngineMessageSource(emailMessageSource());
+        templateEngine.setTemplateEngineMessageSource(messageSource);
         return templateEngine;
     }
 
@@ -77,7 +63,6 @@ public class MailHelper {
     public static void sendSimpleMessage(
             String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("noreply@baeldung.com");
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
@@ -88,10 +73,8 @@ public class MailHelper {
             String to, String subject, String text, String pathToAttachment) {
         MimeMessage message = getJavaMailSender().createMimeMessage();
 
-        MimeMessageHelper helper = null;
         try {
-            helper = new MimeMessageHelper(message, true);
-            helper.setFrom("noreply@baeldung.com");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text);
@@ -104,13 +87,13 @@ public class MailHelper {
         }
     }
 
-    public static void sendMessageUsingThymeleafTemplate(
+    public static void sendMessageUsingThymeleafTemplate(ResourceBundleMessageSource messageSource, ITemplateResolver templateResolver,
             String to, String subject, Map<String, Object> templateModel, Locale locale, String template, String pathToAttachment)
             throws MessagingException {
 
         Context thymeleafContext = new Context(locale);
         thymeleafContext.setVariables(templateModel);
-        String htmlBody = thymeleafTemplateEngine(thymeleafTemplateResolver()).process(template, thymeleafContext);
+        String htmlBody = thymeleafTemplateEngine(templateResolver,messageSource).process(template, thymeleafContext);
 
         sendHtmlMessage(to, subject, htmlBody, pathToAttachment);
     }

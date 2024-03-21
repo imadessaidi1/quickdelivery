@@ -28,6 +28,19 @@ public interface Packages extends CrudRepository<Package, Long> {
     List<Package> findAddressOnMyRoad(@Param("departureLatitude") String departureLatitude, @Param("arrivalLatitude") String arrivalLatitude,
                                       @Param("departureLongitude") String departureLongitude, @Param("arrivalLongitude") String arrivalLongitude);
 
+    @Query("SELECT DISTINCT p FROM Package p " +
+            "INNER JOIN p.addresses adDep " +
+            "INNER JOIN p.addresses adArr " +
+            "WHERE ST_Distance_Sphere(POINT(adDep.latitude, adDep.longitude), POINT(:startLat, :startLong)) < :startRadius " +
+            "AND ST_Distance_Sphere(POINT(adArr.latitude, adArr.longitude), POINT(:endLat, :endLong)) < :endRadius " +
+            "AND adDep.type = 'DEPARTURE' " +
+            "AND adArr.type = 'ARRIVAL'")
+    List<Package> findPackagesOnMyRoadByRadius(@Param("startLat") String startLat,
+                                       @Param("startLong") String startLong,
+                                       @Param("startRadius") double startRadius,
+                                       @Param("endLat") String endLat,
+                                       @Param("endLong") String endLong,
+                                       @Param("endRadius") double endRadius);
     @Query("SELECT p " +
             "FROM Package p WHERE p.status = :status")
     List<Package> findPackagesByStatus(@Param("status") PACKAGE_STATUS status);
@@ -46,4 +59,11 @@ public interface Packages extends CrudRepository<Package, Long> {
             "FROM Package p " +
             "WHERE p.reference = :reference")
     Package findPackageByReference(@Param("reference") String reference);
+
+    @Query("SELECT COUNT(pr) > 0 FROM PackageReservation pr " +
+            "JOIN pr.aPackage p " +
+            "WHERE pr.deliveryPerson.id = :userId " +
+            "AND pr.status = 0 " +
+            "AND p.status = 'PICKEDUP'")
+    boolean existsOngoingReservationsForUserWithPickedUpPackage(@Param("userId") Long userId);
 }

@@ -12,17 +12,21 @@ import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.MailHelper;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
+import com.quickdelivery.abstarct.parameters.EMAIL_TEMPLATE_TYPE;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IUserServices;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +63,11 @@ public class UserServices implements IUserServices {
     private ModelMapper modelMapper;
     @Autowired
     private GeoApiContext geoApiContext;
+    @Autowired
+    private ResourceBundleMessageSource messageSource;
+    @Autowired
+    @Qualifier("myTemplateResolver")
+    private ITemplateResolver templateResolver;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         User userEntity = modelMapper.map(user,User.class);
@@ -141,7 +150,8 @@ public class UserServices implements IUserServices {
         templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
         templateModel.put("validationLink", emailValidationLink+userEntity.getId());
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(userEntity.getEmailAddress(),"Email Validation",templateModel, locale, "newdeliveryperson-mailvalidation-template-thymeleaf.html", null);
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.uservalidation", null, locale),templateModel,
+                    locale, EMAIL_TEMPLATE_TYPE.NEW_DELIVERYPERSON_VALIDATION.getType(), null);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }

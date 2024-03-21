@@ -16,6 +16,7 @@ import AppFooter from './components/AppFooter.vue';
 import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
+import http from '@/config/httpInterceptor';
 
 export default {
   computed: {
@@ -23,14 +24,49 @@ export default {
       return this.$store.state.isLoading;
     },
   },
-  mounted() {
-    const socket = new WebSocket('ws://localhost:8082/ws');
+  data() {
+    return {
+      isUserWithOngoingDelivery: false,
+    };
+  },
+  async mounted() {
+    await http.get(this.$i18n.t('rootURL') + this.$i18n.t('userWithOngoingDelivery')+this.$store.state.connectedUser.id)
+      .then(response => {
+        this.isUserWithOngoingDelivery = response.data;
+    }).catch(() => {
+      console.log("unable to process your request this time. please try again latter.");
+    });
+    const socket = new WebSocket(this.$i18n.t('wsURL'));
     socket.onopen = () => {
         console.log('WebSocket connected');
+        if (navigator.geolocation && this.isUserWithOngoingDelivery) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const newPosition = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+
+                    const updateMessage = {
+                        type: 'position_update', // Type de message pour identifier la mise à jour de position
+                        position: newPosition
+                    };
+
+                    // Envoi des données au serveur via WebSocket
+                    socket.send(JSON.stringify(updateMessage));
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
     };
 
     socket.onmessage = (event) => {
         const jsonData = JSON.parse(event.data);
+        console.log(jsonData);
         const connectedUser = this.$store.state.connectedUser
         if(connectedUser.type === 'DELIVERY_PERSON' && connectedUser.id === parseInt(jsonData.to)){
             if (Notification.permission === 'granted') {

@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <PackagePayment />
-    </div>
+      <PackagePayment />
 </template>
 <script>
     import PackagePayment from '../components/PackagePayment.vue';

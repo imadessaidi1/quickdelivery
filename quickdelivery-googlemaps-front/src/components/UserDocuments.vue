@@ -60,7 +60,7 @@
         </div>
         <div>
             <h2>{{$t('userPaymentModes')}}</h2>
-            <div class="payment-method">
+            <div class="user-payment-method">
                 <label for="card-option">
                     <input type="radio" id="card-option" name="payment-type" v-model="selectedPaymentType" value="CARD"/>
                     {{$t('userPaymentCreditCard')}}
@@ -120,23 +120,23 @@ export default {
 }
 </script>
 <style>
-.payment-method {
+.user-payment-method {
   width: 50%;
   margin: 0 auto 10px auto;
   display: flex;
   justify-content: space-evenly;
 }
-.payment-method label{
+.user-payment-method label{
   font-size: 12px;
   display: flex;
   align-items: center;
 }
-.payment-method input{
+.user-payment-method input{
   margin-right: 5px;
   display: block;
 }
 @media screen and (max-width: 600px) {
-  .payment-method{
+  .user-payment-method{
     width: 100%;
   }
 }

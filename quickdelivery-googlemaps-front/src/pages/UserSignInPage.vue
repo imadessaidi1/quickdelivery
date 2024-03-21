@@ -296,22 +296,22 @@ export default {
   margin-top: 15px;
   height: max-content;
 }
-.user_creation_main .package-form button{
+.user_creation_main .user-form button{
   margin-bottom: 20px;
 }
-.user_creation_main .package-form form{
+.user_creation_main .user-form form{
   width: 100%;
 }
-.user_creation_main .package-form form .components,
-.user_creation_main .package-form form .summary_component{
+.user_creation_main .user-form form .components,
+.user_creation_main .user-form form .summary_component{
   width: 75%;
 }
-.user_creation_main .package-form form .components h2{
-  border-left: solid 5px #ff7b00;
+.user_creation_main .user-form form .components h2{
+  border-left: solid 5px #015ed6;
   padding-left: 8px;
   margin-left: 20px;
 }
-.user_creation_main .package-form .package-address {
+.user_creation_main .user-form .package-address {
   display: flex;
   flex-wrap: wrap;
 }
@@ -322,10 +322,10 @@ export default {
   margin-bottom: 20px;
 }
 @media screen and (max-width: 1500px){
-  .user_creation_main .package-form form .summary_component{
+  .user_creation_main .user-form form .summary_component{
     width: 100%;
   }
-  .user_creation_main .package-form form .components{
+  .user_creation_main .user-form form .components{
     width: 100%;
   }
 }

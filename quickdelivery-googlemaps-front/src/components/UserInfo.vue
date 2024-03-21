@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>User Info.</h2>
+        <h2>User Informations</h2>
 
         <div class="input_container">
             <div class="input_only">
@@ -122,7 +122,7 @@ export default {
 }
 </script>
 <style>
-.payment-method {
+.user-payment-method {
   margin-bottom: 20px;
   display: flex;
   align-items: center;

@@ -3,16 +3,22 @@
     <div class="payment-form">
         <h2>Payment Information</h2>
         <div class="payment-method">
-            <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
-            <label for="payByCard">Pay by Card</label>
-            <input type="radio" id="payByPayPal" value="paypal" v-model="paymentMethod"/>
-            <label for="payByPayPal">Pay with PayPal</label>
+            <div>
+              <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
+              <label for="payByCard">Pay by Card</label>
+            </div>
+            <div>
+              <input type="radio" id="payByPayPal" value="paypal" v-model="paymentMethod"/>
+              <label for="payByPayPal">Pay with PayPal</label>
+            </div>
         </div>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
             <CreditCard />
             <button class="btn primary_btn" type="submit">Pay by Card</button>
         </form>
-        <button class="btn primary_btn" v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">Pay with PayPal</button>
+        <div class="paypal" v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">
+          <button class="btn primary_btn">Pay with PayPal</button>
+        </div>
         <div class="payment-icons">
           <img src="/visa-ico.png" class="payment-icon"/>
           <img src="/master-card-ico.png" class="payment-icon"/>
@@ -130,13 +136,15 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: rgb(1,55,121);
+  background: radial-gradient(circle, rgba(1,55,121,1) 0%, rgba(0,83,187,1) 65%, rgba(0,86,194,1) 100%);
 }
 .payment-form {
-  width: max-content;
+  width: 400px;
   height: max-content;
   padding: 20px 20px;
+  background: #fcfcfc;
   border-radius: 10px;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .payment-form h2 {
   margin: 0;
@@ -144,7 +152,7 @@ export default {
 .payment-icons {
   display: flex;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .payment-icon {
@@ -157,10 +165,25 @@ export default {
 }
 
 .payment-method {
-  margin-bottom: 20px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-evenly;
+  width: 70%;
+}
+.payment-method div{
+  width: max-content;
+}
+.payment-method div{
   display: flex;
   align-items: center;
 }
-
+.payment-method label{
+  font-size: 12px;
+  margin: 0;
+}
+.paypal{
+  width: max-content;
+  margin: 25px auto 90px auto;
+}
 </style>
 

@@ -122,7 +122,7 @@ export default {
 }
 </script>
 <style>
-.payment-method {
+.user-payment-method {
   margin-bottom: 20px;
   display: flex;
   align-items: center;

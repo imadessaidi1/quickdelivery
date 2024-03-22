@@ -132,7 +132,8 @@ export default {
 .payment-form {
   width: 400px;
   height: max-content;
-  padding: 20px 20px;
+  padding: 20px;
+  margin: 10px;
   background: #fcfcfc;
   border-radius: 10px;
 }
@@ -144,7 +145,9 @@ export default {
   align-items: center;
   margin-top: 15px;
 }
-
+.payment-form .input_only input{
+  width: 95%;
+}
 .payment-icon {
   width: 30px;
   margin-right: 10px;

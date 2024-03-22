@@ -167,6 +167,8 @@ export default{
   justify-content: center;
   align-items: center;
   overflow: scroll;
+  background: rgb(255,51,51);
+ background: radial-gradient(circle, rgba(255,51,51,1) 0%, rgba(242,142,0,1) 100%);  
 }
 .packege_creation_main .package-form {
   width: 75%;
@@ -174,7 +176,7 @@ export default{
   padding: 0 20px;
   margin: 0 auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/box 2.png') right -160px bottom 50%;
+  background: no-repeat url('../assets/box 2.png') right -160px bottom 50%, #ffffffe1;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .packege_creation_main .package-form button{

@@ -272,6 +272,8 @@ export default {
   justify-content: center;
   align-items: center;
   overflow: scroll;
+  background: rgb(0,79,135);
+  background: radial-gradient(circle, rgba(0,79,135,1) 0%, rgba(4,129,218,1) 84%, rgba(0,148,255,1) 100%); 
 }
 .user_creation_main .user-form {
   width: 75%;
@@ -279,7 +281,7 @@ export default {
   padding: 0 20px;
   margin: 0 auto;
   border-radius: 5px;
-  background: linear-gradient(0.25turn, #ffffff, #ffffff79, #ffffff0c), no-repeat url('../assets/avatar.png') right -160px bottom 50%;
+  background: no-repeat url('../assets/avatar.png') right -160px bottom 50%, #ffffffe1;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .file_name{
@@ -307,7 +309,7 @@ export default {
   width: 75%;
 }
 .user_creation_main .user-form form .components h2{
-  border-left: solid 5px #015ed6;
+  border-left: solid 5px #004f87;
   padding-left: 8px;
   margin-left: 20px;
 }

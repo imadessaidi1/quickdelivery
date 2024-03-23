@@ -31,7 +31,6 @@ export default {
       deep: true,
       handler(newVal) {
         const newPosition = newVal[this.$route.params.packageReference];
-        console.log('Sending new position : ',newPosition);
         this.$refs.map.contentWindow.postMessage("PackageNewPosition;" + JSON.stringify(newPosition), "*");
       }
     }

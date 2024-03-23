@@ -1,5 +1,4 @@
 <template>
-    <button @click="send">send</button>
     <PackageTrackingGoogleMap ref="mapTrackingVue" :style="{ width: '100%', height: '87%' }"/>
 </template>
 <script>

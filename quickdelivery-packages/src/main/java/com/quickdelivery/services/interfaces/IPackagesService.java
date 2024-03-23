@@ -1,6 +1,8 @@
 package com.quickdelivery.services.interfaces;
 
+import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.entities.PackageReservation;
@@ -39,4 +41,6 @@ public interface IPackagesService {
     PackageDTO findPackageByReference(String reference);
 
     boolean isUserWithOngoingDelivery(Long usedId);
+
+    Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO);
 }

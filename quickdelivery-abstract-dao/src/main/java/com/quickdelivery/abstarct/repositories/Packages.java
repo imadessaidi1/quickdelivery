@@ -66,4 +66,10 @@ public interface Packages extends CrudRepository<Package, Long> {
             "AND pr.status = 0 " +
             "AND p.status = 'PICKEDUP'")
     boolean existsOngoingReservationsForUserWithPickedUpPackage(@Param("userId") Long userId);
+
+    @Query("SELECT p " +
+            "FROM Package p JOIN FETCH p.packageReservations r " +
+            "WHERE r.deliveryPerson.id = :deliveryPersonID " +
+            "AND p.status = 'PICKEDUP'")
+    List<Package> findPackagesInDeliveryByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 }

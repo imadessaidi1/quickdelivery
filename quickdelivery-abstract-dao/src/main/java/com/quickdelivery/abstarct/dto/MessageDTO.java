@@ -7,6 +7,8 @@ public class MessageDTO {
     private String message;
     private String url;
 
+    private PositionDTO positionDTO;
+
     public String getType() {
         return type;
     }
@@ -45,5 +47,13 @@ public class MessageDTO {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public PositionDTO getPositionDTO() {
+        return positionDTO;
+    }
+
+    public void setPositionDTO(PositionDTO positionDTO) {
+        this.positionDTO = positionDTO;
     }
 }

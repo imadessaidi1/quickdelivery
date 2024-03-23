@@ -20,14 +20,8 @@ export default {
   data() {
       return {
         googleMapPath: process.env.BASE_URL + 'google-maps.html',
-        // Assurez-vous de remplacer 'nom-du-fichier-dans-public.html' par le vrai nom de votre fichier
       };
     },
-  methods: {
-  sendMessage(){
-    this.$refs.map.contentWindow.postMessage("message", "*");
-    },
-  },
 };
 </script>
 

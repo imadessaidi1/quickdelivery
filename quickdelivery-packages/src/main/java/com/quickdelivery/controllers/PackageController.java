@@ -194,7 +194,6 @@ public class PackageController {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println(json);
             webSocketHandler.sendMessageToAll(json);
         };
     }

@@ -48,8 +48,12 @@ export default {
                     };
 
                     const updateMessage = {
-                        type: 'position_update', // Type de message pour identifier la mise à jour de position
-                        position: newPosition
+                         type: 'PACKAGE_POSITION_UPDATE',
+                         from: this.$store.state.connectedUser.id,
+                         to: 'PACKAGE_SERVICE',
+                         message:'PACKAGE_POSITION_UPDATE',
+                         positionDTO: newPosition,
+                         url: ''
                     };
 
                     // Envoi des données au serveur via WebSocket
@@ -66,9 +70,9 @@ export default {
 
     socket.onmessage = (event) => {
         const jsonData = JSON.parse(event.data);
-        console.log(jsonData);
         const connectedUser = this.$store.state.connectedUser
-        if(connectedUser.type === 'DELIVERY_PERSON' && connectedUser.id === parseInt(jsonData.to)){
+        if((jsonData.type === 'NEW_PACKAGE_NOTIFICATION' || jsonData.type === 'PACKAGE_RESERVATION_OTP_NOTIFICATION') &&
+        (connectedUser.type === 'DELIVERY_PERSON' && connectedUser.id === parseInt(jsonData.to))){
             if (Notification.permission === 'granted') {
                 const notification = new Notification(this.$t('notificationTitle'), {
                     body: jsonData.message
@@ -88,6 +92,9 @@ export default {
                     }
                 });
             }
+        }else if(jsonData.type === 'PACKAGE_POSITION_UPDATE'){
+            console.log('New position from Backend',jsonData.message);
+            this.$store.commit('updatePackageLastPosition', JSON.parse(jsonData.message));
         }
     };
 

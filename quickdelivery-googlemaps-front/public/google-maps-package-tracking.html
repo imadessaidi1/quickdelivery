@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<!--
+ @license
+ Copyright 2019 Google LLC. All Rights Reserved.
+ SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <title>🌏 Packages Map</title>
+	  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous" async defer></script>
+	  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous" async defer></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default" async defer></script>
+    <script>
+      /**
+       * @license
+       * Copyright 2019 Google LLC. All Rights Reserved.
+       * SPDX-License-Identifier: Apache-2.0
+       */
+	   let map
+	   let directionsRenderer;
+       let directionsService;
+	   let infowindow;
+	   let url_string = window.location.href;
+       let url = new URL(url_string);
+	   let packageRef = url.searchParams.get("packageReference");
+	   let arrivalAddress;
+	   let departureAddress;
+	   let package_;
+	   let markers = [];
+	   function initMap() {
+          window.top.postMessage('StartLoading', '*');
+          directionsRenderer = new google.maps.DirectionsRenderer({
+              suppressMarkers: true,
+              polylineOptions:{strokeColor: '#525CEB'}
+          });
+          directionsService = new google.maps.DirectionsService();
+          infowindow = new google.maps.InfoWindow(
+              {
+                  size: new google.maps.Size(150,50)
+              });
+          map = new google.maps.Map(document.getElementById("map"), {
+              zoom: 13,
+              disableDefaultUI: true,
+              zoomControl: true,
+              scaleControl: true,
+              mapId: "PACKAGE_TRACKING",
+          });
+
+        const transitLayer = new google.maps.TransitLayer();
+        transitLayer.setMap(map);
+		const packagePromise = new Promise((resolve, reject) => {
+			try{
+			if(packageRef){
+				var xhr = new XMLHttpRequest();
+				var url = `http://localhost:8082/packages/v1/getPackage?reference=${packageRef}`;
+				xhr.open("GET", url, true);
+				xhr.onload = function() {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						package_ = JSON.parse(xhr.responseText);
+						package_.addresses.forEach(function(adresse) {
+							if(adresse.type === "ARRIVAL"){
+								arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
+							}else{
+								departureAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: Number(adresse.latitude), lng: Number(adresse.longitude)};
+							}
+						});
+						let initialLocation;
+						
+						if(package_.lastPositionLatitude && package_.lastPositionLongitude){
+							departureAddress = {lat: Number(package_.lastPositionLatitude), lng: Number(package_.lastPositionLongitude)};
+							initialLocation = new google.maps.LatLng(Number(package_.lastPositionLatitude), Number(package_.lastPositionLongitude));
+						}else{
+							initialLocation = new google.maps.LatLng(departureAddress.lat, departureAddress.lng);
+						}
+						map.setCenter(initialLocation);
+						resolve();
+					} else {
+						console.error("Erreur de l'API :", xhr.statusText);
+					}
+				};
+				xhr.onerror = function() {
+					console.error("Erreur de réseau lors de la requête vers l'API.");
+					reject();
+				};
+				xhr.send();
+				window.top.postMessage('EndLoading', '*');
+				}
+			} catch (error) {
+				console.error(error);
+				reject();
+			}
+		});
+		Promise.all([packagePromise]).then(() => {
+			directionsRenderer.setMap(map);
+			const carIcon = {
+				url: './car.png',
+				scaledSize: new google.maps.Size(25, 25),
+			};
+			const arrivalIcon = {
+				url: './arrival.png',
+				scaledSize: new google.maps.Size(25, 25),
+			};
+			addMarker(departureAddress, carIcon, map);
+			addMarker(arrivalAddress, arrivalIcon, map);
+			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
+		});
+		
+      }
+	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
+	        window.top.postMessage('StartLoading', '*');
+			const start = packageStart;
+			const end = packageEnd;
+			const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
+			directionsService
+					.route({
+						origin: start,
+						destination: end,
+						travelMode: google.maps.TravelMode[selectedMode],
+					})
+					.then((response) => {
+						directionsRenderer.setDirections(response);
+					})
+					.catch((e) =>
+						window.alert("Directions request failed due to " + status)
+					);
+		}
+      window.initMap = initMap;
+      window.onmessage = (e) => {
+        console.log('message received : ', e.data );
+        if (typeof e.data === 'string' && e.data.includes('PackageReference:')) {
+			packageRef = e.data.split(':')[1];
+			initMap();
+        }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;')){
+            newPosition = JSON.parse(e.data.split(';')[1]);
+            console.log('New position : ',newPosition);
+            departureAddress = {lat: Number(newPosition.latitude), lng: Number(newPosition.longitude)};
+            calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
+        }
+      }
+      function addMarker(position, icon, map) {
+		  if(position != undefined){
+				  var markerInfo = `<p>${position.line1} ${position.line2} ${position.zipCode} ${position.town}</p>`;
+
+					var marker = new google.maps.Marker({
+					  position: position,
+					  title: arrivalAddress.packageID+"",
+					  icon: icon,
+					  map:map,
+					  zIndex: Math.round(position.lat*-100000)<<5
+				  });
+				  marker.myname = arrivalAddress.packageID;
+				  /*google.maps.event.addListener(marker, 'click', function() {
+					infowindow.setContent(markerInfo);
+					infowindow.open(map,marker);
+				  });*/
+			}
+		}
+    </script>
+    <style>
+      /**
+       * @license
+       * Copyright 2019 Google LLC. All Rights Reserved.
+       * SPDX-License-Identifier: Apache-2.0
+       */
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        height: 100%;
+        display: flex;
+		padding: 0;
+      }
+
+      #sidebar {
+        flex-basis: 15rem;
+        flex-grow: 1;
+        padding: 1rem;
+        max-width: 30rem;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: auto;
+      }
+
+      #map {
+        flex-basis: 0;
+        flex-grow: 4;
+        height: 100%;
+      }
+
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: "Roboto", "sans-serif";
+        line-height: 30px;
+        padding-left: 10px;
+      }
+
+      #floating-panel {
+        background-color: #fff;
+        border: 0;
+        border-radius: 2px;
+        box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+        margin: 10px;
+        padding: 0 0.5em;
+        font: 400 18px Roboto, Arial, sans-serif;
+        overflow: hidden;
+        padding: 5px;
+        font-size: 14px;
+        text-align: center;
+        line-height: 30px;
+        height: auto;
+      }
+
+      #map {
+        flex: auto;
+      }
+
+      #sidebar {
+        flex: 0 1 auto;
+        padding: 0;
+      }
+      #sidebar > div {
+        padding: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container" class="container-fluid">
+      <div id="map" class="col-md-8"></div>
+    </div>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1JZHQfC9EUWUFKeHEBFnOMlZOUESxqog&callback=initMap&v=weekly"
+            loading="async"
+    >
+    </script>
+  </body>
+</html>
+    

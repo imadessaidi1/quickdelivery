@@ -128,10 +128,14 @@ export default createStore({
               userDocuments: [],
               vehicleDocuments: [],
               userRIB: {},
+              packagesLastPosition: [],
   },
   mutations: {
       updatePackage(state, updatedPackage) {
         state.package_ = updatedPackage;
+      },
+      updatePackageLastPosition(state, updatedPackageLastPosition) {
+        state.packagesLastPosition = updatedPackageLastPosition;
       },
       updateDocuments(state, updatedDocuments) {
         state.documentS = updatedDocuments;

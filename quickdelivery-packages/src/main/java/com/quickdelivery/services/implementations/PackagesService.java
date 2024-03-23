@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
-import com.quickdelivery.abstarct.dto.AddressDTO;
-import com.quickdelivery.abstarct.dto.FileDTO;
-import com.quickdelivery.abstarct.dto.MessageDTO;
-import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.*;
 import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.*;
@@ -76,8 +73,6 @@ public class PackagesService implements IPackagesService {
     private Users users;
     @Autowired
     private GeoApiContext geoApiContext;
-    @Autowired
-    WebSocketHandler webSocketHandler;
     @Autowired
     private Logger logger;
     @Autowired
@@ -472,6 +467,21 @@ public class PackagesService implements IPackagesService {
     @Override
     public boolean isUserWithOngoingDelivery(Long userId) {
         return packages.existsOngoingReservationsForUserWithPickedUpPackage(userId);
+    }
+
+    @Override
+    public Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO) {
+        Map<String, PositionDTO> map = new HashMap<>();
+        if(messageDTO.getType().equals("PACKAGE_POSITION_UPDATE")){
+            List<Package> packageList = packages.findPackagesInDeliveryByDeliveryPerson(Long.parseLong(messageDTO.getFrom()));
+            packageList.stream().forEach(aPackage -> {
+                aPackage.setLastPositionLatitude(messageDTO.getPositionDTO().getLatitude());
+                aPackage.setLastPositionLongitude(messageDTO.getPositionDTO().getLongitude());
+                packages.save(aPackage);
+                map.put(aPackage.getReference(), messageDTO.getPositionDTO());
+            });
+        }
+        return map;
     }
 
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {

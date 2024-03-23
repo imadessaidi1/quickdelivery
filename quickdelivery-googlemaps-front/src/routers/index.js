@@ -5,7 +5,8 @@ import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
 import PaymentPage from '../pages/PaymentPage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
-import PackageConsultation from '../pages/PackageConsultation.vue';
+import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
+import PackageTrackingPage from '../pages/PackageTrackingPage.vue';
 
 const routes = [
         {
@@ -34,9 +35,14 @@ const routes = [
         component:UserSignInPage
         },
         {
-        path: '/package/:id', // Définir le paramètre ':id'
-        name: 'PackageConsultation',
-        component: PackageConsultation
+        path: '/package/:id',
+        name: 'PackageConsultationPage',
+        component: PackageConsultationPage
+        },
+        {
+        path: '/packageTracking/:packageReference',
+        name: 'PackageTrackingPage',
+        component: PackageTrackingPage
         }
       ];
 const router = VueRouter.createRouter({

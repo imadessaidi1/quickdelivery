@@ -21,8 +21,8 @@
       <div v-if="isActiveLoginMenu" class="menu login-menu">
         <ul>
             <router-link @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
-            <li @click="loginMenu">{{$t('menuUserLogin')}}</li>
-            <li @click="loginMenu">{{$t('menuUuserAccount')}}</li>
+            <router-link @click="loginMenu" to="/packageTracking/PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
+            <router-link @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUuserAccount')}}</li></router-link>
         </ul>
       </div>
     </transition>

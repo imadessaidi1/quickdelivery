@@ -421,7 +421,7 @@ public class PackagesService implements IPackagesService {
         templateModel.put("weight", aPackage.getWeight());
         templateModel.put("packageReference", aPackage.getReference());
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("followupLink", "http://192.168.1.91:8080/followpackage/"+aPackage.getReference());
+        templateModel.put("followupLink", "http://192.168.1.91:8080/packageTracking/"+aPackage.getReference());
         templateModel.put("evaluationLink", "http://192.168.1.91:8080/evaluate/"+aPackage.getReference());
         if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
             aPackage.getPackageReservations().stream().forEach(packageReservation -> {

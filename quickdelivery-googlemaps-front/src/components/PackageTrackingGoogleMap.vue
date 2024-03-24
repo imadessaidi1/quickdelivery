@@ -1,5 +1,5 @@
 <template>
-    <div class="d-flex">
+    <div class="d_flex">
         <div class="summary_component" style="width: 30%;">
             <PackageSummary/>
         </div>
@@ -57,12 +57,14 @@ export default {
 </script>
 
 <style scoped>
+.d_flex{
+  display: flex;
+}
 #map{
   height: 100%;
 }
 .google-map {
   width: 100%;
   height: 75vh;
-  flex: 1;
 }
 </style>

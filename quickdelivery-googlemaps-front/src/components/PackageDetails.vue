@@ -1,6 +1,6 @@
 <template>
     <h2 v-show="package_.reference">{{$t('packageReference')}}: {{ package_.reference }}</h2>
-    <div class="package_details_group">
+    <div class="package_details_group" id="id_for_tracking">
         <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>
             <div class="details">
@@ -154,6 +154,13 @@ export default {
 }
 .package_details_group .package_details .details div{
     font-size: 14px;
+}
+.summary_component .package_details_group{
+  flex-direction: column;
+}
+.summary_component .package_details_group .package_details{
+    width: 100%;
+    padding: 10px 0;
 }
 @media screen and (max-width: 1100px){
     .package_details_group {

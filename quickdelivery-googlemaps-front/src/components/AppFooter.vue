@@ -29,8 +29,10 @@
 
 <style scoped>
 .footer {
-  height: 6%;
-  box-sizing: border-box;
+  height: 50px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
 .footer-column {
   flex: 1;

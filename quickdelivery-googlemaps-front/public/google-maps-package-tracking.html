@@ -29,12 +29,22 @@
 	   let departureAddress;
 	   let package_;
 	   let markers = [];
+	   let carIcon;
+	   let arrivalIcon;
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           directionsRenderer = new google.maps.DirectionsRenderer({
               suppressMarkers: true,
               polylineOptions:{strokeColor: '#525CEB'}
           });
+          carIcon = {
+            url: './car.png',
+            scaledSize: new google.maps.Size(25, 25),
+           };
+           arrivalIcon = {
+            url: './arrival.png',
+            scaledSize: new google.maps.Size(25, 25),
+           };
           directionsService = new google.maps.DirectionsService();
           infowindow = new google.maps.InfoWindow(
               {
@@ -94,14 +104,6 @@
 		});
 		Promise.all([packagePromise]).then(() => {
 			directionsRenderer.setMap(map);
-			const carIcon = {
-				url: './car.png',
-				scaledSize: new google.maps.Size(25, 25),
-			};
-			const arrivalIcon = {
-				url: './arrival.png',
-				scaledSize: new google.maps.Size(25, 25),
-			};
 			addMarker(departureAddress, carIcon, map);
 			addMarker(arrivalAddress, arrivalIcon, map);
 			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
@@ -133,9 +135,12 @@
 			packageRef = e.data.split(':')[1];
 			initMap();
         }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;')){
+            removeAllMarkers();
             newPosition = JSON.parse(e.data.split(';')[1]);
             console.log('New position : ',newPosition);
             departureAddress = {lat: Number(newPosition.latitude), lng: Number(newPosition.longitude)};
+            addMarker(departureAddress, carIcon, map);
+            addMarker(arrivalAddress, arrivalIcon, map);
             calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
         }
       }
@@ -151,12 +156,19 @@
 					  zIndex: Math.round(position.lat*-100000)<<5
 				  });
 				  marker.myname = arrivalAddress.packageID;
+				  markers.push(marker);
 				  /*google.maps.event.addListener(marker, 'click', function() {
 					infowindow.setContent(markerInfo);
 					infowindow.open(map,marker);
 				  });*/
 			}
 		}
+	  function removeAllMarkers() {
+		for (let i = 0; i < markers.length; i++) {
+			markers[i].setMap(null);
+		}
+		markers.splice(0, markers.length);
+	  }
     </script>
     <style>
       /**

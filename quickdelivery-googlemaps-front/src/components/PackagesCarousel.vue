@@ -51,7 +51,7 @@ export default {
         }else if (typeof e.data === 'string' && e.data === 'EndLoading') {
             this.$store.commit('updateLoaderStatus', false);
         }
-       };
+    };
   },
   methods: {
     handleSlideStart(data) {

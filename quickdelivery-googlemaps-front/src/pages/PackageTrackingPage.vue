@@ -1,5 +1,5 @@
 <template>
-    <PackageTrackingGoogleMap ref="mapTrackingVue" :style="{ width: '100%', height: '87%' }"/>
+    <PackageTrackingGoogleMap ref="mapTrackingVue" :style="{ width: '100%', height: '87%' }" :routeInfo="routeInfo"/>
 </template>
 <script>
 import PackageTrackingGoogleMap from '../components/PackageTrackingGoogleMap.vue';
@@ -14,6 +14,7 @@ export default{
   data() {
     return {
         packageReference: '',
+        routeInfo: Object,
     };
   },
   mounted() {
@@ -21,8 +22,11 @@ export default{
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data === 'EndLoading') {
             this.$store.commit('updateLoaderStatus', false);
+        }else if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
+            this.routeInfo = JSON.parse(e.data.split(';')[1]);
         }
        };
+
   },
   methods: {
     send(){

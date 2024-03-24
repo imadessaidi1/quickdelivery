@@ -31,6 +31,7 @@
 	   let markers = [];
 	   let carIcon;
 	   let arrivalIcon;
+	   let routeInfo;
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           directionsRenderer = new google.maps.DirectionsRenderer({
@@ -112,23 +113,28 @@
       }
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
 	        window.top.postMessage('StartLoading', '*');
-			const start = packageStart;
-			const end = packageEnd;
-			const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
-			directionsService
-					.route({
-						origin: start,
-						destination: end,
-						travelMode: google.maps.TravelMode[selectedMode],
-					})
-					.then((response) => {
-						directionsRenderer.setDirections(response);
-					})
-					.catch((e) =>
-						window.alert("Directions request failed due to " + status)
-					);
-		}
-	  //window.top.postMessage('RouteInfo;', JSON.stringify(response.routes[0].legs[0]));
+	        const packagePromise = new Promise((resolve, reject) => {
+                const start = packageStart;
+                const end = packageEnd;
+                const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
+                directionsService.route({
+                    origin: start,
+                    destination: end,
+                    travelMode: google.maps.TravelMode[selectedMode],
+                }, (response, status) => {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(response);
+                        routeInfo = {distance: response.routes[0].legs[0].distance, duration: response.routes[0].legs[0].duration};
+                        resolve(response);
+                    } else {
+                        reject('Directions request failed due to ' + status);
+                    }
+                });
+            });
+            Promise.all([packagePromise]).then(() => {
+                window.top.postMessage('RouteInfo;'+JSON.stringify(routeInfo), '*');
+		    });
+	  }
       window.initMap = initMap;
       window.onmessage = (e) => {
         console.log('message received : ', e.data );
@@ -147,8 +153,6 @@
       }
       function addMarker(position, icon, map) {
 		  if(position != undefined){
-				  var markerInfo = `<p>${position.line1} ${position.line2} ${position.zipCode} ${position.town}</p>`;
-
 					var marker = new google.maps.Marker({
 					  position: position,
 					  title: arrivalAddress.packageID+"",

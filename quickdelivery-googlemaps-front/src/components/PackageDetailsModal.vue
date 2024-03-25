@@ -6,8 +6,26 @@
       <br/>
         <button class="close-btn" ref="closeModalButtons"
         @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
-        <button class="btn primary_btn" ref="detailsButtons" v-show="package_.status === 'NEW'"
+        <button class="btn primary_btn" ref="reserveButton" v-show="package_.status === 'NEW'"
         @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
+        <div v-show="package_.status === 'RESERVED'">
+          <div class="input_only">
+            <label for="otp">{{$t('packagePickupPassword')}}:</label>
+            <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
+            <ErrorMessage class="errorMessage" name="otp" />
+          </div>
+          <button class="btn primary_btn" ref="detailsButtons"
+          @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
+        </div>
+        <div v-show="package_.status === 'PICKEDUP'">
+          <div class="input_only">
+            <label for="deliveryOtp">{{$t('packageDeliveryPassword')}}:</label>
+            <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
+            <ErrorMessage class="errorMessage" name="deliveryOtp" />
+          </div>
+          <button class="btn primary_btn" ref="detailsButtons"
+          @click="deliver">{{ $t('packagesArroundMArkerDetailActionsDeliver') }}</button>
+        </div>
     </div>
   </div>
 </template>
@@ -16,11 +34,14 @@
 //import SummarizedPackageDetail from './SummarizedPackageDetail.vue';
 import PackageSummary from '../components/PackageDetails.vue';
 import http from '@/config/httpInterceptor';
+import { Field, ErrorMessage } from 'vee-validate';
 
 export default {
   components: {
       //SummarizedPackageDetail,
       PackageSummary,
+      Field,
+      ErrorMessage,
     },
   computed: {
         package_() {
@@ -29,6 +50,8 @@ export default {
   },
   data() {
     return {
+      deliveryOtp: '',
+      otp: '',
       isOpen: false,
       emptyPackage: {
         id: null,
@@ -96,6 +119,36 @@ export default {
           if(response.status == '200'){
             this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
             this.isOpen = false;
+          }
+          return response.data;
+        }).catch(() => {
+          console.log("unable to process your request this time. please try again latter.");
+        });
+    },
+    pickup(){
+        const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('pickup') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&pickUpOTP=" + this.otp + "&locale=" + userLanguage;
+        return http.put(url)
+        .then(response => {
+          if(response.status == '200'){
+            this.$store.commit('updatePackage', this.package);
+            this.$store.commit('updateDocuments', []);
+            this.$router.push('/');
+          }
+          return response.data;
+        }).catch(() => {
+          console.log("unable to process your request this time. please try again latter.");
+        });
+    },
+    deliver(){
+        const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('deliver') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&deliveryOTP=" + this.deliveryOtp + "&locale=" + userLanguage;
+        return http.put(url)
+        .then(response => {
+          if(response.status == '200'){
+            this.$store.commit('updatePackage', this.package);
+            this.$store.commit('updateDocuments', []);
+            this.$router.push('/');
           }
           return response.data;
         }).catch(() => {

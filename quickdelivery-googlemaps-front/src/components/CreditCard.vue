@@ -1,9 +1,8 @@
 <template>
     <div class="input_only">
         <div class="form-group">
-            <label for="cardNumber">Nom</label>
-            <Field type="text" id="cardNumber" v-model="user.paymentModes['CREDIT_CARD'].cardNumber" name="cardNumber" :rules="validateCreditCardNumber" />
-            <ErrorMessage class="errorMessage" name="cardNumber" />
+            <label for="holderNam">Nom</label>
+            <Field type="text" id="holderNam" v-model="user.paymentModes['CREDIT_CARD'].holderNam" name="holderNam"/>
         </div>
     </div>
     <div class="input_only">

@@ -120,6 +120,8 @@ export default {
             this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
             this.isOpen = false;
           }
+          this.$store.commit('updatePackage', this.emptyPackage);
+          this.$store.commit('updateDocuments', []);
           return response.data;
         }).catch(() => {
           console.log("unable to process your request this time. please try again latter.");
@@ -131,7 +133,7 @@ export default {
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$store.commit('updatePackage', this.package);
+            this.$store.commit('updatePackage', this.emptyPackage);
             this.$store.commit('updateDocuments', []);
             this.$router.push('/');
           }
@@ -146,7 +148,7 @@ export default {
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$store.commit('updatePackage', this.package);
+            this.$store.commit('updatePackage', this.emptyPackage);
             this.$store.commit('updateDocuments', []);
             this.$router.push('/');
           }

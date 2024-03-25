@@ -1,9 +1,10 @@
 <template>
     <div class="d_flex">
         <div class="summary_component" style="width: 25%;">
-            <!--<h2>Distance: {{ routeInfo.distance.text }}</h2>
-            <h2>Duration: {{ routeInfo.duration.text }}</h2>-->
-            {{ routeInfo}}
+            <div v-show="routeInfo">
+                <h2>Distance: {{ routeInfo.distance.text }}</h2>
+                <h2>Duration: {{ routeInfo.duration.text }}</h2>
+            </div>
             <PackageSummary/>
         </div>
         <div class="google-map" style="width: 75%;">
@@ -45,10 +46,8 @@ export default {
       console.log("unable to process your request this time. please try again latter.");
     });
     window.onmessage = (e) => {
-    console.log('Received RouteInfo : ',e.data);
         if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
             const routeInfo = JSON.parse(e.data.split(';')[1]);
-            console.log('RouteInfo : ',routeInfo);
         }
     };
   },

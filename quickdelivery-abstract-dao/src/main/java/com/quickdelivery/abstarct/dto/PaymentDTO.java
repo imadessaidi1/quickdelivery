@@ -7,10 +7,9 @@ import java.sql.Timestamp;
 public class PaymentDTO {
     private Long id;
     private Timestamp version;
-
     private PAYMENT_TYPE paymentType;
     private Boolean validated;
-
+    private String holderNam;
     private String cardNumber;
     private String expiryDate;
     private String cvv;
@@ -89,5 +88,13 @@ public class PaymentDTO {
 
     public void setBic(String bic) {
         this.bic = bic;
+    }
+
+    public String getHolderNam() {
+        return holderNam;
+    }
+
+    public void setHolderNam(String holderNam) {
+        this.holderNam = holderNam;
     }
 }

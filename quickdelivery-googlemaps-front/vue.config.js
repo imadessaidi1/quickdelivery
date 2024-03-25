@@ -14,12 +14,12 @@ module.exports = {
       })
     ]
   },
-  devServer: {
+  /*devServer: {
       host: 'quickdelivery.com',
       port: 8080,
       https: {
         key: fs.readFileSync('./src/cert/cle.key'),
         cert: fs.readFileSync('./src/cert/certificat.crt'),
       },
-    }
+    }*/
 };

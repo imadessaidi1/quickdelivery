@@ -296,7 +296,6 @@
 	  function refreshPackagesList(){
 	    window.top.postMessage('StartLoading', '*');
 		removeAllMarkers();
-		console.log(initialLocation);
 		getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude);
 	    window.top.postMessage('EndLoading', '*');
 	  }

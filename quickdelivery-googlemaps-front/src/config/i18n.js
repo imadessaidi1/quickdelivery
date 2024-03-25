@@ -71,8 +71,8 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     packageCreationAgreement: 'Consent to Terms of Use',
     packageReference: 'Package N°',
-    packagePickupPassword: 'Mot de passe de collecte',
-    packageDeliveryPassword: 'Mot de passe de livraison',
+    packagePickupPassword: 'Pick up password',
+    packageDeliveryPassword: 'Delivery password',
     //Packages Arround
     packagesArround: 'Packages around you',
     packagesArroundDistanceFromYou: 'Distance to package from your position',

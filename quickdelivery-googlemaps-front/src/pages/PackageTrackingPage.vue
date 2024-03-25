@@ -1,20 +1,26 @@
 <template>
-    <PackageTrackingGoogleMap ref="mapTrackingVue" :style="{ width: '100%', height: '87%' }" :routeInfo="routeInfo"/>
+    <PackageTrackingGoogleMap ref="mapTrackingVue" :style="{ width: '100%', height: '87%' }" :routeInfo="routeInfo" :showRouteInfo="showRouteInfo"/>
 </template>
 <script>
 import PackageTrackingGoogleMap from '../components/PackageTrackingGoogleMap.vue';
 
 export default{
-  computed: {
-
-  },
   components: {
     PackageTrackingGoogleMap,
   },
   data() {
     return {
         packageReference: '',
-        routeInfo: Object,
+        routeInfo: {
+            distance: {
+                text: '',
+                value: ''
+            },
+            duration: {
+                text: '',
+                value: ''
+            }
+        },
     };
   },
   mounted() {

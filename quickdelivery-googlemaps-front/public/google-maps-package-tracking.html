@@ -137,14 +137,12 @@
 	  }
       window.initMap = initMap;
       window.onmessage = (e) => {
-        console.log('message received : ', e.data );
         if (typeof e.data === 'string' && e.data.includes('PackageReference:')) {
 			packageRef = e.data.split(':')[1];
 			initMap();
         }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;')){
             removeAllMarkers();
             newPosition = JSON.parse(e.data.split(';')[1]);
-            console.log('New position : ',newPosition);
             departureAddress = {lat: Number(newPosition.latitude), lng: Number(newPosition.longitude)};
             addMarker(departureAddress, carIcon, map);
             addMarker(arrivalAddress, arrivalIcon, map);

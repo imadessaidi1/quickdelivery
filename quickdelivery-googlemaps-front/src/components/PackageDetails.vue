@@ -28,34 +28,34 @@
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{departureAddress.firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{getDepartureAddress(this.package_.addresses).firstName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{departureAddress.lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{getDepartureAddress(this.package_.addresses).lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{departureAddress.email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{getDepartureAddress(this.package_.addresses).email}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{departureAddress.phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{getDepartureAddress(this.package_.addresses).phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{departureAddress.line1}}
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{getDepartureAddress(this.package_.addresses).line1}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{departureAddress.zipCode}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{getDepartureAddress(this.package_.addresses).zipCode}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{departureAddress.town}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{getDepartureAddress(this.package_.addresses).town}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{departureAddress.country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{getDepartureAddress(this.package_.addresses).country}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{departureAddress.floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{getDepartureAddress(this.package_.addresses).floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(departureAddress.dateTime) }}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(getDepartureAddress(this.package_.addresses).dateTime) }}
                 </div>
             </div>
             
@@ -64,34 +64,34 @@
             <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{arrivalAddress.firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{getArrivalAddress(this.package_.addresses).firstName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{arrivalAddress.lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{getArrivalAddress(this.package_.addresses).lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{arrivalAddress.email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{getArrivalAddress(this.package_.addresses).email}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{arrivalAddress.phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{getArrivalAddress(this.package_.addresses).phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{arrivalAddress.line1}}
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{getArrivalAddress(this.package_.addresses).line1}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{arrivalAddress.zipCode}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{getArrivalAddress(this.package_.addresses).zipCode}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{arrivalAddress.town}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{getArrivalAddress(this.package_.addresses).town}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{arrivalAddress.country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{getArrivalAddress(this.package_.addresses).country}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{arrivalAddress.floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{getArrivalAddress(this.package_.addresses).floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(arrivalAddress.dateTime) }}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(getArrivalAddress(this.package_.addresses).dateTime) }}
                 </div>
             </div>
         </div>

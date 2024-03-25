@@ -186,7 +186,7 @@ public class PackageController {
             messageDTO.setType("NEW_PACKAGE_NOTIFICATION");
             messageDTO.setTo(address.getResidents().getId().toString());
             messageDTO.setMessage("There is a new package around you :)");
-            messageDTO.setUrl("http://localhost:8080/package/"+aPackage);
+            messageDTO.setUrl("https://quickdelivery.com:8080/package/"+aPackage);
             ObjectMapper objectMapper = new ObjectMapper();
             String json;
             try {

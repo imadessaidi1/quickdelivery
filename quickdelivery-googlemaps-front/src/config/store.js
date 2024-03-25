@@ -108,6 +108,7 @@ export default createStore({
                 documents: [],
                 paymentModes: {
                     "CREDIT_CARD": {
+                                     holderNam: '',
                                      cardNumber: '',
                                      expiryDate: '',
                                      cvv: '',

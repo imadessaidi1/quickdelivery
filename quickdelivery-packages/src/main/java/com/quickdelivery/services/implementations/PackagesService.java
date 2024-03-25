@@ -421,8 +421,8 @@ public class PackagesService implements IPackagesService {
         templateModel.put("weight", aPackage.getWeight());
         templateModel.put("packageReference", aPackage.getReference());
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("followupLink", "http://192.168.1.91:8080/packageTracking/"+aPackage.getReference());
-        templateModel.put("evaluationLink", "http://192.168.1.91:8080/evaluate/"+aPackage.getReference());
+        templateModel.put("followupLink", "https://quickdelivery.com:8080/packageTracking/"+aPackage.getReference());
+        templateModel.put("evaluationLink", "https://quickdelivery.com:8080/evaluate/"+aPackage.getReference());
         if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
             aPackage.getPackageReservations().stream().forEach(packageReservation -> {
                 if (packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING)) {
@@ -456,7 +456,7 @@ public class PackagesService implements IPackagesService {
 
     public List<Address> findUsersAroundPosition(String aPackage){
         Address address = getDepartureAddress(packages.findPackageByReference(aPackage).getAddresses());
-        return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 2000000);
+        return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 20000);
     }
 
     @Override

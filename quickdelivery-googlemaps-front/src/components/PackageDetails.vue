@@ -28,34 +28,34 @@
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{package_.addresses[0].firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{departureAddress.firstName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{package_.addresses[0].lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{departureAddress.lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{package_.addresses[0].email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{departureAddress.email}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{package_.addresses[0].phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{departureAddress.phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{package_.addresses[0].line1}}
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{departureAddress.line1}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{package_.addresses[0].zipCode}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{departureAddress.zipCode}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{package_.addresses[0].town}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{departureAddress.town}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[0].country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{departureAddress.country}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{package_.addresses[0].floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{departureAddress.floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(package_.addresses[0].dateTime) }}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(departureAddress.dateTime) }}
                 </div>
             </div>
             
@@ -64,34 +64,34 @@
             <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{package_.addresses[1].firstName}}
+                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{arrivalAddress.firstName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{package_.addresses[1].lastName}}
+                    <strong>{{$t('packageAddressLastName')}}:</strong> {{arrivalAddress.lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{package_.addresses[1].email}}
+                    <strong>{{$t('packageAddressEmail')}}:</strong> {{arrivalAddress.email}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{package_.addresses[1].phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{arrivalAddress.phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{package_.addresses[1].line1}}
+                    <strong>{{$t('packageAddressLine1')}}:</strong> {{arrivalAddress.line1}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{package_.addresses[1].zipCode}}
+                    <strong>{{$t('packageAddressZip')}}:</strong> {{arrivalAddress.zipCode}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{package_.addresses[1].town}}
+                    <strong>{{$t('packageAddressCity')}}:</strong> {{arrivalAddress.town}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{package_.addresses[1].country}}
+                    <strong>{{$t('packageAddressCountry')}}:</strong> {{arrivalAddress.country}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{package_.addresses[1].floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{arrivalAddress.floor}}
                 </div>
                 <div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(package_.addresses[1].dateTime) }}
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(arrivalAddress.dateTime) }}
                 </div>
             </div>
         </div>
@@ -99,6 +99,7 @@
 
 </template>
 <script>
+import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
 export default {
     computed: {
         package_() {
@@ -108,7 +109,19 @@ export default {
           return this.$store.state.documentS;
         },
     },
+    data() {
+      return {
+        departureAddress: Object,
+        arrivalAddress: Object,
+      };
+    },
+    mounted() {
+        this.departureAddress = getDepartureAddress(this.package_.addresses);
+        this.arrivalAddress = getArrivalAddress(this.package_.addresses);
+    },
     methods: {
+        getDepartureAddress,
+        getArrivalAddress,
         formatDate(dateTime) {
             const date = new Date(dateTime);
             const options = {

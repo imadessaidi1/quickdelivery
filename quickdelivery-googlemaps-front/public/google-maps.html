@@ -170,7 +170,7 @@
 			return new Promise(async (resolve, reject) => {
 				try{
 					var xhr = new XMLHttpRequest();
-					var url = `http://localhost:8082/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=300000`;
+					var url = `https://192.168.1.254:8082/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=300000`;
 					xhr.open("GET", url, true);
 					xhr.onload = function() {
 						if (xhr.status >= 200 && xhr.status < 300) {
@@ -206,7 +206,7 @@
 				try {
 					var xhr = new XMLHttpRequest();
 					const waypts = [];
-					var url = `http://localhost:8082/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
+					var url = `https://192.168.1.254:8082/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
 					xhr.open("GET", url, true);
 
 					xhr.onload = function () {
@@ -296,7 +296,6 @@
 	  function refreshPackagesList(){
 	    window.top.postMessage('StartLoading', '*');
 		removeAllMarkers();
-		console.log(initialLocation);
 		getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude);
 	    window.top.postMessage('EndLoading', '*');
 	  }

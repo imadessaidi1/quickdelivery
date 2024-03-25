@@ -55,9 +55,11 @@ export default {
                          positionDTO: newPosition,
                          url: ''
                     };
+                     setTimeout(() => {
+                        console.log(newPosition);
+                        socket.send(JSON.stringify(updateMessage));
+                      }, 9000);
 
-                    // Envoi des données au serveur via WebSocket
-                    socket.send(JSON.stringify(updateMessage));
                 },
                 (error) => {
                     console.error('Error getting location:', error);
@@ -93,7 +95,6 @@ export default {
                 });
             }
         }else if(jsonData.type === 'PACKAGE_POSITION_UPDATE'){
-            console.log('New position from Backend',jsonData.message);
             this.$store.commit('updatePackageLastPosition', JSON.parse(jsonData.message));
         }
     };

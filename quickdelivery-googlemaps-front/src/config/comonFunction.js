@@ -314,3 +314,22 @@ export function validateFileInput(selectedFilesKeys, documentsList){
     }
     return results;
 }
+export function getArrivalAddress(addresses) {
+           for (let i = 0; i < addresses.length; i++) {
+               const address = addresses[i];
+               if (address.type === 'ARRIVAL') {
+                   return address;
+               }
+           }
+           return null;
+       }
+
+export function getDepartureAddress(addresses) {
+           for (let i = 0; i < addresses.length; i++) {
+               const address = addresses[i];
+               if (address.type === 'DEPARTURE') {
+                   return address;
+               }
+           }
+           return null;
+       }

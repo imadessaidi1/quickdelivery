@@ -4,8 +4,8 @@ import { createI18n } from 'vue-i18n';
 const messages = {
   en: {
     //API URLS
-    wsURL: 'ws://localhost:8082/ws',
-    rootURL: 'http://localhost:8082/packages/v1/',
+    wsURL: 'ws://192.168.1.254:8082/ws',
+    rootURL: 'https://192.168.1.254:8082/packages/v1/',
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
@@ -16,7 +16,7 @@ const messages = {
     pickup: 'pickup?',
     deliver: 'deliver?',
     userWithOngoingDelivery: 'isUserWithOngoingDelivery?userId=',
-    userRootURL: 'http://localhost:8081/users/v1/',
+    userRootURL: 'https://192.168.1.254:8081/users/v1/',
     createUser: 'create',
     getUserByEmail: 'userByEmail?email=',
     //FOOTER LABELS
@@ -71,8 +71,8 @@ const messages = {
     packageAddressListActionsDelete: 'Delete',
     packageCreationAgreement: 'Consent to Terms of Use',
     packageReference: 'Package N°',
-    packagePickupPassword: 'Mot de passe de collecte',
-    packageDeliveryPassword: 'Mot de passe de livraison',
+    packagePickupPassword: 'Pick up password',
+    packageDeliveryPassword: 'Delivery password',
     //Packages Arround
     packagesArround: 'Packages around you',
     packagesArroundDistanceFromYou: 'Distance to package from your position',

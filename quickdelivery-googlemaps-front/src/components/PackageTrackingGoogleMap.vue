@@ -1,14 +1,13 @@
 <template>
     <div class="d_flex">
-        <div class="tracking_summary_component" style="width: 25%;">
-            <div>
-              <PackageSummary/>
-            </div>
+        <div class="tracking_summary_component">
+          <h2>{{$t('packageSummaryAction')}}:</h2>
+          <PackageSummary/>
         </div>
-        <div class="google-map" style="width: 75%;">
+        <div class="google-map">
           <div class="roadInfo" v-show="routeInfo">
-              <p><strong>Distance:</strong> 25Km{{ routeInfo.distance.text }}</p>
-              <p><strong>Duration:</strong> 25min{{ routeInfo.duration.text }}</p>
+              <p><strong>Distance:</strong> {{ routeInfo.distance.text }}</p>
+              <p><strong>Duration:</strong> {{ routeInfo.duration.text }}</p>
           </div>
           <div id="map">
               <iframe
@@ -73,9 +72,17 @@ export default {
 <style scoped>
 .d_flex{
   display: flex;
+  height: 94vh !important;
 }
 .tracking_summary_component{
+  width: 25%;
+  height: 89vh;
   overflow: scroll;
+  box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 20px -21px;
+  z-index: 9999;
+}
+.tracking_summary_component h2{
+  margin-left: 20px;
 }
 .roadInfo {
   position: absolute;
@@ -86,19 +93,19 @@ export default {
   justify-content: space-between;
   width: max-content;
   margin: 0 auto;
-  background-color: #00d3d3d5;
+  background-color: #10b3ffd5;
   border-radius: 10px;
   padding: 0 20px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
 .roadInfo p:first-child{
   margin-right: 20px;
 }
 #map{
-  height: 100%;
+  height: 89vh;
 }
 .google-map {
-  width: 100%;
-  height: 75vh;
+  width: 75%;
   position: relative;
 }
 </style>

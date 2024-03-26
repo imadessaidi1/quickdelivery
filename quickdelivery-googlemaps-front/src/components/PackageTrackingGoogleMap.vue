@@ -1,13 +1,13 @@
 <template>
     <div class="d_flex">
         <div class="tracking_summary_component">
-          <h2>{{$t('packageSummaryAction')}}:</h2>
+          <h2>{{$t('packageSummaryAction')}}</h2>
           <PackageSummary/>
         </div>
         <div class="google-map">
           <div class="roadInfo" v-show="routeInfo">
-              <p><strong>Distance:</strong> {{ routeInfo.distance.text }}</p>
-              <p><strong>Duration:</strong> {{ routeInfo.duration.text }}</p>
+              <p><strong>Distance:</strong> 12{{ routeInfo.distance.text }}Km</p>
+              <p><strong>Duration:</strong> 2h25min{{ routeInfo.duration.text }}</p>
           </div>
           <div id="map">
               <iframe
@@ -48,7 +48,7 @@ export default {
     });
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
-            //const routeInfo = JSON.parse(e.data.split(';')[1]);
+            const routeInfo = JSON.parse(e.data.split(';')[1]);
         }
     };
   },
@@ -78,8 +78,10 @@ export default {
   width: 25%;
   height: 89vh;
   overflow: scroll;
-  box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 20px -21px;
-  z-index: 9999;
+  box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
+  background-color: #21D4FD;
+  background-image: linear-gradient(250deg, #21D4FD 0%, #B721FF 100%);
+  z-index: 1;
 }
 .tracking_summary_component h2{
   margin-left: 20px;

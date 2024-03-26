@@ -162,13 +162,27 @@ export default {
     padding-left: 6px;
     border-left: solid 3px #42ba96;
 } 
-.package_details_group .package_details div{
+.package_details_group .package_details .details{
     padding: 6px 0 6.5px 0;
 }
 .package_details_group .package_details .details div{
     font-size: 14px;
     padding: 3px 10px 3px 20px;
 }
+.package_details_group .package_details{
+    width: 100%;
+    padding: 10px;
+    border-radius: 0;
+    background-color: #f5f5f5a8;
+}
+.tracking_summary_component .package_details_group .package_details .details div{
+    font-size: 15px;
+}
+.tracking_summary_component .package_details_group .package_details h3{
+    margin-left: 15px;
+    padding-left: 6px;
+    border-left: solid 3px #B721FF;
+} 
 .tracking_summary_component .package_details_group{
   flex-direction: column;
 }

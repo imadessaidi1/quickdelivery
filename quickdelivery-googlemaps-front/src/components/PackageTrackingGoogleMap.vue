@@ -47,7 +47,7 @@ export default {
     });
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
-            const routeInfo = JSON.parse(e.data.split(';')[1]);
+            //const routeInfo = JSON.parse(e.data.split(';')[1]);
         }
     };
   },

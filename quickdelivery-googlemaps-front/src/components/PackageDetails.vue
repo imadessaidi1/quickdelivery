@@ -168,7 +168,7 @@ export default {
 .package_details_group .package_details .details div{
     font-size: 14px;
 }
-.summary_component .package_details_group{
+.d_flex .summary_component .package_details_group{
   flex-direction: column;
 }
 .summary_component .package_details_group .package_details{

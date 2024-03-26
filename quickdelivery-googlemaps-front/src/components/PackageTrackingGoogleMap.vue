@@ -1,24 +1,26 @@
 <template>
     <div class="d_flex">
-        <div class="summary_component" style="width: 25%;">
-            <div v-show="routeInfo">
-                <h2>Distance: {{ routeInfo.distance.text }}</h2>
-                <h2>Duration: {{ routeInfo.duration.text }}</h2>
+        <div class="tracking_summary_component" style="width: 25%;">
+            <div>
+              <PackageSummary/>
             </div>
-            <PackageSummary/>
         </div>
         <div class="google-map" style="width: 75%;">
-            <div id="map">
-                <iframe
-                        ref="map"
-                        width="100%"
-                        height="100%"
-                        :src="googleMapPath"
-                        style="border: 0;"
-                @load="onLoadIframe"
-                name="map"
-                ></iframe>
-            </div>
+          <div class="roadInfo" v-show="routeInfo">
+              <p><strong>Distance:</strong> 25Km{{ routeInfo.distance.text }}</p>
+              <p><strong>Duration:</strong> 25min{{ routeInfo.duration.text }}</p>
+          </div>
+          <div id="map">
+              <iframe
+                      ref="map"
+                      width="100%"
+                      height="100%"
+                      :src="googleMapPath"
+                      style="border: 0;"
+              @load="onLoadIframe"
+              name="map"
+              ></iframe>
+          </div>
         </div>
     </div>
 </template>
@@ -72,11 +74,31 @@ export default {
 .d_flex{
   display: flex;
 }
+.tracking_summary_component{
+  overflow: scroll;
+}
+.roadInfo {
+  position: absolute;
+  top: 15px;
+  right: 50%;
+  transform: translateX(50%);
+  display: flex;
+  justify-content: space-between;
+  width: max-content;
+  margin: 0 auto;
+  background-color: #00d3d3d5;
+  border-radius: 10px;
+  padding: 0 20px;
+}
+.roadInfo p:first-child{
+  margin-right: 20px;
+}
 #map{
   height: 100%;
 }
 .google-map {
   width: 100%;
   height: 75vh;
+  position: relative;
 }
 </style>

@@ -167,11 +167,12 @@ export default {
 }
 .package_details_group .package_details .details div{
     font-size: 14px;
+    padding: 3px 10px;
 }
-.d_flex .summary_component .package_details_group{
+.tracking_summary_component .package_details_group{
   flex-direction: column;
 }
-.summary_component .package_details_group .package_details{
+.tracking_summary_component .package_details_group .package_details{
     width: 100%;
     padding: 10px 0;
 }

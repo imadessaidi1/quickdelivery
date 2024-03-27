@@ -79,8 +79,7 @@ export default {
   height: 89vh;
   overflow: scroll;
   box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
-  background-color: #21D4FD;
-  background-image: linear-gradient(250deg, #21D4FD 0%, #B721FF 100%);
+  background-color: #eeeeee;
   z-index: 1;
 }
 .tracking_summary_component h2{

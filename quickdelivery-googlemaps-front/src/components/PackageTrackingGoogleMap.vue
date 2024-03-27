@@ -20,6 +20,9 @@
               name="map"
               ></iframe>
           </div>
+          <div class="btnInfo">
+            <button class="btn primary_btn" type="button">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
+          </div>
         </div>
     </div>
 </template>
@@ -48,7 +51,7 @@ export default {
     });
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
-            const routeInfo = JSON.parse(e.data.split(';')[1]);
+            //const routeInfo = JSON.parse(e.data.split(';')[1]);
         }
     };
   },
@@ -108,5 +111,23 @@ export default {
 .google-map {
   width: 75%;
   position: relative;
+}
+.btnInfo{
+  display: none;
+  position: absolute;
+  bottom: 60px;
+  right: 50%;
+  transform: translateX(50%);
+}
+@media screen and (max-width: 1100px){
+  .tracking_summary_component{
+    display: none;
+  }
+  .google-map{
+    width: 100%;
+  }
+  .btnInfo{
+  display: block;
+}
 }
 </style>

@@ -1,7 +1,8 @@
 <template>
     <h2 v-show="package_.reference">{{$t('packageReference')}}: {{ package_.reference }}</h2>
-    <div class="package_details_group" id="id_for_tracking">
-        <div class="package_details">
+    <div class="package_details_group">
+        <div id="id_for_tracking">
+            <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>
             <div class="details">
                 <div>
@@ -101,6 +102,7 @@
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(getArrivalAddress(this.package_.addresses).dateTime) }}
                 </div>-->
             </div>
+        </div>
         </div>
     </div>
     <DocumentPdfModal v-if="package_.documentS['PACKAGE_PICTURE']" ref="docImgModal" classe="modal" :byteArrayPDF="getData('PACKAGE_PICTURE')"/>
@@ -222,14 +224,29 @@ export default {
 .tracking_summary_component .package_details_group .package_details h3{
     margin-left: 15px;
     padding-left: 6px;
-    border-left: solid 3px #B721FF;
+    border-left: solid 3px #10b3ff;
 } 
 .tracking_summary_component .package_details_group{
   flex-direction: column;
+  box-sizing: border-box;
+  padding: 10px;
 }
 .tracking_summary_component .package_details_group .package_details{
+    box-sizing: border-box;
     width: 100%;
-    padding: 10px 0;
+    padding: 10px;
+    background-color: none;
+}
+.tracking_summary_component .package_details_group .package_details:first-child{
+    border-bottom: 1px solid #e7e7e7;
+}
+.tracking_summary_component .package_details_group .package_details:last-child{
+    border-top: 1px solid #e7e7e7;
+}
+#id_for_tracking{
+    border: 1px solid #e7e7e7;
+    border-radius: 18px;
+    background-color: #fff;
 }
 @media screen and (max-width: 1100px){
     .package_details_group {

@@ -20,6 +20,9 @@
               name="map"
               ></iframe>
           </div>
+          <div class="btnInfo">
+            <button class="btn primary_btn" type="button">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
+          </div>
         </div>
     </div>
 </template>
@@ -46,6 +49,11 @@ export default {
     }).catch(() => {
       console.log("unable to process your request this time. please try again latter.");
     });
+    window.onmessage = (e) => {
+        if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
+            const routeInfo = JSON.parse(e.data.split(';')[1]);
+        }
+    };
   },
   methods: {
     onLoadIframe() {
@@ -74,8 +82,7 @@ export default {
   height: 89vh;
   overflow: scroll;
   box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
-  background-color: #21D4FD;
-  background-image: linear-gradient(250deg, #21D4FD 0%, #B721FF 100%);
+  background-color: #eeeeee;
   z-index: 1;
 }
 .tracking_summary_component h2{
@@ -104,5 +111,23 @@ export default {
 .google-map {
   width: 75%;
   position: relative;
+}
+.btnInfo{
+  display: none;
+  position: absolute;
+  bottom: 60px;
+  right: 50%;
+  transform: translateX(50%);
+}
+@media screen and (max-width: 1100px){
+  .tracking_summary_component{
+    display: none;
+  }
+  .google-map{
+    width: 100%;
+  }
+  .btnInfo{
+  display: block;
+}
 }
 </style>

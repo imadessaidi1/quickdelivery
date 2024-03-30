@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
+import java.util.List;
 import java.util.Locale;
 
 
@@ -64,5 +65,9 @@ public class UsersController {
         }else{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+    @GetMapping("/usersForValidation")
+    public List<UserDTO> usersForValidation(){
+        return userServices.findUsersForValidation();
     }
 }

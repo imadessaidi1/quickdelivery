@@ -2,6 +2,7 @@ package com.quickdelivery.services.implementations;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.DocumentDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.entities.Document;
@@ -28,15 +29,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -138,11 +134,40 @@ public class UserServices implements IUserServices {
 
     @Override
     public UserDTO findByEmail(String email) {
-        User user = users.finByEmail(email);
+        User user = users.findByEmail(email);
         if(user != null)
             return modelMapper.map(user, UserDTO.class);
         else
             return null;
+    }
+
+    @Override
+    public List<UserDTO> findUsersForValidation() {
+        List<User> userList = users.findUsersForValidation();
+        List<UserDTO> userDTOList = new ArrayList<>();
+        userList.stream().forEach(user -> {
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            user.getDocument().stream().forEach(document -> {
+                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                try {
+                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                userDTO.getDocument().put(document.getType(), documentDTO);
+            });
+            userDTO.getVehicles().clear();
+            user.getVehicles().stream().forEach(vehicle -> {
+                VehicleDTO vehicleDTO = modelMapper.map(vehicle, VehicleDTO.class);
+                vehicle.getDocument().stream().forEach(document -> {
+                    vehicleDTO.getVehicleDocuments().put(document.getType(), modelMapper.map(document, DocumentDTO.class));
+                });
+                userDTO.getVehicles().add(vehicleDTO);
+            });
+            userDTOList.add(userDTO);
+        });
+        return userDTOList;
     }
 
     private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){

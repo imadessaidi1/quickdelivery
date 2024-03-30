@@ -35,6 +35,7 @@
 import PackageSummary from '../components/PackageDetails.vue';
 import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
+import { validateNumericField } from '@/config/comonFunction';
 
 export default {
   components: {
@@ -104,6 +105,7 @@ export default {
     };
   },
   methods: {
+    validateNumericField,
     openModal() {
       this.isOpen = true;
     },

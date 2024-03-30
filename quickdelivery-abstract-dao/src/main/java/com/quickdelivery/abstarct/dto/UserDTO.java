@@ -1,10 +1,12 @@
 package com.quickdelivery.abstarct.dto;
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.GENDER_TYPE;
 import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +37,11 @@ public class UserDTO {
     private String passwordConfirmation;
     private List<AddressDTO> personalAddress;
     private Map<PAYMENT_TYPE, PaymentDTO> paymentModes = new HashMap<>();
-    private List<DocumentDTO> documents;
+    private Map<DOCUMENT_TYPE, DocumentDTO> document = new HashMap<>();
     private List<PackageReservationDTO> packagesDELIVERED;
     private List<PackageDTO> packagesSent;
+
+    private List<VehicleDTO> vehicles = new ArrayList<>();
     public UserDTO(){}
 
     public Long getId() {
@@ -152,12 +156,12 @@ public class UserDTO {
         this.paymentModes = paymentModes;
     }
 
-    public List<DocumentDTO> getDocuments() {
-        return documents;
+    public Map<DOCUMENT_TYPE, DocumentDTO> getDocument() {
+        return document;
     }
 
-    public void setDocuments(List<DocumentDTO> documents) {
-        this.documents = documents;
+    public void setDocument(Map<DOCUMENT_TYPE, DocumentDTO> document) {
+        this.document = document;
     }
 
     public String getPassword() {
@@ -222,5 +226,13 @@ public class UserDTO {
 
     public void setPhoneConfirmation(String phoneConfirmation) {
         this.phoneConfirmation = phoneConfirmation;
+    }
+
+    public List<VehicleDTO> getVehicles() {
+        return vehicles;
+    }
+
+    public void setVehicles(List<VehicleDTO> vehicles) {
+        this.vehicles = vehicles;
     }
 }

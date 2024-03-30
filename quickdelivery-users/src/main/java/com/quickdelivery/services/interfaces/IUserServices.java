@@ -7,6 +7,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Locale;
 
 public interface IUserServices {
@@ -16,4 +17,6 @@ public interface IUserServices {
     public void deleteUSer(UserDTO user);
     public CHECK_STATUS validateUserEmail(Long id);
     UserDTO findByEmail(String email);
+
+    List<UserDTO> findUsersForValidation();
 }

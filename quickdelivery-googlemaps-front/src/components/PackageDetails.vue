@@ -16,12 +16,19 @@
                 <div>
                     <strong>{{$t('packageWeight')}}:</strong> {{package_.weight}}
                 </div>
+                <div v-if="package_.deliveryPrice">
+                    <strong>{{$t('packagePrice')}}:</strong> {{package_.deliveryPrice}} {{$t('currency')}}
+                </div>
             </div>
-            <!--<div>
-                {{$t('packagePicture')}}: {{documentS[0].name}}
-            </div>
-            <div>
-                {{$t('packageInvoice')}}: {{documentS[1].name}}
+            <div v-if="package_.documentS['PACKAGE_INVOICE']"><a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a></div>
+            <div v-if="package_.documentS['PACKAGE_PICTURE']"><a @click="openDocumentIMGModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_PICTURE'].fileName) }}</a></div>
+            <!--<div v-if="documentS">
+                <div>
+                    {{$t('packagePicture')}}: {{documentS[0].name}}
+                </div>
+                <div>
+                    {{$t('packageInvoice')}}: {{documentS[1].name}}
+                </div>
             </div>-->
         </div>
         <div class="package_details">
@@ -54,7 +61,7 @@
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{getDepartureAddress(this.package_.addresses).floor}}
                 </div>
-                <div class="dateTime_line">
+                <div class="dateTime_line" v-show="getDepartureAddress(this.package_.addresses).dateTime">
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(getDepartureAddress(this.package_.addresses).dateTime) }}
                 </div>
             </div>
@@ -90,17 +97,23 @@
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{getArrivalAddress(this.package_.addresses).floor}}
                 </div>
-                <div class="dateTime_line">
+                <!--<div class="dateTime_line">
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(getArrivalAddress(this.package_.addresses).dateTime) }}
-                </div>
+                </div>-->
             </div>
         </div>
     </div>
-
+    <DocumentPdfModal v-if="package_.documentS['PACKAGE_PICTURE']" ref="docImgModal" classe="modal" :byteArrayPDF="getData('PACKAGE_PICTURE')"/>
+    <DocumentPdfModal v-if="package_.documentS['PACKAGE_INVOICE']" ref="docPdfModal" classe="modal" :byteArrayPDF="getData('PACKAGE_INVOICE')"/>
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
+import DocumentPdfModal from '../components/DocumentPdfModal.vue';
+
 export default {
+    components: {
+      DocumentPdfModal,
+    },
     computed: {
         package_() {
           return this.$store.state.package_;
@@ -113,6 +126,8 @@ export default {
       return {
         departureAddress: Object,
         arrivalAddress: Object,
+        name: 'my-pdf-file.pdf', //change which pdf file loads
+        path: 'pdfjs-2.3.200-dist/web/viewer.html'
       };
     },
     mounted() {
@@ -122,6 +137,12 @@ export default {
     methods: {
         getDepartureAddress,
         getArrivalAddress,
+        openDocumentPDFModal(){
+          this.$refs.docPdfModal.openModal();
+        },
+        openDocumentIMGModal(){
+          this.$refs.docImgModal.openModal();
+        },
         formatDate(dateTime) {
             const date = new Date(dateTime);
             const options = {
@@ -133,11 +154,31 @@ export default {
             };
             const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
             return date.toLocaleDateString(userLanguage, options);
-        }
+        },
+        getData(docType){
+            var data;
+            if(docType === 'PACKAGE_INVOICE'){
+                data = 'data:application/pdf;base64,'+this.package_.documentS[docType].data;
+            }else{
+                data = 'data:image/png;base64,'+this.package_.documentS[docType].data;
+            }
+            return data;
+        },
+        getIMGData(){
+            return 'data:image/png;base64,'+this.package_.documentS[1].data;
+        },
     },
 }
 </script>
 <style>
+.custom-link {
+  color: blue; /* Couleur bleue pour le lien */
+  cursor: pointer; /* Curseur de la souris en forme de main */
+}
+
+.custom-link:hover {
+  text-decoration: underline; /* Souligner le lien au passage de la souris */
+}
 .conditionCheckbox{
   display: flex;
   align-items: center;

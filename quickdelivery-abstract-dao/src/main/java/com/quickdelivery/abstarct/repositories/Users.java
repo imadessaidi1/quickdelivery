@@ -14,7 +14,7 @@ public interface Users extends CrudRepository<User, Long> {
     List<Users> findOneByFirstName(String firstName);
     @Query("SELECT u " +
             "FROM User u WHERE u.emailAddress = :email")
-    User finByEmail(@Param("email") String email);
+    User findByEmail(@Param("email") String email);
     @Query("SELECT a FROM Address a " +
             "WHERE st_distance_sphere(POINT(a.latitude, a.longitude), POINT(:latitude, :longitude)) <= :rayonEnMetres " +
             "AND a.residents.type='DELIVERY_PERSON' " +
@@ -22,4 +22,7 @@ public interface Users extends CrudRepository<User, Long> {
     List<Address> findUsersAroundPosition(@Param("latitude") String latitude,
                                           @Param("longitude") String longitude,
                                           @Param("rayonEnMetres") double rayonEnMetres);
+    @Query("SELECT u " +
+            "FROM User u WHERE u.activeAccount = false")
+    List<User> findUsersForValidation();
 }

@@ -32,6 +32,7 @@
 	   let carIcon;
 	   let arrivalIcon;
 	   let routeInfo;
+	   const ipAddress = 'quickdelivery.com:8082';
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           directionsRenderer = new google.maps.DirectionsRenderer({
@@ -65,7 +66,7 @@
 			try{
 			if(packageRef){
 				var xhr = new XMLHttpRequest();
-				var url = `http://localhost:8082/packages/v1/getPackage?reference=${packageRef}`;
+				var url = `https://${ipAddress}/packages/v1/getPackage?reference=${packageRef}`;
 				xhr.open("GET", url, true);
 				xhr.onload = function() {
 					if (xhr.status >= 200 && xhr.status < 300) {

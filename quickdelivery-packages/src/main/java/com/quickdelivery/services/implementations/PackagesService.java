@@ -28,9 +28,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -151,14 +154,19 @@ public class PackagesService implements IPackagesService {
                 .map(address -> {
                     Package aPackage = address.getPackaged();
                     PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream()
-                            .filter(document -> document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE))
-                            .collect(Collectors.toList()).forEach(document -> {
-                                FileDTO fileDTO = new FileDTO();
-                                fileDTO.setData(document.getDocContent());
-                                fileDTO.setFileName(document.getDocURL());
-                                packageDTO.getFiles().add(fileDTO);
-                            });
+                    aPackage.getDocument().stream().forEach(document -> {
+                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
+                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
+                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                            documentDTO.setFileName(document.getType().toString());
+                            try {
+                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+                        }
+                    });
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -181,6 +189,19 @@ public class PackagesService implements IPackagesService {
                 .map(address -> {
                     Package aPackage = address.getPackaged();
                     PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+                    aPackage.getDocument().stream().forEach(document -> {
+                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
+                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
+                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                            documentDTO.setFileName(document.getType().toString());
+                            try {
+                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+                        }
+                    });
                     AddressDTO departureAddress = getDepartureAddress(packageDTO.getAddresses());
                     DistanceMatrix distancePackageUser = GeoHelper.getDistanceByCoordinates(geoApiContext, departureAddress.getLatitude().doubleValue(),
                             departureAddress.getLongitude().doubleValue()
@@ -309,7 +330,23 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public PackageDTO findPackageByID(Long id) {
-        return modelMapper.map(packages.findById(id), PackageDTO.class);
+        Package aPackage = packages.findById(id).get();
+        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+        packageDTO.getDocumentS().clear();
+        aPackage.getDocument().stream().forEach(document -> {
+            if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
+                    document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
+                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                documentDTO.setFileName(document.getType().toString());
+                try {
+                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+            }
+        });
+        return packageDTO;
     }
 
     @Override
@@ -461,7 +498,23 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public PackageDTO findPackageByReference(String reference) {
-        return modelMapper.map(packages.findPackageByReference(reference), PackageDTO.class);
+        Package aPackage = packages.findPackageByReference(reference);
+        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+        packageDTO.getDocumentS().clear();
+        aPackage.getDocument().stream().forEach(document -> {
+            if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
+                    document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
+                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                documentDTO.setFileName(document.getType().toString());
+                try {
+                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+            }
+        });
+        return packageDTO;
     }
 
     @Override

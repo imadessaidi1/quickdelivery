@@ -1,11 +1,14 @@
 package com.quickdelivery.abstarct.dto;
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PackageDTO {
     private Long id;
@@ -26,7 +29,7 @@ public class PackageDTO {
     private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
 
-    private List<DocumentDTO> documentS = new ArrayList<>();
+    private Map<DOCUMENT_TYPE, DocumentDTO> documentS = new HashMap<>();
     private BigDecimal lastPositionLatitude;
     private BigDecimal lastPositionLongitude;
 
@@ -124,11 +127,11 @@ public class PackageDTO {
         this.creationDate = creationDate;
     }
 
-    public List<DocumentDTO> getDocumentS() {
+    public Map<DOCUMENT_TYPE, DocumentDTO> getDocumentS() {
         return documentS;
     }
 
-    public void setDocumentS(List<DocumentDTO> documentS) {
+    public void setDocumentS(Map<DOCUMENT_TYPE, DocumentDTO> documentS) {
         this.documentS = documentS;
     }
 

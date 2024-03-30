@@ -1,8 +1,11 @@
 package com.quickdelivery.abstarct.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class VehicleDTO {
@@ -12,7 +15,7 @@ public class VehicleDTO {
     private String brand;
     private String model;
     private String energyType;
-    private Set<DocumentDTO> vehicleDocuments;
+    private Map<DOCUMENT_TYPE, DocumentDTO> vehicleDocuments = new HashMap<>();
     public VehicleDTO(){}
 
     public Long getId() {
@@ -63,11 +66,11 @@ public class VehicleDTO {
         this.registrationNumber = registrationNumber;
     }
 
-    public Set<DocumentDTO> getVehicleDocuments() {
+    public Map<DOCUMENT_TYPE, DocumentDTO> getVehicleDocuments() {
         return vehicleDocuments;
     }
 
-    public void setVehicleDocuments(Set<DocumentDTO> vehicleDocuments) {
+    public void setVehicleDocuments(Map<DOCUMENT_TYPE, DocumentDTO> vehicleDocuments) {
         this.vehicleDocuments = vehicleDocuments;
     }
 }

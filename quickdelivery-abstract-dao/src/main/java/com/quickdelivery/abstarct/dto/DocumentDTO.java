@@ -10,6 +10,9 @@ public class DocumentDTO {
     private Timestamp version;
     private String docURL;
     private DOCUMENT_TYPE type;
+    private String fileName;
+    private byte[] data;
+
     public DocumentDTO(){}
 
     public Long getId() {
@@ -42,5 +45,21 @@ public class DocumentDTO {
 
     public void setVersion(Timestamp version) {
         this.version = version;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 }

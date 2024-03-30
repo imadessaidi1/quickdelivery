@@ -6,8 +6,8 @@
         </div>
         <div class="google-map">
           <div class="roadInfo" v-show="routeInfo">
-              <p><strong>Distance:</strong> 12{{ routeInfo.distance.text }}Km</p>
-              <p><strong>Duration:</strong> 2h25min{{ routeInfo.duration.text }}</p>
+              <p><strong>Distance:</strong> {{ routeInfo.distance.text }}</p>
+              <p><strong>Duration:</strong> {{ routeInfo.duration.text }}</p>
           </div>
           <div id="map">
               <iframe
@@ -46,11 +46,6 @@ export default {
     }).catch(() => {
       console.log("unable to process your request this time. please try again latter.");
     });
-    window.onmessage = (e) => {
-        if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
-            const routeInfo = JSON.parse(e.data.split(';')[1]);
-        }
-    };
   },
   methods: {
     onLoadIframe() {

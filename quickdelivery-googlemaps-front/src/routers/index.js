@@ -7,6 +7,7 @@ import PaymentPage from '../pages/PaymentPage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
 import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
 import PackageTrackingPage from '../pages/PackageTrackingPage.vue';
+import UserAccountValidationPage from '../pages/UserAccountValidationPage.vue';
 
 const routes = [
         {
@@ -43,7 +44,12 @@ const routes = [
         path: '/packageTracking/:packageReference',
         name: 'PackageTrackingPage',
         component: PackageTrackingPage
-        }
+        },
+        {
+        path: '/usersAccountValidation',
+        name: 'UserAccountValidationPage',
+        component: UserAccountValidationPage
+        },
       ];
 const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),

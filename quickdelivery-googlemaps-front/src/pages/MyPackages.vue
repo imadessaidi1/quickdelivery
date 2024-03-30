@@ -3,7 +3,7 @@
     <div ref="scrollContainer">
       <PackagesFilter />
       <div v-for="status in packagesByStatus" :key="status.satuts_">
-        <h2 :id="status.satuts_">{{status.satuts_}}</h2>
+        <h2 :id="status.satuts_">{{$t(status.satuts_)}}</h2>
         <div class="grid-container">
             <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
                 <div class="item-content">

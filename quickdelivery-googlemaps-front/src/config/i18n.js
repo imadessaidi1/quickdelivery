@@ -1,11 +1,12 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-
+const ipAddress = 'quickdelivery.com';
 const messages = {
   en: {
     //API URLS
-    wsURL: 'ws://localhost:8082/ws',
-    rootURL: 'http://localhost:8082/packages/v1/',
+    wsURL: `wss://${ipAddress}:8082/ws`,
+    rootURL: `https://${ipAddress}:8082/packages/v1/`,
+    userRootURL: `https://${ipAddress}:8081/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
@@ -16,9 +17,9 @@ const messages = {
     pickup: 'pickup?',
     deliver: 'deliver?',
     userWithOngoingDelivery: 'isUserWithOngoingDelivery?userId=',
-    userRootURL: 'http://localhost:8081/users/v1/',
     createUser: 'create',
     getUserByEmail: 'userByEmail?email=',
+    getUsersForValidation: 'usersForValidation',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -41,7 +42,9 @@ const messages = {
     packagePictureInfo: 'Packages with a photo are more likely to quickly find a delivery person',
     packageInvoice: 'Receipt/Invoice',
     packageInvoiceInfo: 'Necessary to collect your package from a professional',
-    packagePrice: 'Price',
+    PACKAGE_PICTURE: 'Picture',
+    PACKAGE_INVOICE: 'Receipt/Invoice',
+    packagePrice: 'Delivery price',
     packageDistanceToDestination: 'Distance to destination',
     packageDestination: 'Destination',
     packageDeparture: 'Departure',
@@ -73,6 +76,9 @@ const messages = {
     packageReference: 'Package N°',
     packagePickupPassword: 'Pick up password',
     packageDeliveryPassword: 'Delivery password',
+    RESERVED: 'Reserved',
+    DELIVERED: 'Delivered',
+    PICKEDUP: 'Picked up',
     //Packages Arround
     packagesArround: 'Packages around you',
     packagesArroundDistanceFromYou: 'Distance to package from your position',
@@ -129,6 +135,7 @@ const messages = {
     menuUserLogin: 'Login',
     menuUserSignin: 'Signing Up',
     menuUuserAccount: 'My account',
+    menuUusersAccountValidation: 'Accounts Validation',
     //NOTIFICATION
     notificationTitle: 'New Notification From QuickDelivery',
     //MESSAGES
@@ -191,6 +198,8 @@ const messages = {
     packagePicture: 'Photo',
     packagePictureInfo: 'Les colis avec photos ont plus de chances de trouver rapidement un livreur',
     packageInvoice: 'Ticket de caisse / Facture',
+    PACKAGE_PICTURE: 'Photo',
+    PACKAGE_INVOICE: 'Ticket de caisse / Facture',
     packageInvoiceInfo: 'Necessaire pour recuperer votre colis auprès d\'un professionnel',
     packageNextAction: 'Suivant',
     packagePreviousAction: 'Precédent',
@@ -220,6 +229,9 @@ const messages = {
     packageReference: 'Collis N°',
     packagePickupPassword: 'Pickup password',
     packageDeliveryPassword: 'Delivery password',
+    RESERVED: 'Reserved',
+    DELIVERED: 'Delivered',
+    PICKEDUP: 'Picked up',
     //Colis autour de vous
     packagesArround: 'Colis autour de vous',
     packagesArroundDistanceFromYou: 'Vers le colis de votre position',
@@ -274,8 +286,9 @@ const messages = {
     menuMyPackages: 'Mes Colis',
     menuNewPackage: 'Neouveau Colis',
     menuUserLogin: 'Se connecter',
-    menuUserSignin: 'Crée un compte',
-    menuUuserAccount: 'Mon compte',
+    menuUserSignin: 'Crée un Compte',
+    menuUuserAccount: 'Mon Compte',
+    menuUusersAccountValidation: 'Validation des Comptes',
     //NOTIFICATION
     notificationTitle: 'Nouvelle Notification de QuickDelivery',
     //MESSAGE

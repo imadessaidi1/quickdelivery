@@ -21,5 +21,15 @@ module.exports = {
         key: fs.readFileSync('./src/cert/cle.key'),
         cert: fs.readFileSync('./src/cert/certificat.crt'),
       },
-    }*/
+  },*/
+  devServer: {
+     port: 8080,
+     host: 'quickdelivery.com',
+     https: {
+         pfx: fs.readFileSync('./src/cert/certificate.pfx'),
+         passphrase: "Quickdelivery123",
+     },
+     hot: false,
+  }
+
 };

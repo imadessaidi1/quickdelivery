@@ -49,11 +49,6 @@ export default {
     }).catch(() => {
       console.log("unable to process your request this time. please try again latter.");
     });
-    window.onmessage = (e) => {
-        if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
-            const routeInfo = JSON.parse(e.data.split(';')[1]);
-        }
-    };
   },
   methods: {
     onLoadIframe() {

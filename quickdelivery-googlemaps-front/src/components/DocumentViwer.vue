@@ -2,10 +2,10 @@
     <div class="document-viewer">
         <iframe ref="documentFrame" :src="currentDocData"></iframe>
         <div class="navigation-info">
-            <span>{{ currentDocInfo() }}</span>
             <div class="navigation-buttons">
-                <button @click="previousDocument" :disabled="currentDocIndex === 0">Previous</button>
-                <button @click="nextDocument" :disabled="currentDocIndex === documents.length - 1">Next</button>
+                <button class="btn primary_btn" @click="previousDocument" :disabled="currentDocIndex === 0">{{$t('packagePreviousAction')}}</button>
+                <strong><span>{{ currentDocInfo() }}</span></strong>
+                <button class="btn primary_btn" @click="nextDocument" :disabled="currentDocIndex === documents.length - 1">{{$t('packageNextAction')}}</button>
             </div>
         </div>
     </div>

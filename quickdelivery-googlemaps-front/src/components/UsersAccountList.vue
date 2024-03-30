@@ -25,7 +25,7 @@
                     <td>{{ user.vehicles[0].model }}</td>
                     <td>{{ user.vehicles[0].energyType }}</td>
                     <td>
-                        <button @click="showDetails(user)">Details</button>
+                        <button class="btn primary_btn" @click="showDetails(user)">Details</button>
                 </td>
                 </tr>
             </tbody>
@@ -34,10 +34,10 @@
             <div v-if="selectedUser" class="modal">
                 <div class="modal-content">
                     <div class="d_flex">
-                        <div>
+                        <div class="user_details_component">
                             <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :vehicleDocuments="selectedUser.vehicles[0].vehicleDocuments" :userDocuments="selectedUser.documents"/>
                         </div>
-                        <div>
+                        <div class="document-viewer">
                             <DocumentViewer :documents = "selectedUser.document"/>
                         </div>
                     </div>
@@ -82,6 +82,18 @@ export default {
 .d_flex{
   display: flex;
   height: 94vh !important;
+}
+.d_flex .user_details_component{
+  width: 35%;
+  height: 95%;
+  overflow: scroll;
+  box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
+  background-color: #eeeeee;
+  z-index: 1;
+}
+.d_flex .document-viewer {
+  width: 65%;
+  position: relative;
 }
 .modal {
   position: fixed;

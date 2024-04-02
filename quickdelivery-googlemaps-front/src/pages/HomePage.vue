@@ -1,5 +1,5 @@
 <template>
-            <GoogleMap ref="mapVue" :style="{ width: '100%', height: '87%' }"/>
+            <GoogleMap ref="mapVue" :style="{ width: '100%', height: '89%' }"/>
             <div class="carousel-overlay">
                 <Carrousel />
             </div>

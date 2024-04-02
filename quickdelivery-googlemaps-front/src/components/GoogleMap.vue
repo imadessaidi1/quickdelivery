@@ -29,9 +29,4 @@ export default {
 #map{
   height: 100%;
 }
-.google-map {
-  width: 100%;
-  height: 75vh;
-  flex: 1;
-}
 </style>

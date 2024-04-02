@@ -77,7 +77,7 @@ export default {
   margin-top: 20px;
 }
 
-iframe {
+iframe[ref="documentFrame"] {
   width: 100%;
   height: 500px; /* Ajustez la hauteur de l'iframe selon vos besoins */
   border: none;

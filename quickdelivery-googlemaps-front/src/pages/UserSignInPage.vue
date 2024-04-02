@@ -267,7 +267,7 @@ export default {
 </script>
 <style>
 .user_creation_main{
-  height: 87%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;

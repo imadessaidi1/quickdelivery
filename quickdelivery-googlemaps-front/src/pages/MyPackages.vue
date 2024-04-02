@@ -95,7 +95,7 @@ export default {
 
 <style>
 .myPackeges{
-  height: 87%;
+  height: 100%;
   padding: 0 15px;
   overflow: scroll;
 }

@@ -70,7 +70,7 @@ export default {
 <style scoped>
 .d_flex{
   display: flex;
-  height: 94vh !important;
+  height: 100% !important;
 }
 .tracking_summary_component{
   width: 25%;

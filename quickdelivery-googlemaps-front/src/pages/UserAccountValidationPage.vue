@@ -31,8 +31,8 @@ export default {
 };
 </script>
 <style>
-.user_creation_main{
-  height: 87%;
+/*.user_creation_main{
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -110,5 +110,5 @@ export default {
     width: 75%;
     padding: 30px;
   }
-}
+}*/
 </style>

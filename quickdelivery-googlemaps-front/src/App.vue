@@ -4,7 +4,9 @@
              :can-cancel="true"
              :is-full-page="true"/>
     <SearchBar />
-    <router-view/>
+    <div class="router-view">
+      <router-view/>
+    </div>
     <AppMessages />
     <AppFooter />
   </div>
@@ -118,6 +120,11 @@ export default {
 
 <style>
 .fullPage{
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.router-view{
+  flex-grow: 1;
 }
 </style>

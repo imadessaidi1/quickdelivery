@@ -1,7 +1,5 @@
 package com.quickdelivery.services.implementations;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
@@ -12,7 +10,6 @@ import com.quickdelivery.abstarct.helpers.*;
 import com.quickdelivery.abstarct.parameters.*;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
-import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -28,7 +25,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -68,6 +64,10 @@ public class PackagesService implements IPackagesService {
     private String packageQrEnds;
     @Value("${package.referece.start}")
     private String packageReferenceStart;
+    @Value("${package.services.followup.url}")
+    private String packageFollowupLink;
+    @Value("${package.services.evaluate.url}")
+    private String evaluateLink;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -378,14 +378,19 @@ public class PackagesService implements IPackagesService {
         List<PackageDTO> packageDTOS = packageList.stream()
                 .map(aPackage  -> {
                     PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream()
-                            .filter(document -> document.getType().toString().equals(DOCUMENT_TYPE.PACKAGE_PICTURE.toString()))
-                            .collect(Collectors.toList()).forEach(document -> {
-                                FileDTO fileDTO = new FileDTO();
-                                fileDTO.setData(document.getDocContent());
-                                fileDTO.setFileName(document.getDocURL());
-                                packageDTO.getFiles().add(fileDTO);
-                            });
+                    aPackage.getDocument().stream().forEach(document -> {
+                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
+                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
+                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                            documentDTO.setFileName(document.getType().toString());
+                            try {
+                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+                        }
+                    });
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -458,8 +463,8 @@ public class PackagesService implements IPackagesService {
         templateModel.put("weight", aPackage.getWeight());
         templateModel.put("packageReference", aPackage.getReference());
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("followupLink", "https://quickdelivery.com:8080/packageTracking/"+aPackage.getReference());
-        templateModel.put("evaluationLink", "https://quickdelivery.com:8080/evaluate/"+aPackage.getReference());
+        templateModel.put("followupLink", packageFollowupLink+aPackage.getReference());
+        templateModel.put("evaluationLink", evaluateLink+aPackage.getReference());
         if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
             aPackage.getPackageReservations().stream().forEach(packageReservation -> {
                 if (packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING)) {

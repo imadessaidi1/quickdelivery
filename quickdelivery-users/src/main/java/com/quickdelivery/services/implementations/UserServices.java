@@ -12,6 +12,7 @@ import com.quickdelivery.abstarct.helpers.FileHelper;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.MailHelper;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.EMAIL_TEMPLATE_TYPE;
 import com.quickdelivery.abstarct.repositories.Documents;
@@ -35,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -51,6 +53,8 @@ public class UserServices implements IUserServices {
     private String userVehiclePath;
     @Value("${email.validation.link}")
     private String emailValidationLink;
+    @Value("${email.userUpdate.link}")
+    private String userUpdateLink;
     @Autowired
     private Users users;
     @Autowired
@@ -113,9 +117,27 @@ public class UserServices implements IUserServices {
     }
 
     @Override
-    public UserDTO updateUser(UserDTO user) {
-        User userEntity = users.save(modelMapper.map(user,User.class));
-        return modelMapper.map(userEntity,UserDTO.class);
+    public UserDTO userValidation(UserDTO user, Locale locale) {
+        User userFromDB = users.findById(user.getId()).get();
+        userFromDB.setActiveAccount(user.getActiveAccount());
+        Set<Document> documentListFromFront = new HashSet<>();
+        user.getDocument().keySet().stream().forEach(documentType -> {
+            Document document = modelMapper.map(user.getDocument().get(documentType), Document.class);
+            document.setUser(userFromDB);
+            documentListFromFront.add(document);
+        });
+        userFromDB.setDocument(documentListFromFront);
+        users.save(userFromDB);
+        List<Document> rejectedDocuments = userFromDB.getDocument().stream()
+                .filter(document -> document.getDocumentStatus() == DOCUMENT_STATUS.REJECTED)
+                .collect(Collectors.toList());
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        if(!rejectedDocuments.isEmpty()) {
+            executorService.submit(() -> {
+                sendUserDocumentsUpdateRequest(user, userFromDB, rejectedDocuments, locale);
+            });
+        }
+        return modelMapper.map(userFromDB,UserDTO.class);
     }
 
     @Override
@@ -135,9 +157,23 @@ public class UserServices implements IUserServices {
     @Override
     public UserDTO findByEmail(String email) {
         User user = users.findByEmail(email);
-        if(user != null)
-            return modelMapper.map(user, UserDTO.class);
-        else
+        if(user != null) {
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
+            userDTO.setPhoneConfirmation(userDTO.getPhone());
+            userDTO.setPasswordConfirmation(userDTO.getPassword());
+            user.getDocument().stream().forEach(document -> {
+                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+                /*try {
+                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }*/
+                userDTO.getDocument().put(document.getType(), documentDTO);
+            });
+            return userDTO;
+        }else
             return null;
     }
 
@@ -157,14 +193,6 @@ public class UserServices implements IUserServices {
                 }
                 userDTO.getDocument().put(document.getType(), documentDTO);
             });
-            userDTO.getVehicles().clear();
-            user.getVehicles().stream().forEach(vehicle -> {
-                VehicleDTO vehicleDTO = modelMapper.map(vehicle, VehicleDTO.class);
-                vehicle.getDocument().stream().forEach(document -> {
-                    vehicleDTO.getVehicleDocuments().put(document.getType(), modelMapper.map(document, DocumentDTO.class));
-                });
-                userDTO.getVehicles().add(vehicleDTO);
-            });
             userDTOList.add(userDTO);
         });
         return userDTOList;
@@ -177,6 +205,18 @@ public class UserServices implements IUserServices {
         try {
             MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.uservalidation", null, locale),templateModel,
                     locale, EMAIL_TEMPLATE_TYPE.NEW_DELIVERYPERSON_VALIDATION.getType(), null);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendUserDocumentsUpdateRequest(UserDTO user, User userEntity, List<Document> rejectedDocuments, Locale locale){
+        Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
+        templateModel.put("updateLink", userUpdateLink+user.getEmailAddress());
+        try {
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.userUpdateDocsRequest", null, locale),templateModel,
+                    locale, EMAIL_TEMPLATE_TYPE.DELIVERYPERSON_DOCUPDATE_REQUEST.getType(), null);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }

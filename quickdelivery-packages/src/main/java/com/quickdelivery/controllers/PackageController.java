@@ -1,6 +1,7 @@
 package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
@@ -13,6 +14,7 @@ import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,8 @@ import java.util.Map;
 @EnableAspectJAutoProxy
 @RequestMapping("/packages/v1")
 public class PackageController {
+    @Value("${package.services.packageConsultation.url}")
+    private String packageConsultationUrl;
     @Autowired
     private IPackagesService packagesService;
     @Autowired
@@ -35,6 +39,7 @@ public class PackageController {
 
     @Autowired
     WebSocketHandler webSocketHandler;
+
 
     @PostMapping("/create")
     public PackageDTO createNewPackage(@RequestParam("packageDTO") String packageDTO,
@@ -186,7 +191,7 @@ public class PackageController {
             messageDTO.setType("NEW_PACKAGE_NOTIFICATION");
             messageDTO.setTo(address.getResidents().getId().toString());
             messageDTO.setMessage("There is a new package around you :)");
-            messageDTO.setUrl("https://quickdelivery.com:8080/package/"+aPackage);
+            messageDTO.setUrl(packageConsultationUrl+aPackage);
             ObjectMapper objectMapper = new ObjectMapper();
             String json;
             try {

@@ -1,16 +1,13 @@
 package com.quickdelivery.abstarct.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class VehicleDTO {
     private Long id;
-    private Timestamp version;
+    private Integer version;
     private String registrationNumber;
     private String brand;
     private String model;
@@ -50,11 +47,11 @@ public class VehicleDTO {
         this.energyType = energyType;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

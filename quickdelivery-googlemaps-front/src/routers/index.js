@@ -32,18 +32,26 @@ const routes = [
         },
         {
         path: '/userSignInPage',
+        name: 'userSignInPageUpdate',
+        component:UserSignInPage,
+        props: (route) => ({ id: route.query.id })
+        },
+        {
+        path: '/userSignInPage',
         name: 'userSignInPage',
         component:UserSignInPage
         },
         {
-        path: '/package/:id',
+        path: '/package',
         name: 'PackageConsultationPage',
-        component: PackageConsultationPage
+        component: PackageConsultationPage,
+        props: (route) => ({ id: route.query.id })
         },
         {
-        path: '/packageTracking/:packageReference',
+        path: '/packageTracking',
         name: 'PackageTrackingPage',
-        component: PackageTrackingPage
+        component: PackageTrackingPage,
+        props: (route) => ({ packageReference: route.query.packageReference })
         },
         {
         path: '/usersAccountValidation',

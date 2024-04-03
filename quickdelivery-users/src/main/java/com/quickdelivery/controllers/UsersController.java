@@ -40,9 +40,17 @@ public class UsersController {
         }
         return userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
     }
-    @PutMapping("/update")
-    public UserDTO updateUser(@RequestBody UserDTO user){
-        return userServices.updateUser(user);
+    @PutMapping("/validateUser")
+    public UserDTO validateUser(@RequestParam("user") String user,
+                              @RequestParam("locale") Locale locale){
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserDTO userDTO = null;
+        try {
+            userDTO = objectMapper.readValue(user, UserDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return userServices.userValidation(userDTO, locale);
     }
     @DeleteMapping("/update")
     public void deleteUser(@RequestBody UserDTO user){

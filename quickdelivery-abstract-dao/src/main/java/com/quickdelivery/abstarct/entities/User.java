@@ -4,7 +4,6 @@ import com.quickdelivery.abstarct.parameters.GENDER_TYPE;
 import jakarta.persistence.*;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,7 +13,7 @@ public class User {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private String type;
     @Column
@@ -37,6 +36,8 @@ public class User {
     private Boolean phoneValidation;
     @Column
     private Boolean activeAccount;
+    @Column
+    private String password;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "residents", cascade = CascadeType.ALL)
     private Set<Address> personalAddress = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "holderInApp", cascade = CascadeType.ALL)
@@ -58,11 +59,11 @@ public class User {
         this.id = id;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
@@ -200,5 +201,13 @@ public class User {
 
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

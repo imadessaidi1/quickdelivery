@@ -55,7 +55,7 @@ export default createStore({
         latitude: 0,
         longitude: 0,
       }],
-      documentS: [],
+      documentS: null,
       lastPositionLatitude: null,
       lastPositionLongitude: null
     },

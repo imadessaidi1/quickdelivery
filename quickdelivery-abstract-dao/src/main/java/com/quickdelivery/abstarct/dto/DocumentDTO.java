@@ -1,17 +1,18 @@
 package com.quickdelivery.abstarct.dto;
 
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
-
-import java.sql.Timestamp;
 
 public class DocumentDTO {
     private Long id;
-    private Timestamp version;
+    private Integer version;
     private String docURL;
     private DOCUMENT_TYPE type;
     private String fileName;
     private byte[] data;
+
+    private DOCUMENT_STATUS documentStatus;
 
     public DocumentDTO(){}
 
@@ -39,11 +40,11 @@ public class DocumentDTO {
         this.type = type;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
@@ -61,5 +62,13 @@ public class DocumentDTO {
 
     public void setData(byte[] data) {
         this.data = data;
+    }
+
+    public DOCUMENT_STATUS getDocumentStatus() {
+        return documentStatus;
+    }
+
+    public void setDocumentStatus(DOCUMENT_STATUS documentStatus) {
+        this.documentStatus = documentStatus;
     }
 }

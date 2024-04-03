@@ -138,7 +138,7 @@ export default{
     async submitFormPackage() {
      if(this.currentStep === 4){
          const formData = new FormData();
-         this.package_.senderID = this.$store.state.connectedUser.id
+         this.package_.senderID = this.$store.state.connectedUser.id;
          formData.append('packageDTO', JSON.stringify(this.package_));
          formData.append('files', this.documentS[0]);
          formData.append('files', this.documentS[1]);

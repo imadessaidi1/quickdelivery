@@ -3,15 +3,13 @@ package com.quickdelivery.abstarct.entities;
 import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
-
 @Entity
 public class Payment {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     protected Boolean validated;
     @Column
@@ -44,11 +42,11 @@ public class Payment {
         this.holderInApp = holderInApp;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

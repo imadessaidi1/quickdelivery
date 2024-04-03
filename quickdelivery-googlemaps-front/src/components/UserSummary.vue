@@ -54,7 +54,7 @@
         </div>
     </div>
     <div class="conditionCheckbox">
-        <Field name="userCondition" type="checkbox" value="Coffee" /><span>{{$t('packageCreationAgreement')}}</span>
+        <Field name="userCondition" type="checkbox" value="consent" /><span>{{$t('packageCreationAgreement')}}</span>
         <ErrorMessage name="userCondition" />
     </div>
 </template>

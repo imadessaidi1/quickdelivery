@@ -42,9 +42,13 @@ export default {
     UserDocuments,
     UserSummary,
   },
+  props: {
+    id: String
+  },
   data() {
     return {
       currentStep: 1,
+      isForUpdate: false,
       emptyUser: {
                 id: null,
                 version: null,
@@ -106,6 +110,21 @@ export default {
               },
     };
   },
+   mounted() {
+    if(this.id){
+        this.isForUpdate = true;
+        http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail')+this.id)
+          .then(response => {
+            console.log(response.data);
+            this.$store.commit('updateUser', response.data);
+            this.$store.commit('updateVehicle', response.data.vehicles[0]);
+            this.$store.commit('updateUserDocuments', response.data);
+            this.$store.commit('updateVehicleDocuments', response.data);
+        }).catch(() => {
+          console.log("unable to process your request this time. please try again latter.");
+        });
+    }
+  },
   methods: {
     validatePasswordConfirmation,
     validateEmailConfirmation,
@@ -117,7 +136,9 @@ export default {
             if(this.currentStep === 1){
                 const userInfo = this.$refs.userInfo;
                 const addressAuto = userInfo.$refs.addressAutoComplete;
-                userInfo.user.addressAuto = addressAuto.address;
+                if(!this.isForUpdate){
+                    userInfo.user.addressAuto = addressAuto.address;
+                }
                 const validAddress = validateAddress(userInfo.user.addressAuto);
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
                 const validEmailConfirmation = validateEmailConfirmation(userInfo.user.emailAddress, userInfo.user.emailAddressConfirmation);
@@ -129,7 +150,7 @@ export default {
                 }else{
                     userInfo.isPasswordConfirmationError = false;
                 }
-                if(existingEmail){
+                if(!this.isForUpdate && existingEmail){
                     userInfo.isExistingEmail = true;
                     userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
                 }

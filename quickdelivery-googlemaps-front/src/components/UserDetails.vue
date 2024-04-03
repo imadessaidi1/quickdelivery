@@ -29,7 +29,6 @@ export default {
     props: {
         user: null,
         vehicle: null,
-        vehicleDocuments: [],
         userDocuments: []
       },
     methods: {
@@ -44,7 +43,6 @@ export default {
             return date.toLocaleDateString(userLanguage, options);
         },
         getPicture(){
-            console.log()
             return 'data:image/png;base64,'+this.user.document['PICTURE'].data;
         }
     },

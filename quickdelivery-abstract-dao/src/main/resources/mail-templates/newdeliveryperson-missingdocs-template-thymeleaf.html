@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+        }
+        p, li {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📧 <span th:text="#{email.missingDocs.title}" /></h1>
+    <p><span th:text="#{email.greetings(${recipientName})}" /></p>
+    <p><span th:text="#{email.missingDocs.message}" /></p>
+    <p><a th:href="${updateLink}" th:text="#{email.missingDocs.updateLink}" /></p>
+    <p class="footer"><span th:text="#{email.signature}"/>,<br/>
+        <img src="url_to_your_logo" alt="logo" style="width: 100px;"><br/>
+        <span th:text="#{email.service}"></span><br/>
+        <span th:text="#{email.address}"></span><br/>
+        <span th:text="#{email.email}"></span><br/>
+        <span th:text="#{email.tel}"></span></p>
+
+    <p style="text-align: center;">
+        <a href="link_to_facebook"><img src="url_to_facebook_icon" alt="Facebook" style="width: 30px; margin-right: 10px;"></a>
+        <a href="link_to_instagram"><img src="url_to_instagram_icon" alt="Instagram" style="width: 30px; margin-right: 10px;"></a>
+        <a href="link_to_twitter"><img src="url_to_twitter_icon" alt="Twitter" style="width: 30px;"></a>
+    </p>
+</div>
+</body>
+</html>

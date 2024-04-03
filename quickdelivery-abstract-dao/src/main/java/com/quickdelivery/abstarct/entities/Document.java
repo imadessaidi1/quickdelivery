@@ -1,9 +1,8 @@
 package com.quickdelivery.abstarct.entities;
 
+import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import jakarta.persistence.*;
-
-import java.sql.Timestamp;
 
 @Entity
 public class Document {
@@ -11,15 +10,14 @@ public class Document {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private String docURL;
     @Column
     @Enumerated(EnumType.STRING)
     private DOCUMENT_TYPE type;
-    @Lob
-    @Column(name = "doc_content", columnDefinition = "LONGBLOB")
-    private byte[] docContent;
+    @Column
+    private DOCUMENT_STATUS documentStatus;
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -80,19 +78,19 @@ public class Document {
         this.vehicle = vehicle;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
-    public byte[] getDocContent() {
-        return docContent;
+    public DOCUMENT_STATUS getDocumentStatus() {
+        return documentStatus;
     }
 
-    public void setDocContent(byte[] docContent) {
-        this.docContent = docContent;
+    public void setDocumentStatus(DOCUMENT_STATUS documentStatus) {
+        this.documentStatus = documentStatus;
     }
 }

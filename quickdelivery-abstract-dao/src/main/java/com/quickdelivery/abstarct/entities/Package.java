@@ -14,7 +14,7 @@ public class Package {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private Timestamp creationDate;
     @Column
@@ -126,11 +126,11 @@ public class Package {
         this.sender = sender;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

@@ -20,6 +20,7 @@ const messages = {
     createUser: 'create',
     getUserByEmail: 'userByEmail?email=',
     getUsersForValidation: 'usersForValidation',
+    validateUser: 'validateUser',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
     footerAssistance: 'Assistance',
@@ -128,6 +129,10 @@ const messages = {
     DRIVER_LICENCE: 'Driver licence',
     USER_COMPANY_EXTRACT: 'Company extract',
     USER_COMPANY_INSURANCE: 'Company insurance',
+    userDocumentAccepted: 'Accept',
+    userDocumentRejected: 'Reject',
+    userValidationSave: 'Save',
+    userValidationCheckboxLabel: 'Activate the user account',
     //MENU
     menuHome: 'Home',
     menuMyPackages: 'My Packages',
@@ -281,6 +286,10 @@ const messages = {
     DRIVER_LICENCE: 'Permis de conduire',
     USER_COMPANY_EXTRACT: 'Extrait d\'entreprise',
     USER_COMPANY_INSURANCE: 'Assurance d\'entreprise',
+    userDocumentAccepted: 'Accepter',
+    userDocumentRejected: 'Rejeter',
+    userValidationSave: 'Enregistrer',
+    userValidationCheckboxLabel: 'Activaer le compte utilisateur',
     //MENU
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',

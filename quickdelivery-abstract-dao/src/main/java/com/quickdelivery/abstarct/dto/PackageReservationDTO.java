@@ -1,15 +1,12 @@
 package com.quickdelivery.abstarct.dto;
 
-import com.quickdelivery.abstarct.entities.Package;
-import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.parameters.PACKAGE_RESERVATION_STATUS;
-import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 
 public class PackageReservationDTO {
     private Long id;
-    private Timestamp version;
+    private Integer version;
     private Timestamp reservationDate;
     private String pickUpOTP;
     private String deliveryOTP;
@@ -23,11 +20,11 @@ public class PackageReservationDTO {
         this.id = id;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

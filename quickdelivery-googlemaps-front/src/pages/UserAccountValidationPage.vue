@@ -20,13 +20,17 @@ export default {
     };
   },
   mounted() {
-    http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUsersForValidation'))
+    this.loadUsers();
+  },
+  methods: {
+    loadUsers() {
+      http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUsersForValidation'))
       .then(response => {
-        console.log(response.data);
         this.usersList = response.data;
-    }).catch(() => {
-      console.log("unable to process your request this time. please try again latter.");
-    });
+        }).catch(() => {
+          console.log("unable to process your request this time. please try again latter.");
+        });
+    },
   },
 };
 </script>

@@ -64,7 +64,7 @@
         transitLayer.setMap(map);
 		const packagePromise = new Promise((resolve, reject) => {
 			try{
-			if(packageRef){
+			if(packageRef != undefined){
 				var xhr = new XMLHttpRequest();
 				var url = `https://${ipAddress}/packages/v1/getPackage?reference=${packageRef}`;
 				xhr.open("GET", url, true);

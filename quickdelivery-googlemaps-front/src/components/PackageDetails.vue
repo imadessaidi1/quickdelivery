@@ -21,8 +21,8 @@
                     <strong>{{$t('packagePrice')}}:</strong> {{package_.deliveryPrice}} {{$t('currency')}}
                 </div>
             </div>
-            <div v-if="package_.documentS['PACKAGE_INVOICE']"><a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a></div>
-            <div v-if="package_.documentS['PACKAGE_PICTURE']"><a @click="openDocumentIMGModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_PICTURE'].fileName) }}</a></div>
+            <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']"><a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a></div>
+            <div v-if="package_.documentS && package_.documentS['PACKAGE_PICTURE']"><a @click="openDocumentIMGModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_PICTURE'].fileName) }}</a></div>
             <!--<div v-if="documentS">
                 <div>
                     {{$t('packagePicture')}}: {{documentS[0].name}}
@@ -105,8 +105,8 @@
         </div>
         </div>
     </div>
-    <DocumentPdfModal v-if="package_.documentS['PACKAGE_PICTURE']" ref="docImgModal" classe="modal" :byteArrayPDF="getData('PACKAGE_PICTURE')"/>
-    <DocumentPdfModal v-if="package_.documentS['PACKAGE_INVOICE']" ref="docPdfModal" classe="modal" :byteArrayPDF="getData('PACKAGE_INVOICE')"/>
+    <DocumentPdfModal v-if="package_.documentS && package_.documentS['PACKAGE_PICTURE']" ref="docImgModal" classe="modal" :byteArrayPDF="getData('PACKAGE_PICTURE')"/>
+    <DocumentPdfModal v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']" ref="docPdfModal" classe="modal" :byteArrayPDF="getData('PACKAGE_INVOICE')"/>
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';

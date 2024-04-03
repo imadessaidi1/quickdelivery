@@ -5,7 +5,6 @@ import com.quickdelivery.abstarct.parameters.GENDER_TYPE;
 import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.Map;
 
 public class UserDTO {
     private Long id;
-    private Timestamp version;
+    private Integer version;
     private String type;
     private String firstName;
     private Integer age;
@@ -52,11 +51,11 @@ public class UserDTO {
         this.id = id;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

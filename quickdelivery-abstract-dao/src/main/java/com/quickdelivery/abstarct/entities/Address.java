@@ -12,7 +12,7 @@ public class Address {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private String firstName;
     @Column
@@ -129,11 +129,11 @@ public class Address {
         this.packaged = packaged;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

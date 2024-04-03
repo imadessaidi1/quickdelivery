@@ -45,6 +45,9 @@ export default{
         Field,
         ErrorMessage,
   },
+  props: {
+    id: String
+  },
   data() {
     return {
       otp: '',
@@ -101,8 +104,7 @@ export default{
     };
   },
   mounted() {
-    const id = this.$route.params.id;
-    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+id)
+    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+this.id)
       .then(response => {
         this.$store.commit('updatePackage', response.data);
     }).catch(() => {

@@ -1,5 +1,6 @@
 package com.quickdelivery.abstarct.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 
@@ -9,10 +10,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PackageDTO {
     private Long id;
-    private Timestamp version;
+    private Integer version;
     private String reference;
     private Timestamp creationDate;
 
@@ -103,11 +104,11 @@ public class PackageDTO {
         this.addresses = addresses;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

@@ -2,7 +2,6 @@ package com.quickdelivery.abstarct.entities;
 
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,7 +11,7 @@ public class Vehicle {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private String type;
     @Column
@@ -75,11 +74,11 @@ public class Vehicle {
         this.document = document;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

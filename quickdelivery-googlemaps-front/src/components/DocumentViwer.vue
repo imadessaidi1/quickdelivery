@@ -1,6 +1,16 @@
 <template>
     <div class="document-viewer">
         <iframe ref="documentFrame" :src="currentDocData"></iframe>
+        <div class="user-payment-method">
+            <label for="accept-option">
+                <input type="radio" id="accept-option" name="accept-option" v-model="currentDocument.documentStatus" value="ACCEPTED"/>
+                {{$t('userDocumentAccepted')}}
+            </label>
+            <label for="reject-option">
+                <input type="radio" id="reject-option" name="reject-option" v-model="currentDocument.documentStatus" value="REJECTED"/>
+                {{$t('userDocumentRejected')}}
+            </label>
+        </div>
         <div class="navigation-info">
             <div class="navigation-buttons">
                 <button class="btn primary_btn" @click="previousDocument" :disabled="currentDocIndex === 0">{{$t('packagePreviousAction')}}</button>
@@ -22,11 +32,13 @@ export default {
           currentDocName: ref(''),
           currentDocData: ref(0),
           documentsCount: ref(0),
+          currentDocument: Object,
         };
     },
     mounted() {
         const documentType = Object.keys(this.documents)[this.currentDocIndex];
-        this.formatDocData(this.documents[documentType]);
+        this.currentDocument = this.documents[documentType];
+        this.formatDocData(this.currentDocument);
         this.documentsCount = Object.keys(this.documents).length;
     },
     methods: {
@@ -34,14 +46,16 @@ export default {
              if (this.currentDocIndex < Object.keys(this.documents).length - 1) {
                 this.currentDocIndex++;
                 const documentType = Object.keys(this.documents)[this.currentDocIndex];
-                this.formatDocData(this.documents[documentType]);
+                this.currentDocument = this.documents[documentType];
+                this.formatDocData(this.currentDocument);
               }
         },
         previousDocument(){
             if (this.currentDocIndex > 0) {
                 this.currentDocIndex--;
                 const documentType = Object.keys(this.documents)[this.currentDocIndex];
-                this.formatDocData(this.documents[documentType]);
+                this.currentDocument = this.documents[documentType];
+                this.formatDocData(this.currentDocument);
             }
         },
         formatDocData(document){

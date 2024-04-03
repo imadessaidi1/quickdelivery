@@ -11,7 +11,7 @@ public class PackageReservation {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     @Version
-    private Timestamp version;
+    private Integer version;
     @Column
     private Timestamp reservationDate;
     @Column
@@ -36,11 +36,11 @@ public class PackageReservation {
         this.id = id;
     }
 
-    public Timestamp getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Timestamp version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

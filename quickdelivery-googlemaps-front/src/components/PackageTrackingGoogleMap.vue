@@ -21,8 +21,14 @@
               ></iframe>
           </div>
           <div class="btnInfo">
-            <button class="btn primary_btn" type="button">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
+            <button @click="details" class="btn primary_btn">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
           </div>
+        </div>
+    </div>
+    <div v-if="showModal" class="modal">
+        <div class="modal-content">
+            <PackageSummary/>
+            <button class="close-btn" @click="closeDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
         </div>
     </div>
 </template>
@@ -37,13 +43,14 @@ export default {
   data() {
       return {
         googleMapPath: process.env.BASE_URL + 'google-maps-package-tracking.html',
+        showModal: false,
       };
   },
   props: {
     routeInfo: Object,
   },
   mounted() {
-    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+this.$route.params.packageReference)
+    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+this.$parent.packageReference)
       .then(response => {
         this.$store.commit('updatePackage', response.data);
     }).catch(() => {
@@ -52,14 +59,20 @@ export default {
   },
   methods: {
     onLoadIframe() {
-      this.$refs.map.contentWindow.postMessage("PackageReference:" + this.$route.params.packageReference, "*");
+      this.$refs.map.contentWindow.postMessage("PackageReference:" + this.$parent.packageReference, "*");
+    },
+    details(){
+      this.showModal = true;
+    },
+    closeDetails(){
+      this.showModal = false;
     }
   },
   watch: {
     '$store.state.packagesLastPosition': {
       deep: true,
       handler(newVal) {
-        const newPosition = newVal[this.$route.params.packageReference];
+        const newPosition = newVal[this.$parent.packageReference];
         this.$refs.map.contentWindow.postMessage("PackageNewPosition;" + JSON.stringify(newPosition), "*");
       }
     }
@@ -113,6 +126,45 @@ export default {
   bottom: 60px;
   right: 50%;
   transform: translateX(50%);
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  width: 70%;
+  padding: 0 20px 20px 20px;
+  border-radius: 10px;
+  position: relative;
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(6.6px);
+  -webkit-backdrop-filter: blur(6.6px);
+}
+
+.close-btn {
+  /* Styles pour le bouton de fermeture (position absolue en haut à droite, couleur, curseur, etc.) */
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  color: #555;
+  border: none;
+  background: none;
+  transition: all .3s;
+}
+.close-btn:hover{
+  color: #000000;
 }
 @media screen and (max-width: 1100px){
   .tracking_summary_component{

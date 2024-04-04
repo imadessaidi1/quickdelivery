@@ -40,7 +40,9 @@
                         accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(0,'GRAY_CARD')"
                 />
-                <br/><span v-if="vehicleDocuments['GRAY_CARD'] != undefined"><strong>{{vehicleDocuments['GRAY_CARD'].name}}</strong></span>
+                <br/><span v-if="vehicleDocuments && vehicleDocuments['GRAY_CARD'] != undefined"><strong>{{vehicleDocuments['GRAY_CARD'].name}}</strong>
+                <span v-if="vehicleDocuments['GRAY_CARD'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="vehicleDocuments['GRAY_CARD'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['GRAY_CARD']" class="errorMessage" >{{filesErrorMessages['GRAY_CARD']}}</span>
             </div>
             <div class="input_only">
@@ -51,7 +53,9 @@
                         accept="image/*, application/pdf"
                 @change="handleVehicleFileChange(1, 'INSURANCE')"
                 />
-                <br/><span v-if="vehicleDocuments['INSURANCE'] != undefined"><strong>{{vehicleDocuments['INSURANCE'].name}}</strong></span>
+                <br/><span v-if="vehicleDocuments && vehicleDocuments['INSURANCE'] != undefined"><strong>{{vehicleDocuments['INSURANCE'].name}}</strong>
+                <span v-if="vehicleDocuments['INSURANCE'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="vehicleDocuments['INSURANCE'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['INSURANCE']" class="errorMessage" >{{filesErrorMessages['INSURANCE']}}</span>
             </div>
         </div>
@@ -61,10 +65,14 @@
 <script>
 import { Field, ErrorMessage } from 'vee-validate';
 import { validateCarRegistrationNumber, validateRequired } from '@/config/comonFunction';
+import { ref } from 'vue';
 export default {
   components: {
     Field,
     ErrorMessage,
+  },
+  props: {
+    isForUpdate: ref(false),
   },
   computed: {
     vehicle() {
@@ -88,7 +96,11 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        this.vehicleDocuments[type] = file_;
+        if(this.isForUpdate){
+            this.vehicleDocuments[type] = {file: file_, name: file_.name, documentStatus: 'UPDATED'};
+        }else{
+            this.vehicleDocuments[type] = {file: file_, name: file_.name, documentStatus: 'ACCEPTED'};
+        }
       }
     },
   },

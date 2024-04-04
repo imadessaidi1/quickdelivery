@@ -55,12 +55,12 @@
                 <ErrorMessage class="errorMessage" name="phoneConfirmation" />
                 <span v-if="isPhoneConfirmationError" class="errorMessage">{{phoneConfirmationErrorMessage}}</span>
             </div>
-            <div class="input_only">
+            <div class="input_only" v-if="!isForUpdate">
                 <label for="password">{{$t('userPassword')}}:</label>
                 <Field id="password" type="password" v-model="user.password" name="password" :rules="validatePassword"/>
                 <ErrorMessage class="errorMessage" name="password" />
             </div>
-            <div class="input_only">
+            <div class="input_only" v-if="!isForUpdate">
                 <label for="passwordConfirmation">{{$t('userPasswordConfirmation')}}:</label>
                 <input id="passwordConfirmation" type="password" v-model="user.passwordConfirmation" name="passwordConfirmation"/>
                 <span v-if="isPasswordConfirmationError" class="errorMessage">{{passwordConfirmationErrorMessage}}</span>
@@ -96,6 +96,9 @@ export default {
       return this.$store.state.user;
     },
   },
+  props: {
+    isForUpdate: ref(false),
+  },
   data() {
     return {
       selectedPaymentType: 'CARD',
@@ -118,6 +121,10 @@ export default {
     validateString,
     validatePassword,
     validateNumericField,
+    showField(){
+        console.log(this.$parent);
+        return this.$parent.isForUpdate;
+    }
   },
 }
 </script>

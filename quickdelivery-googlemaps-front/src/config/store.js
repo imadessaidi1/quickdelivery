@@ -125,7 +125,7 @@ export default createStore({
                   brand: '',
                   model: '',
                   energyType: '',
-                  vehicleDocuments: []
+                  vehicleDocuments: null
               },
               userDocuments: [],
               vehicleDocuments: [],

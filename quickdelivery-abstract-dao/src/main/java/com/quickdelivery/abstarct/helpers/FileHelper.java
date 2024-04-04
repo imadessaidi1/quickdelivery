@@ -13,12 +13,12 @@ import java.util.concurrent.Executors;
 
 public class FileHelper {
 
-    public static void saveFilesInParallel(MultiValueMap<String, MultipartFile> filesMap, String path, String userEmail) {
+    public static void saveFilesInParallel(MultiValueMap<String, MultipartFile> filesMap, String path, boolean isForUpdate) {
         if (filesMap != null) {
             ExecutorService executorService = Executors.newFixedThreadPool(10);
-            File userDirectory = new File(path+(userEmail.replace('.','_')));
+            File userDirectory = new File(path);
             boolean dirCreation = userDirectory.mkdir();
-            if(dirCreation){
+            if(dirCreation || isForUpdate){
                 filesMap.entrySet().stream()
                         .forEach(entry -> {
                             String fileName = entry.getKey();

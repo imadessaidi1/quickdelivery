@@ -18,6 +18,7 @@ const messages = {
     deliver: 'deliver?',
     userWithOngoingDelivery: 'isUserWithOngoingDelivery?userId=',
     createUser: 'create',
+    updateUser: 'update',
     getUserByEmail: 'userByEmail?email=',
     getUsersForValidation: 'usersForValidation',
     validateUser: 'validateUser',

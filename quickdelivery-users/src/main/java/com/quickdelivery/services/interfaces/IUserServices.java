@@ -10,11 +10,12 @@ import java.util.List;
 import java.util.Locale;
 
 public interface IUserServices {
-    public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
-    public UserDTO findByID(Long id);
-    public UserDTO userValidation(UserDTO user, Locale locale);
-    public void deleteUSer(UserDTO user);
-    public CHECK_STATUS validateUserEmail(Long id);
+    UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
+    UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
+    UserDTO findByID(Long id);
+    UserDTO userValidation(UserDTO user, Locale locale);
+    void deleteUSer(UserDTO user);
+    CHECK_STATUS validateUserEmail(Long id);
     UserDTO findByEmail(String email);
 
     List<UserDTO> findUsersForValidation();

@@ -112,7 +112,7 @@ public class PackagesService implements IPackagesService {
             packages.save(aPackage);
             packageDTO.setId(aPackage.getId());
             packageDTO.setVersion(aPackage.getVersion());
-            FileHelper.saveFilesInParallel(filesMap, packagesDirectory, aPackage.getReference());
+            FileHelper.saveFilesInParallel(filesMap, packagesDirectory+aPackage.getReference(), false);
             executorService.submit(() -> {
                 QRCodeGenerator.generateQRCode(getPackageByIdURL + packageDTO.getReference(),
                         packagesDirectory + packageDTO.getReference() + packageQrEnds, 150, 150);

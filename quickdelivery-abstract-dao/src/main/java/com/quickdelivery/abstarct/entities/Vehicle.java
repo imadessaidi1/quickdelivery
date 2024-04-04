@@ -19,6 +19,8 @@ public class Vehicle {
     @Column
     private String model;
     @Column
+    private String registrationNumber;
+    @Column
     private String energyType;
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
     private Set<Document> document = new HashSet<>();
@@ -88,5 +90,13 @@ public class Vehicle {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
     }
 }

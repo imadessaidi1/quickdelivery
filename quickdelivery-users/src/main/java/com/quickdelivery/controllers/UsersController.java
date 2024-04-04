@@ -1,6 +1,7 @@
 package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
@@ -30,6 +31,7 @@ public class UsersController {
                               @RequestParam("vehicle") String vehicle,
                               @RequestParam("locale") Locale locale){
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserDTO userDTO = null;
         VehicleDTO vehicleDTO = null;
         try {
@@ -39,6 +41,21 @@ public class UsersController {
             throw new RuntimeException(e);
         }
         return userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
+    }
+    @PostMapping("/update")
+    public UserDTO updateUser(MultipartHttpServletRequest request, @RequestParam("user") String user,
+                              @RequestParam("vehicle") String vehicle,
+                              @RequestParam("locale") Locale locale){
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserDTO userDTO = null;
+        VehicleDTO vehicleDTO = null;
+        try {
+            userDTO = objectMapper.readValue(user, UserDTO.class);
+            vehicleDTO = objectMapper.readValue(vehicle, VehicleDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return userServices.updateNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
     }
     @PutMapping("/validateUser")
     public UserDTO validateUser(@RequestParam("user") String user,

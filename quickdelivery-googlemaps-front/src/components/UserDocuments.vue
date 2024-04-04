@@ -10,7 +10,9 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(0, 'ID')"
                 />
-                <br/><span v-if="userDocuments['ID'] != undefined"><strong>{{userDocuments['ID'].name}}</strong></span>
+                <br/><span v-if="userDocuments && userDocuments['ID'] != undefined"><strong>{{userDocuments['ID'].name}}</strong>
+                <span v-if="userDocuments['ID'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="userDocuments['ID'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['ID']" class="errorMessage" >{{filesErrorMessages['ID']}}</span>
             </div>
             <div class="input_only">
@@ -21,7 +23,9 @@
                         accept="image/*"
                 @change="handleUserFileChange(4, 'PICTURE')"
                 />
-                <br/><span v-if="userDocuments['PICTURE'] != undefined"><strong>{{userDocuments['PICTURE'].name}}</strong></span>
+                <br/><span v-if="userDocuments && userDocuments['PICTURE'] != undefined"><strong>{{userDocuments['PICTURE'].name}}</strong>
+                <span v-if="userDocuments['PICTURE'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="userDocuments['PICTURE'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['PICTURE']" class="errorMessage" >{{filesErrorMessages['PICTURE']}}</span>
             </div>
             <div class="input_only">
@@ -32,7 +36,9 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(1,'DRIVER_LICENCE')"
                 />
-                <br/><span v-if="userDocuments['DRIVER_LICENCE'] != undefined"><strong>{{userDocuments['DRIVER_LICENCE'].name}}</strong></span>
+                <br/><span v-if="userDocuments && userDocuments['DRIVER_LICENCE'] != undefined"><strong>{{userDocuments['DRIVER_LICENCE'].name}}</strong>
+                <span v-if="userDocuments['DRIVER_LICENCE'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="userDocuments['DRIVER_LICENCE'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['DRIVER_LICENCE']" class="errorMessage" >{{filesErrorMessages['DRIVER_LICENCE']}}</span>
             </div>
             <div class="input_only">
@@ -43,7 +49,9 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(2, 'USER_COMPANY_EXTRACT')"
                 />
-                <br/><span v-if="userDocuments['USER_COMPANY_EXTRACT'] != undefined"><strong>{{userDocuments['USER_COMPANY_EXTRACT'].name}}</strong></span>
+                <br/><span v-if="userDocuments && userDocuments['USER_COMPANY_EXTRACT'] != undefined"><strong>{{userDocuments['USER_COMPANY_EXTRACT'].name}}</strong>
+                <span v-if="userDocuments['USER_COMPANY_EXTRACT'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="userDocuments['USER_COMPANY_EXTRACT'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['USER_COMPANY_EXTRACT']" class="errorMessage" >{{filesErrorMessages['USER_COMPANY_EXTRACT']}}</span>
             </div>
             <div class="input_only">
@@ -54,7 +62,9 @@
                         accept="image/*, application/pdf"
                 @change="handleUserFileChange(3, 'USER_COMPANY_INSURANCE')"
                 />
-                <br/><span v-if="userDocuments['USER_COMPANY_INSURANCE'] != undefined"><strong>{{userDocuments['USER_COMPANY_INSURANCE'].name}}</strong></span>
+                <br/><span v-if="userDocuments && userDocuments['USER_COMPANY_INSURANCE'] != undefined"><strong>{{userDocuments['USER_COMPANY_INSURANCE'].name}}</strong>
+                <span v-if="userDocuments['USER_COMPANY_INSURANCE'].documentStatus === 'REJECTED'">❌</span>
+                <span v-if="userDocuments['USER_COMPANY_INSURANCE'].documentStatus === 'ACCEPTED'">✅</span></span>
                 <span v-if="filesErrorMessages['USER_COMPANY_INSURANCE']" class="errorMessage" >{{filesErrorMessages['USER_COMPANY_INSURANCE']}}</span>
             </div>
         </div>
@@ -84,10 +94,14 @@
 <script>
 import CreditCard from './CreditCard.vue';
 import IBAN from './IbanBank.vue';
+import { ref } from 'vue';
 export default {
   components: {
     CreditCard,
     IBAN,
+  },
+  props: {
+    isForUpdate: ref(false),
   },
   computed: {
     user() {
@@ -113,7 +127,11 @@ export default {
       const fileInput = this.$refs[`fileInput${index}`];
       const file_ = fileInput.files[0];
       if (file_) {
-        this.userDocuments[type] = file_;
+        if(this.isForUpdate){
+            this.userDocuments[type] = {file: file_, name: file_.name, documentStatus: 'UPDATED'};
+        }else{
+            this.userDocuments[type] = {file: file_, name: file_.name, documentStatus: 'ACCEPTED'};
+        }
       }
     },
   },

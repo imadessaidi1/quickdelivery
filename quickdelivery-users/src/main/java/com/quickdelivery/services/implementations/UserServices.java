@@ -100,7 +100,7 @@ public class UserServices implements IUserServices {
                     userEntity.getDocument().add(document);
                 });
         users.save(userEntity);
-        FileHelper.saveFilesInParallel(filesMap, userDocPath, user.getEmailAddress());
+        FileHelper.saveFilesInParallel(filesMap, filesPath, false);
         userEntity.getPersonalAddress().stream().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
         user.setId(userEntity.getId());
         user.setVersion(userEntity.getVersion());
@@ -108,6 +108,34 @@ public class UserServices implements IUserServices {
         executorService.submit(() -> {
             sendUserAccountCreationEmail(user, userEntity, locale);
         });
+        return user;
+    }
+
+    @Override
+    public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+        User userEntity = modelMapper.map(user,User.class);
+        user.getPersonalAddress().stream().forEach(address -> {
+            try {
+                GeoHelper.AddressGeoCoding(geoApiContext, address);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ApiException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        userEntity.getPersonalAddress().stream().forEach(address -> address.setResidents(userEntity));
+        userEntity.getVehicles().stream().forEach(vehicle -> vehicle.setUser(userEntity));
+        user.getDocument().entrySet().stream()
+                .forEach(entry -> {
+                    Document document = modelMapper.map(entry.getValue(),Document.class);
+                    document.setUser(userEntity);
+                    userEntity.getDocument().add(document);
+                });
+        users.save(userEntity);
+        String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
+        FileHelper.saveFilesInParallel(filesMap, filesPath, true);
         return user;
     }
 

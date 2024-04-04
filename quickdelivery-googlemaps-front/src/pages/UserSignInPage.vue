@@ -3,13 +3,13 @@
         <div class="user-form">
             <Form @submit="submitFormUser" ref="userCreationForm">
                 <div class="components" v-if="currentStep === 1">
-                    <UserInfo ref="userInfo"/>
+                    <UserInfo ref="userInfo" :isForUpdate="id"/>
                 </div>
                 <div class="components" v-if="currentStep === 2">
-                    <UserDocuments ref="userDocuments"/>
+                    <UserDocuments ref="userDocuments" :isForUpdate="id"/>
                 </div>
                 <div class="components" v-if="currentStep === 3">
-                    <UserVehicleInfo ref="vehicleInfo" />
+                    <UserVehicleInfo ref="vehicleInfo" :isForUpdate="id"/>
                 </div>
                 <div class="components" v-if="currentStep === 4">
                   <h2>{{$t('packageSummaryAction')}}</h2>
@@ -115,14 +115,27 @@ export default {
         this.isForUpdate = true;
         http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail')+this.id)
           .then(response => {
-            console.log(response.data);
             this.$store.commit('updateUser', response.data);
             this.$store.commit('updateVehicle', response.data.vehicles[0]);
-            this.$store.commit('updateUserDocuments', response.data);
-            this.$store.commit('updateVehicleDocuments', response.data);
+            let userDocument = [];
+            userDocument['ID'] = {name:'ID' , documentStatus: response.data.document['ID'].documentStatus};
+            userDocument['PICTURE'] = {name:'PICTURE' , documentStatus: response.data.document['PICTURE'].documentStatus};
+            userDocument['DRIVER_LICENCE'] = {name:'DRIVER_LICENCE' , documentStatus: response.data.document['DRIVER_LICENCE'].documentStatus};
+            userDocument['USER_COMPANY_EXTRACT'] = {name:'USER_COMPANY_EXTRACT' , documentStatus: response.data.document['USER_COMPANY_EXTRACT'].documentStatus};
+            userDocument['USER_COMPANY_INSURANCE'] = {name:'USER_COMPANY_INSURANCE' , documentStatus: response.data.document['USER_COMPANY_INSURANCE'].documentStatus};
+            if(response.data.document['RIB']){
+                userDocument['RIB'] = {name:'BANK ID' , documentStatus: response.data.document['RIB'].documentStatus};
+            }
+            this.$store.commit('updateUserDocuments', userDocument);
+            let vehicleDocuments = [];
+            vehicleDocuments['GRAY_CARD'] = {name:'GRAY_CARD' , documentStatus: response.data.document['GRAY_CARD'].documentStatus};
+            vehicleDocuments['INSURANCE'] = {name:'INSURANCE' , documentStatus: response.data.document['INSURANCE'].documentStatus};
+            this.$store.commit('updateVehicleDocuments', vehicleDocuments);
         }).catch(() => {
           console.log("unable to process your request this time. please try again latter.");
         });
+    }else{
+        this.isForUpdate = false;
     }
   },
   methods: {
@@ -139,18 +152,26 @@ export default {
                 if(!this.isForUpdate){
                     userInfo.user.addressAuto = addressAuto.address;
                 }
-                const validAddress = validateAddress(userInfo.user.addressAuto);
+                let validAddress = false;
+                let existingEmail = false
+                if(!this.isForUpdate){
+                    validAddress = validateAddress(userInfo.user.addressAuto);
+                    existingEmail = await this.existingEmail(userInfo.user.emailAddress);
+                }else{
+                    validAddress=true;
+                    existingEmail = false;
+                }
                 const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
                 const validEmailConfirmation = validateEmailConfirmation(userInfo.user.emailAddress, userInfo.user.emailAddressConfirmation);
                 const validPhoneConfirmation = validatePhoneConfirmation(userInfo.user.phone, userInfo.user.phoneConfirmation);
-                const existingEmail = await this.existingEmail(userInfo.user.emailAddress);
+
                 if(!validPasswordConfirm){
                     userInfo.isPasswordConfirmationError = true;
                     userInfo.passwordConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('PasswordConfirmation');
                 }else{
                     userInfo.isPasswordConfirmationError = false;
                 }
-                if(!this.isForUpdate && existingEmail){
+                if(existingEmail){
                     userInfo.isExistingEmail = true;
                     userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
                 }
@@ -178,14 +199,17 @@ export default {
                 if(validPasswordConfirm && validAddress && !existingEmail){
                     userInfo.isAddressError = false;
                     userInfo.isPasswordConfirmationError = false;
-                    const address = addressAuto.address.split(',');
-                    userInfo.user.personalAddress[0].line1 = address[0].trim();
-                    userInfo.user.personalAddress[0].zipCode = address[1].trim().split(' ')[0];
-                    let index = address[1].trim().indexOf(' ');
-                    if (index !== -1) {
-                        userInfo.user.personalAddress[0].town = address[1].substring(index + 1);
+                    if(addressAuto.address && addressAuto.address.includes(',')){
+                        console.log('trim', addressAuto.address);
+                        const address = addressAuto.address.split(',');
+                        userInfo.user.personalAddress[0].line1 = address[0].trim();
+                        userInfo.user.personalAddress[0].zipCode = address[1].trim().split(' ')[0];
+                        let index = address[1].trim().indexOf(' ');
+                        if (index !== -1) {
+                            userInfo.user.personalAddress[0].town = address[1].substring(index + 1);
+                        }
+                        userInfo.user.personalAddress[0].country = address[2].trim();
                     }
-                    userInfo.user.personalAddress[0].country = address[2].trim();
                     this.$store.commit('updateUser', userInfo.user);
                     this.currentStep++;
                 }
@@ -257,17 +281,39 @@ export default {
          const formData = new FormData();
          formData.append('user', JSON.stringify(this.$store.state.user));
          const entries = Object.entries(this.$store.state.userDocuments);
-         entries.forEach(([key, value]) => {
-            formData.append(key, value);
-         });
+         if(this.isForUpdate){
+             entries.forEach(([key, value]) => {
+                if(value.documentStatus === 'UPDATED'){
+                    formData.append(key, value.file);
+                }
+             });
+         }else{
+             entries.forEach(([key, value]) => {
+                formData.append(key, value.file);
+             });
+         }
          formData.append('vehicle', JSON.stringify(this.$store.state.vehicle));
          const entriesV = Object.entries(this.$store.state.vehicleDocuments);
-         entriesV.forEach(([key, value]) => {
-            formData.append(key, value);
-         });
+         if(this.isForUpdate){
+             entriesV.forEach(([key, value]) => {
+                if(value.documentStatus === 'UPDATED'){
+                    formData.append(key, value.file);
+                }
+             });
+         }else{
+             entriesV.forEach(([key, value]) => {
+                formData.append(key, value.file);
+             });
+         }
          const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
          formData.append('locale', userLanguage);
-         return http.post(this.$i18n.t('userRootURL') + this.$i18n.t('createUser'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
+         let url;
+         if(this.isForUpdate){
+            url = this.$i18n.t('userRootURL') + this.$i18n.t('updateUser');
+         }else{
+            url = this.$i18n.t('userRootURL') + this.$i18n.t('createUser');
+         }
+         return http.post(url, formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
             .then(response => {
                 if(response.status == '200'){
                    this.$store.commit('updateUser', this.emptyUser);

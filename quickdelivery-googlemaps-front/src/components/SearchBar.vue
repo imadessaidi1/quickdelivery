@@ -83,7 +83,7 @@ export default {
 
 .search-bar {
   display: flex;
-  height: 56px;
+  min-height: 55px;
   box-sizing: border-box;
   justify-content: space-between;
   align-items: center;

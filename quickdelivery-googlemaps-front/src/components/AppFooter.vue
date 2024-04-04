@@ -29,8 +29,7 @@
 
 <style scoped>
 .footer {
-  height: 50px;
-  
+  min-height: 50px;
 }
 .footer-column {
   flex: 1;

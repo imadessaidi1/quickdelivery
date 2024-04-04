@@ -243,9 +243,6 @@ export default {
     border-top: 1px solid #e7e7e7;
     border-radius: 0 0 10px 10px;
 }
-/*package_details_group{
-    
-}*/
 @media screen and (max-width: 1100px){
     .package_details_group {
         flex-direction: column;

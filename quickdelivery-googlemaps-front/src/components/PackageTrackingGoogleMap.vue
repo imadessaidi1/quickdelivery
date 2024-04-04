@@ -27,8 +27,9 @@
     </div>
     <div v-if="showModal" class="modal">
         <div class="modal-content">
-            <PackageSummary/>
-            <button class="close-btn" @click="closeDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
+          <h2>{{$t('packageSummaryAction')}}</h2>
+          <PackageSummary/>
+          <button class="close-btn" @click="closeDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
         </div>
     </div>
 </template>

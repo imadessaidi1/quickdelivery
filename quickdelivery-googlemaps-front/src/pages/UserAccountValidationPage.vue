@@ -1,6 +1,6 @@
 <template>
     <div class="user_verification_main" v-if="usersList && usersList.length > 0">
-      <h1>Liste des utilisateur a verifier</h1>
+      <h2>Liste des utilisateur a verifier</h2>
       <UsersAccountList :users="usersList"/>
     </div>
 </template>
@@ -40,7 +40,7 @@ export default {
     padding: 20px;
     margin: 0 auto;
   }
-  .user_verification_main h1{
+  .user_verification_main h2{
     border-left: solid 5px #ff5e00;
     padding-left: 15px;
   }

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="table">
         <table>
             <thead>
                 <tr>
@@ -30,24 +30,24 @@
                 </tr>
             </tbody>
         </table>
-            <div v-if="selectedUser" class="modal">
-                <div class="modal-content">
-                    <div class="d_flex">
-                        <div class="user_details_component">
-                            <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
-                        </div>
-                        <div class="document-viewer">
-                            <DocumentViewer :documents = "selectedUser.document"/>
-                        </div>
+        <div v-if="selectedUser" class="modal">
+            <div class="modal-content">
+                <div class="d_flex">
+                    <div class="user_details_component">
+                        <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
                     </div>
-                    <button class="close-btn" @click="hideDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
-                    <div class="conditionCheckbox">
-                        <input type="checkbox" id="validationCheckbox" v-model="selectedUser.activeAccount">
-                        <label for="validationCheckbox">{{$t('userValidationCheckboxLabel')}}</label>
+                    <div class="document-viewer">
+                        <DocumentViewer :documents = "selectedUser.document"/>
                     </div>
-                    <button class="btn primary_btn" @click="saveValidation"><span class="material-symbols-outlined size-24">{{$t('userValidationSave')}}</span></button>
                 </div>
+                <button class="close-btn" @click="hideDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
+                <div class="conditionCheckbox">
+                    <input type="checkbox" id="validationCheckbox" v-model="selectedUser.activeAccount">
+                    <label for="validationCheckbox">{{$t('userValidationCheckboxLabel')}}</label>
+                </div>
+                <button class="btn primary_btn" @click="saveValidation"><span class="material-symbols-outlined size-24">{{$t('userValidationSave')}}</span></button>
             </div>
+        </div>
   </div>
 </template>
 
@@ -108,81 +108,32 @@ export default {
 </script>
 
 <style scoped>
-.d_flex{
-  display: flex;
-  height: 94vh !important;
-}
-.d_flex .user_details_component{
-  width: 35%;
-  height: 95%;
-  overflow: scroll;
-  box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
-  background-color: #eeeeee;
-  z-index: 1;
-}
-.d_flex .document-viewer {
-  width: 65%;
-  position: relative;
-}
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  width: 70%;
-  padding: 0 20px 20px 20px;
-  border-radius: 10px;
-  position: relative;
-  /* From https://css.glass */
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(6.6px);
-  -webkit-backdrop-filter: blur(6.6px);
-}
-
-.close-btn {
-  /* Styles pour le bouton de fermeture (position absolue en haut à droite, couleur, curseur, etc.) */
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  color: #555;
-  border: none;
-  background: none;
-  transition: all .3s;
-}
-.close-btn:hover{
-  color: #000000;
-}
-.conditionCheckbox{
-  display: flex;
-  align-items: center;
-  padding: 0 0 0 20px;
-}
-.conditionCheckbox span{
-    font-size: 12px;
-}
-@media screen and (max-width: 1100px){
-  .modal {
-    align-items: baseline;
-    overflow: scroll;
+  table {
+    background: #ffffffc5;
+    border-collapse: collapse;
+    margin: 1em auto;
+    font-size: 0.85em;
   }
-  .modal-content{
-    margin: 60px 0;
+  thead{
+    border-bottom: 1px solid #364043;
   }
-}
-@media screen and (max-width: 600px){
-  .modal-content{
-    width: 85%;
+  th {
+    color: #252525;
+    background-color:  #ffc350;
+    font-weight: 600;
+    padding: 0.75em 1em;
+    text-align: left;
   }
-}
+  td {
+    color: #1d1d1d;
+    font-weight: 400;
+    padding: 0.85em 1em;
+    border-bottom: 1px solid #36404348;
+  }
+  tbody tr {
+    transition: background 0.25s ease;
+  }
+  tbody tr:hover {
+    background: #ff5e002d;
+  }
 </style>

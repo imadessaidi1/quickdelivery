@@ -64,8 +64,6 @@ export default {
   height: 100%;
   padding: 0 15px;
   overflow: scroll;
-  background-color: #FAD961;
-  background-image: linear-gradient(135deg, #FAD961 0%, #F76B1C 100%);
 }
 .myPackeges h2{
   padding-left: 10px;

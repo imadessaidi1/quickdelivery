@@ -118,6 +118,7 @@ export default {
   background: linear-gradient(0.25turn, #ffffff37, #ffffffcb, #ffffff, #ffffffdb), no-repeat url('../assets/box 2.png') left -100px bottom 50%;
   background-size: contain;
   opacity: 0.8;
+  cursor: pointer;
   /*background: rgba(255, 255, 255, 0.6);*/
 }
 .marker-details p {

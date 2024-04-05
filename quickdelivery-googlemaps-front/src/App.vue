@@ -6,6 +6,7 @@
     <SearchBar />
     <div class="router-view">
       <router-view/>
+      <ScrollUp/>
     </div>
     <AppMessages />
     <AppFooter />
@@ -15,6 +16,7 @@
 <script>
 import SearchBar from './components/SearchBar.vue';
 import AppFooter from './components/AppFooter.vue';
+import ScrollUp from './components/ScrollUp.vue';
 import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
@@ -114,6 +116,7 @@ export default {
     AppFooter,
     Loading,
     AppMessages,
+    ScrollUp,
   },
 };
 </script>

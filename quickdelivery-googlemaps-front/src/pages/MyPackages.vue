@@ -1,6 +1,6 @@
 <template>
-  <div ref="targetComponent" class="myPackeges" @scroll="handleScroll">
-    <div ref="scrollContainer">
+  <div class="myPackeges" @scroll="handleScroll">
+    <div>
       <PackagesFilter />
       <div v-for="status in packagesByStatus" :key="status.satuts_">
         <h2 :id="status.satuts_">{{$t(status.satuts_)}}</h2>
@@ -13,7 +13,6 @@
         </div>
       </div>
     </div>
-    <ScrollUp @click="scrollToTop" v-if="showScrollButton">Scroll to Top</ScrollUp>
     <PackageDetailsModal ref="AppModal" classe="modal"/>
   </div>
   <PackageDetailsModal ref="AppModal" classe="modal"/>
@@ -23,7 +22,6 @@
 import PackagesFilter from '../components/PackagesFilter.vue';
 import SummarizedPackageDetail from '../components/SummarizedPackageDetail.vue';
 import PackageDetailsModal from '../components/PackageDetailsModal.vue';
-import ScrollUp from '../components/ScrollUp.vue';
 import http from '@/config/httpInterceptor';
 
 export default {
@@ -31,48 +29,16 @@ export default {
     PackagesFilter,
     SummarizedPackageDetail,
     PackageDetailsModal,
-    ScrollUp,
   },
   data() {
     return {
       packagesByStatus: [],
-      showScrollButton: false,
     };
   },
   mounted() {
     this.fetchData();
-    window.addEventListener('scroll', this.scrollToTop);
   },
   methods: {
-    scrollToTop() {
-      // Get the reference to the scrollable container inside the target component
-      const scrollContainer = this.$refs.targetComponent;
-
-      // Check if scrollContainer is not null and requestAnimationFrame is supported
-      if (scrollContainer && window.requestAnimationFrame) {
-        const scrollStep = -scrollContainer.scrollTop / (300 / 20); // Adjust the speed (500 is the duration in milliseconds)
-
-        const animateScroll = () => {
-          scrollContainer.scrollTop += scrollStep;
-          if (scrollContainer.scrollTop <= 0) return;
-          window.requestAnimationFrame(animateScroll);
-        };
-
-        // Start the animation
-        animateScroll();
-      } else if (scrollContainer) {
-        // Fallback for browsers that don't support requestAnimationFrame
-        scrollContainer.scrollTop = 0;
-      } else {
-        console.error('Scroll container not found.');
-      }
-    },
-    handleScroll() {
-      const scrollContainer = this.$refs.targetComponent;
-      if (scrollContainer) {
-        this.showScrollButton = scrollContainer.scrollTop > 500;
-      }
-    },
     getPackageModal(){
         return this.$refs.AppModal;
     },
@@ -98,6 +64,8 @@ export default {
   height: 100%;
   padding: 0 15px;
   overflow: scroll;
+  background-color: #FAD961;
+  background-image: linear-gradient(135deg, #FAD961 0%, #F76B1C 100%);
 }
 .myPackeges h2{
   padding-left: 10px;
@@ -118,6 +86,7 @@ export default {
   border-radius: 10px;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
   position: relative;
+  background: #eeeeee;
 }
 #RESERVED{
   border-left: solid 5px #8350c2;

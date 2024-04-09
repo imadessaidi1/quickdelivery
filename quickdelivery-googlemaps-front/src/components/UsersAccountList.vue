@@ -3,8 +3,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>{{$t('packageAddressFirstName')}}</th>
                     <th>{{$t('packageAddressLastName')}}</th>
+                    <th>{{$t('packageAddressFirstName')}}</th>
                     <th>{{$t('packageAddressEmail')}}</th>
                     <th>{{$t('packageAddressPhone')}}</th>
                     <th>{{$t('userVehicleRegistration')}}</th>
@@ -16,8 +16,8 @@
             </thead>
             <tbody>
                 <tr v-for="(user, index) in users" :key="index">
-                    <td>{{ user.firstName }}</td>
                     <td>{{ user.lastName }}</td>
+                    <td>{{ user.firstName }}</td>
                     <td>{{ user.emailAddress }}</td>
                     <td>{{ user.phone }}</td>
                     <td>{{ user.vehicles[0].registrationNumber }}</td>
@@ -36,7 +36,7 @@
                   <div class="user_details_component">
                       <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
                   </div>
-                  <div class="document-viewer">
+                  <div class="document_viewer">
                       <DocumentViewer :documents = "selectedUser.document"/>
                   </div>
                 </div>
@@ -149,7 +149,7 @@ export default {
   overflow: hidden;
   background-color: #eeeeee;
 }
-.information_viewer .document-viewer {
+.information_viewer .document_viewer {
   width: 65%;
   position: relative;
 }

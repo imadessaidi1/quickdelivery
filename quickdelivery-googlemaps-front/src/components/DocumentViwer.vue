@@ -1,7 +1,7 @@
 <template>
     <div class="document-viewer">
-        <iframe ref="documentFrame" :src="currentDocData"></iframe>
-        <div class="user-payment-method">
+        <iframe :src="currentDocData"></iframe>
+        <div class="document_state">
             <label for="accept-option">
                 <input type="radio" id="accept-option" name="accept-option" v-model="currentDocument.documentStatus" value="ACCEPTED"/>
                 {{$t('userDocumentAccepted')}}
@@ -80,20 +80,46 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
-
-.navigation-info {
+.document-viewer iframe {
+  width: 100%;
+  height: 100%; /* Ajustez la hauteur de l'iframe selon vos besoins */
+  border: none;
+}
+.document_state {
+  margin: 0 auto 10px auto;
+  display: flex;
+  justify-content: space-evenly;
+  position: absolute;
+  bottom: 10px;
+  width: 230px;
+  border-radius: 10px;
+  background-color: #000000bb;
+  color: white;
+  opacity: .3;
+  transition: opacity 0.3s ease;
+}
+.document_state label{
+  font-size: 12px;
   display: flex;
   align-items: center;
 }
-
-.navigation-buttons {
-  margin-top: 20px;
+.document_state input{
+  margin-right: 5px;
+  display: block;
 }
-
-iframe[ref="documentFrame"] {
-  width: 100%;
-  height: 500px; /* Ajustez la hauteur de l'iframe selon vos besoins */
-  border: none;
+.document_state:hover{
+    opacity: .7;
+}
+.navigation-buttons {
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>

@@ -3,7 +3,7 @@
         <div class="user_details">
             <h3>User Info.</h3>
             <div class="details">
-                <div class="picture"><iframe ref="documentFrame" :src="getPicture()"></iframe></div>
+                <div class="picture"><img :src="getPicture()" alt="personal image"></div>
                 <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
                 <div><strong>{{$t('userGender')}}:</strong> {{ user.sex }}</div>
@@ -49,9 +49,16 @@ export default {
 }
 </script>
 <style>
-.picture iframe{
-  width: 100%;
-  height: 25%;
+.picture{
+    width: 100%;
+}
+.picture img{
+    display: block;
+    width: 150px;
+    height: auto;
+    margin: 0 auto;
+    border: solid 2px black;
+    border-radius: 10px;
 }
 .conditionCheckbox_{
   align-items: center;
@@ -62,12 +69,12 @@ export default {
 }
 .user_details_group_{
     width: 100%;
-    justify-content: space-evenly;
+    padding: 10px;
 }
 .user_details_group_ .user_details h3{
     margin-left: 15px;
     padding-left: 6px;
-    border-left: solid 3px #42ba96;
+    border-left: solid 3px #ff5e00;
 } 
 .user_details_group_ .user_details div{
     padding: 6px 0 6.5px 0;

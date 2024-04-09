@@ -203,8 +203,7 @@ export default {
 }
 .decision_section{
   width: max-content;
-  margin: 50px auto 0 auto;
-  border-top: solid 2px black;
+  margin: 0 auto;
 }
 .decision_section button{
   display: block;

@@ -1,5 +1,6 @@
 <template>
     <div class="document-viewer">
+        <strong><span class="document_title">{{ currentDocInfo() }}</span></strong>
         <iframe :src="currentDocData"></iframe>
         <div class="document_state">
             <label for="accept-option">
@@ -13,9 +14,8 @@
         </div>
         <div class="navigation-info">
             <div class="navigation-buttons">
-                <button class="btn primary_btn" @click="previousDocument" :disabled="currentDocIndex === 0">{{$t('packagePreviousAction')}}</button>
-                <strong><span>{{ currentDocInfo() }}</span></strong>
-                <button class="btn primary_btn" @click="nextDocument" :disabled="currentDocIndex === documents.length - 1">{{$t('packageNextAction')}}</button>
+                <button class="nav_btn" @click="previousDocument" :disabled="currentDocIndex === 0"><span class="material-symbols-outlined">chevron_left</span></button>
+                <button class="nav_btn" @click="nextDocument" :disabled="currentDocIndex === documents.length - 1"><span class="material-symbols-outlined">chevron_right</span></button>
             </div>
         </div>
     </div>
@@ -88,6 +88,9 @@ export default {
   height: 100%; /* Ajustez la hauteur de l'iframe selon vos besoins */
   border: none;
 }
+.document_title{
+    margin: 10px 0;
+}
 .document_state {
   margin: 0 auto 10px auto;
   display: flex;
@@ -96,10 +99,13 @@ export default {
   bottom: 10px;
   width: 230px;
   border-radius: 10px;
-  background-color: #000000bb;
+  background-color: #000;
   color: white;
   opacity: .3;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease-in-out;
+}
+.document_state:hover{
+    opacity: .8;
 }
 .document_state label{
   font-size: 12px;
@@ -110,9 +116,6 @@ export default {
   margin-right: 5px;
   display: block;
 }
-.document_state:hover{
-    opacity: .7;
-}
 .navigation-buttons {
   width: 90%;
   display: flex;
@@ -121,5 +124,24 @@ export default {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
+}
+.nav_btn{
+    width: 35px;
+    height: 35px;
+    background-color: #000;
+    border: none;
+    border-radius: 50%;
+    opacity: .3;
+    transition: opacity .3s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.nav_btn:hover{
+    opacity: .8;
+}
+.nav_btn span{
+    font-size: 26px;
+    color: #fff;
 }
 </style>

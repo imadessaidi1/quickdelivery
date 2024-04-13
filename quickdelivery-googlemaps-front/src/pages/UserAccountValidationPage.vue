@@ -35,13 +35,24 @@ export default {
 </script>
 <style>
   .user_verification_main{
-    width: 78%;
+    width: 85%;
     height: max-content;
     padding: 20px;
     margin: 0 auto;
+    overflow-x: scroll;
   }
   .user_verification_main h2{
     border-left: solid 5px #ff5e00;
     padding-left: 15px;
   }
+  @media only screen and (max-width: 500px){
+    .user_verification_main{
+      width: 100%;
+      padding: 0;
+    }
+    .user_verification_main h2{
+      font-size: 1.2em !important;
+      margin-left: 15px;
+    }
+}
 </style>

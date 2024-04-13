@@ -1,6 +1,6 @@
 <template>
     <div class="table">
-        <table>
+        <table class="table-responsive">
             <thead>
                 <tr>
                     <th>{{$t('packageAddressLastName')}}</th>
@@ -74,7 +74,21 @@ export default {
       selectedUser: null
     };
   },
+  mounted() {
+    this.getHeaders();
+  },
   methods: {
+    getHeaders(){
+      document.querySelectorAll('.table-responsive').forEach(function (table) {
+        let labels = Array.from(table.querySelectorAll('th')).map(function (th) {
+          return th.innerText
+        });
+        table.querySelectorAll('td').forEach(function (td, i) {
+            td.setAttribute('data-label', labels[i % labels.length])
+        });
+
+    })
+    },
     showDetails(user) {
       this.selectedUser = user;
     },
@@ -138,6 +152,7 @@ export default {
   tbody tr:hover {
     background: #ff5e002d;
   }
+
   /**modal part */
   .information_viewer{
   display: flex;
@@ -208,5 +223,52 @@ export default {
 .decision_section button{
   display: block;
   margin: 5px auto;
+}
+@media only screen and (max-width: 700px){
+  table, tbody, tr, th, td{
+    display: block;
+  }
+  table{
+    width: 90%;
+  }
+  td{
+    padding-left: 200px;
+    position: relative
+  }
+  td::before{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    content: attr(data-label);
+    width: 160px;
+    color: #252525;
+    background-color:  #ffc350;
+    font-weight: 600;
+    padding: 0.75em 1em;
+    display: flex;
+    align-items: center;
+  }
+  thead{
+    display: none;
+  }
+  .table-responsive tr {
+    margin-bottom: 1rem;
+  }
+
+  .table-responsive th + td {
+    padding-left: 10px;
+  }
+}
+@media only screen and (max-width: 500px){
+  table{
+    margin: 2em auto;
+  }
+  td{
+    padding-left: 150px;
+  }
+  td::before{
+    width: 120px;
+  }
 }
 </style>

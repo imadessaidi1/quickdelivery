@@ -19,9 +19,10 @@
                 <div v-if="package_.deliveryPrice">
                     <strong>{{$t('packagePrice')}}:</strong> {{package_.deliveryPrice}} {{$t('currency')}}
                 </div>
+                <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']">
+                    <a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a>
+                </div>
             </div>
-            <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']"><a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a></div>
-            <div v-if="package_.documentS && package_.documentS['PACKAGE_PICTURE']"><a @click="openDocumentIMGModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_PICTURE'].fileName) }}</a></div>
             <!--<div v-if="documentS">
                 <div>
                     {{$t('packagePicture')}}: {{documentS[0].name}}
@@ -172,12 +173,16 @@ export default {
 </script>
 <style>
 .custom-link {
-  color: blue; /* Couleur bleue pour le lien */
-  cursor: pointer; /* Curseur de la souris en forme de main */
+  text-decoration: none;
+  color: black;
+  border-bottom: solid 1px black;
+  opacity: .65;
+  cursor: pointer;
+  transition: all .3s;
 }
 
 .custom-link:hover {
-  text-decoration: underline; /* Souligner le lien au passage de la souris */
+  opacity: 1;
 }
 .conditionCheckbox{
   display: flex;
@@ -263,6 +268,11 @@ export default {
     }
     .package_details_group .package_details .details div{
         font-size: 13px;
+    }
+}
+@media screen and (max-width: 500px){
+    .modal-content h2{
+        font-size: 1em;
     }
 }
 </style>

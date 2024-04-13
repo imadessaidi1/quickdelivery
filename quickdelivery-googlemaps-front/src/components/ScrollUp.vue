@@ -48,7 +48,6 @@ export default {
   background-color: #ffc457;
   box-shadow: rgba(17, 17, 26, 0.1) 0px 4px 16px, rgba(17, 17, 26, 0.05) 0px 8px 32px;
   transition: all 300ms;
-  z-index: 9999;
 }
 
 .scroll-to-top:hover {

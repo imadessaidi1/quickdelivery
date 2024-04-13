@@ -204,6 +204,12 @@ export default {
 .close-btn:hover{
   color: #000000;
 }
+.input_only label{
+  margin: 0;
+}
+.input_only input{
+  margin: 10px 0;
+}
 @media screen and (max-width: 1100px){
   .modal {
     align-items: baseline;

@@ -209,7 +209,7 @@ public class PackageController {
             messageDTO.setType("PACKAGE_RESERVATION_OTP_NOTIFICATION");
             messageDTO.setTo(userID.toString());
             messageDTO.setMessage("You reserved a package. Here is the password to pick it up : "+otp);
-            messageDTO.setUrl("http://localhost:8080/package/"+packageReference);
+            messageDTO.setUrl(packageConsultationUrl+packageReference);
             ObjectMapper objectMapper = new ObjectMapper();
             String json;
             try {

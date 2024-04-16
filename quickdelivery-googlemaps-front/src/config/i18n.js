@@ -134,6 +134,7 @@ const messages = {
     userDocumentAccepted: 'Accept',
     userDocumentRejected: 'Reject',
     userValidationSave: 'Save',
+    userAccountUpdate: 'Update',
     userValidationCheckboxLabel: 'Activate the user account',
     //MENU
     menuHome: 'Home',
@@ -292,6 +293,7 @@ const messages = {
     userDocumentAccepted: 'Accepter',
     userDocumentRejected: 'Rejeter',
     userValidationSave: 'Enregistrer',
+    userAccountUpdate: 'Mettre à jour',
     userValidationCheckboxLabel: 'Activaer le compte utilisateur',
     //MENU
     menuHome: 'Accueil',

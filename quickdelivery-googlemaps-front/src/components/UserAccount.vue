@@ -1,4 +1,5 @@
 <template>
+    <div v-if="selectedUser">
             <div class="modal-content">
                 <div class="information_viewer">
                   <div class="user_details_component">
@@ -8,7 +9,9 @@
                       <DocumentViewer :documents = "selectedUser.document"/>
                   </div>
                 </div>
+                <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
             </div>
+    </div>
 </template>
 
 <script>
@@ -22,6 +25,11 @@ export default {
   },
   props: {
     selectedUser: null,
+  },
+  methods: {
+    toUpdate() {
+      this.$router.push('/userSignInPage?id='+this.selectedUser.emailAddress);
+    },
   },
 
 }

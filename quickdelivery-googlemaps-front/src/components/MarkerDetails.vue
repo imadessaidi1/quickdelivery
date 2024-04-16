@@ -84,7 +84,7 @@ export default {
       var destinationAddressS = '';
       this.package_.addresses.forEach(address => {
         if(address.type === 'ARRIVAL'){
-          destinationAddressS = address.line1+" "+address.zipCode+" "+address.town+" "+address.country;
+          destinationAddressS = address.addressAuto;
         }
       });
       return destinationAddressS;
@@ -93,7 +93,7 @@ export default {
       var destinationAddressS = '';
       this.package_.addresses.forEach(address => {
         if(address.type === 'DEPARTURE'){
-          destinationAddressS = address.line1+" "+address.zipCode+" "+address.town+" "+address.country;
+          destinationAddressS = address.addressAuto;
         }
       });
       return destinationAddressS;

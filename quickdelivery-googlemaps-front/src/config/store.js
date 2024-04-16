@@ -63,7 +63,7 @@ export default createStore({
     connectedUser: {
       firstName: 'Imad',
       lastName: 'ESSAIDI',
-      email: 'im.essaidi@gmail.com',
+      email: 'nezha.kemrach@gmail.com',
       id: 1952,
       type: 'DELIVERY_PERSON',
     },

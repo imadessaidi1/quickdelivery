@@ -167,14 +167,14 @@ public class AddressDTO {
         StringBuilder address= new StringBuilder();
         if (line1 != null)
             address.append(line1);
-        if (line2 != null)
-            address.append(" ").append(line2);
+        if (!line2.isEmpty())
+            address.append(", ").append(line2);
         if (zipCode != null)
-            address.append(" ").append(zipCode);
+            address.append(", ").append(zipCode);
         if (town!=null)
-            address.append(" ").append(town);
+            address.append(", ").append(town);
         if (country != null)
-            address.append(" ").append(country);
+            address.append(", ").append(country);
         return address.toString();
     }
     public String formatedtoString(){

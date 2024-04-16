@@ -167,6 +167,7 @@ public class PackagesService implements IPackagesService {
                             packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
                         }
                     });
+                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -207,6 +208,7 @@ public class PackagesService implements IPackagesService {
                             departureAddress.getLongitude().doubleValue()
                             , Double.parseDouble(latitude), Double.parseDouble(longitude));
                     packageDTO.setFromYou(distancePackageUser.rows[0].elements[0].duration+"/"+distancePackageUser.rows[0].elements[0].distance);
+                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -346,6 +348,7 @@ public class PackagesService implements IPackagesService {
                 packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
             }
         });
+        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
         return packageDTO;
     }
 
@@ -391,6 +394,7 @@ public class PackagesService implements IPackagesService {
                             packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
                         }
                     });
+                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -519,6 +523,7 @@ public class PackagesService implements IPackagesService {
                 packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
             }
         });
+        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
         return packageDTO;
     }
 

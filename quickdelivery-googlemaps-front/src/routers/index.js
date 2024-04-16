@@ -8,6 +8,7 @@ import UserSignInPage from '../pages/UserSignInPage.vue';
 import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
 import PackageTrackingPage from '../pages/PackageTrackingPage.vue';
 import UserAccountValidationPage from '../pages/UserAccountValidationPage.vue';
+import UserAccountPage from '../pages/UserAccountPage.vue';
 
 const routes = [
         {
@@ -57,6 +58,11 @@ const routes = [
         path: '/usersAccountValidation',
         name: 'UserAccountValidationPage',
         component: UserAccountValidationPage
+        },
+        {
+        path: '/userAccount',
+        name: 'UserAccountPage',
+        component: UserAccountPage
         },
       ];
 const router = VueRouter.createRouter({

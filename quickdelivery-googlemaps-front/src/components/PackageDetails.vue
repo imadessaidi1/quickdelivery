@@ -48,16 +48,7 @@
                     <strong>{{$t('packageAddressPhone')}}:</strong> {{getDepartureAddress(this.package_.addresses).phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{getDepartureAddress(this.package_.addresses).line1}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{getDepartureAddress(this.package_.addresses).zipCode}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{getDepartureAddress(this.package_.addresses).town}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{getDepartureAddress(this.package_.addresses).country}}
+                    <strong>{{getDepartureAddress(this.package_.addresses).addressAuto}}</strong>
                 </div>
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{getDepartureAddress(this.package_.addresses).floor}}
@@ -84,16 +75,7 @@
                     <strong>{{$t('packageAddressPhone')}}:</strong> {{getArrivalAddress(this.package_.addresses).phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{$t('packageAddressLine1')}}:</strong> {{getArrivalAddress(this.package_.addresses).line1}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressZip')}}:</strong> {{getArrivalAddress(this.package_.addresses).zipCode}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressCity')}}:</strong> {{getArrivalAddress(this.package_.addresses).town}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressCountry')}}:</strong> {{getArrivalAddress(this.package_.addresses).country}}
+                    <strong>{{getArrivalAddress(this.package_.addresses).addressAuto}}</strong>
                 </div>
                 <div>
                     <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{getArrivalAddress(this.package_.addresses).floor}}

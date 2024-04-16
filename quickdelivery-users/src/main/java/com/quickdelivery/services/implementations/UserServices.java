@@ -193,11 +193,11 @@ public class UserServices implements IUserServices {
             userDTO.setPasswordConfirmation(userDTO.getPassword());
             user.getDocument().stream().forEach(document -> {
                 DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                /*try {
+                try {
                     documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
-                }*/
+                }
                 userDTO.getDocument().put(document.getType(), documentDTO);
             });
             return userDTO;

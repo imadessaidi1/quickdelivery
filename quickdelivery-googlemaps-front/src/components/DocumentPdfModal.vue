@@ -44,7 +44,7 @@ export default {
 }
 
 .pdf_modal .modal-content {
-  width: 85%;
+  width: 760px;
   height: 700px;
   padding: 30px 20px 20px 20px;
   border-radius: 10px;

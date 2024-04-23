@@ -35,7 +35,8 @@
   <style scoped>
   #filter_section{
     width: 75%;
-    margin: 15px auto;
+    margin: 0 auto 15px auto;
+    padding-top: 15px;
   }
   #filter_section input{
     width: 50%;

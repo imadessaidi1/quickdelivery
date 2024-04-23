@@ -63,7 +63,7 @@ export default {
 .myPackeges{
   height: 100%;
   padding: 0 15px;
-  overflow: scroll;
+  background: #f5f5f5;
 }
 .myPackeges h2{
   padding-left: 10px;

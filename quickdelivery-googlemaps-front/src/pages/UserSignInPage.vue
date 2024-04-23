@@ -346,7 +346,7 @@ export default {
   width: 75%;
   min-height: 70%;
   padding: 0 20px;
-  margin: 0 auto;
+  margin: 20px auto;
   border-radius: 5px;
   background: no-repeat url('../assets/avatar.png') right -160px bottom 50%, #ffffffe1;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
@@ -389,6 +389,7 @@ export default {
 }
 .user-form .primary_btn{
   margin-bottom: 20px;
+  margin-left: 10px;
 }
 @media screen and (max-width: 1500px){
   .user_creation_main .user-form form .summary_component{

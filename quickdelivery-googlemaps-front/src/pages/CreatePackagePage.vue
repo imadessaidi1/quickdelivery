@@ -224,7 +224,7 @@ export default{
   align-items: center;
   overflow: scroll;
   background: rgb(255,51,51);
- background: radial-gradient(circle, rgba(255,51,51,1) 0%, rgba(242,142,0,1) 100%);  
+  background: radial-gradient(circle, rgba(255,51,51,1) 0%, rgba(242,142,0,1) 100%);  
 }
 .packege_creation_main .package-form {
   width: 75%;
@@ -237,6 +237,7 @@ export default{
 }
 .packege_creation_main .package-form button{
   margin-bottom: 20px;
+  margin-left: 10px;
 }
 .packege_creation_main .package-form form{
   width: 100%;

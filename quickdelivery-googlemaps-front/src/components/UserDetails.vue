@@ -82,6 +82,25 @@ export default {
 .user_details_group_ .user_details .details div{
     font-size: 14px;
 }
+.user_profil_container .user_details_group_ .user_details:first-child{
+    border-bottom: solid 1px #d5d5d5;
+}
+.user_profil_container .user_details_group_{
+    width: 75%;
+    margin: 15px auto;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    background-color: #f9f9f9;
+}
+.user_profil_container .user_details_group_ .user_details{
+    padding: 15px;
+}
+.user_profil_container .user_details_group_ .user_details .picture img{
+    border-radius: 50%;
+    border: none;
+    width: 200px;
+    height: 200px;
+}
 .mini_title{
     padding-left: 10px;
     font-size: 14px;

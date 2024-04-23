@@ -1,16 +1,14 @@
 <template>
-    <div v-if="selectedUser">
-            <div class="modal-content">
-                <div class="information_viewer">
-                  <div class="user_details_component">
-                      <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
-                  </div>
-                  <div class="document_viewer">
-                      <DocumentViewer :documents = "selectedUser.document"/>
-                  </div>
-                </div>
-                <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
-            </div>
+    <div class="user_profil_container">
+        <div class="information_viewer">
+          <div class="user_details_component">
+              <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
+          </div>
+        <div class="document_viewer">
+            <DocumentViewer :documents = "selectedUser.document"/>
+        </div>
+      </div>
+      <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 
@@ -35,35 +33,9 @@ export default {
 }
 </script>
 <style scoped>
-  table {
-    background: #ffffffc5;
-    border-collapse: collapse;
-    margin: 5em auto;
-    font-size: 0.85em;
+  .user_profil_container{
+    width: 1300px;
   }
-  thead{
-    border-bottom: 1px solid #364043;
-  }
-  th {
-    color: #252525;
-    background-color:  #ffc350;
-    font-weight: 600;
-    padding: 0.75em 1em;
-    text-align: left;
-  }
-  td {
-    color: #1d1d1d;
-    font-weight: 400;
-    padding: 0.85em 1em;
-    border-bottom: 1px solid #36404348;
-  }
-  tbody tr {
-    transition: background 0.25s ease;
-  }
-  tbody tr:hover {
-    background: #ff5e002d;
-  }
-
   /**modal part */
   .information_viewer{
   display: flex;

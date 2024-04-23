@@ -1,7 +1,5 @@
 <template>
-    <div class="user_verification_main">
-        <UserAccount v-if="selectedUser" :selectedUser="selectedUser"/>
-    </div>
+      <UserAccount v-if="selectedUser" :selectedUser="selectedUser"/>
 </template>
 
 <script>

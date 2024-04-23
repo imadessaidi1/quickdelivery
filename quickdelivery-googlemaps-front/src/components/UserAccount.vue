@@ -8,7 +8,6 @@
             <DocumentViewer :documents = "selectedUser.document"/>
         </div>
       </div>
-      <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 
@@ -34,7 +33,8 @@ export default {
 </script>
 <style scoped>
   .user_profil_container{
-    width: 1300px;
+    width: 1150px;
+    margin: 0 auto;
   }
   /**modal part */
   .information_viewer{

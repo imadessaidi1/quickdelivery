@@ -1,5 +1,7 @@
 <template>
-      <UserAccount v-if="selectedUser" :selectedUser="selectedUser"/>
+      <div class="user_account_container">
+        <UserAccount v-if="selectedUser" :selectedUser="selectedUser"/>
+      </div>
 </template>
 
 <script>
@@ -36,3 +38,8 @@ export default {
   },
 };
 </script>
+<style>
+  .user_account_container{
+    background-color: #eeeeee;
+  }
+</style>

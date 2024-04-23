@@ -104,6 +104,9 @@ export default {
   opacity: .3;
   transition: opacity 0.3s ease-in-out;
 }
+.user_profil_container .document_state{
+    display: none;
+}
 .document_state:hover{
     opacity: .8;
 }

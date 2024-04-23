@@ -22,6 +22,7 @@
                 <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
             </div>
         </div>
+        <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 <script>
@@ -69,7 +70,7 @@ export default {
 }
 .user_details_group_{
     width: 100%;
-    padding: 10px;
+    padding: 10px 15px;
 }
 .user_details_group_ .user_details h3{
     margin-left: 15px;
@@ -87,13 +88,10 @@ export default {
 }
 .user_profil_container .user_details_group_{
     width: 75%;
-    margin: 15px auto;
+    margin: 15px 0;
     border-radius: 15px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     background-color: #f9f9f9;
-}
-.user_profil_container .user_details_group_ .user_details{
-    padding: 15px;
 }
 .user_profil_container .user_details_group_ .user_details .picture img{
     border-radius: 50%;
@@ -105,6 +103,10 @@ export default {
     padding-left: 10px;
     font-size: 14px;
     font-weight: 700;
+}
+.user_profil_container .user_details_group_ button{
+    display: block;
+    margin: 0 auto;
 }
 @media screen and (max-width: 1100px){
     .user_details_group {

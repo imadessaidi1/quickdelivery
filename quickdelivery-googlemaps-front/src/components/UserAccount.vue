@@ -45,7 +45,6 @@ export default {
   width: 35%;
   height: 95%;
   overflow: hidden;
-  background-color: #eeeeee;
 }
 .information_viewer .document_viewer {
   width: 65%;
@@ -106,6 +105,11 @@ export default {
 .decision_section button{
   display: block;
   margin: 5px auto;
+}
+@media only screen and (max-width: 1150px){
+  .user_profil_container{
+    width: 90%;
+  }
 }
 @media only screen and (max-width: 700px){
   table, tbody, tr, th, td{

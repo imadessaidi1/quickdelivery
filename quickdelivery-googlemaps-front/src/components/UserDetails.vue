@@ -90,7 +90,7 @@ export default {
     width: 75%;
     margin: 15px 0;
     border-radius: 15px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.23);
     background-color: #f9f9f9;
 }
 .user_profil_container .user_details_group_ .user_details .picture img{

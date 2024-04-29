@@ -40,6 +40,7 @@ export default {
 </script>
 <style>
   .user_account_container{
-    background-color: #eeeeee;
+    background: rgb(0,79,135);
+    background: radial-gradient(circle, rgba(0,79,135,1) 0%, rgba(4,129,218,1) 84%, rgba(0,148,255,1) 100%); 
   }
 </style>

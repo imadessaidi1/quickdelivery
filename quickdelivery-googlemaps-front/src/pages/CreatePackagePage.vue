@@ -223,8 +223,7 @@ export default{
   justify-content: center;
   align-items: center;
   overflow: scroll;
-  background: rgb(255,51,51);
-  background: radial-gradient(circle, rgba(255,51,51,1) 0%, rgba(242,142,0,1) 100%);  
+  background: #F9F7F7; 
 }
 .packege_creation_main .package-form {
   width: 75%;

@@ -14,7 +14,7 @@
             <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
             <ErrorMessage class="errorMessage" name="otp" />
           </div>
-          <button class="btn primary_btn" ref="detailsButtons"
+          <button class="btn confirm_btn" ref="detailsButtons"
           @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
         </div>
         <div v-show="package_.status === 'PICKEDUP'">
@@ -23,7 +23,7 @@
             <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
             <ErrorMessage class="errorMessage" name="deliveryOtp" />
           </div>
-          <button class="btn primary_btn" ref="detailsButtons"
+          <button class="btn confirm_btn" ref="detailsButtons"
           @click="deliver">{{ $t('packagesArroundMArkerDetailActionsDeliver') }}</button>
         </div>
     </div>

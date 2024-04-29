@@ -339,8 +339,7 @@ export default {
   justify-content: center;
   align-items: center;
   overflow: scroll;
-  background: rgb(0,79,135);
-  background: radial-gradient(circle, rgba(0,79,135,1) 0%, rgba(4,129,218,1) 84%, rgba(0,148,255,1) 100%); 
+  background-color: #F9F7F7;
 }
 .user_creation_main .user-form {
   width: 75%;

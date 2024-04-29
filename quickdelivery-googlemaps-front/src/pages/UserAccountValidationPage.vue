@@ -1,7 +1,9 @@
 <template>
     <div class="user_verification_main" v-if="usersList && usersList.length > 0">
-      <h2>Liste des utilisateur a verifier</h2>
-      <UsersAccountList :users="usersList"/>
+      <div class="container">
+        <h2>Liste des utilisateur a verifier</h2>
+        <UsersAccountList :users="usersList"/>
+      </div>
     </div>
 </template>
 
@@ -35,22 +37,26 @@ export default {
 </script>
 <style>
   .user_verification_main{
+    width: 100%;
+    height: 100%;
+    background: #F9F7F7;
+  }
+  .user_verification_main .container{
     width: 85%;
     height: max-content;
-    padding: 20px;
     margin: 0 auto;
     overflow-x: scroll;
   }
-  .user_verification_main h2{
+  .user_verification_main .container h2{
     border-left: solid 5px #ff5e00;
     padding-left: 15px;
   }
   @media only screen and (max-width: 500px){
-    .user_verification_main{
+    .user_verification_main .container{
       width: 100%;
       padding: 0;
     }
-    .user_verification_main h2{
+    .user_verification_main .container h2{
       font-size: 1.2em !important;
       margin-left: 15px;
     }

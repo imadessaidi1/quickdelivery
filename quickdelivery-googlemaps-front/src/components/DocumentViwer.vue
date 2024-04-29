@@ -82,6 +82,8 @@ export default {
   align-items: center;
   width: 100%;
   height: 100%;
+  background-color: #323639;
+  border-radius: 15px;
 }
 .document-viewer iframe {
   width: 100%;
@@ -145,6 +147,11 @@ export default {
 }
 .nav_btn span{
     font-size: 26px;
+    color: #fff;
+}
+.information_viewer .document_title{
+    display: block;
+    margin: 10px 0;
     color: #fff;
 }
 </style>

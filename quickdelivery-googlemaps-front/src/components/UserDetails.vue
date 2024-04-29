@@ -88,7 +88,6 @@ export default {
 }
 .user_profil_container .user_details_group_{
     width: 75%;
-    margin: 15px 0;
     border-radius: 15px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.23);
     background-color: #f9f9f9;
@@ -124,6 +123,11 @@ export default {
     .user_details_group .user_details .details div{
         font-size: 13px;
     }
+}
+@media only screen and (max-width: 760px){
+  .user_profil_container .user_details_group_ .user_details{
+    padding: 15px;
+  }
 }
 @media screen and (max-width: 600px){
     .user_details_group .user_details .details .long_text{

@@ -4,9 +4,9 @@
           <div class="user_details_component">
               <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
           </div>
-        <div class="document_viewer">
-            <DocumentViewer :documents = "selectedUser.document"/>
-        </div>
+          <div class="document_viewer">
+              <DocumentViewer :documents = "selectedUser.document"/>
+          </div>
       </div>
     </div>
 </template>
@@ -34,12 +34,13 @@ export default {
 <style scoped>
   .user_profil_container{
     width: 1150px;
-    margin: 0 auto;
+    margin: 0 auto; 
   }
   /**modal part */
   .information_viewer{
-  display: flex;
-  justify-content: space-between;
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
 }
 .information_viewer .user_details_component{
   width: 35%;
@@ -108,54 +109,30 @@ export default {
 }
 @media only screen and (max-width: 1150px){
   .user_profil_container{
-    width: 90%;
+    width: 95%;
+  }
+  .user_profil_container .user_details_group_ {
+    width: 85%;
   }
 }
-@media only screen and (max-width: 700px){
-  table, tbody, tr, th, td{
-    display: block;
+@media only screen and (max-width: 760px){
+  .information_viewer{
+    flex-direction: column;
   }
-  table{
-    width: 90%;
+  .user_details_component{
+      width: 100% !important;
   }
-  td{
-    padding-left: 200px;
-    position: relative
+  .user_details_group_{
+    width: 100% !important;
+    padding: 0 0 15px 0;
+    margin: 0 0 15px 0;
   }
-  td::before{
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    content: attr(data-label);
-    width: 160px;
-    color: #252525;
-    background-color:  #ffc350;
-    font-weight: 600;
-    padding: 0.75em 1em;
-    display: flex;
-    align-items: center;
+  .user_profil_container .user_details_group_ .user_details{
+    padding: 15px 0 !important;
   }
-  thead{
-    display: none;
-  }
-  .table-responsive tr {
-    margin-bottom: 1rem;
-  }
-
-  .table-responsive th + td {
-    padding-left: 10px;
-  }
-}
-@media only screen and (max-width: 500px){
-  table{
-    margin: 2em auto;
-  }
-  td{
-    padding-left: 150px;
-  }
-  td::before{
-    width: 120px;
+  .user_profil_container .information_viewer .document_viewer{
+    width: 100%;
+    height: 700px;
   }
 }
 </style>

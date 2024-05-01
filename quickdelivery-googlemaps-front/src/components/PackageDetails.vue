@@ -1,5 +1,4 @@
 <template>
-    <h2 v-show="package_.reference">{{$t('packageReference')}}: {{ package_.reference }}</h2>
     <div class="package_details_group">
             <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>
@@ -154,6 +153,9 @@ export default {
 }
 </script>
 <style>
+.tracking_summary_component h2{
+  margin-left: 20px;
+}
 .custom-link {
   text-decoration: none;
   color: black;

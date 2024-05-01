@@ -1,7 +1,6 @@
 <template>
     <div class="d_flex">
         <div class="tracking_summary_component">
-          <h2>{{$t('packageSummaryAction')}}</h2>
           <PackageSummary/>
         </div>
         <div class="google-map">
@@ -93,9 +92,6 @@ export default {
   box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
   background-color: #eeeeee;
   z-index: 1;
-}
-.tracking_summary_component h2{
-  margin-left: 20px;
 }
 .roadInfo {
   position: absolute;

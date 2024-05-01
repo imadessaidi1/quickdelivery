@@ -1,7 +1,5 @@
 <template>
-    <div style="{ width: '100%', height: '87%' }">
-        <PackageTrackingGoogleMap ref="mapTrackingVue"  :routeInfo="routeInfo"/>
-    </div>
+    <PackageTrackingGoogleMap ref="mapTrackingVue"  :routeInfo="routeInfo"/>
 </template>
 <script>
 import PackageTrackingGoogleMap from '../components/PackageTrackingGoogleMap.vue';

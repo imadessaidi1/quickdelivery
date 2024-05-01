@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import PackageSummary from '../components/PackageDetails.vue';
+import PackageSummary from '../components/VerticalPackageDetails.vue';
 import http from '@/config/httpInterceptor';
 export default {
   components: {
@@ -87,10 +87,10 @@ export default {
 }
 .tracking_summary_component{
   width: 25%;
-  height: 89vh;
+  height: 100%;
   overflow: scroll;
   box-shadow: rgba(0, 0, 0, 0.45) 20px 0px 30px -34px;
-  background-color: #eeeeee;
+  background-color: #F9F7F7;
   z-index: 1;
 }
 .roadInfo {
@@ -111,7 +111,7 @@ export default {
   margin-right: 20px;
 }
 #map{
-  height: 89vh;
+  height: 100%;
 }
 .google-map {
   width: 75%;

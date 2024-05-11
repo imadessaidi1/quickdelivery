@@ -40,6 +40,6 @@ export default {
 </script>
 <style>
   .user_account_container{
-    background: #3F72AF
+    background: #F9F7F7
   }
 </style>

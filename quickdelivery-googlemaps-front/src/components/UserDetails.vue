@@ -22,7 +22,7 @@
                 <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
             </div>
         </div>
-        <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
+        <button class="btn primary_btn" @click="showUpdateModal">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 <script>
@@ -45,7 +45,7 @@ export default {
         },
         getPicture(){
             return 'data:image/png;base64,'+this.user.document['PICTURE'].data;
-        }
+        }, 
     },
 }
 </script>
@@ -91,6 +91,13 @@ export default {
     border-radius: 15px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.23);
     background-color: #f9f9f9;
+}
+.user_account_container .user_details_group_{
+    width: 75%;
+    border-radius: 15px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    background-color: #F5F5F5;
+    margin: 5px 0;
 }
 .user_profil_container .user_details_group_ .user_details .picture img{
     border-radius: 50%;

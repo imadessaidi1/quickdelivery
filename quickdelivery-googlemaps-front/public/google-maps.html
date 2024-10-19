@@ -60,8 +60,8 @@
               if (navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition(function (position) {
                       actualPosition = position;
-                      initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
-                      //initialLocatio = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                      //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
+                      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
                       map.setCenter(initialLocation);
                       resolve();
                   });
@@ -70,8 +70,8 @@
           let packagesPromise;
           Promise.all([geolocationPromise]).then(() => {
           const packagesPromise = new Promise((resolve, reject) => {
-              getPackagesAroundMe(48.74412000, 2.47471000).then(() => {
-              //getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
+              //getPackagesAroundMe(48.74412000, 2.47471000).then(() => {
+              getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
                   resolve();
               }).catch(error => {
                   reject(error);
@@ -272,6 +272,7 @@
 		}
       window.initMap = initMap;
       window.onmessage = (e) => {
+        console.log(e.data);
         if (typeof e.data === 'string' && e.data.includes('SelectedDirection:')) {
 			let dataArray = e.data.split(';');
 			let departure = dataArray[0].split(':')[1];
@@ -391,11 +392,11 @@
       <div id="map" class="col-md-8"></div>
     </div>
     <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1JZHQfC9EUWUFKeHEBFnOMlZOUESxqog&callback=initMap&v=weekly"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U&callback=initMap&v=weekly"
             loading="async"
     >
-    /*   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?key=AIzaSyC1JZHQfC9EUWUFKeHEBFnOMlZOUESxqog&callback=initMap&v=weekly`;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-    key: "AIzaSyC1JZHQfC9EUWUFKeHEBFnOMlZOUESxqog",});*/
+    /*   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?key=AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U&callback=initMap&v=weekly`;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+    key: "AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U",});*/
     </script>
   </body>
 </html>

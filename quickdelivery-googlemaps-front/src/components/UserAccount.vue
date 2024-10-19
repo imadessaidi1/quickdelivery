@@ -28,7 +28,6 @@ export default {
       this.$router.push('/userSignInPage?id='+this.selectedUser.emailAddress);
     },
   },
-
 }
 </script>
 <style scoped>

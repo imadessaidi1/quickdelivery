@@ -3,7 +3,7 @@
     <loading v-model:active="isLoading"
              :can-cancel="true"
              :is-full-page="true"/>
-    <SearchBar />
+    <SearchBar/>
     <div class="router-view">
       <router-view/>
       <ScrollUp/>

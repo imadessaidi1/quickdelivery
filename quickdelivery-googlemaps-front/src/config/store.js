@@ -131,6 +131,7 @@ export default createStore({
               vehicleDocuments: [],
               userRIB: {},
               packagesLastPosition: [],
+              location: 'mapPage',
   },
   mutations: {
       updatePackage(state, updatedPackage) {
@@ -171,6 +172,9 @@ export default createStore({
       },
       updateVehicleDocuments(state, updatedVehicleDocuments) {
         state.vehicleDocuments = updatedVehicleDocuments;
+      },
+      updateLocation(state, updateLocation) {
+        state.location = updateLocation;
       },
     },
   actions: {

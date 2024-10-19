@@ -3,17 +3,17 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu" ref="handleClickOutsideBurgerMenu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span class="infobull" data-tooltip='Home page'><router-link to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span class="infobull" data-tooltip='My packages'><router-link to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span class="infobull" data-tooltip='New package'><router-link to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span class="infobull" data-tooltip='New package'><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
       <div v-if="isActiveMenu" class="menu horizontal-menu">
         <ul>
-          <router-link @click="toggleMenu" to="/"><li>{{$t('menuHome')}}</li></router-link>
-          <router-link @click="toggleMenu" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
-          <router-link @click="toggleMenu" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
+          <router-link @click="toggleMenu(0)" to="/"><li>{{$t('menuHome')}}</li></router-link>
+          <router-link @click="toggleMenu(1)" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
+          <router-link @click="toggleMenu(2)" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
         </ul>
       </div>
     </transition>
@@ -29,7 +29,13 @@
     </transition>
 
     <!-- Barre de recherche -->
-    <input type="text" id="searchInput" placeholder="Rechercher...">
+
+    <div v-show="location === 'other'">
+        <input type="text" id="searchInput" placeholder="Rechercher..."><button class="btn primary_btn">Search</button>
+    </div>
+    <div v-show="location === 'mapPage'">
+        <AddressAutocomplete id="address" ref="addressAutoComplete"/><button class="btn primary_btn" @click="searchInMap" >Search</button>
+    </div>
 
     <!-- Bouton de connexion -->
     <span class="infobull" data-tooltip='Account' ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
@@ -37,13 +43,22 @@
 </template>
 
 <script>
+import AddressAutocomplete from './AddressAutocomplete.vue';
 export default {
+ components: {
+    AddressAutocomplete,
+  },
   data() {
       return {
         isActiveMenu: false,
         isActiveLoginMenu: false,
       };
     },
+  computed: {
+    location() {
+      return this.$store.state.location;
+    },
+  },
   mounted() {
   // Ajouter un écouteur d'événements sur la fenêtre
     window.addEventListener('click', this.handleClickOutsideUserMenu);
@@ -55,11 +70,17 @@ export default {
     window.removeEventListener('click', this.handleClickOutsideBurgerMenu);
   },
   methods: {
-    toggleMenu() {
+    toggleMenu(index) {
       this.isActiveMenu = !this.isActiveMenu;
+      if(index === 0){
+        this.$store.commit('updateLocation', 'mapPage');
+      }else{
+        this.$store.commit('updateLocation', 'other');
+      }
     },
     loginMenu() {
       this.isActiveLoginMenu = !this.isActiveLoginMenu;
+      this.$store.commit('updateLocation', 'other');
     },
     handleClickOutsideUserMenu(event) {
       // Vérifier si le clic provient de l'élément à masquer ou de ses enfants
@@ -75,6 +96,9 @@ export default {
         this.isActiveMenu = false;
       }
     },
+    searchInMap(){
+        this.parent.contentWindow.postMessage('Search in map', "*");
+    }
   },
 };
 </script>

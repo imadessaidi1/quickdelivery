@@ -10,3 +10,11 @@ window.addEventListener('scroll', function() {
     navbar.classList.remove('scrolled'); // Retire la classe si on est au-dessus
   }
 });
+
+window.onload = () => {
+  const track = document.querySelector('.carousel-track');
+  
+  // Dupliquer les images pour un défilement fluide
+  const clone = track.innerHTML;
+  track.innerHTML += clone;
+};

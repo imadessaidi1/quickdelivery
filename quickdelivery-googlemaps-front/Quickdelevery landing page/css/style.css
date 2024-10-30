@@ -4,7 +4,8 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    color: #E3E3E3;
+    color: #111111;
+    background-color: #f1f1f1;
   }
   h1, h2, h3, h4, h5, h6{
     margin: 0;
@@ -133,6 +134,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    color: #f1f1f1;
     
   }
 
@@ -150,11 +152,31 @@ body {
     font-size: 3rem;
   }
 
+  /*Statistics*/
+  .statistics_section{
+    margin-top: 5rem;
+    margin-top: 5rem;
+  }
+  .statistics_head{
+    text-align: center;
+    padding: 3rem 0 0 0;
+  }
+  .statistics{
+    display: flex;
+    justify-content: space-evenly;
+  }
+  .statistic{
+    text-align: center;
+    width: 250px;
+  }
+  .statistic img{
+    margin-bottom: 20px;
+  }
+
   /*About us*/
 
   .about-us{
-    min-height: calc(100vh - 10rem);
-    background-color: #228B22;
+    height: max-content;
     padding: 5rem 0;
   }
 
@@ -184,7 +206,6 @@ body {
     text-align: center;
     padding: 2rem;
     min-height: 100vh;
-    background-color: #003366;
   }
 
   
@@ -210,12 +231,47 @@ body {
     width: 175px;
     padding: 2rem 0;
   }
-  
+  /* Diaporama */
+
+/* Conteneur du ruban */
+.carousel {
+  overflow: hidden;
+  border-radius: 10px;
+}
+.carousel::before{
+  width: 100px;
+  height: 64px;
+  background: linear-gradient(270deg,hsla(42,71%,97%,0),#fdfaf3);
+}
+
+/* Piste du carrousel contenant les images */
+.carousel-track {
+  display: flex;
+  animation: scroll 30s linear infinite;
+}
+
+/* Styles des images */
+.carousel-track img {
+  height: 64px;
+  margin: 10px;
+  border-radius: 8px;
+}
+
+/* Animation du ruban */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+
   /* How it works */
   .how-it-works {
     min-height: 100vh;
     padding: 2rem;
-    background-color: #228B22;
   }
   
   .steps {
@@ -254,7 +310,6 @@ body {
   
   /* Join Us */
   .join-us {
-    background-color: #003366;
     text-align: center;
     padding: 2rem;
   }

@@ -118,8 +118,18 @@ body {
   }
   /* Container */
   .container{
-    width: 80%;
+    width: 1200px;
     margin: 0 auto;
+    
+  }
+  .carousel h2{
+    text-align: center;
+    color: #ef5b00;
+  }
+  .carousel p{
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 10px;
   }
   /* Banner */
   .banner {
@@ -234,28 +244,60 @@ body {
   /* Diaporama */
 
 /* Conteneur du ruban */
+
+/* Styles de base */
+
 .carousel {
+  position: relative;
   overflow: hidden;
-  border-radius: 10px;
-}
-.carousel::before{
-  width: 100px;
-  height: 64px;
-  background: linear-gradient(270deg,hsla(42,71%,97%,0),#fdfaf3);
 }
 
-/* Piste du carrousel contenant les images */
+/* Dégradé en fondu avec ::before et ::after */
+.carousel::before,
+.carousel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 190px;
+  height: 100%;
+  z-index: 1;
+}
+
+.carousel::before {
+  left: 0;
+  background: rgb(241,241,241);
+  background: linear-gradient(90deg, rgba(241,241,241,1) 17%, rgba(241,241,241,0) 100%);
+}
+
+.carousel::after {
+  right: 0;
+  background: rgb(241,241,241);
+  background: linear-gradient(270deg, rgba(241,241,241,1) 17%, rgba(241,241,241,0) 100%);
+}
+
+/* Piste du carrousel */
 .carousel-track {
   display: flex;
-  animation: scroll 30s linear infinite;
+  animation: scroll 20s linear infinite;
 }
 
 /* Styles des images */
 .carousel-track img {
-  height: 64px;
-  margin: 10px;
+  width: 200px;
+  margin: 20px 20px 0 20px;
   border-radius: 8px;
 }
+
+/* Animation du ruban */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
 
 /* Animation du ruban */
 @keyframes scroll {

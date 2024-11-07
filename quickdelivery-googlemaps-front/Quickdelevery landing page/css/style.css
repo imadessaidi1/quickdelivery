@@ -344,9 +344,46 @@ body {
   .reviews{
     display: flex;
     justify-content: space-evenly;
+    align-items: stretch;
+    margin-top: 70px;
   }
   .user_review{
-    
+    position: relative;
+    width: 350px;
+    padding: 55px 10px 10px 10px;
+    border-radius: 15px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    font-family: "Raleway", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    } 
+  .user_img{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  }
+  .user{
+    color: #ef5b00;
+  }
+  .stars{
+    display: flex;
+    width: max-content;
+    margin: 5px auto;
+  }
+  .star{
+    margin: 0 1px;
+  }
+  .star img{
+    width: 20px;
+    height: 20px;
+  }
+  .user_comment{
+    font-size: 15px;
   }
   /* Join Us */
   .join-us {
@@ -356,6 +393,7 @@ body {
   
   /* Footer */
   .footer {
+    color: #E3E3E3;
     background-color: #003366;
     text-align: center;
     font-size: 12px;

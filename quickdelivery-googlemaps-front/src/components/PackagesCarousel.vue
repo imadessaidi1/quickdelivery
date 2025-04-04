@@ -15,6 +15,8 @@
 import 'vue3-carousel/dist/carousel.css'
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import MarkerDetails from './MarkerDetails.vue';
+import { Geolocation } from '@capacitor/geolocation';
+import http from '@/config/httpInterceptor';
 
 export default {
   name: 'App',
@@ -31,11 +33,16 @@ export default {
     };
   },
   async mounted() {
+    const coordinates = await Geolocation.getCurrentPosition();
+    var url = 'packages-around-me?latitude='+coordinates.coords.latitude+'&longitude='+coordinates.coords.longitude+'&rayonEnMetres=300000';
+    const response = await http.get(this.$i18n.t('rootURL')+url);
+    console.log(response.data);
+    this.packagesList = response.data;
+    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(this.packagesList, "*");
+    this.displayDirection(0);
     window.onmessage = (e) => {
         if (Array.isArray(e.data)) {
-                const rawData = e.data;
-                this.packagesList = JSON.parse(JSON.stringify(rawData));
-                this.displayDirection(0);
+                console.log(e.data);
         }else if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
            const packageID = e.data.split(':')[1];
            const markerDetailComponent = this.$refs.markerDetail;

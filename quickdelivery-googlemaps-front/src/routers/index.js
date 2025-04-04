@@ -14,7 +14,7 @@ const routes = [
         {
         path: '/',
         name: 'homePage',
-        component: HomePage
+        component: MyPackages
         },
         {
         path: '/createPackage',
@@ -24,7 +24,7 @@ const routes = [
         {
         path: '/myPackages',
         name: 'myPackages',
-        component: MyPackages
+        component: HomePage
         },
         {
         path: '/paymentPage',

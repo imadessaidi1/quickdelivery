@@ -33,12 +33,20 @@ export default {
     };
   },
   async mounted() {
-    const coordinates = await Geolocation.getCurrentPosition();
+    setTimeout(async () => {
+      const coordinates = await Geolocation.getCurrentPosition({
+        timeout: 60000,
+        enableHighAccuracy: true,
+      });
+    const positionData = {
+      actuallatitude: coordinates.coords.latitude,
+      actuallongitude : coordinates.coords.longitude,
+    };
+    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(positionData, "*");
     var url = 'packages-around-me?latitude='+coordinates.coords.latitude+'&longitude='+coordinates.coords.longitude+'&rayonEnMetres=300000';
     const response = await http.get(this.$i18n.t('rootURL')+url);
-    console.log(response.data);
     this.packagesList = response.data;
-    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(this.packagesList, "*");
+    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(response.data, "*");
     this.displayDirection(0);
     window.onmessage = (e) => {
         if (Array.isArray(e.data)) {

@@ -56,41 +56,10 @@
           const transitLayer = new google.maps.TransitLayer();
           transitLayer.setMap(map);
 
-          const geolocationPromise = new Promise((resolve, reject) => {
-              if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(function (position) {
-                      actualPosition = position;
-                      //initialLocation = new google.maps.LatLng(48.74412000, 2.47471000);
-                      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                      map.setCenter(initialLocation);
-                      resolve();
-                  });
-              }
-          });
-          let packagesPromise;
-          Promise.all([geolocationPromise]).then(() => {
-          const packagesPromise = new Promise((resolve, reject) => {
-              //getPackagesAroundMe(48.74412000, 2.47471000).then(() => {
-              /*getPackagesAroundMe(actualPosition.coords.latitude, actualPosition.coords.longitude).then(() => {
-                  resolve();
-              }).catch(error => {
-                  reject(error);
-              });*/
-          });
-          }).catch(error => {
-              console.error("Une erreur s'est produite :", error);
-          });
+          directionsRenderer.setMap(map);
+          const control = document.getElementById("floating-panel");
+          map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
 
-          // Attente de la résolution des promesses
-          Promise.all([geolocationPromise, packagesPromise]).then(() => {
-              directionsRenderer.setMap(map);
-              const control = document.getElementById("floating-panel");
-              map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
-              // Envoie du message de fin de chargement
-              window.top.postMessage('EndLoading', '*');
-          }).catch(error => {
-              console.error("Une erreur s'est produite :", error);
-          });
       }
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
 	        window.top.postMessage('StartLoading', '*');
@@ -167,41 +136,7 @@
 				}
 			window.top.postMessage('EndLoading', '*');
 		}
-	  async function getPackagesAroundMe(latitude, longitude) {
-			return new Promise(async (resolve, reject) => {
-				try{
-					var xhr = new XMLHttpRequest();
-					var url = `https://${ipAddress}/packages/v1/packages-around-me?latitude=${latitude}&longitude=${longitude}&rayonEnMetres=300000`;
-					xhr.open("GET", url, true);
-					xhr.onload = function() {
-						if (xhr.status >= 200 && xhr.status < 300) {
-							packagesArround = JSON.parse(xhr.responseText);
 
-							packagesArround.forEach(function(package_) {
-								var arrivalAddress;
-								var departureAddress;
-								package_.addresses.forEach(function(adresse) {
-									if(adresse.type === "ARRIVAL"){
-										arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
-									}else{
-										departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
-									}
-								});
-								addMarker(departureAddress, arrivalAddress, map);
-							});
-						} else {
-							console.error("Erreur de l'API :", xhr.statusText);
-						}
-					};
-					xhr.onerror = function() {
-						console.error("Erreur de réseau lors de la requête vers l'API.");
-					};
-					xhr.send();
-				} catch (error) {
-					reject(error);
-				}
-				});
-		}
 		async function getPackagesOnMyRoad(departurePosition, arrivalPosition) {
 			return new Promise(async (resolve, reject) => {
 				try {
@@ -272,23 +207,26 @@
 		}
       window.initMap = initMap;
       window.onmessage = (e) => {
-        console.log(e.data);
-         if (Array.isArray(e.data)) {
-                const rawData = e.data;
-                packagesArround = JSON.parse(JSON.stringify(rawData));
-				packagesArround.forEach(function(package_) {
-					var arrivalAddress;
-					var departureAddress;
-					package_.addresses.forEach(function(adresse) {
-						if(adresse.type === "ARRIVAL"){
-							arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
-						}else{
-							departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
-						}
-					});
-					addMarker(departureAddress, arrivalAddress, map);
-
-        }else if (typeof e.data === 'string' && e.data.includes('SelectedDirection:')) {
+        console.log('onmessage ', e.data);
+        if (e.data && e.data.actuallongitude && e.data.actuallatitude) {
+           initialLocation = new google.maps.LatLng(event.data.actuallatitude, event.data.actuallongitude);
+           map.setCenter(initialLocation);
+        }else if (Array.isArray(e.data)) {
+          const rawData = e.data;
+          packagesArround = JSON.parse(JSON.stringify(rawData));
+		  packagesArround.forEach(function(package_) {
+		  	var arrivalAddress;
+		  	var departureAddress;
+		  	package_.addresses.forEach(function(adresse) {
+		  		if(adresse.type === "ARRIVAL"){
+		  			arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
+		  		}else{
+		  			departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
+		  		}
+		  	});
+			addMarker(departureAddress, arrivalAddress, map);
+			});
+        } else if (typeof e.data === 'string' && e.data.includes('SelectedDirection:')) {
 			let dataArray = e.data.split(';');
 			let departure = dataArray[0].split(':')[1];
 			let arrival = dataArray[1];

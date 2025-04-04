@@ -33,11 +33,7 @@ export default {
     };
   },
   async mounted() {
-    setTimeout(async () => {
-      const coordinates = await Geolocation.getCurrentPosition({
-        timeout: 60000,
-        enableHighAccuracy: true,
-      });
+    const coordinates = await Geolocation.getCurrentPosition();
     const positionData = {
       actuallatitude: coordinates.coords.latitude,
       actuallongitude : coordinates.coords.longitude,

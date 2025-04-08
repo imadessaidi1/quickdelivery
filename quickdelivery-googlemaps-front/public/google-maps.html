@@ -207,7 +207,6 @@
 		}
       window.initMap = initMap;
       window.onmessage = (e) => {
-        console.log('onmessage ', e.data);
         if (e.data && e.data.actuallongitude && e.data.actuallatitude) {
            initialLocation = new google.maps.LatLng(event.data.actuallatitude, event.data.actuallongitude);
            map.setCenter(initialLocation);
@@ -245,8 +244,6 @@
 			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
 			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
 			calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, departurePosition, arrivalPosition);
-        }else if (typeof e.data === 'string' && e.data.includes('RefreshPackagesList')) {
-			console.log('RefreshPackagesList maps');
         }
       }
 	  function refreshPackagesList(){

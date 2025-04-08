@@ -15,7 +15,7 @@
 import 'vue3-carousel/dist/carousel.css'
 import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import MarkerDetails from './MarkerDetails.vue';
-import { Geolocation } from '@capacitor/geolocation';
+//import { Geolocation } from '@capacitor/geolocation';
 import http from '@/config/httpInterceptor';
 
 export default {
@@ -30,24 +30,16 @@ export default {
     return {
       packagesList:[] ,
       location: null,
+      coordinates: null,
+      positionData: null,
     };
   },
   async mounted() {
-    const coordinates = await Geolocation.getCurrentPosition();
-    const positionData = {
-      actuallatitude: coordinates.coords.latitude,
-      actuallongitude : coordinates.coords.longitude,
-    };
-    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(positionData, "*");
-    var url = 'packages-around-me?latitude='+coordinates.coords.latitude+'&longitude='+coordinates.coords.longitude+'&rayonEnMetres=300000';
-    const response = await http.get(this.$i18n.t('rootURL')+url);
-    this.packagesList = response.data;
-    this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(response.data, "*");
-    this.displayDirection(0);
+    //this.coordinates = await Geolocation.getCurrentPosition();
+    this.positionData = await this.getCurrentLocation();
+    this.refreshPackagesList(this.positionData);
     window.onmessage = (e) => {
-        if (Array.isArray(e.data)) {
-                console.log(e.data);
-        }else if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
+        if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
            const packageID = e.data.split(':')[1];
            const markerDetailComponent = this.$refs.markerDetail;
            //const markerDetailToSelect = markerDetailComponent.filter(markerDetail => markerDetail.package_.id+'' === packageID);
@@ -61,6 +53,9 @@ export default {
             this.$store.commit('updateLoaderStatus', true);
         }else if (typeof e.data === 'string' && e.data === 'EndLoading') {
             this.$store.commit('updateLoaderStatus', false);
+        }else if (typeof e.data === 'string' && e.data.includes('RefreshPackagesList')) {
+            console.log('RefreshPackagesList carousel');
+			this.refreshPackagesList(this.positionData);
         }
     };
   },
@@ -85,6 +80,38 @@ export default {
     },
     getPackageModal(){
         return this.$parent.$refs.AppModal;
+    },
+    getCurrentLocation() {
+        return new Promise((resolve, reject) => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const positionData = {
+                  actuallatitude: position.coords.latitude,
+                  actuallongitude: position.coords.longitude,
+                };
+                resolve(positionData); // Résoudre la promesse avec les coordonnées
+              },
+              (error) => {
+                reject('Unable to retrieve location');
+                console.error('Unable to retrieve location', error);
+              }
+            );
+          } else {
+            reject('Geolocation not supported');
+            console.error('Geolocation not supported');
+          }
+        });
+      },
+    async refreshPackagesList(positionData){
+        this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
+        var url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres=300000';
+        const response = await http.get(this.$i18n.t('rootURL')+url);
+        this.packagesList = [];
+        this.packagesList = response.data;
+        this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(response.data, "*");
+        console.log(this.packagesList);
+        this.displayDirection(0);
     },
   },
 }

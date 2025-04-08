@@ -1,6 +1,6 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-const ipAddress = '192.168.0.24';
+const ipAddress = '192.168.0.25';
 const messages = {
   en: {
     //API URLS

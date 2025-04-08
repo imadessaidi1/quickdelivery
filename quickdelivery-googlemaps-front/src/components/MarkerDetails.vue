@@ -57,10 +57,12 @@ export default {
     async reserve() {
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
+      console.log(this.mapVue.$refs);
+      window.top.postMessage("RefreshPackagesList", "*");
+      //this.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
       return new Promise((resolve, reject) => {
         http.put(url)
         .then(response => {
-          this.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
           resolve(response.data);
         })
         .catch(error => {

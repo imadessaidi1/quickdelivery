@@ -63,7 +63,7 @@ public class PackageController {
     }
 
     @GetMapping("/packages-around{latitude}{longitude}{rayonEnMetres}")
-    @Cacheable(value="PackagesAroundMe", keyGenerator="customKeyGenerator")
+    //@Cacheable(value="PackagesAroundMe", keyGenerator="customKeyGenerator")
     public Map<String, List<PackageDTO>> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                                     @RequestParam(name = "longitude", required = true) String longitude,
                                                                     @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){

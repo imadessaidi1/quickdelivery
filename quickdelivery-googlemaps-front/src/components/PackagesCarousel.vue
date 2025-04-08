@@ -54,8 +54,7 @@ export default {
         }else if (typeof e.data === 'string' && e.data === 'EndLoading') {
             this.$store.commit('updateLoaderStatus', false);
         }else if (typeof e.data === 'string' && e.data.includes('RefreshPackagesList')) {
-            console.log('RefreshPackagesList carousel');
-			this.refreshPackagesList(this.positionData);
+            this.removePackageFromListe(e.data.split(' ')[1]);
         }
     };
   },
@@ -110,8 +109,16 @@ export default {
         this.packagesList = [];
         this.packagesList = response.data;
         this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(response.data, "*");
-        console.log(this.packagesList);
         this.displayDirection(0);
+    },
+    removePackageFromListe(packageId){
+      const simpleList = JSON.parse(JSON.stringify(this.packagesList));
+      const index = simpleList.findIndex(pkg => pkg.id === parseInt(packageId, 10));
+      if (index !== -1) {
+        simpleList.splice(index, 1); // Supprime 1 élément à l'index trouvé
+      }
+      this.packagesList = simpleList;
+      this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(simpleList, "*");
     },
   },
 }

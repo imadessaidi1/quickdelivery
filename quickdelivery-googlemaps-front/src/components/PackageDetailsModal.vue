@@ -119,14 +119,14 @@ export default {
       return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage("RefreshPackagesList", "*");
+            window.top.postMessage("RefreshPackagesList "+this.package_.id, "*");
             this.isOpen = false;
           }
           this.$store.commit('updatePackage', this.emptyPackage);
           this.$store.commit('updateDocuments', []);
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("unable to process your request this time. please try again latter.");
         });
     },
     pickup(){
@@ -141,7 +141,7 @@ export default {
           }
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("unable to process your request this time. please try again latter.");
         });
     },
     deliver(){
@@ -156,7 +156,7 @@ export default {
           }
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("unable to process your request this time. please try again latter.");
         });
     },
   },

@@ -184,6 +184,12 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    public Map<String, List<PackageDTO>> getPAckagesAroundPosition(AddressDTO address, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
+        GeoHelper.AddressGeoCoding(geoApiContext,address);
+        return getPAckagesAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), rayonEnMetres);
+    }
+
+    @Override
     public List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
         List<PackageDTO> packageDTOS = addresses.stream()

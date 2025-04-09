@@ -1,6 +1,6 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-const ipAddress = '192.168.0.25';
+const ipAddress = '192.168.0.24';
 const messages = {
   en: {
     //API URLS
@@ -11,6 +11,7 @@ const messages = {
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     getPackagesAroundMe: 'packages-around-me?latitude=',
+    getPackagesAroundAddress: 'packages-around-address?',
     updatePackageStatus: 'update-packages-status',
     getPackage: 'getPackage?reference=',
     notify: 'notify',

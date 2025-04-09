@@ -63,7 +63,7 @@
         </dependency>
         <dependency>
             <groupId>com.quickdelivery</groupId>
-            <artifactId>quickdelivery-abstract-dao</artifactId>
+            <artifactId>quickdelivery-abstarct-dao</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

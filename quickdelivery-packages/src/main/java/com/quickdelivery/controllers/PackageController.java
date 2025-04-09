@@ -1,8 +1,9 @@
 package com.quickdelivery.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
@@ -15,11 +16,11 @@ import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Locale;
@@ -183,6 +184,29 @@ public class PackageController {
     public Boolean isUserWithOngoingDelivery(@RequestParam("userId") Long userId){
         return packagesService.isUserWithOngoingDelivery(userId);
     }
+
+    @GetMapping("/packages-around-address{line1}{zipCode}{town}{country}{rayonEnMetres}")
+    public Map<String, List<PackageDTO>> packagesAroundAddress(@RequestParam(name = "line1", required = true) String line1,
+                                                               @RequestParam(name = "zipCode", required = true) String zipCode,
+                                                               @RequestParam(name = "town", required = true) String town,
+                                                               @RequestParam(name = "country", required = true) String country,
+                                                               @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setLine1(line1);
+        addressDTO.setCountry(country);
+        addressDTO.setTown(town);
+        addressDTO.setZipCode(zipCode);
+        try {
+            return packagesService.getPAckagesAroundPosition(addressDTO,rayonEnMetres);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void notifyPackageCreation(String aPackage){
         List<Address> addressAroundNewPackage = packagesService.findUsersAroundPosition(aPackage);
         for (Address address : addressAroundNewPackage){

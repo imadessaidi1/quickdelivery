@@ -1,15 +1,17 @@
 package com.quickdelivery.services.interfaces;
 
+import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.abstarct.entities.Address;
-import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.entities.PackageReservation;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +21,8 @@ public interface IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale);
     void createNewPackages(List<PackageDTO> packageDTOS, Locale locale);
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
+
+    Map<String, List<PackageDTO>> getPAckagesAroundPosition(AddressDTO address, double rayonEnMetres) throws IOException, InterruptedException, ApiException;
 
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);

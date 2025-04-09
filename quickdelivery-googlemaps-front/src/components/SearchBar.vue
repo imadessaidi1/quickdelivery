@@ -44,6 +44,7 @@
 
 <script>
 import AddressAutocomplete from './AddressAutocomplete.vue';
+import http from '@/config/httpInterceptor';
 export default {
  components: {
     AddressAutocomplete,
@@ -96,8 +97,22 @@ export default {
         this.isActiveMenu = false;
       }
     },
-    searchInMap(){
-        this.parent.contentWindow.postMessage('Search in map', "*");
+    async searchInMap(){
+        const address = this.$refs.addressAutoComplete.address.split(',');
+        const line1 = address[0].trim();
+        const zipCode = address[1].trim().split(' ')[0].trim();
+        let index = address[1].trim().indexOf(' ');
+        const town = address[1].substring(index + 1).trim(); // Extrait la partie après le premier espace
+        const country = address[2].trim();
+        console.log(line1);
+        console.log(zipCode);
+        console.log(town);
+        console.log(country);
+        const url = this.$i18n.t('rootURL')+this.$i18n.t('getPackagesAroundAddress')+'&latitude=123654789&line1='+line1+'&zipCode='+zipCode+'&town='+town+'&country='+country+'&rayonEnMetres=300000';
+        console.log(url);
+        const response = await http.get(url);
+        console.log(response.data);
+        //this.parent.contentWindow.postMessage(response.data, "*");
     }
   },
 };

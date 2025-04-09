@@ -3,7 +3,6 @@ package com.quickdelivery.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.dto.MessageDTO;
-import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.slf4j.Logger;

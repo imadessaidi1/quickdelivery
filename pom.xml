@@ -21,7 +21,7 @@
 		<module>quickdelivery-users</module>
 		<module>quickdelivery-packages</module>
 		<module>quickdelivery-shipment</module>
-		<module>quickdelivery-abstract-dao</module>
+		<module>quickdelivery-abstarct-dao</module>
 		<module>quickdelivery-batches</module>
 	</modules>
 	<packaging>pom</packaging>

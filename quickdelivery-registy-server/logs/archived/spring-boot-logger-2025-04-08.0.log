@@ -1,0 +1,46 @@
+2025-04-08 10:41:38,309 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.1 with PID 5316 (C:\Users\user\Documents\Projets\Nouveau dossier\quickdelivery\quickdelivery-registy-server\target\classes started by user in C:\Users\user\Documents\Projets\Nouveau dossier\quickdelivery\quickdelivery-registy-server)
+2025-04-08 10:41:38,314 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2025-04-08 10:41:41,000 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=3cee6ee4-bd3f-32a5-8223-3e0f26b87724
+2025-04-08 10:41:42,157 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2025-04-08 10:41:42,178 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2025-04-08 10:41:42,183 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2025-04-08 10:41:42,184 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2025-04-08 10:41:42,664 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2025-04-08 10:41:42,665 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 4274 ms
+2025-04-08 10:41:48,638 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-04-08 10:41:48,668 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2025-04-08 10:41:49,039 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-04-08 10:41:49,130 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
+2025-04-08 10:41:49,135 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2025-04-08 10:41:49,168 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2025-04-08 10:41:49,169 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2025-04-08 10:41:49,183 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2025-04-08 10:41:49,186 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2025-04-08 10:41:49,188 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2025-04-08 10:41:49,217 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 12.628 seconds (process running for 16.53)
+2025-04-08 10:41:50,799 INFO o.a.j.l.DirectJDKLog [RMI TCP Connection(2)-127.0.0.1] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-08 10:41:50,800 INFO o.s.w.s.FrameworkServlet [RMI TCP Connection(2)-127.0.0.1] Initializing Servlet 'dispatcherServlet'
+2025-04-08 10:41:50,803 INFO o.s.w.s.FrameworkServlet [RMI TCP Connection(2)-127.0.0.1] Completed initialization in 2 ms
+2025-04-08 10:58:40,469 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.1 with PID 12132 (C:\Users\user\Documents\Projets\Nouveau dossier\quickdelivery\quickdelivery-registy-server\target\classes started by user in C:\Users\user\Documents\Projets\Nouveau dossier\quickdelivery\quickdelivery-registy-server)
+2025-04-08 10:58:40,473 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2025-04-08 10:58:41,534 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=3cee6ee4-bd3f-32a5-8223-3e0f26b87724
+2025-04-08 10:58:41,922 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2025-04-08 10:58:41,935 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2025-04-08 10:58:41,938 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2025-04-08 10:58:41,939 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2025-04-08 10:58:42,100 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2025-04-08 10:58:42,101 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1580 ms
+2025-04-08 10:58:43,932 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-04-08 10:58:43,951 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2025-04-08 10:58:44,010 INFO o.a.j.l.DirectJDKLog [RMI TCP Connection(2)-127.0.0.1] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-04-08 10:58:44,011 INFO o.s.w.s.FrameworkServlet [RMI TCP Connection(2)-127.0.0.1] Initializing Servlet 'dispatcherServlet'
+2025-04-08 10:58:44,439 INFO o.s.b.a.e.w.EndpointLinksResolver [RMI TCP Connection(2)-127.0.0.1] Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-04-08 10:58:44,446 INFO o.s.w.s.FrameworkServlet [RMI TCP Connection(2)-127.0.0.1] Completed initialization in 435 ms
+2025-04-08 10:58:44,516 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
+2025-04-08 10:58:44,519 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2025-04-08 10:58:44,535 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2025-04-08 10:58:44,536 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2025-04-08 10:58:44,551 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2025-04-08 10:58:44,587 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2025-04-08 10:58:44,589 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2025-04-08 10:58:44,607 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 4.944 seconds (process running for 6.915)

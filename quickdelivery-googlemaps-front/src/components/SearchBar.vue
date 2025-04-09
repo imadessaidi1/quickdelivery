@@ -29,10 +29,6 @@
     </transition>
 
     <!-- Barre de recherche -->
-
-    <div v-show="location === 'other'">
-        <input type="text" id="searchInput" placeholder="Rechercher..."><button class="btn primary_btn">Search</button>
-    </div>
     <div v-show="location === 'mapPage'">
         <AddressAutocomplete id="address" ref="addressAutoComplete"/><button class="btn primary_btn" @click="searchInMap" >Search</button>
     </div>
@@ -183,6 +179,13 @@ export default {
 }
 
 @media screen and (max-width: 580px) {
+  .search-bar{
+    padding: 0 20px;
+  }
+  #address{
+    width: 150px !important;
+    height: 30px;
+  }
   .burger_menu{
     display: block;
   }

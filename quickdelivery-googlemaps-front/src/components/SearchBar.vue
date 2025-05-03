@@ -177,13 +177,17 @@ export default {
 .burger_menu{
   display: none;
 }
+#address{
+    width: 400px !important;
+    height: 30px;
+  }
 
-@media screen and (max-width: 580px) {
+@media screen and (max-width: 800px) {
   .search-bar{
     padding: 0 20px;
   }
   #address{
-    width: 150px !important;
+    width: 250px !important;
     height: 30px;
   }
   .burger_menu{
@@ -191,6 +195,12 @@ export default {
   }
   .vertical-menu{
     display: none;
+  }
+}
+@media screen and (max-width: 470px){
+  #address{
+    width: 150px !important;
+    height: 30px;
   }
 }
 

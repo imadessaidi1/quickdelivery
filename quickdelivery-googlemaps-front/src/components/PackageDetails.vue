@@ -197,7 +197,7 @@ export default {
 }
 .package_details_group .package_details .details div{
     font-size: 14px;
-    padding: 3px 10px 3px 20px;
+    padding: 3px 10px 3px 0;
 }
 .package_details_group .package_details{
     width: 100%;

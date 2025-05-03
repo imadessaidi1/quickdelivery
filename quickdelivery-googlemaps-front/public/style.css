@@ -104,6 +104,14 @@ body{
   opacity: 1;
   visibility: visible;
 }
+.input_address #address{
+  width: 65%;
+}
+@media screen and (max-width: 800px) {
+  .input_address #address{
+    width: 83% !important;
+  }
+}
 @media screen and (max-width: 600px){
   .infobull:hover::after{
     opacity: 0;
@@ -114,4 +122,7 @@ body{
     height: 40px;
     font-size: 15px;
   }
+  .input_address #address{
+    width: 93% !important;
+ }
 }

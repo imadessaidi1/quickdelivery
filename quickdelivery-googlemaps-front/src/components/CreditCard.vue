@@ -58,9 +58,6 @@ export default {
         flex-direction: row;
         justify-content: space-between;
     }
-    .input_only input{
-        margin: 0;
-    }
     .paiement_input_container .input_only input{
         width: 85% !important;
     }

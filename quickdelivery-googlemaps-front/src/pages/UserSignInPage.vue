@@ -362,7 +362,6 @@ export default {
 }
 .input_only{
   margin-top: 15px;
-  height: max-content;
 }
 .user_creation_main .user-form button{
   margin-bottom: 20px;

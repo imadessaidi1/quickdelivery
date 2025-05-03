@@ -162,8 +162,4 @@ export default{
 }
 </script>
 <style>
-  .input_only input {
-    margin: 10px 0;
-    width: 200px;
-  }
 </style>

@@ -23,11 +23,13 @@
           <ErrorMessage class="errorMessage" name="address.phone" />
       </div>
     </div>
-    <div>
-      <label for="address">{{$t('packageAddressAddress')}}:</label>
+    <div class="input_address input_container">
+      <div class="input_only">
+        <label for="address">{{$t('packageAddressAddress')}}:</label>
         <AddressAutocomplete id="address" ref="addressAutoComplete"/>
         <br/><span><strong>{{address.addressAuto}}</strong></span>
         <span v-if="isAddressError" class="errorMessage">{{errorAddressMessage}}</span>
+      </div>
     </div>
     <div class="input_container">
         <div class="input_only">

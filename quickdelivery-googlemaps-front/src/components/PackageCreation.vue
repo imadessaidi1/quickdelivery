@@ -85,8 +85,8 @@ export default {
 </script>
 
 <style>
-.picture_file_container input,
-#address{
+.picture_file_container input
+{
   width: 83%;
 }
 label {
@@ -101,5 +101,6 @@ label {
   display: block;
   font-size: 12px;
 }
+
 
 </style>

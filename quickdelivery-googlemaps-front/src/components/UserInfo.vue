@@ -35,7 +35,6 @@
                 <ErrorMessage class="errorMessage" name="email" />
                 <span v-if="isExistingEmail" class="errorMessage">{{existingEmailErrorMessage}}</span>
             </div>
-
         </div>
         <div class="input_container">
             <div class="input_only">
@@ -66,14 +65,13 @@
                 <span v-if="isPasswordConfirmationError" class="errorMessage">{{passwordConfirmationErrorMessage}}</span>
             </div>
         </div>
-        <div class="input_container">
-
-        </div>
-        <div>
+        <div class="input_address input_container">
+          <div class="input_only">
             <label for="address">{{$t('packageAddressAddress')}}:</label>
             <AddressAutocomplete id="address" ref="addressAutoComplete" :existingAddress="user.addressAuto"/>
             <br/><span><strong class="file_name">{{ user.addressAuto }}</strong></span>
             <span v-if="isAddressError" class="errorMessage" >{{errorAddressMessage}}</span>
+          </div>
         </div>
 
     </div>

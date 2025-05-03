@@ -265,6 +265,7 @@ export default{
 .input_container select
 {
   width: 65%;
+  margin: 10px 0;
   background-color: #fff;
 }
 .small_width{

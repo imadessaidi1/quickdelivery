@@ -30,6 +30,28 @@
           @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
       </p>
   </div>
+                            <!--MOBILE MARKER STRUCTUR-->
+  <div class="mobile-marker-details">
+      <div class="details_container">
+        <div class="package_image">
+          <img src="../assets/box.png" alt="">
+        </div>
+        <div class="package_info">
+          <p><b>{{ $t('packageVolume') }}:</b> {{ package_.width * package_.height * package_.depth }}</p>
+          <p><b>{{ $t('packageWeight') }}:</b> {{ package_.weight }}</p>
+          <p><b>{{ $t('packagePrice') }}:</b> {{ package_.deliveryPrice }}</p>
+        </div>
+      </div>
+      <!-- Zone inférieure avec des boutons -->
+      <div class="marker-details-buttons">
+          <button class="icon_btn primary_btn material-symbols-outlined" ref="onMyRoad"
+            @click="onMyDirection">timeline</button>
+          <button class="icon_btn warning_btn material-symbols-outlined" ref="reserveButtons"
+            @click="details">add</button>
+          <button class="icon_btn confirm_btn material-symbols-outlined" ref="detailsButtons"
+            @click="reserve">home_pin</button>
+      </div>
+  </div>
 </template>
 
 <script>
@@ -111,6 +133,7 @@ export default {
 
 <style>
 .marker-details {
+  /*display: none;*/
   justify-content: space-between;
   padding: 10px;
   margin-bottom: 10px;
@@ -125,5 +148,56 @@ export default {
 .marker-details p {
   margin: 5px 0;
   font-size: 12px;
+}
+/** MOBILE MARKER STYLE */
+
+.mobile-marker-details {
+  display: none;
+  width: max-content;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid rgb(249, 206, 111);
+  border-radius: 17px;
+  background: linear-gradient(0.25turn, #ffffff37, #ffffffcb, #ffffff, #ffffffdb);
+  background-size: contain;
+  box-shadow: 0 8px 30px rgb(0,0,0,0.12);
+  opacity: 0.8;
+  cursor: pointer;
+}
+.mobile-marker-details .details_container{
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 240px;
+  margin: 0 auto;
+}
+.mobile-marker-details .details_container .package_info{
+  width: 130px;
+  padding: 0 0 0 20px;
+}
+.details_container .package_image{
+  width: 75px;
+}
+.details_container .package_image img{
+  width: 100%;
+}
+.mobile-marker-details .package_info p {
+  margin: 5px 0;
+  font-size: 13px;
+  text-align: left;
+}
+.mobile-marker-details .marker-details-buttons{
+  width: 180px;
+  display: flex;
+  justify-content: space-evenly;
+  margin: 15px auto 0px auto;
+}
+@media screen and (max-width: 500px){
+  .mobile-marker-details{
+    display: block;
+  }
+  .marker-details{
+    display: none;
+  }
 }
 </style>

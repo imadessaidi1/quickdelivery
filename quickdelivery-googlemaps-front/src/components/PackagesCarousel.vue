@@ -1,5 +1,5 @@
 <template>
-    <carousel :items-to-show="1" @slide-start="handleSlideStart">
+    <carousel :items-to-show="1" :slideEffect="fade" :transition="500" @slide-start="handleSlideStart">
     <slide v-for="package_ in packagesList" :key="package_">
         <MarkerDetails ref="marker.addressString+index" :package_="package_" :mapVue="getMapVue()" :modal="getPackageModal()"/>
     </slide>

@@ -16,8 +16,8 @@
 	<modules>
 		<module>quickdemivery-config-server</module>
 		<module>quickdelivery-registy-server</module>
-
 		<module>oauth-authorization-server</module>
+		<module>quickdelivery-api-gateway</module>
 		<module>quickdelivery-users</module>
 		<module>quickdelivery-packages</module>
 		<module>quickdelivery-shipment</module>

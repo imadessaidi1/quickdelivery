@@ -1,17 +1,12 @@
 server:
-  port: 8084
+  port: 18084
 
 spring:
-  jpa:
-    defer-datasource-initialization: true
-  datasource:
-    username: sa
-    url: jdbc:h2:mem:customdb;DB_CLOSE_ON_EXIT=FALSE
-
-keycloak:
-  server:
-    contextPath: /auth
-    adminUser:
-      username: bael-admin
-      password: pass
-    realmImportFile: baeldung-realm.json
+  config:
+    import: optional:configserver:http://localhost:8889
+  application:
+    name: oauth-authorization-server
+  cloud:
+    config:
+      username: ${CONFIG_SERVER_USERNAME:configuser}
+      password: ${CONFIG_SERVER_PASSWORD:configpass}

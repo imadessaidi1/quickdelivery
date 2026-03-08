@@ -1,0 +1,115 @@
+2026-03-07 15:01:09,560 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 18640 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server)
+2026-03-07 15:01:09,569 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:01:12,813 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+2026-03-07 15:01:13,693 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2026-03-07 15:01:13,714 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:01:13,720 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:01:13,722 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:01:14,034 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-07 15:01:14,038 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 4303 ms
+2026-03-07 15:01:18,265 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07 15:01:18,309 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-07 15:01:18,777 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07 15:01:18,847 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SERVER with eureka with status UP
+2026-03-07 15:01:18,853 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:01:18,867 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2026-03-07 15:01:18,868 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2026-03-07 15:01:18,882 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2026-03-07 15:01:18,897 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2026-03-07 15:01:18,898 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2026-03-07 15:01:18,921 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 10.876 seconds (process running for 12.366)
+2026-03-07 15:01:36,171 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-1] Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xae0x010x000x060xaa0x030x03yiM0xd8F0xbe ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-07 15:03:34,523 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 24496 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server)
+2026-03-07 15:03:34,532 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:03:38,070 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+2026-03-07 15:03:39,034 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2026-03-07 15:03:39,054 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:03:39,061 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:03:39,063 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:03:39,422 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-07 15:03:39,425 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 4715 ms
+2026-03-07 15:03:43,922 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07 15:03:43,974 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-07 15:03:44,692 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07 15:03:44,772 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SERVER with eureka with status UP
+2026-03-07 15:03:44,779 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:03:44,796 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2026-03-07 15:03:44,799 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2026-03-07 15:03:44,818 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2026-03-07 15:03:44,831 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2026-03-07 15:03:44,833 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2026-03-07 15:03:44,866 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 12.076 seconds (process running for 13.413)
+2026-03-07 15:03:45,320 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-1] Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xae0x010x000x060xaa0x030x03K0xfd0xd9#{=0x91E0x810x1c0x13_0x980x100xc10x8250x800xa9>0xc80xcb0x800xc10x1d0xe8,0xcb0xf40xf10x873 ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-07 15:07:15,156 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 17284 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server)
+2026-03-07 15:07:15,165 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:07:18,418 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+2026-03-07 15:07:19,371 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2026-03-07 15:07:19,391 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:07:19,401 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:07:19,402 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:07:19,734 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-07 15:07:19,738 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 4411 ms
+2026-03-07 15:07:24,792 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07 15:07:24,845 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-07 15:07:25,616 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07 15:07:25,715 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SERVER with eureka with status UP
+2026-03-07 15:07:25,721 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2026-03-07 15:07:25,739 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2026-03-07 15:07:25,741 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2026-03-07 15:07:25,759 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2026-03-07 15:07:25,786 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2026-03-07 15:07:25,789 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2026-03-07 15:07:25,829 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 12.459 seconds (process running for 13.974)
+2026-03-07 15:07:32,275 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-1] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-07 15:07:32,276 INFO o.s.w.s.FrameworkServlet [http-nio-8080-exec-1] Initializing Servlet 'dispatcherServlet'
+2026-03-07 15:07:32,279 INFO o.s.w.s.FrameworkServlet [http-nio-8080-exec-1] Completed initialization in 2 ms
+2026-03-07 15:08:01,463 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-5] Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xce0x010x000x060xca0x030x030xee0xf40xb40x07`0x890xcd0xf680x8dv0x1b0x08Lp-@9H0xe20x1fxl0x050xc370x860x1f0xfe0xc80x860xa0 ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-07 15:16:33,596 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-6] Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xce0x010x000x060xca0x030x030xbdpea0xa6J0xe20xe8M0x1e@]0xe50xf80x03Y#z0xcfM/0x030x000xf60xed0x930x9a0xafe0xd20x810x81 ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)

@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "_postman_id":  "7f5f5ec0-2f4f-4d40-bf6a-6d4cf12b6c21",
                  "name":  "QuickDelivery - API Gateway (Ready To Run)",
@@ -979,7 +979,7 @@
                      },
                      {
                          "key":  "iam_token_url",
-                         "value":  "http://localhost:8084/auth/realms/baeldung/protocol/openid-connect/token"
+                         "value":  "http://localhost:18084/auth/realms/baeldung/protocol/openid-connect/token"
                      },
                      {
                          "key":  "iam_client_id",

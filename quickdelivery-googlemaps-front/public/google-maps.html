@@ -30,7 +30,7 @@
 	   let markers = [];
 	   let initialLocation;
 	   let actualPosition;
-	   const ipAddress = '192.168.0.24:8082';
+	   const gatewayBaseUrl = 'http://localhost:8087';
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           var url_string = window.location.href;
@@ -142,7 +142,7 @@
 				try {
 					var xhr = new XMLHttpRequest();
 					const waypts = [];
-					var url = `https://${ipAddress}/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
+					var url = `${gatewayBaseUrl}/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
 					xhr.open("GET", url, true);
 
 					xhr.onload = function () {

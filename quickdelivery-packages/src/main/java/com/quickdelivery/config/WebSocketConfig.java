@@ -11,9 +11,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     WebSocketHandler webSocketHandler;
+    @Autowired
+    GatewayWebSocketHandshakeInterceptor gatewayWebSocketHandshakeInterceptor;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/ws").setAllowedOrigins("*");
+        registry.addHandler(webSocketHandler, "/ws")
+                .addInterceptors(gatewayWebSocketHandshakeInterceptor)
+                .setAllowedOrigins("*");
     }
 }

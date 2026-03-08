@@ -1,0 +1,202 @@
+2026-03-08 16:18:14,530 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 16:18:14,633 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 59720 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-08 16:18:14,635 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 16:18:16,252 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-08 16:18:16,671 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:18:16,676 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:18:16,684 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:18:17,070 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8083 (http)
+2026-03-08 16:18:17,083 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:18:17,088 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 16:18:17,088 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 16:18:17,403 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 935a51c2-96cf-4ff8-ae76-625f6e72685d
+
+2026-03-08 16:18:19,028 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 16:18:19,029 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 16:18:19,029 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 16:18:19,030 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 16:18:19,030 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 16:18:19,030 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 16:18:19,030 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 16:18:19,031 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 16:18:19,031 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 16:18:19,031 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 16:18:19,032 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 16:18:19,032 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 16:18:19,032 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 16:18:19,033 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 16:18:19,632 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 16:18:20,255 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 16:18:20,342 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 16:18:20,400 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 16:18:20,529 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 16:18:20,536 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 16:18:20,569 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 16:18:20,953 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 16:18:20,959 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 16:18:20,962 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 16:18:20,968 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772983100967 with initial instances count: 2
+2026-03-08 16:18:20,980 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 16:18:20,981 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772983100981, current=UP, previous=STARTING]
+2026-03-08 16:18:20,985 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083: registering service...
+2026-03-08 16:18:21,049 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - registration status: 204
+2026-03-08 16:18:21,071 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:18:21,099 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8083 (http) with context path ''
+2026-03-08 16:18:21,100 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8083
+2026-03-08 16:18:21,151 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 7.272 seconds (process running for 7.719)
+2026-03-08 16:23:20,585 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:24:51,456 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - Re-registering apps/APIGATEWAYAPPLICATION
+2026-03-08 16:24:51,457 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083: registering service...
+2026-03-08 16:24:51,462 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - registration status: 204
+2026-03-08 16:28:20,600 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:33:20,612 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:38:20,628 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:43:20,634 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:48:20,653 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:53:20,664 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:58:20,676 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:02:51,066 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 17:02:51,160 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 43044 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-08 17:02:51,161 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 17:02:52,712 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-08 17:02:53,049 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:02:53,054 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:02:53,059 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:02:53,367 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8087 (http)
+2026-03-08 17:02:53,377 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:02:53,380 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 17:02:53,380 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 17:02:53,688 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 686a0847-be70-49b1-ae46-f09517ed3827
+
+2026-03-08 17:02:55,054 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 17:02:55,054 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 17:02:55,054 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 17:02:55,055 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 17:02:55,058 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 17:02:55,058 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 17:02:55,058 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 17:02:55,059 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 17:02:55,059 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 17:02:55,059 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 17:02:55,060 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 17:02:55,061 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 17:02:55,062 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 17:02:55,062 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 17:02:55,478 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 17:02:56,075 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 17:02:56,164 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 17:02:56,217 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 17:02:56,318 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 17:02:56,325 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 17:02:56,349 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 17:02:56,749 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 17:02:56,754 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 17:02:56,758 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 17:02:56,766 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772985776765 with initial instances count: 4
+2026-03-08 17:02:56,778 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 17:02:56,778 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772985776778, current=UP, previous=STARTING]
+2026-03-08 17:02:56,781 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:02:56,831 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:02:56,874 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:02:56,880 WARN o.s.c.s.AbstractApplicationContext [main] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-03-08 17:02:56,887 INFO c.n.d.DiscoveryClient [main] Shutting down DiscoveryClient ...
+2026-03-08 17:02:59,904 INFO c.n.d.DiscoveryClient [main] Unregistering ...
+2026-03-08 17:02:59,921 INFO c.n.d.DiscoveryClient [main] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - deregister  status: 200
+2026-03-08 17:02:59,928 INFO c.n.d.DiscoveryClient [main] Completed shut down of DiscoveryClient
+2026-03-08 17:02:59,930 INFO o.a.j.l.DirectJDKLog [main] Pausing ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:02:59,931 INFO o.a.j.l.DirectJDKLog [main] Stopping service [Tomcat]
+2026-03-08 17:02:59,936 INFO o.a.j.l.DirectJDKLog [main] Stopping ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:02:59,937 INFO o.a.j.l.DirectJDKLog [main] Destroying ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:02:59,948 INFO o.s.b.a.l.ConditionEvaluationReportLogger [main] 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-08 17:02:59,973 ERROR o.s.b.d.LoggingFailureAnalysisReporter [main] 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8087 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8087 or configure this application to listen on another port.
+
+2026-03-08 17:03:20,684 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:04:28,797 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 17:04:28,884 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 40340 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-08 17:04:28,886 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 17:04:30,471 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=069b249b-8d2a-3d69-8fcb-702c5a7a61c1
+2026-03-08 17:04:30,565 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:04:30,566 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:04:30,569 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:04:30,933 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 3103be9e-7d03-446d-a598-02c997e252e6
+
+2026-03-08 17:04:31,791 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 17:04:31,792 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 17:04:31,792 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 17:04:31,792 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 17:04:31,793 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 17:04:31,793 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 17:04:31,793 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 17:04:31,793 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 17:04:31,794 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 17:04:31,794 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 17:04:31,794 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 17:04:31,794 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 17:04:31,795 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 17:04:31,796 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 17:04:32,019 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 17:04:32,307 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 17:04:32,347 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 17:04:32,397 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 17:04:32,507 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 17:04:32,513 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 17:04:32,541 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 17:04:32,542 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 17:04:32,542 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 17:04:32,542 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 17:04:32,543 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 17:04:32,544 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 17:04:32,544 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 17:04:33,006 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 17:04:33,011 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 17:04:33,016 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 17:04:33,024 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772985873023 with initial instances count: 4
+2026-03-08 17:04:33,026 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 17:04:33,027 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772985873027, current=UP, previous=STARTING]
+2026-03-08 17:04:33,029 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8099: registering service...
+2026-03-08 17:04:33,081 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8099 - registration status: 204
+2026-03-08 17:04:33,257 INFO o.s.b.w.e.n.NettyWebServer [main] Netty started on port 8099
+2026-03-08 17:04:33,259 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8099
+2026-03-08 17:04:33,296 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 5.135 seconds (process running for 5.625)
+2026-03-08 17:08:20,689 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:09:32,551 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:13:20,700 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:14:32,559 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:18:20,711 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:19:32,577 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:23:20,723 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:24:32,582 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:28:20,736 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:29:32,586 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration

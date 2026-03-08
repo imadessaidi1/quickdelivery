@@ -1,0 +1,687 @@
+2026-03-07 15:01:10,341 ERROR org.springframework.boot.SpringApplication [main] Application run failed
+java.lang.IllegalStateException: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.classic.pattern.ClassOfCallerConverter@67ab1c47 - failed to parse integer string [1.] java.lang.NumberFormatException: For input string: "1."
+ERROR in ch.qos.logback.classic.pattern.ClassOfCallerConverter@b78a709 - failed to parse integer string [1.] java.lang.NumberFormatException: For input string: "1."
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initializeSystem(LoggingApplicationListener.java:347)
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initialize(LoggingApplicationListener.java:298)
+	at org.springframework.boot.context.logging.LoggingApplicationListener.onApplicationEnvironmentPreparedEvent(LoggingApplicationListener.java:246)
+	at org.springframework.boot.context.logging.LoggingApplicationListener.onApplicationEvent(LoggingApplicationListener.java:223)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:174)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:167)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:145)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:133)
+	at org.springframework.boot.context.event.EventPublishingRunListener.multicastInitialEvent(EventPublishingRunListener.java:136)
+	at org.springframework.boot.context.event.EventPublishingRunListener.environmentPrepared(EventPublishingRunListener.java:81)
+	at org.springframework.boot.SpringApplicationRunListeners.lambda$environmentPrepared$2(SpringApplicationRunListeners.java:64)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:118)
+	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:112)
+	at org.springframework.boot.SpringApplicationRunListeners.environmentPrepared(SpringApplicationRunListeners.java:63)
+	at org.springframework.boot.SpringApplication.prepareEnvironment(SpringApplication.java:360)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:311)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295)
+	at com.quickdelivery.APIGatewayApplication.main(APIGatewayApplication.java:27)
+Caused by: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.classic.pattern.ClassOfCallerConverter@67ab1c47 - failed to parse integer string [1.] java.lang.NumberFormatException: For input string: "1."
+ERROR in ch.qos.logback.classic.pattern.ClassOfCallerConverter@b78a709 - failed to parse integer string [1.] java.lang.NumberFormatException: For input string: "1."
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.reportConfigurationErrorsIfNecessary(LogbackLoggingSystem.java:275)
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.loadConfiguration(LogbackLoggingSystem.java:253)
+	at org.springframework.boot.logging.AbstractLoggingSystem.initializeWithConventions(AbstractLoggingSystem.java:80)
+	at org.springframework.boot.logging.AbstractLoggingSystem.initialize(AbstractLoggingSystem.java:60)
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.initialize(LogbackLoggingSystem.java:189)
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initializeSystem(LoggingApplicationListener.java:332)
+	... 19 common frames omitted
+	Suppressed: java.lang.NumberFormatException: For input string: "1."
+		at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)
+		at java.base/java.lang.Integer.parseInt(Integer.java:662)
+		at java.base/java.lang.Integer.parseInt(Integer.java:778)
+		at ch.qos.logback.classic.pattern.NamedConverter.start(NamedConverter.java:92)
+		at ch.qos.logback.core.pattern.ConverterUtil.startConverters(ConverterUtil.java:37)
+		at ch.qos.logback.core.pattern.ConverterUtil.startConverters(ConverterUtil.java:33)
+		at ch.qos.logback.core.pattern.PatternLayoutBase.start(PatternLayoutBase.java:90)
+		at ch.qos.logback.core.model.processor.ImplicitModelHandler.postHandleComplex(ImplicitModelHandler.java:208)
+		at ch.qos.logback.core.model.processor.ImplicitModelHandler.postHandle(ImplicitModelHandler.java:186)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:257)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:253)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:253)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.traversalLoop(DefaultProcessor.java:90)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.process(DefaultProcessor.java:106)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.processModel(GenericXMLConfigurator.java:208)
+		at org.springframework.boot.logging.logback.SpringBootJoranConfigurator.processModel(SpringBootJoranConfigurator.java:122)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:170)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:122)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:65)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.configureByResourceUrl(LogbackLoggingSystem.java:285)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.lambda$loadConfiguration$1(LogbackLoggingSystem.java:247)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.withLoggingSuppressed(LogbackLoggingSystem.java:460)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.loadConfiguration(LogbackLoggingSystem.java:242)
+		... 23 common frames omitted
+	Suppressed: java.lang.NumberFormatException: For input string: "1."
+		at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)
+		at java.base/java.lang.Integer.parseInt(Integer.java:662)
+		at java.base/java.lang.Integer.parseInt(Integer.java:778)
+		at ch.qos.logback.classic.pattern.NamedConverter.start(NamedConverter.java:92)
+		at ch.qos.logback.core.pattern.ConverterUtil.startConverters(ConverterUtil.java:37)
+		at ch.qos.logback.core.pattern.PatternLayoutBase.start(PatternLayoutBase.java:90)
+		at ch.qos.logback.classic.encoder.PatternLayoutEncoder.start(PatternLayoutEncoder.java:28)
+		at ch.qos.logback.core.model.processor.ImplicitModelHandler.postHandleComplex(ImplicitModelHandler.java:208)
+		at ch.qos.logback.core.model.processor.ImplicitModelHandler.postHandle(ImplicitModelHandler.java:186)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:257)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:253)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.secondPhaseTraverse(DefaultProcessor.java:253)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.traversalLoop(DefaultProcessor.java:90)
+		at ch.qos.logback.core.model.processor.DefaultProcessor.process(DefaultProcessor.java:106)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.processModel(GenericXMLConfigurator.java:208)
+		at org.springframework.boot.logging.logback.SpringBootJoranConfigurator.processModel(SpringBootJoranConfigurator.java:122)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:170)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:122)
+		at ch.qos.logback.core.joran.GenericXMLConfigurator.doConfigure(GenericXMLConfigurator.java:65)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.configureByResourceUrl(LogbackLoggingSystem.java:285)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.lambda$loadConfiguration$1(LogbackLoggingSystem.java:247)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.withLoggingSuppressed(LogbackLoggingSystem.java:460)
+		at org.springframework.boot.logging.logback.LogbackLoggingSystem.loadConfiguration(LogbackLoggingSystem.java:242)
+		... 23 common frames omitted
+2026-03-07 15:03:34,233 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-07 15:03:34,413 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 12392 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-07 15:03:34,416 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:03:38,765 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=f8c98dec-b5a7-3832-b02f-2b43535b31b8
+2026-03-07 15:03:39,387 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:03:39,395 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:03:39,404 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:03:40,177 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8083 (http)
+2026-03-07 15:03:40,196 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8083"]
+2026-03-07 15:03:40,201 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:03:40,202 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:03:40,465 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-07 15:03:40,469 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 5891 ms
+2026-03-07 15:03:41,084 WARN o.s.c.s.AbstractApplicationContext [main] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'configureResourceServer' defined in class path resource [com/quickdelivery/ResourceServerSecurityConfig.class]: Unsatisfied dependency expressed through method 'configureResourceServer' parameter 0: No qualifying bean of type 'org.springframework.security.config.web.server.ServerHttpSecurity' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-03-07 15:03:41,091 INFO o.a.j.l.DirectJDKLog [main] Stopping service [Tomcat]
+2026-03-07 15:03:41,130 INFO o.s.b.a.l.ConditionEvaluationReportLogger [main] 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-07 15:03:41,177 ERROR o.s.b.d.LoggingFailureAnalysisReporter [main] 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 0 of method configureResourceServer in com.quickdelivery.ResourceServerSecurityConfig required a bean of type 'org.springframework.security.config.web.server.ServerHttpSecurity' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'org.springframework.security.config.web.server.ServerHttpSecurity' in your configuration.
+
+2026-03-07 15:07:14,703 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-07 15:07:14,932 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 28000 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-07 15:07:14,935 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:07:18,657 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=43ea5e2b-7207-3fdf-82ad-6fa4cad2b81b
+2026-03-07 15:07:19,269 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:07:19,277 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:07:19,286 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:07:19,837 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8083 (http)
+2026-03-07 15:07:19,853 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8083"]
+2026-03-07 15:07:19,858 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:07:19,859 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:07:20,611 WARN o.s.c.s.AbstractApplicationContext [main] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'configureResourceServer' defined in class path resource [com/quickdelivery/ResourceServerSecurityConfig.class]: Unsatisfied dependency expressed through method 'configureResourceServer' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ServerHttpSecurityConfiguration': Unsatisfied dependency expressed through method 'setAdapterRegistry' parameter 0: Error creating bean with name 'org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration$EnableWebFluxConfiguration': Unsatisfied dependency expressed through method 'setConfigurers' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ReactiveOAuth2ClientImportSelector$OAuth2ClientWebFluxSecurityConfiguration': Unsatisfied dependency expressed through method 'setClientRegistrationRepository' parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+2026-03-07 15:07:20,621 INFO o.a.j.l.DirectJDKLog [main] Stopping service [Tomcat]
+2026-03-07 15:07:20,689 INFO o.s.b.a.l.ConditionEvaluationReportLogger [main] 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-07 15:07:20,783 ERROR o.s.b.SpringApplication [main] Application run failed
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'configureResourceServer' defined in class path resource [com/quickdelivery/ResourceServerSecurityConfig.class]: Unsatisfied dependency expressed through method 'configureResourceServer' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ServerHttpSecurityConfiguration': Unsatisfied dependency expressed through method 'setAdapterRegistry' parameter 0: Error creating bean with name 'org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration$EnableWebFluxConfiguration': Unsatisfied dependency expressed through method 'setConfigurers' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ReactiveOAuth2ClientImportSelector$OAuth2ClientWebFluxSecurityConfiguration': Unsatisfied dependency expressed through method 'setClientRegistrationRepository' parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:801)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:545)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1332)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1162)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:560)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:973)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:950)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:616)
+	at org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext.refresh(ReactiveWebServerApplicationContext.java:66)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:738)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:440)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:316)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1306)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1295)
+	at com.quickdelivery.APIGatewayApplication.main(APIGatewayApplication.java:27)
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ServerHttpSecurityConfiguration': Unsatisfied dependency expressed through method 'setAdapterRegistry' parameter 0: Error creating bean with name 'org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration$EnableWebFluxConfiguration': Unsatisfied dependency expressed through method 'setConfigurers' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ReactiveOAuth2ClientImportSelector$OAuth2ClientWebFluxSecurityConfiguration': Unsatisfied dependency expressed through method 'setClientRegistrationRepository' parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:875)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.inject(AutowiredAnnotationBeanPostProcessor.java:828)
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:145)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:492)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1416)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:597)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:412)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1332)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1162)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:560)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:343)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1417)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1337)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:910)
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:788)
+	... 19 common frames omitted
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration$EnableWebFluxConfiguration': Unsatisfied dependency expressed through method 'setConfigurers' parameter 0: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ReactiveOAuth2ClientImportSelector$OAuth2ClientWebFluxSecurityConfiguration': Unsatisfied dependency expressed through method 'setClientRegistrationRepository' parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:875)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.inject(AutowiredAnnotationBeanPostProcessor.java:828)
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:145)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:492)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1416)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:597)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:412)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1332)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1162)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:560)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1417)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1337)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:867)
+	... 41 common frames omitted
+Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.reactive.ReactiveOAuth2ClientImportSelector$OAuth2ClientWebFluxSecurityConfiguration': Unsatisfied dependency expressed through method 'setClientRegistrationRepository' parameter 0: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:875)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.inject(AutowiredAnnotationBeanPostProcessor.java:828)
+	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:145)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:492)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1416)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:597)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.addCandidateEntry(DefaultListableBeanFactory.java:1633)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.findAutowireCandidates(DefaultListableBeanFactory.java:1597)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveMultipleBeans(DefaultListableBeanFactory.java:1488)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1375)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1337)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:867)
+	... 64 common frames omitted
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'clientRegistrationRepository' defined in class path resource [org/springframework/boot/autoconfigure/security/oauth2/client/reactive/ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.class]: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:654)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:642)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1332)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1162)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:560)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:520)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:325)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:323)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1417)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1337)
+	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:867)
+	... 81 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository]: Factory method 'clientRegistrationRepository' threw exception with message: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:171)
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:650)
+	... 94 common frames omitted
+Caused by: java.lang.IllegalArgumentException: Unable to resolve Configuration with the provided Issuer of "http://localhost:8084/auth/realms/baeldung"
+	at org.springframework.security.oauth2.client.registration.ClientRegistrations.getBuilder(ClientRegistrations.java:228)
+	at org.springframework.security.oauth2.client.registration.ClientRegistrations.fromIssuerLocation(ClientRegistrations.java:152)
+	at org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper.getBuilderFromIssuerIfPossible(OAuth2ClientPropertiesMapper.java:97)
+	at org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper.getClientRegistration(OAuth2ClientPropertiesMapper.java:71)
+	at org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper.lambda$asClientRegistrations$0(OAuth2ClientPropertiesMapper.java:65)
+	at java.base/java.util.HashMap.forEach(HashMap.java:1429)
+	at org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientPropertiesMapper.asClientRegistrations(OAuth2ClientPropertiesMapper.java:64)
+	at org.springframework.boot.autoconfigure.security.oauth2.client.reactive.ReactiveOAuth2ClientConfigurations$ReactiveClientRegistrationRepositoryConfiguration.clientRegistrationRepository(ReactiveOAuth2ClientConfigurations.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:139)
+	... 95 common frames omitted
+Caused by: org.springframework.web.client.ResourceAccessException: I/O error on GET request for "http://localhost:8084/auth/realms/baeldung/.well-known/openid-configuration": Connection refused: getsockopt
+	at org.springframework.web.client.RestTemplate.createResourceAccessException(RestTemplate.java:888)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:868)
+	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:714)
+	at org.springframework.security.oauth2.client.registration.ClientRegistrations.lambda$oidc$0(ClientRegistrations.java:163)
+	at org.springframework.security.oauth2.client.registration.ClientRegistrations.getBuilder(ClientRegistrations.java:216)
+	... 105 common frames omitted
+Caused by: java.net.ConnectException: Connection refused: getsockopt
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:531)
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:636)
+	at java.base/sun.net.www.http.HttpClient.<init>(HttpClient.java:280)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:386)
+	at java.base/sun.net.www.http.HttpClient.New(HttpClient.java:408)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient(HttpURLConnection.java:1304)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1237)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1123)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1052)
+	at org.springframework.http.client.SimpleBufferingClientHttpRequest.executeInternal(SimpleBufferingClientHttpRequest.java:75)
+	at org.springframework.http.client.AbstractBufferingClientHttpRequest.executeInternal(AbstractBufferingClientHttpRequest.java:48)
+	at org.springframework.http.client.AbstractClientHttpRequest.execute(AbstractClientHttpRequest.java:66)
+	at org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:862)
+	... 108 common frames omitted
+2026-03-07 15:08:54,113 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-07 15:08:54,223 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 3804 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+2026-03-07 15:08:54,225 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 15:08:56,412 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-07 15:08:56,936 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:08:56,942 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:08:56,950 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-07 15:08:57,478 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8083 (http)
+2026-03-07 15:08:57,498 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8083"]
+2026-03-07 15:08:57,504 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 15:08:57,504 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 15:08:57,994 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 1720cb6f-9a6e-4d08-b7b9-34c445c7a3e4
+
+2026-03-07 15:08:59,620 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-07 15:08:59,621 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-07 15:08:59,623 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-07 15:08:59,623 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-07 15:08:59,623 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-07 15:08:59,623 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-07 15:08:59,624 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-07 15:08:59,624 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-07 15:08:59,625 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-07 15:09:00,060 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07 15:09:00,776 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-07 15:09:00,876 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07 15:09:00,934 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-07 15:09:01,060 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-07 15:09:01,066 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-07 15:09:01,091 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-07 15:09:01,092 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-07 15:09:01,093 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-07 15:09:01,093 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-07 15:09:01,093 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-07 15:09:01,093 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-07 15:09:01,094 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-07 15:09:01,496 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-07 15:09:01,499 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-07 15:09:01,502 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-07 15:09:01,508 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772892541507 with initial instances count: 2
+2026-03-07 15:09:01,519 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-07 15:09:01,521 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772892541521, current=UP, previous=STARTING]
+2026-03-07 15:09:01,523 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083: registering service...
+2026-03-07 15:09:01,571 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - registration status: 204
+2026-03-07 15:09:01,606 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8083"]
+2026-03-07 15:09:01,628 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8083 (http) with context path ''
+2026-03-07 15:09:01,629 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8083
+2026-03-07 15:09:01,660 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 8.359 seconds (process running for 9.017)
+2026-03-07 15:10:32,534 ERROR o.s.c.l.CompositeLog [parallel-5] [419c0b85]  500 Server Error for HTTP GET "/ws"
+java.lang.ClassCastException: class org.apache.catalina.connector.ResponseFacade cannot be cast to class reactor.netty.http.server.HttpServerResponse (org.apache.catalina.connector.ResponseFacade and reactor.netty.http.server.HttpServerResponse are in unnamed module of loader 'app')
+	at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: 
+Error has been observed at the following site(s):
+	*__checkpoint ⇢ org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ AuthorizationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ExceptionTranslationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ LogoutWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerRequestCacheWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ SecurityContextServerWebExchangeWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HttpHeaderWriterWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerWebExchangeReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.security.web.server.WebFilterChainProxy [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.web.filter.reactive.ServerHttpObservationFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HTTP GET "/ws" [ExceptionHandlingWebHandler]
+Original Stack Trace:
+		at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+		at org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService.lambda$handleRequest$1(HandshakeWebSocketService.java:220)
+		at reactor.core.publisher.FluxFlatMap.trySubscribeScalarMap(FluxFlatMap.java:152)
+		at reactor.core.publisher.MonoFlatMap.subscribeOrReturn(MonoFlatMap.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:57)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:136)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onSubscribe(FluxOnErrorResume.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onSubscribe(MonoFilterWhen.java:100)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:98)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:44)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.request(FluxDematerialize.java:127)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onComplete(Operators.java:2205)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:141)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:155)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onNext(FluxPeekFuseable.java:503)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onNext(FluxDefaultIfEmpty.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:854)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.tryEmitScalar(FluxFlatMap.java:489)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onNext(FluxFlatMap.java:422)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onNext(FluxPeekFuseable.java:210)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onComplete(MonoFlatMap.java:189)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.request(FluxFlatMap.java:347)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.request(FluxPeekFuseable.java:783)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.request(FluxDefaultIfEmpty.java:98)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.request(FluxPeekFuseable.java:437)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onSubscribe(FluxFilter.java:85)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onSubscribe(FluxPeekFuseable.java:471)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.onSubscribe(Operators.java:2025)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onComplete(FluxFlatMap.java:466)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:357)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2071)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onComplete(FluxDefaultIfEmpty.java:134)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxMap$MapConditionalSubscriber.onComplete(FluxMap.java:275)
+		at reactor.core.publisher.Operators$MonoSubscriber.complete(Operators.java:1840)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.signalCached(MonoCacheTime.java:337)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.onNext(MonoCacheTime.java:354)
+		at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:200)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoPublishOn$PublishOnSubscriber.run(MonoPublishOn.java:181)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:68)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:28)
+		at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+		at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+		at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-07 15:14:01,108 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:19:01,129 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:24:01,154 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:29:01,172 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:34:01,191 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:39:01,206 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:44:01,230 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:49:01,253 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:54:01,269 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 15:59:01,277 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:04:01,292 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:09:01,311 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:14:01,335 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:19:01,362 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:24:01,382 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:29:01,407 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:34:01,419 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:39:01,438 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:44:01,459 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:49:01,470 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:54:01,495 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 16:59:01,515 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:04:01,539 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:09:01,548 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:14:01,565 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:19:01,586 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:24:01,608 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:29:01,632 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:34:01,658 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:39:01,683 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:44:01,710 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:49:01,712 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:54:01,722 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 17:59:01,750 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:04:01,774 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:09:01,801 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:14:01,828 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:19:01,853 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:24:01,865 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:29:01,886 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:34:01,916 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:39:01,921 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:44:01,935 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:49:01,968 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:54:01,987 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 18:59:02,014 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:04:02,027 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:09:02,033 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:14:02,057 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:19:02,087 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:24:02,110 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:29:02,126 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:34:02,144 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:39:02,169 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:44:02,189 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:49:02,207 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:54:02,215 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 19:59:02,225 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:04:02,241 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:09:02,268 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:14:02,288 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:19:02,314 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:24:02,330 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:29:02,358 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:34:02,381 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:39:02,409 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:44:02,427 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:49:02,437 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:54:02,453 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 20:59:02,480 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:04:02,499 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:09:02,525 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:14:02,545 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:19:02,566 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:24:02,589 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:29:02,597 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:34:02,620 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:39:02,647 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:44:02,651 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:49:02,666 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:54:02,693 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 21:59:02,717 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:04:02,737 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:09:02,766 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:14:02,783 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:19:02,810 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:24:02,839 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:29:02,863 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:34:02,875 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:39:02,885 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:44:02,927 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:49:02,942 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:54:02,969 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 22:59:02,991 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:04:02,997 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:09:03,025 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:14:03,042 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:19:03,064 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:24:03,085 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:29:03,095 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:34:03,101 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:39:03,120 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:44:03,136 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-07 23:49:03,151 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration

@@ -1,0 +1,204 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------< com.quickdelivery:quickdelivery-packages >--------------
+[INFO] Building quickdelivery-packages 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.1.5:run (default-cli) > test-compile @ quickdelivery-packages >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ quickdelivery-packages ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ quickdelivery-packages ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quickdelivery-packages ---
+[INFO] skip non existing resourceDirectory C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-packages\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ quickdelivery-packages ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.1.5:run (default-cli) < test-compile @ quickdelivery-packages <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.1.5:run (default-cli) @ quickdelivery-packages ---
+[INFO] Attaching agents: []
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.1.5)
+
+2026-03-07T15:07:15.957+01:00  INFO 12232 --- [           main] com.quickdelivery.PackageMain            : Starting PackageMain using Java 21.0.2 with PID 12232 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-packages\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-packages)
+2026-03-07T15:07:15.966+01:00 DEBUG 12232 --- [           main] com.quickdelivery.PackageMain            : Running with Spring Boot v3.1.5, Spring v6.0.13
+2026-03-07T15:07:15.970+01:00  INFO 12232 --- [           main] com.quickdelivery.PackageMain            : No active profile set, falling back to 1 default profile: "default"
+2026-03-07T15:07:19.559+01:00  INFO 12232 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-07T15:07:20.002+01:00  INFO 12232 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 421 ms. Found 3 JPA repository interfaces.
+2026-03-07T15:07:20.815+01:00  INFO 12232 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=a6443672-58bf-32dc-9981-8594e098af8b
+2026-03-07T15:07:22.427+01:00  INFO 12232 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2026-03-07T15:07:22.445+01:00  INFO 12232 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-07T15:07:22.446+01:00  INFO 12232 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07T15:07:22.655+01:00  INFO 12232 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-07T15:07:22.658+01:00  INFO 12232 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6527 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-03-07T15:07:23.350+01:00  INFO 12232 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-07T15:07:23.459+01:00  INFO 12232 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.13.Final
+2026-03-07T15:07:23.464+01:00  INFO 12232 --- [           main] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
+2026-03-07T15:07:24.241+01:00  INFO 12232 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-07T15:07:24.320+01:00  INFO 12232 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-07T15:07:24.922+01:00  INFO 12232 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5868ea91
+2026-03-07T15:07:24.925+01:00  INFO 12232 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-07T15:07:27.008+01:00  INFO 12232 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-07T15:07:27.357+01:00  INFO 12232 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-07T15:07:28.158+01:00  INFO 12232 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-07T15:07:29.687+01:00  WARN 12232 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-07T15:07:30.428+01:00  WARN 12232 --- [           main] ion$DefaultTemplateResolverConfiguration : Cannot find template location: classpath:/templates/ (please add some templates, check your Thymeleaf configuration, or set spring.thymeleaf.check-template-location=false)
+2026-03-07T15:07:31.326+01:00  INFO 12232 --- [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-03-07T15:07:31.437+01:00  WARN 12232 --- [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07T15:07:31.451+01:00  INFO 12232 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07T15:07:31.576+01:00  INFO 12232 --- [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-03-07T15:07:31.718+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-03-07T15:07:31.727+01:00  INFO 12232 --- [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:07:31.762+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-03-07T15:07:31.762+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-03-07T15:07:31.763+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-03-07T15:07:31.763+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-03-07T15:07:31.764+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-03-07T15:07:31.764+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-03-07T15:07:31.765+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-03-07T15:07:32.493+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-03-07T15:07:32.497+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-03-07T15:07:32.501+01:00  INFO 12232 --- [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-07T15:07:32.507+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1772892452506 with initial instances count: 0
+2026-03-07T15:07:32.522+01:00  INFO 12232 --- [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application PACKAGE_SERVICE with eureka with status UP
+2026-03-07T15:07:32.524+01:00  INFO 12232 --- [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1772892452524, current=UP, previous=STARTING]
+2026-03-07T15:07:32.527+01:00  INFO 12232 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_PACKAGE_SERVICE/BOOK-TT0T9SUEJL.mshome.net:Package_Service:8082: registering service...
+2026-03-07T15:07:32.560+01:00  INFO 12232 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2026-03-07T15:07:32.561+01:00  INFO 12232 --- [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8082
+2026-03-07T15:07:32.587+01:00  INFO 12232 --- [           main] com.quickdelivery.PackageMain            : Started PackageMain in 17.919 seconds (process running for 19.444)
+2026-03-07T15:07:32.767+01:00  INFO 12232 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_PACKAGE_SERVICE/BOOK-TT0T9SUEJL.mshome.net:Package_Service:8082 - registration status: 204
+2026-03-07T15:08:02.504+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-03-07T15:08:02.505+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-03-07T15:08:02.505+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-03-07T15:08:02.505+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-03-07T15:08:02.505+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-03-07T15:08:02.506+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Application version is -1: false
+2026-03-07T15:08:02.506+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-03-07T15:08:02.541+01:00  INFO 12232 --- [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-03-07T15:09:34.774+01:00  INFO 12232 --- [0.0-8082-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-07T15:09:34.776+01:00  INFO 12232 --- [0.0-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-03-07T15:09:34.780+01:00  INFO 12232 --- [0.0-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-03-07T15:09:34.849+01:00  INFO 12232 --- [0.0-8082-exec-1] c.q.PackageMain$$SpringCGLIB$$0          : Start controller method: notifyClient with args: []
+2026-03-07T15:09:34.854+01:00  INFO 12232 --- [0.0-8082-exec-1] c.q.PackageMain$$SpringCGLIB$$0          : End controller method: notifyClient with args: []
+2026-03-07T15:09:34.856+01:00  INFO 12232 --- [0.0-8082-exec-1] c.q.PackageMain$$SpringCGLIB$$0          : Execution time of notifyClient: 6 milliseconds
+2026-03-07T15:11:13.665+01:00  INFO 12232 --- [0.0-8082-exec-3] c.q.PackageMain$$SpringCGLIB$$0          : WebSocket connection established: ff2f0fd2-58b4-2a95-ba54-e43b8ba1a0d4
+2026-03-07T15:12:31.777+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:17:31.798+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:22:31.820+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:27:31.850+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:32:31.860+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:37:31.863+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:42:31.890+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:47:31.900+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:52:31.915+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T15:57:31.941+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:02:31.950+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:07:31.966+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:12:31.986+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:17:32.016+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:22:32.044+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:27:32.070+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:32:32.078+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:37:32.094+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:42:32.102+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:47:32.122+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:52:32.143+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T16:57:32.146+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:02:32.167+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:07:32.190+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:12:32.206+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:17:32.229+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:22:32.235+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:27:32.255+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:32:32.275+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:37:32.300+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:42:32.320+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:47:32.326+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:52:32.352+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T17:57:32.373+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:02:32.401+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:07:32.418+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:12:32.439+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:17:32.446+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:22:32.449+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:27:32.465+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:32:32.491+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:37:32.516+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:42:32.536+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:47:32.565+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:52:32.591+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T18:57:32.605+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:02:32.625+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:07:32.641+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:12:32.661+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:17:32.686+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:22:32.703+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:27:32.732+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:32:32.752+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:37:32.784+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:42:32.807+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:47:32.823+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:52:32.848+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T19:57:32.871+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:02:32.895+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:07:32.912+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:12:32.935+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:17:32.963+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:22:32.969+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:27:32.972+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:32:32.994+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:37:33.017+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:42:33.034+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:47:33.053+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:52:33.081+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T20:57:33.103+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:02:33.126+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:07:33.153+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:12:33.170+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:17:33.173+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:22:33.179+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:27:33.203+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:32:33.219+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:37:33.245+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:42:33.265+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:47:33.293+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:52:33.310+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T21:57:33.324+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:02:33.338+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:07:33.366+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:12:33.381+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:17:33.396+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:22:33.399+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:27:33.410+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:32:33.429+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:37:33.436+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:42:33.455+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:47:33.480+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:52:33.488+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T22:57:33.503+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:02:33.528+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:07:33.541+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:12:33.558+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:17:33.573+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:22:33.587+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:27:33.606+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:32:33.631+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:37:33.658+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:42:33.673+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-03-07T23:47:33.701+01:00  INFO 12232 --- [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration

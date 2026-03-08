@@ -1,36 +1,48 @@
 server:
-  port: 8083
+  port: 8087
 
 spring:
+  main:
+    web-application-type: reactive
   application:
     name: APIGatewayApplication
-  security:
-    oauth2:
-      client:
-        provider:
-          my-keycloak-provider:
-            issuer-uri: http://localhost:8084/auth/realms/baeldung
-            # Individual properties can also be provided this way
-        #            token-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/token
-        #            authorization-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/auth
-        #            userinfo-uri: http://localhost:8080/auth/realms/amrutrealm/protocol/openid-connect/userinfo
-        #            user-name-attribute: preferred_username
-        registration:
-          keycloak-spring-gateway-client:
-            provider: my-keycloak-provider
-            scope: openid
-            client-id: quotes-client
-            client-secret: 30e082231-a70d-48e8-b8a5-fbfb743041b6
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
+      default-filters:
+        - AddRequestHeader=X-Gateway-Token, ${quickdelivery.gateway.internal-token}
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:8080"
+              - "http://localhost:8084"
+              - "https://localhost:8080"
+              - "https://localhost:8084"
+              - "https://quickdelivery.com:8080"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
       routes:
+        - id: users-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/users/v1/**
+        - id: packages-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/packages/v1/**
+        - id: packages-websocket
+          uri: ws://localhost:8082
+          predicates:
+            - Path=/ws/**
         - id: IAMService
-          #uri: http://localhost:8082
           uri: lb://IAM-SERVICES
           predicates:
             - Path=/IAM/v1/**
@@ -89,3 +101,7 @@ resilience4j.circuitbreaker:
       waitDurationInOpenState: 1s
       failureRateThreshold: 50
       eventConsumerBufferSize: 10
+
+quickdelivery:
+  gateway:
+    internal-token: quickdelivery-internal-token

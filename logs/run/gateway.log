@@ -1,0 +1,470 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------< com.quickdelivery:quickdelivery-api-gateway >-------------
+[INFO] Building quickdelivery-api-gateway 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.1.5:run (default-cli) > test-compile @ quickdelivery-api-gateway >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ quickdelivery-api-gateway ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ quickdelivery-api-gateway ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 5 source files with javac [debug release 20] to target\classes
+[WARNING] /C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServerSecurityConfig.java:[17,17] authorizeExchange() in org.springframework.security.config.web.server.ServerHttpSecurity has been deprecated and marked for removal
+[WARNING] /C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServerSecurityConfig.java:[21,17] and() in org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec has been deprecated and marked for removal
+[WARNING] /C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServerSecurityConfig.java:[22,17] authorizeExchange() in org.springframework.security.config.web.server.ServerHttpSecurity has been deprecated and marked for removal
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quickdelivery-api-gateway ---
+[INFO] skip non existing resourceDirectory C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ quickdelivery-api-gateway ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] 
+[INFO] <<< spring-boot:3.1.5:run (default-cli) < test-compile @ quickdelivery-api-gateway <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.1.5:run (default-cli) @ quickdelivery-api-gateway ---
+[INFO] Attaching agents: []
+15:08:53,979 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - Processing appender named [Console]
+15:08:53,979 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+15:08:54,008 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - This appender no longer admits a layout as a sub-component, set an encoder instead.
+15:08:54,008 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - To ensure compatibility, wrapping your layout in LayoutWrappingEncoder.
+15:08:54,008 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - See also http://logback.qos.ch/codes.html#layoutInsteadOfEncoder for details
+15:08:54,009 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - Processing appender named [RollingFile]
+15:08:54,009 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - About to instantiate appender of type [ch.qos.logback.core.rolling.RollingFileAppender]
+15:08:54,024 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@882471736 - No compression will be used
+15:08:54,026 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@882471736 - Will use the pattern ./logs/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log for the active file
+15:08:54,045 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@57eda880 - The date pattern is 'yyyy-MM-dd' from file name pattern './logs/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log'.
+15:08:54,045 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@57eda880 - Roll-over at midnight.
+15:08:54,055 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@57eda880 - Setting initial period to 2026-03-07T14:07:20.792Z
+15:08:54,056 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@57eda880 - SizeAndTimeBasedFNATP is deprecated. Use SizeAndTimeBasedRollingPolicy instead
+15:08:54,056 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@57eda880 - For more information see http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy
+15:08:54,059 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[RollingFile] - Active log file name: ./logs/spring-boot-logger.log
+15:08:54,059 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[RollingFile] - File property is set to [./logs/spring-boot-logger.log]
+15:08:54,061 |-INFO in ch.qos.logback.classic.model.processor.RootLoggerModelHandler - Setting level of ROOT logger to INFO
+15:08:54,061 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@2b5825fa - Propagating INFO level on Logger[ROOT] onto the JUL framework
+15:08:54,062 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [RollingFile] to Logger[ROOT]
+15:08:54,062 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [Console] to Logger[ROOT]
+15:08:54,062 |-INFO in ch.qos.logback.classic.model.processor.LoggerModelHandler - Setting level of logger [com.baeldung] to TRACE
+15:08:54,062 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@2b5825fa - Propagating TRACE level on Logger[com.baeldung] onto the JUL framework
+15:08:54,065 |-INFO in ch.qos.logback.classic.model.processor.LoggerModelHandler - Setting additivity of logger [com.baeldung] to false
+15:08:54,065 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [RollingFile] to Logger[com.baeldung]
+15:08:54,065 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [Console] to Logger[com.baeldung]
+15:08:54,065 |-INFO in ch.qos.logback.core.model.processor.DefaultProcessor@53d1b9b3 - End of configuration.
+15:08:54,065 |-INFO in org.springframework.boot.logging.logback.SpringBootJoranConfigurator@2cae1042 - Registering current configuration as safe fallback point
+
+[30m2026-03-07 15:08:54,113[0;39m [34mINFO [0;39m [[34mbackground-preinit[0;39m] [33mo.h.v.i.u.Version[0;39m: HV000001: Hibernate Validator 8.0.1.Final
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.1.5)
+
+[30m2026-03-07 15:08:54,223[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.StartupInfoLogger[0;39m: Starting APIGatewayApplication using Java 21.0.2 with PID 3804 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway)
+[30m2026-03-07 15:08:54,225[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.SpringApplication[0;39m: No active profile set, falling back to 1 default profile: "default"
+[30m2026-03-07 15:08:56,412[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.c.s.GenericScope[0;39m: BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+[30m2026-03-07 15:08:56,936[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker[0;39m: Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[30m2026-03-07 15:08:56,942[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker[0;39m: Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[30m2026-03-07 15:08:56,950[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker[0;39m: Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+[30m2026-03-07 15:08:57,478[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.w.e.t.TomcatWebServer[0;39m: Tomcat initialized with port(s): 8083 (http)
+[30m2026-03-07 15:08:57,498[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Initializing ProtocolHandler ["http-nio-8083"]
+[30m2026-03-07 15:08:57,504[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting service [Tomcat]
+[30m2026-03-07 15:08:57,504[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting Servlet engine: [Apache Tomcat/10.1.15]
+[30m2026-03-07 15:08:57,994[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration[0;39m: 
+
+Using generated security password: 1720cb6f-9a6e-4d08-b7b9-34c445c7a3e4
+
+[30m2026-03-07 15:08:59,620[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [After]
+[30m2026-03-07 15:08:59,621[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Before]
+[30m2026-03-07 15:08:59,623[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Between]
+[30m2026-03-07 15:08:59,623[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Cookie]
+[30m2026-03-07 15:08:59,623[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Header]
+[30m2026-03-07 15:08:59,623[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Host]
+[30m2026-03-07 15:08:59,624[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Method]
+[30m2026-03-07 15:08:59,624[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Path]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Query]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [ReadBody]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [RemoteAddr]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [Weight]
+[30m2026-03-07 15:08:59,625[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.g.r.RouteDefinitionRouteLocator[0;39m: Loaded RoutePredicateFactory [CloudFoundryRouteService]
+[30m2026-03-07 15:09:00,060[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.a.e.w.EndpointLinksResolver[0;39m: Exposing 1 endpoint(s) beneath base path '/actuator'
+[30m2026-03-07 15:09:00,776[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration[0;39m: Eureka HTTP Client uses RestTemplate.
+[30m2026-03-07 15:09:00,876[0;39m [31mWARN [0;39m [[34mmain[0;39m] [33mo.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger[0;39m: Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+[30m2026-03-07 15:09:00,934[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.InstanceInfoFactory[0;39m: Setting initial instance status as: STARTING
+[30m2026-03-07 15:09:01,060[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Initializing Eureka in region us-east-1
+[30m2026-03-07 15:09:01,066[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:09:01,091[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Disable delta property : false
+[30m2026-03-07 15:09:01,092[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Single vip registry refresh property : null
+[30m2026-03-07 15:09:01,093[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Force full registry fetch : false
+[30m2026-03-07 15:09:01,093[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Application is null : false
+[30m2026-03-07 15:09:01,093[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Registered Applications size is zero : true
+[30m2026-03-07 15:09:01,093[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Application version is -1: true
+[30m2026-03-07 15:09:01,094[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Getting all instance registry info from the eureka server
+[30m2026-03-07 15:09:01,496[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: The response status is 200
+[30m2026-03-07 15:09:01,499[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Starting heartbeat executor: renew interval is: 30
+[30m2026-03-07 15:09:01,502[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.InstanceInfoReplicator[0;39m: InstanceInfoReplicator onDemand update allowed rate per min is 4
+[30m2026-03-07 15:09:01,508[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient[0;39m: Discovery Client initialized at timestamp 1772892541507 with initial instances count: 2
+[30m2026-03-07 15:09:01,519[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.s.EurekaServiceRegistry[0;39m: Registering application APIGATEWAYAPPLICATION with eureka with status UP
+[30m2026-03-07 15:09:01,521[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mc.n.d.DiscoveryClient$3[0;39m: Saw local status change event StatusChangeEvent [timestamp=1772892541521, current=UP, previous=STARTING]
+[30m2026-03-07 15:09:01,523[0;39m [34mINFO [0;39m [[34mDiscoveryClient-InstanceInfoReplicator-0[0;39m] [33mc.n.d.DiscoveryClient[0;39m: DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083: registering service...
+[30m2026-03-07 15:09:01,571[0;39m [34mINFO [0;39m [[34mDiscoveryClient-InstanceInfoReplicator-0[0;39m] [33mc.n.d.DiscoveryClient[0;39m: DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - registration status: 204
+[30m2026-03-07 15:09:01,606[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting ProtocolHandler ["http-nio-8083"]
+[30m2026-03-07 15:09:01,628[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.w.e.t.TomcatWebServer[0;39m: Tomcat started on port(s): 8083 (http) with context path ''
+[30m2026-03-07 15:09:01,629[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.s.EurekaAutoServiceRegistration[0;39m: Updating port to 8083
+************************* ACTIVE APP PROPERTIES ******************************
+******************************************************************************
+[30m2026-03-07 15:09:01,660[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.StartupInfoLogger[0;39m: Started APIGatewayApplication in 8.359 seconds (process running for 9.017)
+[30m2026-03-07 15:10:32,534[0;39m [1;31mERROR[0;39m [[34mparallel-5[0;39m] [33mo.s.c.l.CompositeLog[0;39m: [419c0b85]  500 Server Error for HTTP GET "/ws"
+java.lang.ClassCastException: class org.apache.catalina.connector.ResponseFacade cannot be cast to class reactor.netty.http.server.HttpServerResponse (org.apache.catalina.connector.ResponseFacade and reactor.netty.http.server.HttpServerResponse are in unnamed module of loader 'app')
+	at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: 
+Error has been observed at the following site(s):
+	*__checkpoint ⇢ org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ AuthorizationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ExceptionTranslationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ LogoutWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerRequestCacheWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ SecurityContextServerWebExchangeWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HttpHeaderWriterWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerWebExchangeReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.security.web.server.WebFilterChainProxy [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.web.filter.reactive.ServerHttpObservationFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HTTP GET "/ws" [ExceptionHandlingWebHandler]
+Original Stack Trace:
+		at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+		at org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService.lambda$handleRequest$1(HandshakeWebSocketService.java:220)
+		at reactor.core.publisher.FluxFlatMap.trySubscribeScalarMap(FluxFlatMap.java:152)
+		at reactor.core.publisher.MonoFlatMap.subscribeOrReturn(MonoFlatMap.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:57)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:136)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onSubscribe(FluxOnErrorResume.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onSubscribe(MonoFilterWhen.java:100)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:98)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:44)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.request(FluxDematerialize.java:127)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onComplete(Operators.java:2205)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:141)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:155)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onNext(FluxPeekFuseable.java:503)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onNext(FluxDefaultIfEmpty.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:854)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.tryEmitScalar(FluxFlatMap.java:489)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onNext(FluxFlatMap.java:422)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onNext(FluxPeekFuseable.java:210)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onComplete(MonoFlatMap.java:189)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.request(FluxFlatMap.java:347)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.request(FluxPeekFuseable.java:783)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.request(FluxDefaultIfEmpty.java:98)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.request(FluxPeekFuseable.java:437)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onSubscribe(FluxFilter.java:85)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onSubscribe(FluxPeekFuseable.java:471)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.onSubscribe(Operators.java:2025)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onComplete(FluxFlatMap.java:466)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:357)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2071)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onComplete(FluxDefaultIfEmpty.java:134)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxMap$MapConditionalSubscriber.onComplete(FluxMap.java:275)
+		at reactor.core.publisher.Operators$MonoSubscriber.complete(Operators.java:1840)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.signalCached(MonoCacheTime.java:337)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.onNext(MonoCacheTime.java:354)
+		at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:200)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoPublishOn$PublishOnSubscriber.run(MonoPublishOn.java:181)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:68)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:28)
+		at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+		at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+		at java.base/java.lang.Thread.run(Thread.java:1583)
+[30m2026-03-07 15:14:01,108[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:19:01,129[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:24:01,154[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:29:01,172[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:34:01,191[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:39:01,206[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:44:01,230[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:49:01,253[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:54:01,269[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 15:59:01,277[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:04:01,292[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:09:01,311[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:14:01,335[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:19:01,362[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:24:01,382[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:29:01,407[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:34:01,419[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:39:01,438[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:44:01,459[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:49:01,470[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:54:01,495[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 16:59:01,515[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:04:01,539[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:09:01,548[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:14:01,565[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:19:01,586[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:24:01,608[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:29:01,632[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:34:01,658[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:39:01,683[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:44:01,710[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:49:01,712[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:54:01,722[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 17:59:01,750[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:04:01,774[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:09:01,801[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:14:01,828[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:19:01,853[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:24:01,865[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:29:01,886[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:34:01,916[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:39:01,921[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:44:01,935[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:49:01,968[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:54:01,987[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 18:59:02,014[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:04:02,027[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:09:02,033[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:14:02,057[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:19:02,087[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:24:02,110[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:29:02,126[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:34:02,144[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:39:02,169[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:44:02,189[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:49:02,207[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:54:02,215[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 19:59:02,225[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:04:02,241[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:09:02,268[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:14:02,288[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:19:02,314[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:24:02,330[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:29:02,358[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:34:02,381[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:39:02,409[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:44:02,427[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:49:02,437[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:54:02,453[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 20:59:02,480[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:04:02,499[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:09:02,525[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:14:02,545[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:19:02,566[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:24:02,589[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:29:02,597[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:34:02,620[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:39:02,647[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:44:02,651[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:49:02,666[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:54:02,693[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 21:59:02,717[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:04:02,737[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:09:02,766[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:14:02,783[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:19:02,810[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:24:02,839[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:29:02,863[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:34:02,875[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:39:02,885[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:44:02,927[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:49:02,942[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:54:02,969[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 22:59:02,991[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:04:02,997[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:09:03,025[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:14:03,042[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:19:03,064[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:24:03,085[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:29:03,095[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:34:03,101[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:39:03,120[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:44:03,136[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration
+[30m2026-03-07 23:49:03,151[0;39m [34mINFO [0;39m [[34mAsyncResolver-bootstrap-executor-0[0;39m] [33mc.n.d.s.r.a.ConfigClusterResolver[0;39m: Resolving eureka endpoints via configuration

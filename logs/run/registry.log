@@ -1,0 +1,113 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------< com.quickdelivery:quickdelivery-registy-server >-----------
+[INFO] Building quickdelivery-registy-server 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.1.5:run (default-cli) > test-compile @ quickdelivery-registy-server >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ quickdelivery-registy-server ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ quickdelivery-registy-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quickdelivery-registy-server ---
+[INFO] skip non existing resourceDirectory C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ quickdelivery-registy-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.1.5:run (default-cli) < test-compile @ quickdelivery-registy-server <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.1.5:run (default-cli) @ quickdelivery-registy-server ---
+[INFO] Attaching agents: []
+15:07:14,633 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - Processing appender named [Console]
+15:07:14,633 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+15:07:14,695 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - This appender no longer admits a layout as a sub-component, set an encoder instead.
+15:07:14,695 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - To ensure compatibility, wrapping your layout in LayoutWrappingEncoder.
+15:07:14,695 |-WARN in ch.qos.logback.core.ConsoleAppender[Console] - See also http://logback.qos.ch/codes.html#layoutInsteadOfEncoder for details
+15:07:14,695 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - Processing appender named [RollingFile]
+15:07:14,695 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - About to instantiate appender of type [ch.qos.logback.core.rolling.RollingFileAppender]
+15:07:14,725 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@1763260873 - No compression will be used
+15:07:14,728 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@1763260873 - Will use the pattern ./logs/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log for the active file
+15:07:14,783 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@4f1bfe23 - The date pattern is 'yyyy-MM-dd' from file name pattern './logs/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log'.
+15:07:14,783 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@4f1bfe23 - Roll-over at midnight.
+15:07:14,803 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@4f1bfe23 - Setting initial period to 2026-03-07T14:03:45.322Z
+15:07:14,803 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@4f1bfe23 - SizeAndTimeBasedFNATP is deprecated. Use SizeAndTimeBasedRollingPolicy instead
+15:07:14,803 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@4f1bfe23 - For more information see http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy
+15:07:14,815 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[RollingFile] - Active log file name: ./logs/spring-boot-logger.log
+15:07:14,815 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[RollingFile] - File property is set to [./logs/spring-boot-logger.log]
+15:07:14,818 |-INFO in ch.qos.logback.classic.model.processor.RootLoggerModelHandler - Setting level of ROOT logger to INFO
+15:07:14,818 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@e19bb76 - Propagating INFO level on Logger[ROOT] onto the JUL framework
+15:07:14,821 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [RollingFile] to Logger[ROOT]
+15:07:14,821 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [Console] to Logger[ROOT]
+15:07:14,821 |-INFO in ch.qos.logback.classic.model.processor.LoggerModelHandler - Setting level of logger [com.baeldung] to TRACE
+15:07:14,821 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@e19bb76 - Propagating TRACE level on Logger[com.baeldung] onto the JUL framework
+15:07:14,828 |-INFO in ch.qos.logback.classic.model.processor.LoggerModelHandler - Setting additivity of logger [com.baeldung] to false
+15:07:14,828 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [RollingFile] to Logger[com.baeldung]
+15:07:14,828 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [Console] to Logger[com.baeldung]
+15:07:14,828 |-INFO in ch.qos.logback.core.model.processor.DefaultProcessor@512535ff - End of configuration.
+15:07:14,828 |-INFO in org.springframework.boot.logging.logback.SpringBootJoranConfigurator@71529963 - Registering current configuration as safe fallback point
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.1.5)
+
+[30m2026-03-07 15:07:15,156[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.StartupInfoLogger[0;39m: Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 17284 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server)
+[30m2026-03-07 15:07:15,165[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.SpringApplication[0;39m: No active profile set, falling back to 1 default profile: "default"
+[30m2026-03-07 15:07:18,418[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.c.s.GenericScope[0;39m: BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+[30m2026-03-07 15:07:19,371[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.w.e.t.TomcatWebServer[0;39m: Tomcat initialized with port(s): 8080 (http)
+[30m2026-03-07 15:07:19,391[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Initializing ProtocolHandler ["http-nio-8080"]
+[30m2026-03-07 15:07:19,401[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting service [Tomcat]
+[30m2026-03-07 15:07:19,402[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting Servlet engine: [Apache Tomcat/10.1.15]
+[30m2026-03-07 15:07:19,734[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Initializing Spring embedded WebApplicationContext
+[30m2026-03-07 15:07:19,738[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.w.s.c.ServletWebServerApplicationContext[0;39m: Root WebApplicationContext: initialization completed in 4411 ms
+[30m2026-03-07 15:07:24,792[0;39m [31mWARN [0;39m [[34mmain[0;39m] [33mo.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger[0;39m: Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+[30m2026-03-07 15:07:24,845[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.InstanceInfoFactory[0;39m: Setting initial instance status as: STARTING
+[30m2026-03-07 15:07:25,616[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.a.e.w.EndpointLinksResolver[0;39m: Exposing 1 endpoint(s) beneath base path '/actuator'
+[30m2026-03-07 15:07:25,715[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.s.EurekaServiceRegistry[0;39m: Registering application DISCOVERY-SERVER with eureka with status UP
+[30m2026-03-07 15:07:25,721[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Starting ProtocolHandler ["http-nio-8080"]
+[30m2026-03-07 15:07:25,739[0;39m [34mINFO [0;39m [[34mThread-9[0;39m] [33mo.s.c.n.e.s.EurekaServerBootstrap[0;39m: isAws returned false
+[30m2026-03-07 15:07:25,741[0;39m [34mINFO [0;39m [[34mThread-9[0;39m] [33mo.s.c.n.e.s.EurekaServerBootstrap[0;39m: Initialized server context
+[30m2026-03-07 15:07:25,759[0;39m [34mINFO [0;39m [[34mThread-9[0;39m] [33mo.s.c.n.e.s.EurekaServerInitializerConfiguration[0;39m: Started Eureka Server
+[30m2026-03-07 15:07:25,786[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.w.e.t.TomcatWebServer[0;39m: Tomcat started on port(s): 8080 (http) with context path ''
+[30m2026-03-07 15:07:25,789[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.c.n.e.s.EurekaAutoServiceRegistration[0;39m: Updating port to 8080
+[30m2026-03-07 15:07:25,829[0;39m [34mINFO [0;39m [[34mmain[0;39m] [33mo.s.b.StartupInfoLogger[0;39m: Started ServiceRegistrationAndDiscoveryServer in 12.459 seconds (process running for 13.974)
+[30m2026-03-07 15:07:32,275[0;39m [34mINFO [0;39m [[34mhttp-nio-8080-exec-1[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Initializing Spring DispatcherServlet 'dispatcherServlet'
+[30m2026-03-07 15:07:32,276[0;39m [34mINFO [0;39m [[34mhttp-nio-8080-exec-1[0;39m] [33mo.s.w.s.FrameworkServlet[0;39m: Initializing Servlet 'dispatcherServlet'
+[30m2026-03-07 15:07:32,279[0;39m [34mINFO [0;39m [[34mhttp-nio-8080-exec-1[0;39m] [33mo.s.w.s.FrameworkServlet[0;39m: Completed initialization in 2 ms
+[30m2026-03-07 15:08:01,463[0;39m [34mINFO [0;39m [[34mhttp-nio-8080-exec-5[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xce0x010x000x060xca0x030x030xee0xf40xb40x07`0x890xcd0xf680x8dv0x1b0x08Lp-@9H0xe20x1fxl0x050xc370x860x1f0xfe0xc80x860xa0 ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[30m2026-03-07 15:16:33,596[0;39m [34mINFO [0;39m [[34mhttp-nio-8080-exec-6[0;39m] [33mo.a.j.l.DirectJDKLog[0;39m: Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x060xce0x010x000x060xca0x030x030xbdpea0xa6J0xe20xe8M0x1e@]0xe50xf80x03Y#z0xcfM/0x030x000xf60xed0x930x9a0xafe0xd20x810x81 ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:407)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:264)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:1583)

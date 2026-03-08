@@ -1,48 +1,827 @@
-2023-11-26 11:33:14,137 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 20.0.1 with PID 5508 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
-2023-11-26 11:33:14,140 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
-2023-11-26 11:33:15,063 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=ef8467ff-4d45-32ec-8617-68fdabe93847
-2023-11-26 11:33:15,358 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
-2023-11-26 11:33:15,364 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
-2023-11-26 11:33:15,366 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
-2023-11-26 11:33:15,367 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
-2023-11-26 11:33:15,454 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
-2023-11-26 11:33:15,455 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1251 ms
-2023-11-26 11:33:17,363 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
-2023-11-26 11:33:17,385 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
-2023-11-26 11:33:17,720 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
-2023-11-26 11:33:17,765 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
-2023-11-26 11:33:17,768 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
-2023-11-26 11:33:17,774 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
-2023-11-26 11:33:17,775 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
-2023-11-26 11:33:17,783 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
-2023-11-26 11:33:17,787 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
-2023-11-26 11:33:17,788 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
-2023-11-26 11:33:17,871 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 4.372 seconds (process running for 4.698)
-2023-11-26 11:33:17,881 INFO c.q.ServiceRegistrationAndDiscoveryServer [main] Valeur de spring.application.name: null
-2023-11-26 11:34:04,400 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application DISCOVERY-SEREVER with eureka with status DOWN
-2023-11-26 11:34:04,420 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Shutting down Eureka Server..
-2023-11-26 11:34:04,430 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Eureka Service is now shutdown...
-2023-11-26 11:34:06,722 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 20.0.1 with PID 12544 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
-2023-11-26 11:34:06,725 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
-2023-11-26 11:34:07,650 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=ef8467ff-4d45-32ec-8617-68fdabe93847
-2023-11-26 11:34:07,943 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
-2023-11-26 11:34:07,949 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
-2023-11-26 11:34:07,950 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
-2023-11-26 11:34:07,951 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
-2023-11-26 11:34:08,048 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
-2023-11-26 11:34:08,049 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 1259 ms
-2023-11-26 11:34:09,869 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
-2023-11-26 11:34:09,903 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
-2023-11-26 11:34:10,219 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
-2023-11-26 11:34:10,281 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SEREVER with eureka with status UP
-2023-11-26 11:34:10,284 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
-2023-11-26 11:34:10,290 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
-2023-11-26 11:34:10,291 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
-2023-11-26 11:34:10,298 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
-2023-11-26 11:34:10,301 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
-2023-11-26 11:34:10,303 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
-2023-11-26 11:34:10,384 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 4.273 seconds (process running for 4.637)
-2023-11-26 11:34:10,391 INFO c.q.ServiceRegistrationAndDiscoveryServer [main] Valeur de spring.application.name: null
-2023-11-26 11:34:42,876 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application DISCOVERY-SEREVER with eureka with status DOWN
-2023-11-26 11:34:42,894 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Shutting down Eureka Server..
-2023-11-26 11:34:42,904 INFO o.s.c.n.e.s.EurekaServerBootstrap [SpringApplicationShutdownHook] Eureka Service is now shutdown...
+2026-03-08 00:04:54,444 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 22060 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 00:04:54,455 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 00:04:57,038 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+2026-03-08 00:04:58,032 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2026-03-08 00:04:58,047 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2026-03-08 00:04:58,054 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 00:04:58,056 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 00:04:58,268 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-08 00:04:58,271 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 3653 ms
+2026-03-08 00:05:02,163 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 00:05:02,202 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 00:05:02,891 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 00:05:02,987 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SERVER with eureka with status UP
+2026-03-08 00:05:02,995 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2026-03-08 00:05:03,026 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2026-03-08 00:05:03,028 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2026-03-08 00:05:03,043 INFO o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Started Eureka Server
+2026-03-08 00:05:03,055 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8080 (http) with context path ''
+2026-03-08 00:05:03,057 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8080
+2026-03-08 00:05:03,096 INFO o.s.b.StartupInfoLogger [main] Started ServiceRegistrationAndDiscoveryServer in 10.202 seconds (process running for 11.379)
+2026-03-08 00:06:04,210 INFO o.a.j.l.DirectJDKLog [http-nio-8080-exec-1] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-08 00:06:04,211 INFO o.s.w.s.FrameworkServlet [http-nio-8080-exec-1] Initializing Servlet 'dispatcherServlet'
+2026-03-08 00:06:04,212 INFO o.s.w.s.FrameworkServlet [http-nio-8080-exec-1] Completed initialization in 1 ms
+2026-03-08 16:24:17,722 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 16:24:17,764 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 18988 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 16:24:17,765 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 16:24:18,889 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-08 16:24:19,136 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:24:19,140 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:24:19,143 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:24:19,431 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8083 (http)
+2026-03-08 16:24:19,454 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:24:19,456 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 16:24:19,457 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 16:24:19,686 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: bf8e8396-636a-423f-add2-656724fd62db
+
+2026-03-08 16:24:20,644 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 16:24:20,646 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 16:24:20,647 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 16:24:20,647 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 16:24:20,647 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 16:24:20,648 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 16:24:20,984 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 16:24:21,450 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 16:24:21,516 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 16:24:21,562 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 16:24:21,669 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 16:24:21,673 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 16:24:21,698 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 16:24:22,047 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 16:24:22,049 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 16:24:22,051 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 16:24:22,056 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772983462055 with initial instances count: 3
+2026-03-08 16:24:22,065 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 16:24:22,065 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772983462065, current=UP, previous=STARTING]
+2026-03-08 16:24:22,066 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083: registering service...
+2026-03-08 16:24:22,126 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - registration status: 204
+2026-03-08 16:24:22,140 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:24:22,143 WARN o.s.c.s.AbstractApplicationContext [main] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-03-08 16:24:22,150 INFO c.n.d.DiscoveryClient [main] Shutting down DiscoveryClient ...
+2026-03-08 16:24:25,163 INFO c.n.d.DiscoveryClient [main] Unregistering ...
+2026-03-08 16:24:25,202 INFO c.n.d.DiscoveryClient [main] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8083 - deregister  status: 200
+2026-03-08 16:24:25,204 INFO c.n.d.DiscoveryClient [main] Completed shut down of DiscoveryClient
+2026-03-08 16:24:25,208 INFO o.a.j.l.DirectJDKLog [main] Pausing ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:24:25,208 INFO o.a.j.l.DirectJDKLog [main] Stopping service [Tomcat]
+2026-03-08 16:24:25,215 INFO o.a.j.l.DirectJDKLog [main] Stopping ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:24:25,217 INFO o.a.j.l.DirectJDKLog [main] Destroying ProtocolHandler ["http-nio-8083"]
+2026-03-08 16:24:25,225 INFO o.s.b.a.l.ConditionEvaluationReportLogger [main] 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-08 16:24:25,240 ERROR o.s.b.d.LoggingFailureAnalysisReporter [main] 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8083 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8083 or configure this application to listen on another port.
+
+2026-03-08 16:27:12,518 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 16:27:12,565 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 62008 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 16:27:12,567 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 16:27:13,772 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-08 16:27:14,024 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:27:14,027 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:27:14,031 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 16:27:14,333 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8087 (http)
+2026-03-08 16:27:14,341 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8087"]
+2026-03-08 16:27:14,343 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 16:27:14,343 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 16:27:14,558 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 0e2ff41c-f713-4251-9895-fdc53e06d4ea
+
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 16:27:15,607 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 16:27:15,609 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 16:27:15,609 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 16:27:15,611 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 16:27:15,611 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 16:27:15,611 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 16:27:15,611 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 16:27:15,926 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 16:27:16,387 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 16:27:16,446 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 16:27:16,494 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 16:27:16,592 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 16:27:16,595 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 16:27:16,614 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 16:27:16,615 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 16:27:16,938 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 16:27:16,942 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 16:27:16,945 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 16:27:16,951 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772983636950 with initial instances count: 3
+2026-03-08 16:27:16,959 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 16:27:16,960 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772983636960, current=UP, previous=STARTING]
+2026-03-08 16:27:16,962 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 16:27:16,998 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 16:27:17,016 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8087"]
+2026-03-08 16:27:17,033 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8087 (http) with context path ''
+2026-03-08 16:27:17,035 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8087
+2026-03-08 16:27:17,056 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 5.096 seconds (process running for 5.539)
+2026-03-08 16:32:16,626 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:37:16,632 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:42:16,645 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:47:16,652 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:52:16,668 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:57:16,680 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 16:59:53,009 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application APIGATEWAYAPPLICATION with eureka with status DOWN
+2026-03-08 16:59:53,010 INFO c.n.d.DiscoveryClient$3 [SpringApplicationShutdownHook] Saw local status change event StatusChangeEvent [timestamp=1772985593010, current=DOWN, previous=UP]
+2026-03-08 16:59:53,010 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 16:59:53,034 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 16:59:55,114 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Shutting down DiscoveryClient ...
+2026-03-08 16:59:59,728 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 16:59:59,795 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 9428 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 16:59:59,796 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 17:00:01,136 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=97667419-3f49-396f-ba41-dfc7615f2470
+2026-03-08 17:00:01,460 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:00:01,464 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:00:01,468 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:00:01,779 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8087 (http)
+2026-03-08 17:00:01,789 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:00:01,792 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-08 17:00:01,792 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-08 17:00:02,060 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 488a78a7-22e7-4788-a521-4d4edc12e2ea
+
+2026-03-08 17:00:03,140 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 17:00:03,141 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 17:00:03,142 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 17:00:03,486 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 17:00:03,955 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 17:00:04,020 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 17:00:04,067 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 17:00:04,179 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 17:00:04,185 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 17:00:04,207 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 17:00:04,207 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 17:00:04,207 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 17:00:04,207 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 17:00:04,207 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 17:00:04,208 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 17:00:04,208 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 17:00:04,547 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 17:00:04,550 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 17:00:04,552 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 17:00:04,557 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772985604556 with initial instances count: 4
+2026-03-08 17:00:04,566 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 17:00:04,567 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772985604567, current=UP, previous=STARTING]
+2026-03-08 17:00:04,568 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:00:04,604 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:00:04,618 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8087"]
+2026-03-08 17:00:04,636 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat started on port(s): 8087 (http) with context path ''
+2026-03-08 17:00:04,637 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8087
+2026-03-08 17:00:04,659 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 5.555 seconds (process running for 6.209)
+2026-03-08 17:00:11,265 ERROR o.s.c.l.CompositeLog [parallel-2] [416e3bfa]  500 Server Error for HTTP GET "/ws"
+java.lang.ClassCastException: class org.apache.catalina.connector.ResponseFacade cannot be cast to class reactor.netty.http.server.HttpServerResponse (org.apache.catalina.connector.ResponseFacade and reactor.netty.http.server.HttpServerResponse are in unnamed module of loader 'app')
+	at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: 
+Error has been observed at the following site(s):
+	*__checkpoint ⇢ org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ AuthorizationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ExceptionTranslationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ LogoutWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerRequestCacheWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ SecurityContextServerWebExchangeWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HttpHeaderWriterWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerWebExchangeReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.security.web.server.WebFilterChainProxy [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.web.filter.reactive.ServerHttpObservationFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HTTP GET "/ws" [ExceptionHandlingWebHandler]
+Original Stack Trace:
+		at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+		at org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService.lambda$handleRequest$1(HandshakeWebSocketService.java:220)
+		at reactor.core.publisher.FluxFlatMap.trySubscribeScalarMap(FluxFlatMap.java:152)
+		at reactor.core.publisher.MonoFlatMap.subscribeOrReturn(MonoFlatMap.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:57)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:136)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onSubscribe(FluxOnErrorResume.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onSubscribe(MonoFilterWhen.java:100)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:98)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:44)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.request(FluxDematerialize.java:127)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onComplete(Operators.java:2205)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:141)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:155)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onNext(FluxPeekFuseable.java:503)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onNext(FluxDefaultIfEmpty.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:854)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.tryEmitScalar(FluxFlatMap.java:489)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onNext(FluxFlatMap.java:422)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onNext(FluxPeekFuseable.java:210)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onComplete(MonoFlatMap.java:189)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.request(FluxFlatMap.java:347)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.request(FluxPeekFuseable.java:783)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.request(FluxDefaultIfEmpty.java:98)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.request(FluxPeekFuseable.java:437)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onSubscribe(FluxFilter.java:85)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onSubscribe(FluxPeekFuseable.java:471)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.onSubscribe(Operators.java:2025)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onComplete(FluxFlatMap.java:466)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:357)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2071)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onComplete(FluxDefaultIfEmpty.java:134)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxMap$MapConditionalSubscriber.onComplete(FluxMap.java:275)
+		at reactor.core.publisher.Operators$MonoSubscriber.complete(Operators.java:1840)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.signalCached(MonoCacheTime.java:337)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.onNext(MonoCacheTime.java:354)
+		at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:200)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoPublishOn$PublishOnSubscriber.run(MonoPublishOn.java:181)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:68)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:28)
+		at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+		at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+		at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-08 17:00:13,042 ERROR o.s.w.s.a.HttpWebHandlerAdapter [http-nio-8087-exec-8] [309567b8] Error [java.io.IOException: Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte] for HTTP GET "/packages/v1/packages-around-me?latitude=48.7441177290114&longitude=2.474249872387531&rayonEnMetres=300000", but ServerHttpResponse already committed (200 OK)
+2026-03-08 17:02:22,832 ERROR o.s.c.l.CompositeLog [parallel-5] [5add4636]  500 Server Error for HTTP GET "/ws"
+java.lang.ClassCastException: class org.apache.catalina.connector.ResponseFacade cannot be cast to class reactor.netty.http.server.HttpServerResponse (org.apache.catalina.connector.ResponseFacade and reactor.netty.http.server.HttpServerResponse are in unnamed module of loader 'app')
+	at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+	Suppressed: reactor.core.publisher.FluxOnAssembly$OnAssemblyException: 
+Error has been observed at the following site(s):
+	*__checkpoint ⇢ org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ AuthorizationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ExceptionTranslationWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ LogoutWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerRequestCacheWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ SecurityContextServerWebExchangeWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HttpHeaderWriterWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ ServerWebExchangeReactorContextWebFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.security.web.server.WebFilterChainProxy [DefaultWebFilterChain]
+	*__checkpoint ⇢ org.springframework.web.filter.reactive.ServerHttpObservationFilter [DefaultWebFilterChain]
+	*__checkpoint ⇢ HTTP GET "/ws" [ExceptionHandlingWebHandler]
+Original Stack Trace:
+		at org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy.upgrade(ReactorNettyRequestUpgradeStrategy.java:163)
+		at org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService.lambda$handleRequest$1(HandshakeWebSocketService.java:220)
+		at reactor.core.publisher.FluxFlatMap.trySubscribeScalarMap(FluxFlatMap.java:152)
+		at reactor.core.publisher.MonoFlatMap.subscribeOrReturn(MonoFlatMap.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:57)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onNext(FluxOnErrorResume.java:79)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:136)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onSubscribe(FluxOnErrorResume.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onSubscribe(MonoFilterWhen.java:100)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:98)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.onNext(FluxDematerialize.java:44)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxDematerialize$DematerializeSubscriber.request(FluxDematerialize.java:127)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onComplete(Operators.java:2205)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.onNext(MonoFilterWhen.java:141)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2545)
+		at reactor.core.publisher.MonoFilterWhen$MonoFilterWhenMain.request(MonoFilterWhen.java:182)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onComplete(MonoPeekTerminal.java:299)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:155)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onNext(FluxPeekFuseable.java:503)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onNext(FluxDefaultIfEmpty.java:122)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerNext(FluxConcatMapNoPrefetch.java:258)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onNext(FluxConcatMap.java:863)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:158)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onNext(FluxMap.java:122)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onNext(FluxPeekFuseable.java:854)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onNext(MonoNext.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onNext(FluxFilter.java:113)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.tryEmitScalar(FluxFlatMap.java:489)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onNext(FluxFlatMap.java:422)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onNext(FluxPeekFuseable.java:210)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onNext(FluxConcatMapNoPrefetch.java:206)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:335)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.innerComplete(FluxConcatMapNoPrefetch.java:274)
+		at reactor.core.publisher.FluxConcatMap$ConcatMapInner.onComplete(FluxConcatMap.java:887)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onComplete(MonoFlatMap.java:189)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.request(FluxFlatMap.java:347)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.request(FluxPeekFuseable.java:783)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.FluxMap$MapSubscriber.request(FluxMap.java:164)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.request(MonoFlatMap.java:194)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.request(Operators.java:2305)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.request(FluxConcatMapNoPrefetch.java:338)
+		at reactor.core.publisher.MonoNext$NextSubscriber.request(MonoNext.java:108)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.request(FluxDefaultIfEmpty.java:98)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.request(FluxPeekFuseable.java:437)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.request(MonoPeekTerminal.java:139)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.request(FluxFilter.java:186)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onSubscribe(FluxFilter.java:85)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableConditionalSubscriber.onSubscribe(FluxPeekFuseable.java:471)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onSubscribe(MonoPeekTerminal.java:152)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.onSubscribe(Operators.java:2025)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onSubscribe(MonoNext.java:70)
+		at reactor.core.publisher.FluxConcatMapNoPrefetch$FluxConcatMapNoPrefetchSubscriber.onSubscribe(FluxConcatMapNoPrefetch.java:164)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDeferContextual.subscribe(MonoDeferContextual.java:55)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.MonoIgnoreThen$ThenIgnoreMain.subscribeNext(MonoIgnoreThen.java:263)
+		at reactor.core.publisher.MonoIgnoreThen.subscribe(MonoIgnoreThen.java:51)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxPeekFuseable$PeekConditionalSubscriber.onComplete(FluxPeekFuseable.java:940)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:85)
+		at reactor.core.publisher.Operators$ScalarSubscription.request(Operators.java:2547)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.set(Operators.java:2341)
+		at reactor.core.publisher.Operators$MultiSubscriptionSubscriber.onSubscribe(Operators.java:2215)
+		at reactor.core.publisher.MonoJust.subscribe(MonoJust.java:55)
+		at reactor.core.publisher.Mono.subscribe(Mono.java:4495)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onComplete(FluxSwitchIfEmpty.java:82)
+		at reactor.core.publisher.MonoNext$NextSubscriber.onComplete(MonoNext.java:102)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.checkTerminated(FluxFlatMap.java:847)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drainLoop(FluxFlatMap.java:609)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.drain(FluxFlatMap.java:589)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onComplete(FluxFlatMap.java:466)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onComplete(FluxPeekFuseable.java:277)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.slowPath(FluxIterable.java:357)
+		at reactor.core.publisher.FluxIterable$IterableSubscription.request(FluxIterable.java:294)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.request(FluxPeekFuseable.java:144)
+		at reactor.core.publisher.FluxFlatMap$FlatMapMain.onSubscribe(FluxFlatMap.java:371)
+		at reactor.core.publisher.FluxPeekFuseable$PeekFuseableSubscriber.onSubscribe(FluxPeekFuseable.java:178)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:201)
+		at reactor.core.publisher.FluxIterable.subscribe(FluxIterable.java:83)
+		at reactor.core.publisher.InternalMonoOperator.subscribe(InternalMonoOperator.java:64)
+		at reactor.core.publisher.MonoDefer.subscribe(MonoDefer.java:53)
+		at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:165)
+		at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2071)
+		at reactor.core.publisher.FluxDefaultIfEmpty$DefaultIfEmptySubscriber.onComplete(FluxDefaultIfEmpty.java:134)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+		at reactor.core.publisher.FluxFilter$FilterSubscriber.onComplete(FluxFilter.java:166)
+		at reactor.core.publisher.FluxMap$MapConditionalSubscriber.onComplete(FluxMap.java:275)
+		at reactor.core.publisher.Operators$MonoSubscriber.complete(Operators.java:1840)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.signalCached(MonoCacheTime.java:337)
+		at reactor.core.publisher.MonoCacheTime$CoordinatorSubscriber.onNext(MonoCacheTime.java:354)
+		at reactor.core.publisher.FluxPeek$PeekSubscriber.onNext(FluxPeek.java:200)
+		at reactor.core.publisher.FluxSwitchIfEmpty$SwitchIfEmptySubscriber.onNext(FluxSwitchIfEmpty.java:74)
+		at reactor.core.publisher.MonoPeekTerminal$MonoTerminalPeekSubscriber.onNext(MonoPeekTerminal.java:180)
+		at reactor.core.publisher.MonoPublishOn$PublishOnSubscriber.run(MonoPublishOn.java:181)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:68)
+		at reactor.core.scheduler.SchedulerTask.call(SchedulerTask.java:28)
+		at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+		at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+		at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-08 17:02:25,630 ERROR o.s.w.s.a.HttpWebHandlerAdapter [http-nio-8087-exec-7] [4fa9dda7] Error [java.io.IOException: Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte] for HTTP GET "/packages/v1/packages-around-me?latitude=48.74411763038621&longitude=2.4742455371848067&rayonEnMetres=300000", but ServerHttpResponse already committed (200 OK)
+2026-03-08 17:03:04,701 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - Re-registering apps/APIGATEWAYAPPLICATION
+2026-03-08 17:03:04,702 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:03:04,706 INFO c.n.d.DiscoveryClient [DiscoveryClient-HeartbeatExecutor-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:05:04,217 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:09:01,278 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application APIGATEWAYAPPLICATION with eureka with status DOWN
+2026-03-08 17:09:01,280 INFO c.n.d.DiscoveryClient$3 [SpringApplicationShutdownHook] Saw local status change event StatusChangeEvent [timestamp=1772986141280, current=DOWN, previous=UP]
+2026-03-08 17:09:01,280 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:09:01,287 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:09:03,370 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Shutting down DiscoveryClient ...
+2026-03-08 17:09:06,373 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor shutting down, can't accept the task
+2026-03-08 17:09:06,374 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Unregistering ...
+2026-03-08 17:09:06,378 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - deregister  status: 200
+2026-03-08 17:09:06,381 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Completed shut down of DiscoveryClient
+2026-03-08 17:09:10,895 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 17:09:10,948 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 19016 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 17:09:10,948 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 17:09:12,046 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=069b249b-8d2a-3d69-8fcb-702c5a7a61c1
+2026-03-08 17:09:12,112 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:09:12,114 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:09:12,115 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:09:12,360 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: 3411f286-8c15-4c75-b98f-616687759a61
+
+2026-03-08 17:09:12,973 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 17:09:12,973 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 17:09:12,973 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 17:09:12,973 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 17:09:12,975 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 17:09:12,976 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 17:09:13,124 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 17:09:13,333 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 17:09:13,356 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 17:09:13,390 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 17:09:13,473 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 17:09:13,477 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 17:09:13,496 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 17:09:13,497 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 17:09:13,497 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 17:09:13,497 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 17:09:13,498 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 17:09:13,498 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 17:09:13,498 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 17:09:13,797 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 17:09:13,801 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 17:09:13,803 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 17:09:13,807 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772986153807 with initial instances count: 4
+2026-03-08 17:09:13,809 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 17:09:13,810 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772986153810, current=UP, previous=STARTING]
+2026-03-08 17:09:13,811 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:09:13,848 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:09:13,952 INFO o.s.b.w.e.n.NettyWebServer [main] Netty started on port 8087
+2026-03-08 17:09:13,954 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8087
+2026-03-08 17:09:13,979 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 3.547 seconds (process running for 3.892)
+2026-03-08 17:14:13,511 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:15:23,934 INFO o.s.c.n.e.s.EurekaServiceRegistry [SpringApplicationShutdownHook] Unregistering application APIGATEWAYAPPLICATION with eureka with status DOWN
+2026-03-08 17:15:23,934 INFO c.n.d.DiscoveryClient$3 [SpringApplicationShutdownHook] Saw local status change event StatusChangeEvent [timestamp=1772986523934, current=DOWN, previous=UP]
+2026-03-08 17:15:23,936 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:15:23,953 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:15:29,023 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Shutting down DiscoveryClient ...
+2026-03-08 17:15:32,037 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Unregistering ...
+2026-03-08 17:15:32,052 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - deregister  status: 200
+2026-03-08 17:15:32,056 INFO c.n.d.DiscoveryClient [SpringApplicationShutdownHook] Completed shut down of DiscoveryClient
+2026-03-08 17:15:35,546 INFO o.h.v.i.u.Version [background-preinit] HV000001: Hibernate Validator 8.0.1.Final
+2026-03-08 17:15:35,595 INFO o.s.b.StartupInfoLogger [main] Starting APIGatewayApplication using Java 21.0.2 with PID 53488 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-api-gateway\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-08 17:15:35,595 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-08 17:15:36,700 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=069b249b-8d2a-3d69-8fcb-702c5a7a61c1
+2026-03-08 17:15:36,762 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:15:36,763 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:15:36,765 INFO o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker [main] Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+2026-03-08 17:15:37,013 INFO o.s.b.a.s.r.ReactiveUserDetailsServiceAutoConfiguration [main] 
+
+Using generated security password: e365248b-8fcd-4437-ab95-cd2bf33f180d
+
+2026-03-08 17:15:37,635 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [After]
+2026-03-08 17:15:37,635 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Before]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Between]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Cookie]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Header]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Host]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Method]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Path]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Query]
+2026-03-08 17:15:37,636 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [ReadBody]
+2026-03-08 17:15:37,637 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-08 17:15:37,637 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-08 17:15:37,637 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [Weight]
+2026-03-08 17:15:37,637 INFO o.s.c.g.r.RouteDefinitionRouteLocator [main] Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-08 17:15:37,778 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-08 17:15:37,996 INFO o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration [main] Eureka HTTP Client uses RestTemplate.
+2026-03-08 17:15:38,021 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-08 17:15:38,051 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-08 17:15:38,130 INFO c.n.d.DiscoveryClient [main] Initializing Eureka in region us-east-1
+2026-03-08 17:15:38,135 INFO c.n.d.s.r.a.ConfigClusterResolver [main] Resolving eureka endpoints via configuration
+2026-03-08 17:15:38,152 INFO c.n.d.DiscoveryClient [main] Disable delta property : false
+2026-03-08 17:15:38,152 INFO c.n.d.DiscoveryClient [main] Single vip registry refresh property : null
+2026-03-08 17:15:38,152 INFO c.n.d.DiscoveryClient [main] Force full registry fetch : false
+2026-03-08 17:15:38,152 INFO c.n.d.DiscoveryClient [main] Application is null : false
+2026-03-08 17:15:38,154 INFO c.n.d.DiscoveryClient [main] Registered Applications size is zero : true
+2026-03-08 17:15:38,154 INFO c.n.d.DiscoveryClient [main] Application version is -1: true
+2026-03-08 17:15:38,154 INFO c.n.d.DiscoveryClient [main] Getting all instance registry info from the eureka server
+2026-03-08 17:15:38,463 INFO c.n.d.DiscoveryClient [main] The response status is 200
+2026-03-08 17:15:38,466 INFO c.n.d.DiscoveryClient [main] Starting heartbeat executor: renew interval is: 30
+2026-03-08 17:15:38,468 INFO c.n.d.InstanceInfoReplicator [main] InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-03-08 17:15:38,472 INFO c.n.d.DiscoveryClient [main] Discovery Client initialized at timestamp 1772986538472 with initial instances count: 4
+2026-03-08 17:15:38,473 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application APIGATEWAYAPPLICATION with eureka with status UP
+2026-03-08 17:15:38,474 INFO c.n.d.DiscoveryClient$3 [main] Saw local status change event StatusChangeEvent [timestamp=1772986538474, current=UP, previous=STARTING]
+2026-03-08 17:15:38,475 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087: registering service...
+2026-03-08 17:15:38,510 INFO c.n.d.DiscoveryClient [DiscoveryClient-InstanceInfoReplicator-0] DiscoveryClient_APIGATEWAYAPPLICATION/BOOK-TT0T9SUEJL.mshome.net:APIGatewayApplication:8087 - registration status: 204
+2026-03-08 17:15:38,621 INFO o.s.b.w.e.n.NettyWebServer [main] Netty started on port 8087
+2026-03-08 17:15:38,622 INFO o.s.c.n.e.s.EurekaAutoServiceRegistration [main] Updating port to 8087
+2026-03-08 17:15:38,648 INFO o.s.b.StartupInfoLogger [main] Started APIGatewayApplication in 3.652 seconds (process running for 4.035)
+2026-03-08 17:20:38,161 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-08 17:25:38,170 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration

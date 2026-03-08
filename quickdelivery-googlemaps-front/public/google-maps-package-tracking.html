@@ -32,7 +32,7 @@
 	   let carIcon;
 	   let arrivalIcon;
 	   let routeInfo;
-	   const ipAddress = '192.168.0.24:8082';
+	   const gatewayBaseUrl = 'http://localhost:8087';
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           directionsRenderer = new google.maps.DirectionsRenderer({
@@ -66,7 +66,7 @@
 			try{
 			if(packageRef != undefined){
 				var xhr = new XMLHttpRequest();
-				var url = `https://${ipAddress}/packages/v1/getPackage?reference=${packageRef}`;
+				var url = `${gatewayBaseUrl}/packages/v1/getPackage?reference=${packageRef}`;
 				xhr.open("GET", url, true);
 				xhr.onload = function() {
 					if (xhr.status >= 200 && xhr.status < 300) {

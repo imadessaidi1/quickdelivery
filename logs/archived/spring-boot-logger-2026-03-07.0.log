@@ -1,0 +1,63 @@
+2026-03-07 14:58:05,704 INFO o.s.b.StartupInfoLogger [main] Starting ServiceRegistrationAndDiscoveryServer using Java 21.0.2 with PID 28740 (C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\quickdelivery-registy-server\target\classes started by imess in C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent)
+2026-03-07 14:58:05,714 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2026-03-07 14:58:08,322 INFO o.s.c.c.s.GenericScope [main] BeanFactory id=8fb395fc-9431-3bb1-8b19-c88df376b876
+2026-03-07 14:58:09,116 INFO o.s.b.w.e.t.TomcatWebServer [main] Tomcat initialized with port(s): 8080 (http)
+2026-03-07 14:58:09,130 INFO o.a.j.l.DirectJDKLog [main] Initializing ProtocolHandler ["http-nio-8080"]
+2026-03-07 14:58:09,135 INFO o.a.j.l.DirectJDKLog [main] Starting service [Tomcat]
+2026-03-07 14:58:09,136 INFO o.a.j.l.DirectJDKLog [main] Starting Servlet engine: [Apache Tomcat/10.1.15]
+2026-03-07 14:58:09,352 INFO o.a.j.l.DirectJDKLog [main] Initializing Spring embedded WebApplicationContext
+2026-03-07 14:58:09,356 INFO o.s.b.w.s.c.ServletWebServerApplicationContext [main] Root WebApplicationContext: initialization completed in 3422 ms
+2026-03-07 14:58:13,228 WARN o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger [main] Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-03-07 14:58:13,258 INFO o.s.c.n.e.InstanceInfoFactory [main] Setting initial instance status as: STARTING
+2026-03-07 14:58:13,958 INFO o.s.b.a.e.w.EndpointLinksResolver [main] Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-03-07 14:58:14,068 INFO o.s.c.n.e.s.EurekaServiceRegistry [main] Registering application DISCOVERY-SERVER with eureka with status UP
+2026-03-07 14:58:14,076 INFO o.a.j.l.DirectJDKLog [main] Starting ProtocolHandler ["http-nio-8080"]
+2026-03-07 14:58:14,092 WARN o.s.c.s.AbstractApplicationContext [main] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-03-07 14:58:14,118 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] isAws returned false
+2026-03-07 14:58:14,121 INFO o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Initialized server context
+2026-03-07 14:58:14,126 ERROR o.s.c.n.e.s.EurekaServerBootstrap [Thread-9] Cannot bootstrap eureka server :
+java.lang.IllegalStateException: Timer already cancelled.
+	at java.base/java.util.Timer.sched(Timer.java:409)
+	at java.base/java.util.Timer.schedule(Timer.java:260)
+	at com.netflix.eureka.registry.AbstractInstanceRegistry.postInit(AbstractInstanceRegistry.java:1223)
+	at com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.openForTraffic(PeerAwareInstanceRegistryImpl.java:260)
+	at org.springframework.cloud.netflix.eureka.server.InstanceRegistry.openForTraffic(InstanceRegistry.java:76)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerBootstrap.initEurekaServerContext(EurekaServerBootstrap.java:112)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerBootstrap.contextInitialized(EurekaServerBootstrap.java:70)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerInitializerConfiguration.lambda$start$0(EurekaServerInitializerConfiguration.java:67)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-07 14:58:14,139 ERROR o.s.c.n.e.s.EurekaServerInitializerConfiguration [Thread-9] Could not initialize Eureka servlet context
+java.lang.RuntimeException: Cannot bootstrap eureka server :
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerBootstrap.contextInitialized(EurekaServerBootstrap.java:76)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerInitializerConfiguration.lambda$start$0(EurekaServerInitializerConfiguration.java:67)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.IllegalStateException: Timer already cancelled.
+	at java.base/java.util.Timer.sched(Timer.java:409)
+	at java.base/java.util.Timer.schedule(Timer.java:260)
+	at com.netflix.eureka.registry.AbstractInstanceRegistry.postInit(AbstractInstanceRegistry.java:1223)
+	at com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.openForTraffic(PeerAwareInstanceRegistryImpl.java:260)
+	at org.springframework.cloud.netflix.eureka.server.InstanceRegistry.openForTraffic(InstanceRegistry.java:76)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerBootstrap.initEurekaServerContext(EurekaServerBootstrap.java:112)
+	at org.springframework.cloud.netflix.eureka.server.EurekaServerBootstrap.contextInitialized(EurekaServerBootstrap.java:70)
+	... 2 common frames omitted
+2026-03-07 14:58:14,142 INFO o.a.j.l.DirectJDKLog [main] Pausing ProtocolHandler ["http-nio-8080"]
+2026-03-07 14:58:14,144 INFO o.a.j.l.DirectJDKLog [main] Stopping service [Tomcat]
+2026-03-07 14:58:14,175 INFO o.a.j.l.DirectJDKLog [main] Stopping ProtocolHandler ["http-nio-8080"]
+2026-03-07 14:58:14,178 INFO o.a.j.l.DirectJDKLog [main] Destroying ProtocolHandler ["http-nio-8080"]
+2026-03-07 14:58:14,210 INFO o.s.b.a.l.ConditionEvaluationReportLogger [main] 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-07 14:58:14,291 ERROR o.s.b.d.LoggingFailureAnalysisReporter [main] 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+

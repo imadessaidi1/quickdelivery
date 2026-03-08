@@ -4,7 +4,6 @@ module.exports = defineConfig({
 });
 
 const webpack = require('webpack');
-const fs = require('fs');
 module.exports = {
   transpileDependencies: true,
   configureWebpack: {
@@ -23,13 +22,10 @@ module.exports = {
       },
   },*/
   devServer: {
-     port: 8080,
-     host: 'quickdelivery.com',
-     https: {
-         pfx: fs.readFileSync('./src/cert/certificate.pfx'),
-         passphrase: "Quickdelivery123",
-     },
-     hot: false,
+    port: 8080,
+    host: 'localhost',
+    https: false,
+    hot: false,
   }
 
 };

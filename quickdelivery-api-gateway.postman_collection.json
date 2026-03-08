@@ -1,0 +1,1101 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "7f5f5ec0-2f4f-4d40-bf6a-6d4cf12b6c21",
+                 "name":  "QuickDelivery - API Gateway (Ready To Run)",
+                 "description":  "Collection pre-configuree pour tester l\u0027API Gateway QuickDelivery sans modification manuelle.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "00 - Gateway Health",
+                     "item":  [
+                                  {
+                                      "name":  "Actuator Health",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/actuator/health",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "actuator",
+                                                                               "health"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status 200\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(200);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "01 - Users via Gateway",
+                     "item":  [
+                                  {
+                                      "name":  "Users For Validation",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/usersForValidation",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "usersForValidation"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Find User By Id",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/user{{user_id}}?id={{user_id}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "user{{user_id}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "id",
+                                                                                    "value":  "{{user_id}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Find User By Email",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/userByEmail{{user_email}}?email={{user_email}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "userByEmail{{user_email}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "email",
+                                                                                    "value":  "{{user_email}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Validate User Email",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/validateEmail{{user_id}}?id={{user_id}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "validateEmail{{user_id}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "id",
+                                                                                    "value":  "{{user_id}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create User (multipart)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "user",
+                                                                                        "value":  "{{user_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "vehicle",
+                                                                                        "value":  "{{vehicle_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/create",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "create"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Update User (multipart)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "user",
+                                                                                        "value":  "{{user_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "vehicle",
+                                                                                        "value":  "{{vehicle_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/update",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "update"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Validate User",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "urlencoded",
+                                                                   "urlencoded":  [
+                                                                                      {
+                                                                                          "key":  "user",
+                                                                                          "value":  "{{validate_user_payload_json}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "locale",
+                                                                                          "value":  "{{locale}}",
+                                                                                          "type":  "text"
+                                                                                      }
+                                                                                  ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/validateUser",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "validateUser"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Delete User",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"id\": {{user_id}}\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/update",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "update"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "02 - Packages via Gateway",
+                     "item":  [
+                                  {
+                                      "name":  "Notify",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/notify",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "notify"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create Package (multipart)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "packageDTO",
+                                                                                        "value":  "{{package_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/create",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "create"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Bulk Create Packages",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "[{{package_payload_json}}]"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/bulk-create",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "bulk-create"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Update Package Status",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/update-packages-status?{{package_id}}={{package_status}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "update-packages-status"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "{{package_id}}",
+                                                                                    "value":  "{{package_status}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Find Packages By Status",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/package-by-status{{package_status}}?status={{package_status}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "package-by-status{{package_status}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "status",
+                                                                                    "value":  "{{package_status}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get Package By Reference",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/getPackage{{package_reference}}?reference={{package_reference}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "getPackage{{package_reference}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "reference",
+                                                                                    "value":  "{{package_reference}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Packages Around Position",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/packages-around{{latitude}}{{longitude}}{{radius_meters}}?latitude={{latitude}}\u0026longitude={{longitude}}\u0026rayonEnMetres={{radius_meters}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "packages-around{{latitude}}{{longitude}}{{radius_meters}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "latitude",
+                                                                                    "value":  "{{latitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "longitude",
+                                                                                    "value":  "{{longitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "rayonEnMetres",
+                                                                                    "value":  "{{radius_meters}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Packages Around Me",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/packages-around-me{{latitude}}{{longitude}}{{radius_meters}}?latitude={{latitude}}\u0026longitude={{longitude}}\u0026rayonEnMetres={{radius_meters}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "packages-around-me{{latitude}}{{longitude}}{{radius_meters}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "latitude",
+                                                                                    "value":  "{{latitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "longitude",
+                                                                                    "value":  "{{longitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "rayonEnMetres",
+                                                                                    "value":  "{{radius_meters}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Packages On My Road",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/packages-on-my-road{{departure_latitude}}{{departure_longitude}}{{arrival_latitude}}{{arrival_longitude}}?departureLatitude={{departure_latitude}}\u0026departureLongitude={{departure_longitude}}\u0026arrivalLatitude={{arrival_latitude}}\u0026arrivalLongitude={{arrival_longitude}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "packages-on-my-road{{departure_latitude}}{{departure_longitude}}{{arrival_latitude}}{{arrival_longitude}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "departureLatitude",
+                                                                                    "value":  "{{departure_latitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "departureLongitude",
+                                                                                    "value":  "{{departure_longitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "arrivalLatitude",
+                                                                                    "value":  "{{arrival_latitude}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "arrivalLongitude",
+                                                                                    "value":  "{{arrival_longitude}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Upload Packages CSV",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/upload",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "upload"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "file",
+                                                                                        "type":  "file",
+                                                                                        "src":  ""
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Reserve Package",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/reserve{{package_id}}{{delivery_person_id}}{{locale}}?packageID={{package_id}}\u0026deliveryPersonID={{delivery_person_id}}\u0026locale={{locale}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "reserve{{package_id}}{{delivery_person_id}}{{locale}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "packageID",
+                                                                                    "value":  "{{package_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryPersonID",
+                                                                                    "value":  "{{delivery_person_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "locale",
+                                                                                    "value":  "{{locale}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Pickup Package",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/pickup{{package_id}}{{delivery_person_id}}{{pickup_otp}}{{locale}}?packageID={{package_id}}\u0026deliveryPersonID={{delivery_person_id}}\u0026pickUpOTP={{pickup_otp}}\u0026locale={{locale}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "pickup{{package_id}}{{delivery_person_id}}{{pickup_otp}}{{locale}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "packageID",
+                                                                                    "value":  "{{package_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryPersonID",
+                                                                                    "value":  "{{delivery_person_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "pickUpOTP",
+                                                                                    "value":  "{{pickup_otp}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "locale",
+                                                                                    "value":  "{{locale}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Deliver Package",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/deliver{{package_id}}{{delivery_person_id}}{{delivery_otp}}{{locale}}?packageID={{package_id}}\u0026deliveryPersonID={{delivery_person_id}}\u0026deliveryOTP={{delivery_otp}}\u0026locale={{locale}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "deliver{{package_id}}{{delivery_person_id}}{{delivery_otp}}{{locale}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "packageID",
+                                                                                    "value":  "{{package_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryPersonID",
+                                                                                    "value":  "{{delivery_person_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryOTP",
+                                                                                    "value":  "{{delivery_otp}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "locale",
+                                                                                    "value":  "{{locale}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Check OTP For Pickup",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/checkOTPForPickup{{package_id}}{{sender_id}}{{pickup_otp}}?packageID={{package_id}}\u0026senderID={{sender_id}}\u0026pickUpOTP={{pickup_otp}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "checkOTPForPickup{{package_id}}{{sender_id}}{{pickup_otp}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "packageID",
+                                                                                    "value":  "{{package_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "senderID",
+                                                                                    "value":  "{{sender_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "pickUpOTP",
+                                                                                    "value":  "{{pickup_otp}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Check OTP For Delivery",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/checkOTPForDelivery{{package_id}}{{delivery_person_id}}{{delivery_otp}}?packageID={{package_id}}\u0026deliveryPersonID={{delivery_person_id}}\u0026deliveryOTP={{delivery_otp}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "checkOTPForDelivery{{package_id}}{{delivery_person_id}}{{delivery_otp}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "packageID",
+                                                                                    "value":  "{{package_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryPersonID",
+                                                                                    "value":  "{{delivery_person_id}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "deliveryOTP",
+                                                                                    "value":  "{{delivery_otp}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get Packages By Delivery Person",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/getPackagesByDeliveryPerson{{delivery_person_id}}?deliveryPersonID={{delivery_person_id}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "getPackagesByDeliveryPerson{{delivery_person_id}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "deliveryPersonID",
+                                                                                    "value":  "{{delivery_person_id}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Is User With Ongoing Delivery",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/isUserWithOngoingDelivery{{user_id}}?userId={{user_id}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "isUserWithOngoingDelivery{{user_id}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "userId",
+                                                                                    "value":  "{{user_id}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Packages Around Address",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/packages/v1/packages-around-address{{line1}}{{zip_code}}{{town}}{{country}}{{radius_meters}}?line1={{line1}}\u0026zipCode={{zip_code}}\u0026town={{town}}\u0026country={{country}}\u0026rayonEnMetres={{radius_meters}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "packages",
+                                                                               "v1",
+                                                                               "packages-around-address{{line1}}{{zip_code}}{{town}}{{country}}{{radius_meters}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "line1",
+                                                                                    "value":  "{{line1}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "zipCode",
+                                                                                    "value":  "{{zip_code}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "town",
+                                                                                    "value":  "{{town}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "country",
+                                                                                    "value":  "{{country}}"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "rayonEnMetres",
+                                                                                    "value":  "{{radius_meters}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "03 - IAM / Protected",
+                     "item":  [
+                                  {
+                                      "name":  "Get Access Token (Keycloak)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/x-www-form-urlencoded"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "urlencoded",
+                                                                   "urlencoded":  [
+                                                                                      {
+                                                                                          "key":  "grant_type",
+                                                                                          "value":  "password",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "client_id",
+                                                                                          "value":  "{{iam_client_id}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "username",
+                                                                                          "value":  "{{iam_username}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "password",
+                                                                                          "value":  "{{iam_password}}",
+                                                                                          "type":  "text"
+                                                                                      }
+                                                                                  ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{iam_token_url}}",
+                                                                  "host":  [
+                                                                               "{{iam_token_url}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "let json = {};",
+                                                                                    "try { json = pm.response.json(); } catch(e) {}",
+                                                                                    "if (json.access_token) {",
+                                                                                    "  pm.environment.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Token request executed\u0027, function () {",
+                                                                                    "  pm.expect(pm.response.code).to.be.oneOf([200,400,401]);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "IAM Through Gateway (Bearer)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{access_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/IAM/v1/health",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "IAM",
+                                                                               "v1",
+                                                                               "health"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Fallback Endpoint",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/fallback/testService",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "fallback",
+                                                                               "testService"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 }
+             ],
+    "variable":  [
+                     {
+                         "key":  "gateway_url",
+                         "value":  "http://localhost:8087"
+                     },
+                     {
+                         "key":  "iam_token_url",
+                         "value":  "http://localhost:8084/auth/realms/baeldung/protocol/openid-connect/token"
+                     },
+                     {
+                         "key":  "iam_client_id",
+                         "value":  "admin-cli"
+                     },
+                     {
+                         "key":  "iam_username",
+                         "value":  "bael-admin"
+                     },
+                     {
+                         "key":  "iam_password",
+                         "value":  "pass"
+                     },
+                     {
+                         "key":  "access_token",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "locale",
+                         "value":  "fr"
+                     },
+                     {
+                         "key":  "user_id",
+                         "value":  "1952"
+                     },
+                     {
+                         "key":  "user_email",
+                         "value":  "im.essaidi@gmail.com"
+                     },
+                     {
+                         "key":  "package_id",
+                         "value":  "1"
+                     },
+                     {
+                         "key":  "package_status",
+                         "value":  "NEW"
+                     },
+                     {
+                         "key":  "package_reference",
+                         "value":  "PACK000001"
+                     },
+                     {
+                         "key":  "validate_user_payload_json",
+                         "value":  "{\"id\":1,\"activeAccount\":true,\"document\":{}}"
+                     },
+                     {
+                         "key":  "user_payload_json",
+                         "value":  "{\"type\":\"DELIVERY_PERSON\",\"firstName\":\"Test\",\"lastName\":\"Courier\",\"emailAddress\":\"test.delivery@quickdelivery.com\",\"emailAddressConfirmation\":\"test.delivery@quickdelivery.com\",\"phone\":\"0600000000\",\"phoneConfirmation\":\"0600000000\",\"password\":\"Quickdelivery123@\",\"passwordConfirmation\":\"Quickdelivery123@\",\"activeAccount\":false,\"emailAddressValidation\":false,\"phoneValidation\":false,\"personalAddress\":[{\"line1\":\"10 rue de Paris\",\"zipCode\":\"75001\",\"town\":\"Paris\",\"country\":\"France\",\"firstName\":\"Test\",\"lastName\":\"Courier\"}],\"document\":{},\"paymentModes\":{}}"
+                     },
+                     {
+                         "key":  "vehicle_payload_json",
+                         "value":  "{\"registrationNumber\":\"AA-123-BB\",\"brand\":\"Renault\",\"model\":\"Clio\",\"energyType\":\"ESSENCE\",\"vehicleDocuments\":{}}"
+                     },
+                     {
+                         "key":  "package_payload_json",
+                         "value":  "{\"reference\":\"PACK000001\",\"height\":10.0,\"width\":10.0,\"depth\":10.0,\"weight\":1.2,\"status\":\"NEW\",\"deliveryPrice\":5.5,\"senderID\":1,\"addresses\":[{\"line1\":\"10 rue de Paris\",\"zipCode\":\"75001\",\"town\":\"Paris\",\"country\":\"France\",\"firstName\":\"Sender\",\"lastName\":\"One\"},{\"line1\":\"20 avenue de Lyon\",\"zipCode\":\"69001\",\"town\":\"Lyon\",\"country\":\"France\",\"firstName\":\"Receiver\",\"lastName\":\"Two\"}],\"documentS\":{}}"
+                     },
+                     {
+                         "key":  "delivery_person_id",
+                         "value":  "1952"
+                     },
+                     {
+                         "key":  "sender_id",
+                         "value":  "1952"
+                     },
+                     {
+                         "key":  "latitude",
+                         "value":  "48.8566"
+                     },
+                     {
+                         "key":  "longitude",
+                         "value":  "2.3522"
+                     },
+                     {
+                         "key":  "departure_latitude",
+                         "value":  "48.8566"
+                     },
+                     {
+                         "key":  "departure_longitude",
+                         "value":  "2.3522"
+                     },
+                     {
+                         "key":  "arrival_latitude",
+                         "value":  "45.7640"
+                     },
+                     {
+                         "key":  "arrival_longitude",
+                         "value":  "4.8357"
+                     },
+                     {
+                         "key":  "radius_meters",
+                         "value":  "5000"
+                     },
+                     {
+                         "key":  "line1",
+                         "value":  "10 rue de Paris"
+                     },
+                     {
+                         "key":  "zip_code",
+                         "value":  "75001"
+                     },
+                     {
+                         "key":  "town",
+                         "value":  "Paris"
+                     },
+                     {
+                         "key":  "country",
+                         "value":  "France"
+                     },
+                     {
+                         "key":  "pickup_otp",
+                         "value":  "123456"
+                     },
+                     {
+                         "key":  "delivery_otp",
+                         "value":  "654321"
+                     }
+                 ]
+}

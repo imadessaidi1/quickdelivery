@@ -1,12 +1,13 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-const ipAddress = '192.168.0.24';
+const ipAddress = 'localhost';
+const gatewayPort = '8087';
 const messages = {
   en: {
     //API URLS
-    wsURL: `wss://${ipAddress}:8082/ws`,
-    rootURL: `https://${ipAddress}:8082/packages/v1/`,
-    userRootURL: `https://${ipAddress}:8081/users/v1/`,
+    wsURL: `ws://${ipAddress}:${gatewayPort}/ws`,
+    rootURL: `http://${ipAddress}:${gatewayPort}/packages/v1/`,
+    userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
@@ -182,6 +183,27 @@ const messages = {
     ExistingEmail: 'There is an existing account using this email address',
   },
   fr: {
+    //API URLS
+    wsURL: `ws://${ipAddress}:${gatewayPort}/ws`,
+    rootURL: `http://${ipAddress}:${gatewayPort}/packages/v1/`,
+    userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
+    createPackageUrl: 'create',
+    reservePackageUrl: 'reserve?',
+    getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
+    getPackagesAroundMe: 'packages-around-me?latitude=',
+    getPackagesAroundAddress: 'packages-around-address?',
+    updatePackageStatus: 'update-packages-status',
+    getPackage: 'getPackage?reference=',
+    notify: 'notify',
+    pickup: 'pickup?',
+    deliver: 'deliver?',
+    userWithOngoingDelivery: 'isUserWithOngoingDelivery?userId=',
+    createUser: 'create',
+    updateUser: 'update',
+    getUserByEmail: 'userByEmail?email=',
+    getUsersForValidation: 'usersForValidation',
+    validateUser: 'validateUser',
+
   //FOOTER LABELS
     footerAssistance: 'Assistance',
     footerAssistanceHelp: 'Centre d\'aide',

@@ -10,6 +10,7 @@ const messages = {
     userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
+    reserveBatchPackageUrl: 'reserve-batch',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     getPackagesAroundMe: 'packages-around-me?latitude=',
     getPackagesAroundAddress: 'packages-around-address?',
@@ -88,6 +89,7 @@ const messages = {
     packagesArroundDistanceFromYou: 'Distance to package from your position',
     packagesArroundMArkerDetailActionsShowDirection: 'Direction',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'On my road',
+    packagesArroundMArkerDetailActionsReserveOnMyRoad: 'Reserve selected + on my road',
     packagesArroundMArkerDetailActionsReserve: 'Reserve',
     packagesArroundMArkerDetailActionsPickUp: 'Pickup',
     packagesArroundMArkerDetailActionsDeliver: 'Deliver',
@@ -190,6 +192,7 @@ const messages = {
     userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
+    reserveBatchPackageUrl: 'reserve-batch',
     getPackagesByDeliveryPersonUrl: 'getPackagesByDeliveryPerson?deliveryPersonID=',
     getPackagesAroundMe: 'packages-around-me?latitude=',
     getPackagesAroundAddress: 'packages-around-address?',
@@ -269,6 +272,7 @@ const messages = {
     packagesArroundDistanceFromYou: 'Vers le colis de votre position',
     packagesArroundMArkerDetailActionsShowDirection: 'Itinéraire',
     packagesArroundMArkerDetailActionsShowPackagesOnMyDirection: 'Sur mon chemin',
+    packagesArroundMArkerDetailActionsReserveOnMyRoad: 'Reserver selection + sur mon chemin',
     packagesArroundMArkerDetailActionsReserve: 'Reserver',
     packagesArroundMArkerDetailActionsPickUp: 'Collecter',
     packagesArroundMArkerDetailActionsDeliver: 'Livrer',
@@ -377,3 +381,4 @@ const i18n = createI18n({
 });
 
 export default i18n;
+

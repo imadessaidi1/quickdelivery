@@ -10,6 +10,7 @@ import com.quickdelivery.abstarct.helpers.*;
 import com.quickdelivery.abstarct.parameters.*;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
+import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -225,35 +226,74 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude) {
-        if(departureLatitude.compareTo(arrivalLatitude) > 0){
-            String permut = departureLatitude;
-            departureLatitude = arrivalLatitude;
-            arrivalLatitude = permut;
-            permut = departureLongitude;
-            departureLongitude = arrivalLongitude;
-            arrivalLongitude = permut;
+        double startLat = Double.parseDouble(departureLatitude);
+        double startLng = Double.parseDouble(departureLongitude);
+        double endLat = Double.parseDouble(arrivalLatitude);
+        double endLng = Double.parseDouble(arrivalLongitude);
+
+        double routeDistanceMeters = haversineMeters(startLat, startLng, endLat, endLng);
+        if (routeDistanceMeters < 50d) {
+            return Collections.emptyList();
         }
-        List<Package> packages = this.packages.findPackagesOnMyRoadByRadius(departureLatitude,departureLongitude,5000,arrivalLatitude,arrivalLongitude,5000);
-        List<PackageDTO> packageDTOS = new ArrayList<>();
-        packages.stream().filter(aPackage -> aPackage.getAddresses().size()==2).collect(Collectors.toList())
-                .stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
-        return packageDTOS;
+
+        // Dynamic corridor width: adaptive to route length but bounded for reliability.
+        double corridorMeters = Math.max(700d, Math.min(routeDistanceMeters * 0.12d, 3500d));
+        double corridorLatMargin = metersToLatitudeDelta(corridorMeters);
+        double corridorLngMargin = metersToLongitudeDelta(corridorMeters, (startLat + endLat) / 2d);
+
+        double minLat = Math.min(startLat, endLat) - corridorLatMargin;
+        double maxLat = Math.max(startLat, endLat) + corridorLatMargin;
+        double minLng = Math.min(startLng, endLng) - corridorLngMargin;
+        double maxLng = Math.max(startLng, endLng) + corridorLngMargin;
+
+        List<Package> candidatePackages = this.packages.findNewPackagesInBoundingBox(minLat, maxLat, minLng, maxLng);
+
+        return candidatePackages.stream()
+                .filter(pkg -> pkg.getAddresses() != null && pkg.getAddresses().size() >= 2)
+                .map(pkg -> {
+                    Address dep = getDepartureAddress(pkg.getAddresses());
+                    Address arr = getArrivalAddress(pkg.getAddresses());
+                    if (dep == null || arr == null || dep.getLatitude() == null || dep.getLongitude() == null
+                            || arr.getLatitude() == null || arr.getLongitude() == null) {
+                        return null;
+                    }
+                    GeoPoint routeStart = new GeoPoint(startLat, startLng);
+                    GeoPoint routeEnd = new GeoPoint(endLat, endLng);
+                    GeoPoint depPoint = new GeoPoint(dep.getLatitude().doubleValue(), dep.getLongitude().doubleValue());
+                    GeoPoint arrPoint = new GeoPoint(arr.getLatitude().doubleValue(), arr.getLongitude().doubleValue());
+
+                    double depDistanceToRoute = pointToSegmentDistanceMeters(depPoint, routeStart, routeEnd);
+                    double arrDistanceToRoute = pointToSegmentDistanceMeters(arrPoint, routeStart, routeEnd);
+                    if (depDistanceToRoute > corridorMeters || arrDistanceToRoute > corridorMeters * 1.25d) {
+                        return null;
+                    }
+
+                    double depProgress = projectionProgress(depPoint, routeStart, routeEnd);
+                    double arrProgress = projectionProgress(arrPoint, routeStart, routeEnd);
+                    if (depProgress < -0.05d || depProgress > 1.05d || arrProgress < -0.05d || arrProgress > 1.15d) {
+                        return null;
+                    }
+                    if (depProgress > arrProgress) {
+                        return null;
+                    }
+                    // Avoid packages that mostly go backward relative to the current trip direction.
+                    if (arrProgress < 0.10d) {
+                        return null;
+                    }
+
+                    PackageDTO dto = modelMapper.map(pkg, PackageDTO.class);
+                    dto.getAddresses().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
+                    return dto;
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(PackageDTO::getId))
+                .collect(Collectors.toList());
     }
 
     @Override
     public PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException {
-        Package aPackage = packages.findById(packageID).get();
-        User user = users.findById(deliveryPersonID).get();
-        aPackage.setStatus(PACKAGE_STATUS.RESERVED);
-        PackageReservation packageReservation = new PackageReservation();
-        packageReservation.setStatus(PACKAGE_RESERVATION_STATUS.ONGOING);
-        packageReservation.setaPackage(aPackage);
-        packageReservation.setDeliveryPerson(user);
-        packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
-        String otp = OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis());
-        packageReservation.setPickUpOTP(otp);
-        aPackage.getPackageReservations().add(packageReservation);
-        packages.save(aPackage);
+        PackageReservation packageReservation = reservePackageInternal(packageID, deliveryPersonID);
+        Package aPackage = packageReservation.getaPackage();
         /*ExecutorService executorService = Executors.newFixedThreadPool(2);
         executorService.submit(() -> {*/
             sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(), messageSource.getMessage("email.subject.packageReserved", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
@@ -262,6 +302,42 @@ public class PackagesService implements IPackagesService {
             sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(), messageSource.getMessage("email.subject.packageReservationCofirm", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
         //});
         return packageReservation;
+    }
+
+    @Override
+    public ReserveBatchResultDTO reservePackagesBatch(List<Long> packageIds, Long deliveryPersonID, Locale locale) {
+        ReserveBatchResultDTO result = new ReserveBatchResultDTO();
+        result.setDeliveryPersonId(deliveryPersonID);
+
+        if (packageIds == null || packageIds.isEmpty()) {
+            result.setRequestedCount(0);
+            result.setReservedCount(0);
+            return result;
+        }
+
+        LinkedHashSet<Long> uniqueIds = packageIds.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        result.setRequestedCount(uniqueIds.size());
+
+        for (Long packageId : uniqueIds) {
+            try {
+                PackageReservation reservation = reservePackageInternal(packageId, deliveryPersonID);
+                Package aPackage = reservation.getaPackage();
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(),
+                        messageSource.getMessage("email.subject.packageReserved", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(),
+                        messageSource.getMessage("email.subject.packageReservationCofirm", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
+                result.getReservedPackageIds().add(packageId);
+            } catch (ResponseStatusException ex) {
+                result.getSkippedPackages().put(packageId, ex.getReason() == null ? ex.getStatusCode().toString() : ex.getReason());
+            } catch (Exception ex) {
+                result.getSkippedPackages().put(packageId, "Unexpected error while reserving package");
+            }
+        }
+
+        result.setReservedCount(result.getReservedPackageIds().size());
+        return result;
     }
 
     @Override
@@ -559,6 +635,114 @@ public class PackagesService implements IPackagesService {
             });
         }
         return map;
+    }
+
+    private PackageReservation reservePackageInternal(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException {
+        Package aPackage = packages.findById(packageID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+        User user = users.findById(deliveryPersonID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Delivery user not found"));
+
+        if (!PACKAGE_STATUS.NEW.equals(aPackage.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not available for reservation");
+        }
+
+        boolean alreadyReservedByUser = aPackage.getPackageReservations() != null && aPackage.getPackageReservations().stream()
+                .anyMatch(reservation -> reservation.getDeliveryPerson() != null
+                        && Objects.equals(reservation.getDeliveryPerson().getId(), deliveryPersonID)
+                        && PACKAGE_RESERVATION_STATUS.ONGOING.equals(reservation.getStatus()));
+        if (alreadyReservedByUser) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Package already reserved by this delivery person");
+        }
+
+        aPackage.setStatus(PACKAGE_STATUS.RESERVED);
+        PackageReservation packageReservation = new PackageReservation();
+        packageReservation.setStatus(PACKAGE_RESERVATION_STATUS.ONGOING);
+        packageReservation.setaPackage(aPackage);
+        packageReservation.setDeliveryPerson(user);
+        packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
+        packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis()));
+        aPackage.getPackageReservations().add(packageReservation);
+        packages.save(aPackage);
+        return packageReservation;
+    }
+
+    private static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
+        final double earthRadius = 6371000d;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2d) * Math.sin(dLat / 2d)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2d) * Math.sin(dLon / 2d);
+        return 2d * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1d - a));
+    }
+
+    private static double metersToLatitudeDelta(double meters) {
+        return meters / 111320d;
+    }
+
+    private static double metersToLongitudeDelta(double meters, double latitude) {
+        double cosLat = Math.cos(Math.toRadians(latitude));
+        if (Math.abs(cosLat) < 1e-9) {
+            return meters / 111320d;
+        }
+        return meters / (111320d * cosLat);
+    }
+
+    private static double pointToSegmentDistanceMeters(GeoPoint point, GeoPoint start, GeoPoint end) {
+        double midLat = (start.lat + end.lat) / 2d;
+        double metersPerLat = 111320d;
+        double metersPerLng = 111320d * Math.cos(Math.toRadians(midLat));
+
+        double sx = start.lng * metersPerLng;
+        double sy = start.lat * metersPerLat;
+        double ex = end.lng * metersPerLng;
+        double ey = end.lat * metersPerLat;
+        double px = point.lng * metersPerLng;
+        double py = point.lat * metersPerLat;
+
+        double dx = ex - sx;
+        double dy = ey - sy;
+        double lengthSq = dx * dx + dy * dy;
+        if (lengthSq < 1d) {
+            return Math.sqrt((px - sx) * (px - sx) + (py - sy) * (py - sy));
+        }
+        double t = ((px - sx) * dx + (py - sy) * dy) / lengthSq;
+        t = Math.max(0d, Math.min(1d, t));
+        double cx = sx + t * dx;
+        double cy = sy + t * dy;
+        return Math.sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy));
+    }
+
+    private static double projectionProgress(GeoPoint point, GeoPoint start, GeoPoint end) {
+        double midLat = (start.lat + end.lat) / 2d;
+        double metersPerLat = 111320d;
+        double metersPerLng = 111320d * Math.cos(Math.toRadians(midLat));
+
+        double sx = start.lng * metersPerLng;
+        double sy = start.lat * metersPerLat;
+        double ex = end.lng * metersPerLng;
+        double ey = end.lat * metersPerLat;
+        double px = point.lng * metersPerLng;
+        double py = point.lat * metersPerLat;
+
+        double dx = ex - sx;
+        double dy = ey - sy;
+        double lengthSq = dx * dx + dy * dy;
+        if (lengthSq < 1d) {
+            return 0d;
+        }
+        return ((px - sx) * dx + (py - sy) * dy) / lengthSq;
+    }
+
+    private static final class GeoPoint {
+        private final double lat;
+        private final double lng;
+
+        private GeoPoint(double lat, double lng) {
+            this.lat = lat;
+            this.lng = lng;
+        }
     }
 
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {

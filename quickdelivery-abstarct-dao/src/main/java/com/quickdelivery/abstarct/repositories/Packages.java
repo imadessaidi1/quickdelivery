@@ -41,6 +41,21 @@ public interface Packages extends CrudRepository<Package, Long> {
                                        @Param("endLat") String endLat,
                                        @Param("endLong") String endLong,
                                        @Param("endRadius") double endRadius);
+
+    @Query("SELECT DISTINCT p FROM Package p " +
+            "INNER JOIN FETCH p.addresses adDep " +
+            "INNER JOIN FETCH p.addresses adArr " +
+            "WHERE p.status = 'NEW' " +
+            "AND adDep.type = 'DEPARTURE' " +
+            "AND adArr.type = 'ARRIVAL' " +
+            "AND adDep.latitude BETWEEN :minLat AND :maxLat " +
+            "AND adDep.longitude BETWEEN :minLong AND :maxLong " +
+            "AND adArr.latitude BETWEEN :minLat AND :maxLat " +
+            "AND adArr.longitude BETWEEN :minLong AND :maxLong")
+    List<Package> findNewPackagesInBoundingBox(@Param("minLat") double minLat,
+                                               @Param("maxLat") double maxLat,
+                                               @Param("minLong") double minLong,
+                                               @Param("maxLong") double maxLong);
     @Query("SELECT p " +
             "FROM Package p WHERE p.status = :status")
     List<Package> findPackagesByStatus(@Param("status") PACKAGE_STATUS status);

@@ -12,6 +12,7 @@ import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.config.WebSocketHandler;
+import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +115,13 @@ public class PackageController {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PutMapping("/reserve-batch{deliveryPersonID}{locale}")
+    public ReserveBatchResultDTO reservePackagesBatch(@RequestBody List<Long> packageIds,
+                                                      @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                                      @RequestParam("locale") Locale locale) {
+        return packagesService.reservePackagesBatch(packageIds, deliveryPersonID, locale);
     }
 
     @PutMapping("/pickup{packageID}{deliveryPersonID}{pickUpOTP}{locale}")

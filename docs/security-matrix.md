@@ -64,6 +64,7 @@ Source: `quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServe
 ### Livreur / Admin
 
 - `PUT /packages/v1/reserve**`
+- `PUT /packages/v1/reserve-batch**`
 - `PUT /packages/v1/pickup**`
 - `PUT /packages/v1/deliver**`
 - `GET /packages/v1/checkOTPForPickup**`
@@ -86,6 +87,7 @@ Source: `quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServe
 | Action | Client | Livreur | Admin |
 |---|---|---|---|
 | Reserve package | No | Yes | Yes |
+| Reserve selected + on my road | No | Yes | Yes |
 | Pickup package | No | Yes | Yes |
 | Deliver package | No | Yes | Yes |
 | Create package wizard | Yes | No | Yes |
@@ -97,3 +99,4 @@ Source: `quickdelivery-api-gateway/src/main/java/com/quickdelivery/ResourceServe
 - Admin self-registration is disabled by navigation and access policy.
 - `bulk-create` remains restricted to `ROLE_CLIENT_PRO` and `ROLE_ADMIN`.
 - Direct backend access is blocked by service-level gateway filters; calls must pass through API Gateway.
+- On `On my road`, the map highlights only packages that are geometrically on the delivery corridor of the selected package.

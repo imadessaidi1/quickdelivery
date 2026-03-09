@@ -21,6 +21,7 @@ import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import http from '@/config/httpInterceptor';
+import { hasValidAccessToken, redirectToLogin } from '@/config/auth';
 
 export default {
   computed: {
@@ -34,6 +35,11 @@ export default {
     };
   },
   async mounted() {
+    if (!hasValidAccessToken()) {
+      await redirectToLogin();
+      return;
+    }
+
     await http.get(this.$i18n.t('rootURL') + this.$i18n.t('userWithOngoingDelivery')+this.$store.state.connectedUser.id)
       .then(response => {
         this.isUserWithOngoingDelivery = response.data;

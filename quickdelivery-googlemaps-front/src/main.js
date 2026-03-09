@@ -1,14 +1,20 @@
-const { createApp } = require("vue");
-import App from "./App.vue";
+import { createApp } from 'vue';
+import App from './App.vue';
 import i18n from './config/i18n';
 import store from './config/store';
 import router from './routers';
+import { handleAuthCallback } from './config/auth';
 
-// Create the app instance
-const app = createApp(App);
+async function bootstrap() {
+  try {
+    await handleAuthCallback();
+  } catch (e) {
+    console.error('OIDC callback processing failed:', e);
+  }
 
-// Use Vue plugins
-app.use(i18n).use(router).use(store);
+  const app = createApp(App);
+  app.use(i18n).use(router).use(store);
+  app.mount('#app');
+}
 
-// Mount the app
-app.mount('#app');
+bootstrap();

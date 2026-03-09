@@ -3,27 +3,28 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu" ref="handleClickOutsideBurgerMenu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span class="infobull" data-tooltip='New package'><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span v-if="canSeeHome" class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span v-if="canSeeMyPackages" class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
+        <span v-if="canSeeCreatePackage" class="infobull" data-tooltip='New package'><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
       <div v-if="isActiveMenu" class="menu horizontal-menu">
         <ul>
-          <router-link @click="toggleMenu(0)" to="/"><li>{{$t('menuHome')}}</li></router-link>
-          <router-link @click="toggleMenu(1)" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
-          <router-link @click="toggleMenu(2)" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
+          <router-link v-if="canSeeHome" @click="toggleMenu(0)" to="/"><li>{{$t('menuHome')}}</li></router-link>
+          <router-link v-if="canSeeMyPackages" @click="toggleMenu(1)" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
+          <router-link v-if="canSeeCreatePackage" @click="toggleMenu(2)" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
         </ul>
       </div>
     </transition>
     <transition name="fade">
       <div v-if="isActiveLoginMenu" class="menu login-menu">
         <ul>
-            <router-link @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
-            <router-link @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
-            <router-link @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
+            <router-link v-if="isAdmin" @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
+            <router-link v-if="isAdmin" @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
+            <router-link v-if="isAdmin" @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
             <router-link @click="loginMenu" to="/userAccount"><li>{{$t('menuUuserAccount')}}</li></router-link>
+            <li @click="logoutUser">{{$t('menuUserLogout')}}</li>
         </ul>
       </div>
     </transition>
@@ -45,6 +46,7 @@
 <script>
 import AddressAutocomplete from './AddressAutocomplete.vue';
 import http from '@/config/httpInterceptor';
+import { getCurrentUserRoles, logout } from '@/config/auth';
 export default {
  components: {
     AddressAutocomplete,
@@ -58,6 +60,27 @@ export default {
   computed: {
     location() {
       return this.$store.state.location;
+    },
+    userRoles() {
+      return getCurrentUserRoles();
+    },
+    isAdmin() {
+      return this.userRoles.includes('ROLE_ADMIN');
+    },
+    isLivreur() {
+      return this.userRoles.includes('ROLE_LIVREUR');
+    },
+    isClient() {
+      return this.userRoles.includes('ROLE_CLIENT') || this.userRoles.includes('ROLE_CLIENT_PRO');
+    },
+    canSeeHome() {
+      return this.isAdmin || this.isLivreur;
+    },
+    canSeeCreatePackage() {
+      return this.isAdmin || this.isClient;
+    },
+    canSeeMyPackages() {
+      return this.isAdmin || this.isClient || this.isLivreur;
     },
   },
   mounted() {
@@ -113,6 +136,10 @@ export default {
         const response = await http.get(url);
         console.log(response.data);
         //this.parent.contentWindow.postMessage(response.data, "*");
+    },
+    logoutUser() {
+      this.isActiveLoginMenu = false;
+      logout();
     }
   },
 };

@@ -1,0 +1,193 @@
+{
+  "realm": "quickdelivery",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "verifyEmail": true,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "rememberMe": true,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      {
+        "name": "ROLE_CLIENT"
+      },
+      {
+        "name": "ROLE_CLIENT_PRO"
+      },
+      {
+        "name": "ROLE_LIVREUR"
+      },
+      {
+        "name": "ROLE_ADMIN"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "quickdelivery-front",
+      "name": "QuickDelivery Front",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "http://localhost:8084/createPackage",
+        "http://localhost:8084/",
+        "http://localhost:8084/usersAccountValidation"
+      ],
+      "webOrigins": [
+        "http://localhost:8084"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "role_list",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "clientId": "quickdelivery-gateway",
+      "name": "QuickDelivery API Gateway",
+      "enabled": true,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "quickdelivery-postman",
+      "name": "QuickDelivery Postman",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "client.test",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Client",
+      "lastName": "Test",
+      "email": "client.test@quickdelivery.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Quickdelivery123@",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_CLIENT"
+      ]
+    },
+    {
+      "username": "livreur.test",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Livreur",
+      "lastName": "Test",
+      "email": "livreur.test@quickdelivery.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Quickdelivery123@",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_LIVREUR"
+      ]
+    },
+    {
+      "username": "admin.test",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Test",
+      "email": "admin.test@quickdelivery.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Quickdelivery123@",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": false,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid profile email"
+      }
+    },
+    {
+      "alias": "facebook",
+      "providerId": "facebook",
+      "enabled": false,
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${FACEBOOK_CLIENT_ID}",
+        "clientSecret": "${FACEBOOK_CLIENT_SECRET}",
+        "defaultScope": "email public_profile"
+      }
+    }
+  ],
+  "requiredActions": [
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 50
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 30
+    }
+  ]
+}

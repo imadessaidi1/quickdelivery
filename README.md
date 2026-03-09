@@ -73,10 +73,11 @@ npm run serve
 - API Gateway base: `http://localhost:8087`
 - API Gateway actuator health: `http://localhost:8087/actuator/health`
 - OAuth base: `http://localhost:18084/auth`
-- OAuth realm base: `http://localhost:18084/auth/realms/baeldung`
-- OAuth OpenID configuration: `http://localhost:18084/auth/realms/baeldung/.well-known/openid-configuration`
-- OAuth token endpoint: `http://localhost:18084/auth/realms/baeldung/protocol/openid-connect/token`
-- OAuth certs (JWKS): `http://localhost:18084/auth/realms/baeldung/protocol/openid-connect/certs`
+- OAuth realm base: `http://localhost:18084/auth/realms/quickdelivery`
+- OAuth OpenID configuration: `http://localhost:18084/auth/realms/quickdelivery/.well-known/openid-configuration`
+- OAuth token endpoint: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token`
+- OAuth certs (JWKS): `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/certs`
+- OAuth logout endpoint: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/logout`
 - Users via gateway: `http://localhost:8087/users/v1/...`
 - Packages via gateway: `http://localhost:8087/packages/v1/...`
 - Packages websocket via gateway: `ws://localhost:8087/ws`
@@ -85,7 +86,31 @@ npm run serve
 
 Les appels front doivent passer par la gateway. Les appels directs vers les services backend (`8081`, `8082`) sont rejetes par filtre de securite.
 
-## 4. Consulter La Configuration Dans Le Config Server
+## 4. Authentification Front + JWT
+
+- Le front utilise OAuth2/OIDC (Keycloak realm `quickdelivery`) avec Authorization Code + PKCE.
+- Si le token est absent/invalide, le front redirige automatiquement vers la page de login Keycloak.
+- Le menu compte contient maintenant un item `Deconnexion` qui ferme la session locale et redirige vers le logout Keycloak.
+
+Comptes de test:
+
+- `client.test` / `Quickdelivery123@`
+- `livreur.test` / `Quickdelivery123@`
+- `admin.test` / `Quickdelivery123@`
+
+Comptes techniques:
+
+- Keycloak master admin: `bael-admin` / `pass`
+- Config Server basic auth: `configuser` / `configpass`
+
+Postman (client OAuth de test):
+
+- `client_id`: `quickdelivery-postman`
+- token URL: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token`
+- grant type: `password`
+- username/password: utiliser un des comptes de test ci-dessus
+
+## 5. Consulter La Configuration Dans Le Config Server
 
 - Auth basic par defaut:
 - username: `configuser`
@@ -104,21 +129,21 @@ Exemple PowerShell:
 ```powershell
 curl -u configuser:configpass http://localhost:8889/APIGatewayApplication/default
 ```
-## 5. Actions A Faire Dans IntelliJ
+## 6. Actions A Faire Dans IntelliJ
 
-### 5.1 Ouvrir le projet
+### 6.1 Ouvrir le projet
 
 1. `File` -> `Open`
 2. Selectionner le dossier `quickdelivery-parent`
 3. Laisser IntelliJ importer le projet Maven
 
-### 5.2 Configurer le SDK
+### 6.2 Configurer le SDK
 
 1. `File` -> `Project Structure` -> `Project`
 2. Choisir `Project SDK: 21`
 3. `Project language level`: `SDK default (21)`
 
-### 5.3 Recharger Maven
+### 6.3 Recharger Maven
 
 1. Ouvrir l'onglet `Maven` (a droite)
 2. Cliquer `Reload All Maven Projects`
@@ -126,7 +151,7 @@ curl -u configuser:configpass http://localhost:8889/APIGatewayApplication/defaul
    - `Lifecycle` -> `clean`
    - `Lifecycle` -> `install` (avec `-DskipTests` si besoin)
 
-### 5.4 Creer les Run Configurations backend
+### 6.4 Creer les Run Configurations backend
 
 Creer 6 configurations de type **Spring Boot**:
 
@@ -163,7 +188,7 @@ Lancer dans cet ordre:
 5. `quickdelivery-packages`
 6. `quickdelivery-api-gateway`
 
-### 5.5 Lancer le front dans IntelliJ
+### 6.5 Lancer le front dans IntelliJ
 
 Option simple: Terminal integre IntelliJ
 
@@ -181,12 +206,12 @@ Option alternative: Run configuration `npm`
 4. `Command`: `run`
 5. `Scripts`: `serve`
 
-## 6. Arreter Tous Les Services
+## 7. Arreter Tous Les Services
 
 - Dans IntelliJ: bouton `Stop` sur chaque configuration en cours.
 - En terminal: `Ctrl + C` dans chaque terminal.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 - Si un service n'arrive pas a charger sa config:
   - Verifier que `quickdemivery-config-server` tourne sur `8889`.

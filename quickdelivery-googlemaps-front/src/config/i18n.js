@@ -146,6 +146,7 @@ const messages = {
     menuUserSignin: 'Signing Up',
     menuUuserAccount: 'My account',
     menuUusersAccountValidation: 'Accounts Validation',
+    menuUserLogout: 'Logout',
     //NOTIFICATION
     notificationTitle: 'New Notification From QuickDelivery',
     //MESSAGES
@@ -326,6 +327,7 @@ const messages = {
     menuUserSignin: 'Crée un Compte',
     menuUuserAccount: 'Mon Compte',
     menuUusersAccountValidation: 'Validation des Comptes',
+    menuUserLogout: 'Se déconnecter',
     //NOTIFICATION
     notificationTitle: 'Nouvelle Notification de QuickDelivery',
     //MESSAGE

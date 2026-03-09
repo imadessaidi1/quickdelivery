@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
@@ -513,7 +515,13 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public PackageDTO findPackageByReference(String reference) {
+        if (reference == null || reference.isBlank() || "undefined".equalsIgnoreCase(reference)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Package reference is required");
+        }
         Package aPackage = packages.findPackageByReference(reference);
+        if (aPackage == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found for reference: " + reference);
+        }
         PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
         packageDTO.getDocumentS().clear();
         aPackage.getDocument().stream().forEach(document -> {

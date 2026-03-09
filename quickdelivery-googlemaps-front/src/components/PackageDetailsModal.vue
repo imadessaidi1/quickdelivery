@@ -6,9 +6,9 @@
       <br/>
         <button class="close-btn" ref="closeModalButtons"
         @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
-        <button class="btn primary_btn" ref="reserveButton" v-show="package_.status === 'NEW'"
+        <button class="btn primary_btn" ref="reserveButton" v-show="canOperateDelivery && package_.status === 'NEW'"
         @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-        <div v-show="package_.status === 'RESERVED'">
+        <div v-show="canOperateDelivery && package_.status === 'RESERVED'">
           <div class="input_only">
             <label for="otp">{{$t('packagePickupPassword')}}:</label>
             <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
@@ -17,7 +17,7 @@
           <button class="btn confirm_btn" ref="detailsButtons"
           @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
         </div>
-        <div v-show="package_.status === 'PICKEDUP'">
+        <div v-show="canOperateDelivery && package_.status === 'PICKEDUP'">
           <div class="input_only">
             <label for="deliveryOtp">{{$t('packageDeliveryPassword')}}:</label>
             <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
@@ -36,6 +36,7 @@ import PackageSummary from '../components/PackageDetails.vue';
 import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
 import { validateNumericField } from '@/config/comonFunction';
+import { getCurrentUserRoles } from '@/config/auth';
 
 export default {
   components: {
@@ -47,6 +48,10 @@ export default {
   computed: {
         package_() {
           return this.$store.state.package_;
+        },
+        canOperateDelivery() {
+          const roles = getCurrentUserRoles();
+          return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
         },
   },
   data() {

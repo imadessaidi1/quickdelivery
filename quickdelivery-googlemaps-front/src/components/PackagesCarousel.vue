@@ -63,9 +63,13 @@ export default {
       this.displayDirection(data.slidingToIndex);
     },
     displayDirection(index) {
-      var stringDeparture = "";
-      var stringArrival = "";
-      this.packagesList[index].addresses.forEach(address => {
+      const selectedPackage = this.packagesList?.[index];
+      if (!selectedPackage || !Array.isArray(selectedPackage.addresses) || selectedPackage.addresses.length === 0) {
+        return;
+      }
+      let stringDeparture = "";
+      let stringArrival = "";
+      selectedPackage.addresses.forEach(address => {
         if (address.type === "DEPARTURE") {
           stringDeparture = address.latitude + "," + address.longitude;
         } else {
@@ -103,13 +107,19 @@ export default {
         });
       },
     async refreshPackagesList(positionData){
-        this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
-        var url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres=300000';
-        const response = await http.get(this.$i18n.t('rootURL')+url);
-        this.packagesList = [];
-        this.packagesList = response.data;
-        this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(response.data, "*");
-        this.displayDirection(0);
+        try {
+          this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
+          const url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres=300000';
+          const response = await http.get(this.$i18n.t('rootURL')+url);
+          this.packagesList = Array.isArray(response.data) ? response.data : [];
+          this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.packagesList), "*");
+          if (this.packagesList.length > 0) {
+            this.displayDirection(0);
+          }
+        } catch (error) {
+          console.error('Unable to refresh packages list', error);
+          this.packagesList = [];
+        }
     },
     removePackageFromListe(packageId){
       const simpleList = JSON.parse(JSON.stringify(this.packagesList));
@@ -118,7 +128,7 @@ export default {
         simpleList.splice(index, 1); // Supprime 1 élément à l'index trouvé
       }
       this.packagesList = simpleList;
-      this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(simpleList, "*");
+      this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(simpleList), "*");
     },
   },
 }

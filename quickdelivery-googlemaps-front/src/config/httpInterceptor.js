@@ -1,5 +1,19 @@
 import axios from 'axios';
 import store from './store';
+import { getAccessToken, hasValidAccessToken, redirectToLogin } from './auth';
+
+let authRedirectInProgress = false;
+function triggerLoginRedirect() {
+  if (authRedirectInProgress) {
+    return;
+  }
+  authRedirectInProgress = true;
+  redirectToLogin().finally(() => {
+    setTimeout(() => {
+      authRedirectInProgress = false;
+    }, 2000);
+  });
+}
 
 
 const instance = axios.create();
@@ -7,10 +21,25 @@ const instance = axios.create();
 instance.interceptors.request.use(
   function(config) {
     store.commit('updateLoaderStatus', true);
+    if (hasValidAccessToken()) {
+      const token = getAccessToken();
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   function(error) {
     store.commit('updateLoaderStatus', false);
+    const status = error?.response?.status;
+    const requestUrl = error?.config?.url || '';
+    const isTokenRequest = requestUrl.includes('/protocol/openid-connect/token');
+    const isGatewayBusinessCall = requestUrl.includes('/users/v1/') || requestUrl.includes('/packages/v1/');
+    if (!isTokenRequest && (status === 401 || status === 403)) {
+      triggerLoginRedirect();
+    } else if (!isTokenRequest && !status && isGatewayBusinessCall) {
+      // Browser-side CORS/network failures on protected calls should also force auth flow.
+      triggerLoginRedirect();
+    }
     store.commit('updateShowMessage', true);
     store.commit('updateRequestSuccess', false);
     store.commit('updateRequestMessage', 'error');

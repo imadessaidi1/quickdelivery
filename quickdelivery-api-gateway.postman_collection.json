@@ -870,6 +870,177 @@
                      "name":  "03 - IAM / Protected",
                      "item":  [
                                   {
+                                      "name":  "Get Access Token - CLIENT",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/x-www-form-urlencoded"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "urlencoded",
+                                                                   "urlencoded":  [
+                                                                                      {
+                                                                                          "key":  "grant_type",
+                                                                                          "value":  "password",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "client_id",
+                                                                                          "value":  "{{iam_client_id}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "username",
+                                                                                          "value":  "{{client_username}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "password",
+                                                                                          "value":  "{{test_password}}",
+                                                                                          "type":  "text"
+                                                                                      }
+                                                                                  ]
+                                                               },
+                                                      "url":  "{{iam_token_url}}"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "let json = {};",
+                                                                                    "try { json = pm.response.json(); } catch(e) {}",
+                                                                                    "if (json.access_token) {",
+                                                                                    "  pm.environment.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Token request executed\u0027, function () {",
+                                                                                    "  pm.expect(pm.response.code).to.be.oneOf([200,400,401]);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Access Token - LIVREUR",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/x-www-form-urlencoded"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "urlencoded",
+                                                                   "urlencoded":  [
+                                                                                      {
+                                                                                          "key":  "grant_type",
+                                                                                          "value":  "password",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "client_id",
+                                                                                          "value":  "{{iam_client_id}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "username",
+                                                                                          "value":  "{{livreur_username}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "password",
+                                                                                          "value":  "{{test_password}}",
+                                                                                          "type":  "text"
+                                                                                      }
+                                                                                  ]
+                                                               },
+                                                      "url":  "{{iam_token_url}}"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "let json = {};",
+                                                                                    "try { json = pm.response.json(); } catch(e) {}",
+                                                                                    "if (json.access_token) {",
+                                                                                    "  pm.environment.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Token request executed\u0027, function () {",
+                                                                                    "  pm.expect(pm.response.code).to.be.oneOf([200,400,401]);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Access Token - ADMIN",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/x-www-form-urlencoded"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "urlencoded",
+                                                                   "urlencoded":  [
+                                                                                      {
+                                                                                          "key":  "grant_type",
+                                                                                          "value":  "password",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "client_id",
+                                                                                          "value":  "{{iam_client_id}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "username",
+                                                                                          "value":  "{{admin_username}}",
+                                                                                          "type":  "text"
+                                                                                      },
+                                                                                      {
+                                                                                          "key":  "password",
+                                                                                          "value":  "{{test_password}}",
+                                                                                          "type":  "text"
+                                                                                      }
+                                                                                  ]
+                                                               },
+                                                      "url":  "{{iam_token_url}}"
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "let json = {};",
+                                                                                    "try { json = pm.response.json(); } catch(e) {}",
+                                                                                    "if (json.access_token) {",
+                                                                                    "  pm.environment.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "}",
+                                                                                    "pm.test(\u0027Token request executed\u0027, function () {",
+                                                                                    "  pm.expect(pm.response.code).to.be.oneOf([200,400,401]);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
                                       "name":  "Get Access Token (Keycloak)",
                                       "request":  {
                                                       "method":  "POST",
@@ -920,6 +1091,7 @@
                                                                                     "try { json = pm.response.json(); } catch(e) {}",
                                                                                     "if (json.access_token) {",
                                                                                     "  pm.environment.set(\u0027access_token\u0027, json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\u0027access_token\u0027, json.access_token);",
                                                                                     "}",
                                                                                     "pm.test(\u0027Token request executed\u0027, function () {",
                                                                                     "  pm.expect(pm.response.code).to.be.oneOf([200,400,401]);",
@@ -979,19 +1151,19 @@
                      },
                      {
                          "key":  "iam_token_url",
-                         "value":  "http://localhost:18084/auth/realms/baeldung/protocol/openid-connect/token"
+                         "value":  "http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token"
                      },
                      {
                          "key":  "iam_client_id",
-                         "value":  "admin-cli"
+                         "value":  "quickdelivery-postman"
                      },
                      {
                          "key":  "iam_username",
-                         "value":  "bael-admin"
+                         "value":  "admin.test"
                      },
                      {
                          "key":  "iam_password",
-                         "value":  "pass"
+                         "value":  "Quickdelivery123@"
                      },
                      {
                          "key":  "access_token",
@@ -1096,6 +1268,32 @@
                      {
                          "key":  "delivery_otp",
                          "value":  "654321"
+                     },
+                     {
+                         "key":  "client_username",
+                         "value":  "client.test"
+                     },
+                     {
+                         "key":  "livreur_username",
+                         "value":  "livreur.test"
+                     },
+                     {
+                         "key":  "admin_username",
+                         "value":  "admin.test"
+                     },
+                     {
+                         "key":  "test_password",
+                         "value":  "Quickdelivery123@"
                      }
-                 ]
+                 ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{access_token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
 }

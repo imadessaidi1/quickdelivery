@@ -5,9 +5,9 @@
                 <PackageSummary/>
             </div>
             <br/>
-            <button class="btn primary_btn" ref="detailsButtons" v-show="package_.status === 'NEW'"
+            <button class="btn primary_btn" ref="detailsButtons" v-show="canOperateDelivery && package_.status === 'NEW'"
             @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-            <div v-show="package_.status === 'RESERVED'">
+            <div v-show="canOperateDelivery && package_.status === 'RESERVED'">
                 <div class="input_only">
                     <label for="otp">{{$t('packagePickupPassword')}}:</label>
                     <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
@@ -16,7 +16,7 @@
                 <button class="btn primary_btn" ref="detailsButtons"
                     @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
             </div>
-            <div v-show="package_.status === 'PICKEDUP'">
+            <div v-show="canOperateDelivery && package_.status === 'PICKEDUP'">
                 <div class="input_only">
                     <label for="deliveryOtp">{{$t('packageDeliveryPassword')}}:</label>
                     <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
@@ -33,11 +33,16 @@ import PackageSummary from '../components/PackageDetails.vue';
 import { validateNumericField } from '@/config/comonFunction';
 import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
+import { getCurrentUserRoles } from '@/config/auth';
 
 export default{
   computed: {
         package_() {
           return this.$store.state.package_;
+        },
+        canOperateDelivery() {
+          const roles = getCurrentUserRoles();
+          return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
         },
   },
   components: {
@@ -104,6 +109,10 @@ export default{
     };
   },
   mounted() {
+    if (!this.id) {
+      console.warn('Missing package reference in route query parameter "id".');
+      return;
+    }
     http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+this.id)
       .then(response => {
         this.$store.commit('updatePackage', response.data);

@@ -26,7 +26,7 @@
           @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>&nbsp;
         <button class="btn primary_btn" ref="reserveButtons"
           @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
-        <button class="btn primary_btn" ref="detailsButtons"
+        <button v-if="canReserve()" class="btn primary_btn" ref="detailsButtons"
           @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
       </p>
   </div>
@@ -34,6 +34,7 @@
 
 <script>
 import http from '@/config/httpInterceptor';
+import { getCurrentUserRoles } from '@/config/auth';
 export default {
   props: {
     package_: Object,
@@ -41,6 +42,10 @@ export default {
     modal: Object,
   },
   methods: {
+    canReserve() {
+      const roles = getCurrentUserRoles();
+      return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
+    },
     onMyDirection() {
       var stringDeparture = "";
       var stringArrival = "";

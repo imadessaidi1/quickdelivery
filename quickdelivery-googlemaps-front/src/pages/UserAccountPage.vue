@@ -28,7 +28,6 @@ export default {
     async loadUser() {
       try {
         const response = await http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + this.$store.state.connectedUser.email);
-        console.log(response.data);
         return response.data;
       } catch (error) {
         console.error("Unable to process your request at this time. Please try again later.", error);

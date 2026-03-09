@@ -46,9 +46,6 @@ export default {
     validateCreditCardNumber,
     validateCreditCardExpiration,
     validateCreditCardCVV,
-    processCardData() {
-        console.log(this.card);
-    },
   },
 };
 </script>

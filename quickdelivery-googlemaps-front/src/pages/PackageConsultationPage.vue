@@ -117,7 +117,7 @@ export default{
       .then(response => {
         this.$store.commit('updatePackage', response.data);
     }).catch(() => {
-      console.log("unable to process your request this time. please try again latter.");
+      console.error("Unable to process your request this time. Please try again later.");
     });
   },
   methods: {
@@ -134,7 +134,7 @@ export default{
           }
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("Unable to process your request this time. Please try again later.");
         });
     },
     pickup(){
@@ -149,7 +149,7 @@ export default{
           }
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("Unable to process your request this time. Please try again later.");
         });
     },
     deliver(){
@@ -164,7 +164,7 @@ export default{
           }
           return response.data;
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("Unable to process your request this time. Please try again later.");
         });
     },
   },

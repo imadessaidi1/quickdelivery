@@ -22,11 +22,6 @@
         {{package_.fromYou}}</p>
       <!-- Zone inférieure avec des boutons -->
       <p>
-        <!--<button class="btn primary_btn" ref="onMyRoad"
-          @click="onMyDirection">{{ $t('packagesArroundMArkerDetailActionsShowPackagesOnMyDirection') }}</button>&nbsp;
-        <button v-if="canReserve()" class="btn primary_btn" @click="reserveOnMyRoad">
-          {{ $t('packagesArroundMArkerDetailActionsReserveOnMyRoad') }}
-        </button>&nbsp;-->
         <button class="btn primary_btn" ref="reserveButtons"
           @click="details">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>&nbsp;
         <button v-if="canReserve()" class="btn primary_btn" ref="detailsButtons"
@@ -49,23 +44,6 @@ export default {
       const roles = getCurrentUserRoles();
       return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
     },
-    onMyDirection() {
-      this.$emit('on-my-road-selected', this.package_.id);
-      var stringDeparture = "";
-      var stringArrival = "";
-      this.package_.addresses.forEach(address => {
-        if (address.type === "DEPARTURE") {
-          stringDeparture = address.latitude + "," + address.longitude;
-        } else {
-          stringArrival = address.latitude + "," + address.longitude;
-        }
-      });
-      var message = "OnMyDirection:" + stringDeparture + ";" + stringArrival;
-      this.mapVue.$refs.map.contentWindow.postMessage(message, "*");
-    },
-    reserveOnMyRoad() {
-      this.$emit('reserve-on-my-road', this.package_.id);
-    },
     async reserve() {
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
@@ -77,7 +55,7 @@ export default {
           resolve(response.data);
         })
         .catch(error => {
-          console.log("Unable to process your request at this time. Please try again later.", error);
+          console.error("Unable to process your request at this time. Please try again later.", error);
           reject(error);
         });
       });

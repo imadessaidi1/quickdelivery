@@ -2,8 +2,11 @@
   <div class="myPackeges" @scroll="handleScroll">
     <div>
       <PackagesFilter />
+      <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
+      <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+      <div v-else-if="packagesByStatus.length === 0" class="page-state">{{ $t('stateEmptyPackages') }}</div>
       <div v-for="status in packagesByStatus" :key="status.satuts_">
-        <h2 :id="status.satuts_">{{$t(status.satuts_)}}</h2>
+        <h2 :id="status.satuts_">{{ $t(status.satuts_) }}</h2>
         <div class="grid-container">
             <div v-for="package_ in status.groupedPackagesList" :key="package_.id" class="grid-item">
                 <div class="item-content">
@@ -15,7 +18,6 @@
     </div>
     <PackageDetailsModal ref="AppModal" classe="modal"/>
   </div>
-  <PackageDetailsModal ref="AppModal" classe="modal"/>
 </template>
 
 <script>
@@ -33,28 +35,35 @@ export default {
   data() {
     return {
       packagesByStatus: [],
+      isLoadingPage: false,
+      loadError: false,
     };
   },
   mounted() {
     this.fetchData();
   },
   methods: {
-    getPackageModal(){
-        return this.$refs.AppModal;
+    getPackageModal() {
+      return this.$refs.AppModal;
     },
     async fetchData() {
+      this.isLoadingPage = true;
+      this.loadError = false;
+      this.packagesByStatus = [];
       try {
-        const response = await http.get(this.$i18n.t('rootURL')+this.$i18n.t('getPackagesByDeliveryPersonUrl')+this.$store.state.connectedUser.id);
+        const response = await http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackagesByDeliveryPersonUrl') + this.$store.state.connectedUser.id);
         Object.entries(response.data).forEach(([status, packagesArray]) => {
-          if(typeof status === 'string' && Array.isArray(packagesArray)){
-             this.packagesByStatus.push({satuts_: status, groupedPackagesList: packagesArray});
+          if (typeof status === 'string' && Array.isArray(packagesArray)) {
+             this.packagesByStatus.push({ satuts_: status, groupedPackagesList: packagesArray });
           }
         });
       } catch (error) {
-        console.error('Erreur lors de la requête API', error);
+        this.loadError = true;
+        console.error('Unable to load packages list.', error);
+      } finally {
+        this.isLoadingPage = false;
       }
     },
-
   },
 };
 </script>
@@ -68,6 +77,19 @@ export default {
 .myPackeges h2{
   padding-left: 10px;
   margin-left: 50px;
+}
+.page-state {
+  width: 85%;
+  margin: 10px auto 0 auto;
+  padding: 12px;
+  border-radius: 8px;
+  background: #eef3f9;
+  color: #3a4b5f;
+  text-align: center;
+}
+.page-state.error {
+  background: #fcecee;
+  color: #b1354b;
 }
 .grid-container{
   width: 85%;
@@ -115,8 +137,8 @@ export default {
   height: 60px;
   position: absolute;
   bottom: 0;
-  display: flex;  
-  justify-content: center;  
+  display: flex;
+  justify-content: center;
   align-items: center;
 }
 .item-buttons button{

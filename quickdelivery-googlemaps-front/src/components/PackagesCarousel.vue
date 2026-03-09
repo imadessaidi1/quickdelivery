@@ -1,13 +1,22 @@
 <template>
     <div class="carousel-wrapper">
+    <div class="carousel-toolbar">
+      <div class="radius-group">
+        <button class="btn radius-btn" :class="{ active: searchRadius === 30000 }" @click="updateRadius(30000)">30km</button>
+        <button class="btn radius-btn" :class="{ active: searchRadius === 100000 }" @click="updateRadius(100000)">100km</button>
+        <button class="btn radius-btn" :class="{ active: searchRadius === 300000 }" @click="updateRadius(300000)">300km</button>
+      </div>
+      <button class="btn primary_btn" @click="refreshWithCurrentRadius">{{ $t('actionRefresh') }}</button>
+    </div>
+    <div v-if="isLoadingPackages" class="carousel-state">{{ $t('stateLoadingPackagesAround') }}</div>
+    <div v-else-if="loadError" class="carousel-state error">{{ $t('stateLoadError') }}</div>
+    <div v-else-if="packagesList.length === 0" class="carousel-state">{{ $t('stateEmptyPackagesAround') }}</div>
     <carousel :items-to-show="1" @slide-start="handleSlideStart">
     <slide v-for="package_ in packagesList" :key="package_">
         <MarkerDetails
           :package_="package_"
           :mapVue="getMapVue()"
           :modal="getPackageModal()"
-          @on-my-road-selected="onMyRoadSelected"
-          @reserve-on-my-road="reserveOnMyRoad"
         />
     </slide>
 
@@ -15,11 +24,6 @@
         <navigation />
     </template>
     </carousel>
-    <div v-if="canUseBulkReserve() && selectedPackageId" class="on-road-action-bar">
-      <button class="btn confirm_btn" @click="reserveOnMyRoad(selectedPackageId)">
-        {{ $t('packagesArroundMArkerDetailActionsReserveOnMyRoad') }}
-      </button>
-    </div>
     </div>
 </template>
 
@@ -30,7 +34,6 @@ import { Carousel, Slide, Navigation } from 'vue3-carousel'
 import MarkerDetails from './MarkerDetails.vue';
 //import { Geolocation } from '@capacitor/geolocation';
 import http from '@/config/httpInterceptor';
-import { getCurrentUserRoles } from '@/config/auth';
 
 export default {
   name: 'App',
@@ -48,6 +51,9 @@ export default {
       positionData: null,
       selectedPackageId: null,
       onMyRoadPackageIds: [],
+      searchRadius: 30000,
+      isLoadingPackages: false,
+      loadError: false,
     };
   },
   async mounted() {
@@ -79,17 +85,20 @@ export default {
     handleSlideStart(data) {
       this.displayDirection(data.slidingToIndex);
     },
-    onMyRoadSelected(packageId) {
-      this.selectedPackageId = packageId;
-    },
-    canUseBulkReserve() {
-      const roles = getCurrentUserRoles();
-      return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
-    },
-    async reserveOnMyRoad(packageId) {
-      if (!this.canUseBulkReserve()) {
+    updateRadius(radius) {
+      if (this.searchRadius === radius) {
         return;
       }
+      this.searchRadius = radius;
+      this.refreshWithCurrentRadius();
+    },
+    refreshWithCurrentRadius() {
+      if (!this.positionData) {
+        return;
+      }
+      this.refreshPackagesList(this.positionData);
+    },
+    async reserveOnMyRoad(packageId) {
       const selectedId = packageId || this.selectedPackageId;
       if (!selectedId) {
         return;
@@ -165,9 +174,11 @@ export default {
         });
       },
     async refreshPackagesList(positionData){
+        this.isLoadingPackages = true;
+        this.loadError = false;
         try {
           this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
-          const url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres=300000';
+          const url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres='+this.searchRadius;
           const response = await http.get(this.$i18n.t('rootURL')+url);
           this.packagesList = Array.isArray(response.data) ? response.data : [];
           this.onMyRoadPackageIds = [];
@@ -177,8 +188,11 @@ export default {
             this.displayDirection(0);
           }
         } catch (error) {
+          this.loadError = true;
           console.error('Unable to refresh packages list', error);
           this.packagesList = [];
+        } finally {
+          this.isLoadingPackages = false;
         }
     },
     removePackageFromListe(packageId){
@@ -200,11 +214,57 @@ export default {
 <style>
 .carousel-wrapper {
   width: 100%;
+  padding-top: 2px;
+  box-sizing: border-box;
 }
-
-.on-road-action-bar {
+.carousel-toolbar {
   display: flex;
-  justify-content: center;
-  margin-top: 8px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
+}
+.radius-group {
+  display: flex;
+  gap: 6px;
+}
+.radius-btn {
+  border: solid 1px #9db5d3;
+  background: #eef3fa;
+  color: #365073;
+}
+.radius-btn.active {
+  background: #d9e9ff;
+  border-color: #6698d4;
+  font-weight: 700;
+}
+.carousel-state {
+  margin: 0 8px 8px 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #eef3f9;
+  color: #3a4b5f;
+  text-align: center;
+  font-size: 13px;
+}
+.carousel-state.error {
+  background: #fcecee;
+  color: #b1354b;
+}
+@media screen and (max-width: 580px) {
+  .carousel-toolbar {
+    flex-wrap: wrap;
+  }
+  .radius-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .radius-btn {
+    flex: 1;
+  }
 }
 </style>

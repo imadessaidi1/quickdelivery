@@ -44,11 +44,10 @@ export default {
       .then(response => {
         this.isUserWithOngoingDelivery = response.data;
     }).catch(() => {
-      console.log("unable to process your request this time. please try again latter.");
+      console.error("Unable to process your request this time. Please try again later.");
     });
     const socket = new WebSocket(this.$i18n.t('wsURL'));
     socket.onopen = () => {
-        console.log('WebSocket connected');
         if (navigator.geolocation && this.isUserWithOngoingDelivery) {
             navigator.geolocation.watchPosition(
                 (position) => {
@@ -66,7 +65,6 @@ export default {
                          url: ''
                     };
                      setTimeout(() => {
-                        console.log(newPosition);
                         socket.send(JSON.stringify(updateMessage));
                       }, 9000);
 
@@ -109,9 +107,7 @@ export default {
         }
     };
 
-    socket.onclose = () => {
-        console.log('WebSocket closed');
-    };
+    socket.onclose = () => {};
 
     socket.onerror = (error) => {
         console.error('WebSocket error:', error);

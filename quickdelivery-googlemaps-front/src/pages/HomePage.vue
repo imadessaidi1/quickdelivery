@@ -1,9 +1,11 @@
 <template>
-            <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }"/>
-            <div class="carousel-overlay">
-                <Carrousel />
-            </div>
-            <PackageDetailsModal ref="AppModal" classe="modal"/>
+  <div class="home-page">
+    <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }"/>
+    <div class="carousel-overlay">
+      <Carrousel />
+    </div>
+    <PackageDetailsModal ref="AppModal" classe="modal"/>
+  </div>
 </template>
 
 <script>
@@ -21,17 +23,38 @@ export default {
 </script>
 
 <style>
+.home-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 540px;
+}
+
 .carousel-overlay {
   position: absolute;
-  top: 7%;
+  top: 8px;
   left: 0;
-  width: 100%; /* Couvre toute la largeur de la carte */
-  height: 270px; /* Ajustez la hauteur selon vos besoins */
-  background: rgba(255, 255, 255, 0.3); /* Couleur de fond avec transparence */
-  z-index: 1; /* Mettez un z-index plus élevé que la carte pour le superposer */
-  overflow: hidden; /* Empêche le contenu de déborder */
+  width: 100%;
+  height: 280px;
+  z-index: 1;
+  overflow: hidden;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
+
 .modal {
-    z-index: 3;
+  z-index: 3;
+}
+
+@media screen and (max-width: 580px) {
+  .home-page {
+    min-height: 480px;
+  }
+
+  .carousel-overlay {
+    top: 6px;
+    height: 300px;
+    padding: 0 6px;
+  }
 }
 </style>

@@ -2,6 +2,12 @@
     <div class="packege_creation_main">
       <div class="package-form">
         <Form @submit="submitFormPackage" ref="packageCreationForm">
+          <div class="wizard-steps">
+            <div class="step" :class="stepClass(1)">{{ $t('wizardPackageStepInfo') }}</div>
+            <div class="step" :class="stepClass(2)">{{ $t('wizardPackageStepDeparture') }}</div>
+            <div class="step" :class="stepClass(3)">{{ $t('wizardPackageStepArrival') }}</div>
+            <div class="step" :class="stepClass(4)">{{ $t('wizardPackageStepSummary') }}</div>
+          </div>
           <div class="components" v-if="currentStep === 1">
               <h2>{{$t('createNewPackage')}}</h2>
               <PackageCreation ref="packageInfo"/>
@@ -114,6 +120,15 @@ export default{
     },
   },
   methods: {
+    stepClass(stepNumber) {
+      if (this.currentStep === stepNumber) {
+        return 'active';
+      }
+      if (this.currentStep > stepNumber) {
+        return 'done';
+      }
+      return '';
+    },
     initializePackageAndDocuments() {
       this.$store.commit('updateDocuments', []);
       this.$store.commit('updatePackage', this.emptyPackage);
@@ -186,9 +201,9 @@ export default{
     /*callNotification(){
         http.get(this.$i18n.t('rootURL') + this.$i18n.t('notify'))
             .then(response => {
-                console.log(response);
+                console.info('Notification request sent.', response.status);
             }).catch(() => {
-                console.log("unable to process your request this time. please try again latter.");
+                console.error("Unable to process your request this time. Please try again later.");
             });
     },*/
     async submitFormPackage() {
@@ -207,7 +222,7 @@ export default{
                     this.$router.push('/paymentPage');
                 }
             }).catch(() => {
-                console.log("unable to process your request this time. please try again latter.");
+                console.error("Unable to process your request this time. Please try again later.");
             });
      }else{
         this.nextStep();
@@ -240,6 +255,31 @@ export default{
 }
 .packege_creation_main .package-form form{
   width: 100%;
+}
+.wizard-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 10px 20px;
+}
+.wizard-steps .step {
+  padding: 6px 10px;
+  border-radius: 18px;
+  border: 1px solid #d0d7e2;
+  background: #f4f7fb;
+  color: #516074;
+  font-size: 12px;
+}
+.wizard-steps .step.active {
+  background: #e8f2ff;
+  border-color: #70a6e8;
+  color: #1f4f89;
+  font-weight: 700;
+}
+.wizard-steps .step.done {
+  background: #edf8f2;
+  border-color: #75c79c;
+  color: #1f7a4e;
 }
 .packege_creation_main .package-form form .components,
 .packege_creation_main .package-form form .summary_component{

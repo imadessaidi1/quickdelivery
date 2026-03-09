@@ -111,7 +111,7 @@ export default {
                 resolve(response.data);
             })
             .catch(error => {
-                console.log("Unable to process your request at this time. Please try again later.", error);
+                console.error("Unable to process your request at this time. Please try again later.", error);
                 reject(error);
             });
         }).then(() => {

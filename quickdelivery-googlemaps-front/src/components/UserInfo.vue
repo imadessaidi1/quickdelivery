@@ -121,10 +121,6 @@ export default {
     validateString,
     validatePassword,
     validateNumericField,
-    showField(){
-        console.log(this.$parent);
-        return this.$parent.isForUpdate;
-    }
   },
 }
 </script>

@@ -96,11 +96,11 @@ const messages = {
     packagesArroundMArkerDetailActionsDetails: 'Details',
     packagesArroundMArkerDetailActionCloseModal: 'Close',
     //USER
-    userPassword: 'Pass word',
+    userPassword: 'Password',
     userGender: 'Sex',
     userAge: 'Age',
     userBirthDate: 'Birth date',
-    userPasswordConfirmation: 'Pass word confirmation',
+    userPasswordConfirmation: 'Password confirmation',
     userEmailConfirmation: 'Email confirmation',
     userPhoneConfirmation: 'Phone confirmation',
     userDocuments: 'Documents',
@@ -149,6 +149,22 @@ const messages = {
     menuUuserAccount: 'My account',
     menuUusersAccountValidation: 'Accounts Validation',
     menuUserLogout: 'Logout',
+    //WIZARD / STATES
+    wizardPackageStepInfo: 'Package info',
+    wizardPackageStepDeparture: 'Departure',
+    wizardPackageStepArrival: 'Arrival',
+    wizardPackageStepSummary: 'Summary',
+    wizardUserStepInfo: 'Personal info',
+    wizardUserStepDocs: 'Documents',
+    wizardUserStepVehicle: 'Vehicle',
+    wizardUserStepSummary: 'Summary',
+    stateLoading: 'Loading...',
+    stateLoadError: 'Unable to load data. Please try again.',
+    stateEmptyPackages: 'No package to display for this account.',
+    stateEmptyUsersValidation: 'No user pending validation.',
+    stateLoadingPackagesAround: 'Loading packages around you...',
+    stateEmptyPackagesAround: 'No package found in this area.',
+    actionRefresh: 'Refresh',
     //NOTIFICATION
     notificationTitle: 'New Notification From QuickDelivery',
     //MESSAGES
@@ -326,12 +342,28 @@ const messages = {
     //MENU
     menuHome: 'Accueil',
     menuMyPackages: 'Mes Colis',
-    menuNewPackage: 'Neouveau Colis',
+    menuNewPackage: 'Nouveau Colis',
     menuUserLogin: 'Se connecter',
     menuUserSignin: 'Crée un Compte',
     menuUuserAccount: 'Mon Compte',
     menuUusersAccountValidation: 'Validation des Comptes',
     menuUserLogout: 'Se déconnecter',
+    //WIZARD / STATES
+    wizardPackageStepInfo: 'Info colis',
+    wizardPackageStepDeparture: 'Depart',
+    wizardPackageStepArrival: 'Arrivee',
+    wizardPackageStepSummary: 'Resume',
+    wizardUserStepInfo: 'Infos personnelles',
+    wizardUserStepDocs: 'Documents',
+    wizardUserStepVehicle: 'Vehicule',
+    wizardUserStepSummary: 'Resume',
+    stateLoading: 'Chargement...',
+    stateLoadError: 'Impossible de charger les donnees. Veuillez reessayer.',
+    stateEmptyPackages: 'Aucun colis a afficher pour ce compte.',
+    stateEmptyUsersValidation: 'Aucun utilisateur en attente de validation.',
+    stateLoadingPackagesAround: 'Chargement des colis autour de vous...',
+    stateEmptyPackagesAround: 'Aucun colis trouve dans cette zone.',
+    actionRefresh: 'Rafraichir',
     //NOTIFICATION
     notificationTitle: 'Nouvelle Notification de QuickDelivery',
     //MESSAGE
@@ -381,4 +413,5 @@ const i18n = createI18n({
 });
 
 export default i18n;
+
 

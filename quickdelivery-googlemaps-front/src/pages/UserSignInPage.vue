@@ -2,6 +2,12 @@
     <div class="user_creation_main">
         <div class="user-form">
             <Form @submit="submitFormUser" ref="userCreationForm">
+                <div class="wizard-steps">
+                    <div class="step" :class="stepClass(1)">{{ $t('wizardUserStepInfo') }}</div>
+                    <div class="step" :class="stepClass(2)">{{ $t('wizardUserStepDocs') }}</div>
+                    <div class="step" :class="stepClass(3)">{{ $t('wizardUserStepVehicle') }}</div>
+                    <div class="step" :class="stepClass(4)">{{ $t('wizardUserStepSummary') }}</div>
+                </div>
                 <div class="components" v-if="currentStep === 1">
                     <UserInfo ref="userInfo" :isForUpdate="id"/>
                 </div>
@@ -132,13 +138,22 @@ export default {
             vehicleDocuments['INSURANCE'] = {name:'INSURANCE' , documentStatus: response.data.document['INSURANCE'].documentStatus};
             this.$store.commit('updateVehicleDocuments', vehicleDocuments);
         }).catch(() => {
-          console.log("unable to process your request this time. please try again latter.");
+          console.error("Unable to process your request this time. Please try again later.");
         });
     }else{
         this.isForUpdate = false;
     }
   },
   methods: {
+    stepClass(stepNumber) {
+        if (this.currentStep === stepNumber) {
+            return 'active';
+        }
+        if (this.currentStep > stepNumber) {
+            return 'done';
+        }
+        return '';
+    },
     validatePasswordConfirmation,
     validateEmailConfirmation,
     validateAddress,
@@ -200,7 +215,6 @@ export default {
                     userInfo.isAddressError = false;
                     userInfo.isPasswordConfirmationError = false;
                     if(addressAuto.address && addressAuto.address.includes(',')){
-                        console.log('trim', addressAuto.address);
                         const address = addressAuto.address.split(',');
                         userInfo.user.personalAddress[0].line1 = address[0].trim();
                         userInfo.user.personalAddress[0].zipCode = address[1].trim().split(' ')[0];
@@ -323,7 +337,7 @@ export default {
                    this.$router.push('/');
                 }
             }).catch(() => {
-                console.log("unable to process your request this time. please try again latter.");
+                console.error("Unable to process your request this time. Please try again later.");
             });
      }else{
         this.nextStep();
@@ -369,6 +383,31 @@ export default {
 }
 .user_creation_main .user-form form{
   width: 100%;
+}
+.wizard-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 10px 20px;
+}
+.wizard-steps .step {
+  padding: 6px 10px;
+  border-radius: 18px;
+  border: 1px solid #d0d7e2;
+  background: #f4f7fb;
+  color: #516074;
+  font-size: 12px;
+}
+.wizard-steps .step.active {
+  background: #e8f2ff;
+  border-color: #70a6e8;
+  color: #1f4f89;
+  font-weight: 700;
+}
+.wizard-steps .step.done {
+  background: #edf8f2;
+  border-color: #75c79c;
+  color: #1f7a4e;
 }
 .user_creation_main .user-form form .components,
 .user_creation_main .user-form form .summary_component{

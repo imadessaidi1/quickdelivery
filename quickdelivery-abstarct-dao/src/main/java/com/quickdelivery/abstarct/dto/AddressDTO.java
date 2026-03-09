@@ -167,7 +167,7 @@ public class AddressDTO {
         StringBuilder address= new StringBuilder();
         if (line1 != null)
             address.append(line1);
-        if (!line2.isEmpty())
+        if (line2 != null && !line2.isEmpty())
             address.append(", ").append(line2);
         if (zipCode != null)
             address.append(", ").append(zipCode);

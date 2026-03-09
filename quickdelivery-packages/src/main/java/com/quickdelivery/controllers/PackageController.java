@@ -64,7 +64,7 @@ public class PackageController {
         packagesService.createNewPackages(packageDTOS, locale);
     }
 
-    @GetMapping("/packages-around{latitude}{longitude}{rayonEnMetres}")
+    @GetMapping("/packages-around")
     //@Cacheable(value="PackagesAroundMe", keyGenerator="customKeyGenerator")
     public Map<String, List<PackageDTO>> packagesAroundPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                                     @RequestParam(name = "longitude", required = true) String longitude,
@@ -72,14 +72,14 @@ public class PackageController {
         return packagesService.getPAckagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 
-    @GetMapping("/packages-around-me{latitude}{longitude}{rayonEnMetres}")
+    @GetMapping("/packages-around-me")
     public List<PackageDTO> packagesAroundMyPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                                 @RequestParam(name = "longitude", required = true) String longitude,
                                                                 @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres){
         return packagesService.getPackagesAroundPosition(latitude,longitude,rayonEnMetres);
     }
 
-    @GetMapping("/packages-on-my-road{departureLatitude}{departureLongitude}{arrivalLatitude}{arrivalLongitude}")
+    @GetMapping("/packages-on-my-road")
     public List<PackageDTO> findPackagesOnMyRoad(@RequestParam(name = "departureLatitude", required = true) String departureLatitude,
                                                    @RequestParam(name = "arrivalLatitude", required = true) String arrivalLatitude,
                                                  @RequestParam(name = "departureLongitude", required = true) String departureLongitude,
@@ -193,7 +193,7 @@ public class PackageController {
         return packagesService.isUserWithOngoingDelivery(userId);
     }
 
-    @GetMapping("/packages-around-address{line1}{zipCode}{town}{country}{rayonEnMetres}")
+    @GetMapping("/packages-around-address")
     public Map<String, List<PackageDTO>> packagesAroundAddress(@RequestParam(name = "line1", required = true) String line1,
                                                                @RequestParam(name = "zipCode", required = true) String zipCode,
                                                                @RequestParam(name = "town", required = true) String town,

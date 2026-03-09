@@ -132,6 +132,7 @@ export default createStore({
               userRIB: {},
               packagesLastPosition: [],
               location: 'mapPage',
+              mapSearchRadius: 30000,
   },
   mutations: {
       updatePackage(state, updatedPackage) {
@@ -175,6 +176,9 @@ export default createStore({
       },
       updateLocation(state, updateLocation) {
         state.location = updateLocation;
+      },
+      updateMapSearchRadius(state, radius) {
+        state.mapSearchRadius = radius;
       },
     },
   actions: {

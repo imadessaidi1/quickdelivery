@@ -1,6 +1,6 @@
 <template>
     <div class="carousel-wrapper">
-    <div class="carousel-toolbar">
+    <div v-if="!isMobile" class="carousel-toolbar">
       <div class="radius-group">
         <button class="btn radius-btn" :class="{ active: searchRadius === 30000 }" @click="updateRadius(30000)">30km</button>
         <button class="btn radius-btn" :class="{ active: searchRadius === 100000 }" @click="updateRadius(100000)">100km</button>
@@ -11,18 +11,21 @@
     <div v-if="isLoadingPackages" class="carousel-state">{{ $t('stateLoadingPackagesAround') }}</div>
     <div v-else-if="loadError" class="carousel-state error">{{ $t('stateLoadError') }}</div>
     <div v-else-if="packagesList.length === 0" class="carousel-state">{{ $t('stateEmptyPackagesAround') }}</div>
-    <carousel :items-to-show="1" @slide-start="handleSlideStart">
-    <slide v-for="package_ in packagesList" :key="package_">
-        <MarkerDetails
-          :package_="package_"
-          :mapVue="getMapVue()"
-          :modal="getPackageModal()"
-        />
-    </slide>
+    <carousel
+      :items-to-show="1"
+      @slide-start="handleSlideStart"
+    >
+      <slide v-for="package_ in packagesList" :key="package_">
+          <MarkerDetails
+            :package_="package_"
+            :mapVue="getMapVue()"
+            :modal="getPackageModal()"
+          />
+      </slide>
 
-    <template #addons>
-        <navigation />
-    </template>
+      <template #addons>
+          <navigation />
+      </template>
     </carousel>
     </div>
 </template>
@@ -51,15 +54,21 @@ export default {
       positionData: null,
       selectedPackageId: null,
       onMyRoadPackageIds: [],
-      searchRadius: 30000,
+      searchRadius: this.$store.state.mapSearchRadius || 30000,
       isLoadingPackages: false,
       loadError: false,
+      isMobile: window.innerWidth < 768,
+      searchMode: 'aroundMe',
+      addressCriteria: null,
+      lastSearchedAddress: '',
     };
   },
   async mounted() {
     //this.coordinates = await Geolocation.getCurrentPosition();
     this.positionData = await this.getCurrentLocation();
     this.refreshPackagesList(this.positionData);
+    window.addEventListener('resize', this.handleResize);
+    window.addEventListener('qd-search-around-address', this.handleAddressSearch);
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
            const packageID = e.data.split(':')[1];
@@ -81,7 +90,14 @@ export default {
         }
     };
   },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('qd-search-around-address', this.handleAddressSearch);
+  },
   methods: {
+    handleResize() {
+      this.isMobile = window.innerWidth < 768;
+    },
     handleSlideStart(data) {
       this.displayDirection(data.slidingToIndex);
     },
@@ -90,13 +106,25 @@ export default {
         return;
       }
       this.searchRadius = radius;
+      this.$store.commit('updateMapSearchRadius', radius);
       this.refreshWithCurrentRadius();
     },
     refreshWithCurrentRadius() {
-      if (!this.positionData) {
+      if (this.searchMode === 'aroundAddress' && this.addressCriteria) {
+        this.refreshPackagesListAroundAddress(this.addressCriteria);
+      } else if (this.positionData) {
+        this.refreshPackagesList(this.positionData);
+      }
+    },
+    handleAddressSearch(event) {
+      const criteria = event?.detail;
+      if (!criteria) {
         return;
       }
-      this.refreshPackagesList(this.positionData);
+      this.searchMode = 'aroundAddress';
+      this.addressCriteria = criteria;
+      this.lastSearchedAddress = criteria.rawAddress || '';
+      this.refreshPackagesListAroundAddress(criteria);
     },
     async reserveOnMyRoad(packageId) {
       const selectedId = packageId || this.selectedPackageId;
@@ -176,6 +204,8 @@ export default {
     async refreshPackagesList(positionData){
         this.isLoadingPackages = true;
         this.loadError = false;
+        this.searchMode = 'aroundMe';
+        this.addressCriteria = null;
         try {
           this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
           const url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres='+this.searchRadius;
@@ -194,6 +224,45 @@ export default {
         } finally {
           this.isLoadingPackages = false;
         }
+    },
+    async refreshPackagesListAroundAddress(criteria) {
+      this.isLoadingPackages = true;
+      this.loadError = false;
+      try {
+        const params = new URLSearchParams({
+          line1: criteria.line1 || '',
+          zipCode: criteria.zipCode || '',
+          town: criteria.town || '',
+          country: criteria.country || '',
+          rayonEnMetres: String(this.searchRadius),
+        });
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('getPackagesAroundAddress') + params.toString();
+        const response = await http.get(url);
+        if (Array.isArray(response.data)) {
+          this.packagesList = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          this.packagesList = Object.values(response.data)
+            .filter((entry) => Array.isArray(entry))
+            .flat();
+        } else {
+          this.packagesList = [];
+        }
+        this.onMyRoadPackageIds = [];
+        this.selectedPackageId = this.packagesList.length > 0 ? this.packagesList[0].id : null;
+        this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.packagesList), "*");
+        if (this.lastSearchedAddress) {
+          this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify({ centerAddress: this.lastSearchedAddress }), "*");
+        }
+        if (this.packagesList.length > 0) {
+          this.displayDirection(0);
+        }
+      } catch (error) {
+        this.loadError = true;
+        console.error('Unable to refresh packages list around address', error);
+        this.packagesList = [];
+      } finally {
+        this.isLoadingPackages = false;
+      }
     },
     removePackageFromListe(packageId){
       const simpleList = JSON.parse(JSON.stringify(this.packagesList));
@@ -216,6 +285,7 @@ export default {
   width: 100%;
   padding-top: 2px;
   box-sizing: border-box;
+  height: 100%;
 }
 .carousel-toolbar {
   display: flex;
@@ -254,6 +324,24 @@ export default {
 .carousel-state.error {
   background: #fcecee;
   color: #b1354b;
+}
+@media screen and (min-width: 768px) {
+  .carousel-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 14px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .carousel-toolbar {
+    background: transparent;
+    padding: 0;
+  }
+  .carousel-state {
+    margin: 0 0 8px 0;
+  }
 }
 @media screen and (max-width: 580px) {
   .carousel-toolbar {

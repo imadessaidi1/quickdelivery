@@ -46,7 +46,18 @@ export default {
   z-index: 3;
 }
 
-@media screen and (max-width: 580px) {
+@media screen and (min-width: 768px) {
+  .carousel-overlay {
+    top: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: min(390px, 36vw);
+    height: auto;
+    padding: 0;
+  }
+}
+
+@media screen and (max-width: 767px) {
   .home-page {
     min-height: 480px;
   }

@@ -32,6 +32,7 @@
        let highlightedPackageIds = null;
        let routeStartMarker = null;
        let routeEndMarker = null;
+       let geocoder;
 	   let initialLocation;
 	   let actualPosition;
 	   const gatewayBaseUrl = 'http://localhost:8087';
@@ -66,6 +67,7 @@
               scaleControl: true,
               mapId: "PACKAGES_AROUND",
           });
+          geocoder = new google.maps.Geocoder();
 
           const transitLayer = new google.maps.TransitLayer();
           transitLayer.setMap(map);
@@ -293,6 +295,16 @@
           });
       }
       window.initMap = initMap;
+      function centerMapByAddress(addressText) {
+          if (!addressText || !geocoder || !map) {
+              return;
+          }
+          geocoder.geocode({ address: addressText }, (results, status) => {
+              if (status === "OK" && results && results[0] && results[0].geometry && results[0].geometry.location) {
+                  map.setCenter(results[0].geometry.location);
+              }
+          });
+      }
       window.onmessage = (e) => {
         let parsedData = e.data;
         if (typeof e.data === 'string') {
@@ -305,7 +317,9 @@
         if (!window.google || !window.google.maps || !map) {
           return;
         }
-        if (parsedData && parsedData.actuallongitude && parsedData.actuallatitude) {
+        if (parsedData && parsedData.centerAddress) {
+           centerMapByAddress(parsedData.centerAddress);
+        } else if (parsedData && parsedData.actuallongitude && parsedData.actuallatitude) {
            initialLocation = new google.maps.LatLng(parsedData.actuallatitude, parsedData.actuallongitude);
            map.setCenter(initialLocation);
         }else if (Array.isArray(parsedData)) {

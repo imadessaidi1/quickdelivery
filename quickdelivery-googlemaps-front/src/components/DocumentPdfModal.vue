@@ -35,6 +35,7 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 1200;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.25);
@@ -44,11 +45,12 @@ export default {
 }
 
 .pdf_modal .modal-content {
-  width: 760px;
-  height: 700px;
-  padding: 30px 20px 20px 20px;
+  width: min(760px, 92vw);
+  height: min(700px, 88vh);
+  padding: 22px 14px 14px 14px;
   border-radius: 10px;
   position: relative;
+  z-index: 1201;
   /* From https://css.glass */
   background: rgba(255, 255, 255, 0.5);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -65,7 +67,8 @@ export default {
   /* Styles pour le bouton de fermeture (position absolue en haut à droite, couleur, curseur, etc.) */
   position: absolute;
   top: 5px;
-  right: 0;
+  right: 2px;
+  z-index: 1202;
   cursor: pointer;
   color: #555;
   border: none;

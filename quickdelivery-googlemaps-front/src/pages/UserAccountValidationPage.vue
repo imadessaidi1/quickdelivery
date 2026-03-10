@@ -1,13 +1,33 @@
 <template>
-    <div class="user_verification_main">
-      <div class="container">
-        <h2>Liste des utilisateur a verifier</h2>
-        <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
-        <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-        <div v-else-if="usersList.length === 0" class="page-state">{{ $t('stateEmptyUsersValidation') }}</div>
-        <UsersAccountList v-else :users="usersList"/>
+  <div class="user-validation-page">
+    <div class="page-header">
+      <div>
+        <h1>{{ $t('validationPageTitle') }}</h1>
+        <p>{{ $t('validationPageSubtitle') }}</p>
+      </div>
+      <div class="header-chip">{{ usersList.length }}</div>
+    </div>
+
+    <div class="summary-panel" v-if="!isLoadingPage && !loadError">
+      <div class="summary-card">
+        <strong>{{ usersList.length }}</strong>
+        <span>{{ $t('validationPendingUsers') }}</span>
+      </div>
+      <div class="summary-card accent-neutral">
+        <strong>{{ totalVehicles }}</strong>
+        <span>{{ $t('validationVehiclesCount') }}</span>
+      </div>
+      <div class="summary-card accent-warn">
+        <strong>{{ totalDocuments }}</strong>
+        <span>{{ $t('validationDocumentsCount') }}</span>
       </div>
     </div>
+
+    <div class="page-state" v-if="isLoadingPage">{{ $t('stateLoading') }}</div>
+    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+    <div v-else-if="usersList.length === 0" class="page-state">{{ $t('stateEmptyUsersValidation') }}</div>
+    <UsersAccountList v-else :users="usersList"/>
+  </div>
 </template>
 
 <script>
@@ -25,62 +45,145 @@ export default {
       loadError: false,
     };
   },
+  computed: {
+    totalVehicles() {
+      return this.usersList.reduce((count, user) => count + (user.vehicles?.length || 0), 0);
+    },
+    totalDocuments() {
+      return this.usersList.reduce((count, user) => {
+        return count + Object.keys(user.documents || user.document || {}).length;
+      }, 0);
+    },
+  },
   mounted() {
     this.loadUsers();
   },
   methods: {
-    loadUsers() {
+    async loadUsers() {
       this.isLoadingPage = true;
       this.loadError = false;
-      http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUsersForValidation'))
-      .then(response => {
-        this.usersList = response.data;
-      }).catch((error) => {
+      try {
+        const response = await http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUsersForValidation'));
+        this.usersList = Array.isArray(response.data) ? response.data : [];
+      } catch (error) {
         this.loadError = true;
-        console.error("Unable to process your request this time. Please try again later.", error);
-      }).finally(() => {
+        console.error('Unable to process your request this time. Please try again later.', error);
+      } finally {
         this.isLoadingPage = false;
-      });
+      }
     },
   },
 };
 </script>
+
 <style>
-  .user_verification_main{
-    width: 100%;
-    height: 100%;
-    background: #F9F7F7;
+.user-validation-page {
+  min-height: 100%;
+  padding: 28px;
+  background: #f6f7f9;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1;
+  color: #0f172a;
+}
+
+.page-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.header-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.summary-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.summary-card {
+  padding: 26px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.summary-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.summary-card span {
+  color: #64748b;
+}
+
+.accent-neutral strong {
+  color: #475569;
+}
+
+.accent-warn strong {
+  color: #d97706;
+}
+
+.page-state {
+  padding: 14px;
+  border-radius: 12px;
+  background: #eef3f9;
+  color: #334155;
+  text-align: center;
+}
+
+.page-state.error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+@media screen and (max-width: 900px) {
+  .summary-panel {
+    grid-template-columns: 1fr;
   }
-  .user_verification_main .container{
-    width: 85%;
-    height: max-content;
-    margin: 0 auto;
-    overflow-x: scroll;
+}
+
+@media screen and (max-width: 767px) {
+  .user-validation-page {
+    padding: 16px;
   }
-  .user_verification_main .container h2{
-    border-left: solid 5px #ff5e00;
-    padding-left: 15px;
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .page-state {
-    margin: 12px 0;
-    padding: 12px;
-    border-radius: 8px;
-    background: #eef3f9;
-    color: #3a4b5f;
-    text-align: center;
+
+  .page-header h1 {
+    font-size: 2.2rem;
   }
-  .page-state.error {
-    background: #fcecee;
-    color: #b1354b;
-  }
-  @media only screen and (max-width: 500px){
-    .user_verification_main .container{
-      width: 100%;
-      padding: 0;
-    }
-    .user_verification_main .container h2{
-      font-size: 1.2em !important;
-      margin-left: 15px;
-    }
 }
 </style>

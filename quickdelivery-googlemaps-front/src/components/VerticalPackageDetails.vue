@@ -1,5 +1,5 @@
 <template>
-    <div class="package_details_group">
+    <div class="package_details_group tracking_summary_component">
             <div class="package_details">
             <h3>{{$t('createNewPackage')}}</h3>
             <div class="details">
@@ -194,24 +194,57 @@ export default {
     padding-left: 6px;
     border-left: solid 3px #10b3ff;
 } 
-.tracking_summary_component .package_details_group{
+.tracking_summary_component.package_details_group{
     flex-direction: column;
     box-sizing: border-box;
-    padding: 10px;
+    padding: 4px;
 }
-.tracking_summary_component .package_details_group .package_details{
+.tracking_summary_component.package_details_group .package_details{
     box-sizing: border-box;
     width: 100%;
-    padding: 10px;
+    padding: 4px 6px;
     background-color: #fff;
+    text-align: left;
 }
-.tracking_summary_component .package_details_group .package_details:first-child{
+.tracking_summary_component.package_details_group .package_details:first-child{
     border-bottom: 1px solid #e7e7e7;
     border-radius: 10px 10px 0 0;
 }
-.tracking_summary_component .package_details_group .package_details:last-child{
+.tracking_summary_component.package_details_group .package_details:last-child{
     border-top: 1px solid #e7e7e7;
     border-radius: 0 0 10px 10px;
+}
+.tracking_summary_component.package_details_group .package_details h3{
+    margin: 4px 0 4px 6px;
+    padding-left: 5px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.05;
+}
+.tracking_summary_component.package_details_group .package_details .details{
+    padding: 1px 0;
+}
+.tracking_summary_component.package_details_group .package_details .details div{
+    padding: 1px 6px;
+    font-size: 0.64rem;
+    line-height: 1.05;
+    text-align: left;
+}
+.tracking_summary_component.package_details_group .package_details .details div strong{
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+.tracking_summary_component.package_details_group .custom-link{
+    font-size: 0.64rem;
+}
+.tracking_summary_component.package_details_group .package_details:first-child .details{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 6px;
+    align-items: start;
+}
+.tracking_summary_component.package_details_group .package_details:first-child .details div{
+    padding: 1px 4px;
 }
 @media screen and (max-width: 1100px){
     .package_details_group {

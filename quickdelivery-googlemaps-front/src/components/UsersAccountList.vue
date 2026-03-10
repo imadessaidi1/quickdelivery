@@ -1,55 +1,68 @@
 <template>
-    <div class="table">
-        <table class="table-responsive">
-            <thead>
-                <tr>
-                    <th>{{$t('packageAddressLastName')}}</th>
-                    <th>{{$t('packageAddressFirstName')}}</th>
-                    <th>{{$t('packageAddressEmail')}}</th>
-                    <th>{{$t('packageAddressPhone')}}</th>
-                    <th>{{$t('userVehicleRegistration')}}</th>
-                    <th>{{$t('userVehicleBrand')}}</th>
-                    <th>{{$t('userVehicleModel')}}</th>
-                    <th>{{$t('userVehicleEnergy')}}</th>
-                    <th>{{$t('packagesArroundMArkerDetailActionsDetails')}}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(user, index) in users" :key="index">
-                    <td>{{ user.lastName }}</td>
-                    <td>{{ user.firstName }}</td>
-                    <td>{{ user.emailAddress }}</td>
-                    <td>{{ user.phone }}</td>
-                    <td>{{ user.vehicles[0].registrationNumber }}</td>
-                    <td>{{ user.vehicles[0].brand }}</td>
-                    <td>{{ user.vehicles[0].model }}</td>
-                    <td>{{ user.vehicles[0].energyType }}</td>
-                    <td>
-                        <button class="btn primary_btn" @click="showDetails(user)">Details</button>
-                </td>
-                </tr>
-            </tbody>
-        </table>
-        <div v-if="selectedUser" class="modal">
-            <div class="modal-content">
-                <div class="information_viewer">
-                  <div class="user_details_component">
-                      <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
-                  </div>
-                  <div class="document_viewer">
-                      <DocumentViewer :documents = "selectedUser.document"/>
-                  </div>
-                </div>
-                <div class="decision_section">
-                  <div class="conditionCheckbox">
-                    <input type="checkbox" id="validationCheckbox" v-model="selectedUser.activeAccount">
-                    <label for="validationCheckbox">{{$t('userValidationCheckboxLabel')}}</label>
-                  </div>
-                  <button class="btn primary_btn" @click="saveValidation">{{$t('userValidationSave')}}</button>
-                </div>
-                <button class="close-btn" @click="hideDetails"><span class="material-symbols-outlined size-24">cancel</span></button>
-            </div>
+  <div class="accounts-shell">
+    <div class="accounts-grid">
+      <article v-for="user in users" :key="user.id || user.emailAddress" class="account-card">
+        <div class="card-head">
+          <div>
+            <h3>{{ user.firstName }} {{ user.lastName }}</h3>
+            <p>{{ user.emailAddress }}</p>
+          </div>
+          <span class="status-chip">{{ $t('validationPendingBadge') }}</span>
         </div>
+
+        <div class="account-meta">
+          <div class="meta-row">
+            <span class="material-symbols-outlined">call</span>
+            <span>{{ user.phone || '-' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="material-symbols-outlined">directions_car</span>
+            <span>{{ vehicleSummary(user) }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="material-symbols-outlined">description</span>
+            <span>{{ documentCount(user) }} {{ $t('validationDocumentsLabel') }}</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button class="details-btn" @click="showDetails(user)">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
+        </div>
+      </article>
+    </div>
+
+    <div v-if="selectedUser" class="validation-modal">
+      <div class="validation-modal__content">
+        <button class="close-btn" @click="hideDetails">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+
+        <div class="modal-header">
+          <div>
+            <h2>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h2>
+            <p>{{ selectedUser.emailAddress }}</p>
+          </div>
+          <span class="status-chip">{{ $t('validationPendingBadge') }}</span>
+        </div>
+
+        <div class="modal-grid">
+          <div class="details-card">
+            <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}"/>
+          </div>
+          <div class="documents-card">
+            <DocumentViewer :documents="selectedUser.document"/>
+          </div>
+        </div>
+
+        <div class="decision-panel">
+          <label class="toggle-line" for="validationCheckbox">
+            <input id="validationCheckbox" v-model="selectedUser.activeAccount" type="checkbox">
+            <span>{{ $t('userValidationCheckboxLabel') }}</span>
+          </label>
+          <button class="details-btn save-btn" @click="saveValidation">{{ $t('userValidationSave') }}</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -66,209 +79,275 @@ export default {
   props: {
     users: {
       type: Array,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      selectedUser: null
+      selectedUser: null,
     };
   },
-  mounted() {
-    this.getHeaders();
+  computed: {
+    selectedVehicle() {
+      return this.selectedUser?.vehicles?.[0] || {};
+    },
   },
   methods: {
-    getHeaders(){
-      document.querySelectorAll('.table-responsive').forEach(function (table) {
-        let labels = Array.from(table.querySelectorAll('th')).map(function (th) {
-          return th.innerText
-        });
-        table.querySelectorAll('td').forEach(function (td, i) {
-            td.setAttribute('data-label', labels[i % labels.length])
-        });
-
-    })
-    },
     showDetails(user) {
-      this.selectedUser = user;
+      this.selectedUser = JSON.parse(JSON.stringify(user));
     },
     hideDetails() {
       this.selectedUser = null;
     },
-    saveValidation(){
-        const formData = new FormData();
-        const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-        const url = this.$i18n.t('userRootURL') + this.$i18n.t('validateUser');
-        formData.append('locale', userLanguage);
-        const userCopy = JSON.parse(JSON.stringify(this.selectedUser));
+    vehicleSummary(user) {
+      const vehicle = user?.vehicles?.[0];
+      if (!vehicle) {
+        return '-';
+      }
+      return [vehicle.brand, vehicle.model, vehicle.registrationNumber].filter(Boolean).join(' - ');
+    },
+    documentCount(user) {
+      const directDocs = Object.keys(user?.document || {}).length;
+      const userDocs = Object.keys(user?.documents || {}).length;
+      return directDocs || userDocs || 0;
+    },
+    async saveValidation() {
+      const formData = new FormData();
+      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      const url = this.$i18n.t('userRootURL') + this.$i18n.t('validateUser');
+      formData.append('locale', userLanguage);
+      const userCopy = JSON.parse(JSON.stringify(this.selectedUser));
+      if (userCopy.document) {
         for (const docType in userCopy.document) {
-            userCopy.document[docType].data = "";
+          userCopy.document[docType].data = '';
         }
-        formData.append('user', JSON.stringify(userCopy));
-        return new Promise((resolve, reject) => {
-            http.put(url, formData)
-            .then(response => {
-                resolve(response.data);
-            })
-            .catch(error => {
-                console.error("Unable to process your request at this time. Please try again later.", error);
-                reject(error);
-            });
-        }).then(() => {
-            this.hideDetails();
-            this.$parent.loadUsers();
-        });
-    }
-  }
-}
+      }
+      formData.append('user', JSON.stringify(userCopy));
+      try {
+        await http.put(url, formData);
+        this.hideDetails();
+        this.$parent.loadUsers();
+      } catch (error) {
+        console.error('Unable to process your request at this time. Please try again later.', error);
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>
-  table {
-    background: #ffffffc5;
-    border-collapse: collapse;
-    margin: 5em auto;
-    font-size: 0.85em;
-  }
-  thead{
-    border-bottom: 1px solid #364043;
-  }
-  th {
-    color: #252525;
-    background-color:  #ffc350;
-    font-weight: 600;
-    padding: 0.75em 1em;
-    text-align: left;
-  }
-  td {
-    color: #1d1d1d;
-    font-weight: 400;
-    padding: 0.85em 1em;
-    border-bottom: 1px solid #36404348;
-  }
-  tbody tr {
-    transition: background 0.25s ease;
-  }
-  tbody tr:hover {
-    background: #ff5e002d;
-  }
+.accounts-shell {
+  width: 100%;
+}
 
-  /**modal part */
-  .information_viewer{
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.account-card {
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.card-head {
   display: flex;
   justify-content: space-between;
-}
-.information_viewer .user_details_component{
-  width: 35%;
-  height: 95%;
-  overflow: hidden;
-  background-color: #eeeeee;
-}
-.information_viewer .document_viewer {
-  width: 65%;
-  position: relative;
-}
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  justify-content: center;
-  overflow-y: scroll;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.modal-content {
-  width: 70%;
-  height: max-content;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(6.6px);
-  -webkit-backdrop-filter: blur(6.6px);
+.card-head h3 {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.card-head p {
+  margin: 6px 0 0;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.account-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.meta-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #334155;
+}
+
+.meta-row span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.validation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.42);
+  overflow-y: auto;
+}
+
+.validation-modal__content {
+  position: relative;
+  width: min(1220px, 100%);
+  padding: 24px;
+  border-radius: 22px;
+  background: #f8fafc;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.modal-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.2fr);
+  gap: 18px;
+}
+
+.details-card,
+.documents-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.decision-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.toggle-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.save-btn {
+  min-width: 156px;
 }
 
 .close-btn {
-  /* Styles pour le bouton de fermeture (position absolue en haut à droite, couleur, curseur, etc.) */
   position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  color: #555;
-  border: none;
-  background: none;
-  transition: all .3s;
-}
-.close-btn:hover{
-  color: #000000;
-}
-.conditionCheckbox{
-  display: flex;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #dbe1ea;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
 }
-.conditionCheckbox label{
-    margin: 0;
-}
-.conditionCheckbox span{
-  font-size: 12px;
-}
-.decision_section{
-  width: max-content;
-  margin: 0 auto;
-}
-.decision_section button{
-  display: block;
-  margin: 5px auto;
-}
-@media only screen and (max-width: 700px){
-  table, tbody, tr, th, td{
-    display: block;
-  }
-  table{
-    width: 90%;
-  }
-  td{
-    padding-left: 200px;
-    position: relative
-  }
-  td::before{
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    content: attr(data-label);
-    width: 160px;
-    color: #252525;
-    background-color:  #ffc350;
-    font-weight: 600;
-    padding: 0.75em 1em;
-    display: flex;
-    align-items: center;
-  }
-  thead{
-    display: none;
-  }
-  .table-responsive tr {
-    margin-bottom: 1rem;
+
+@media screen and (max-width: 1200px) {
+  .accounts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .table-responsive th + td {
-    padding-left: 10px;
+  .modal-grid {
+    grid-template-columns: 1fr;
   }
 }
-@media only screen and (max-width: 500px){
-  table{
-    margin: 2em auto;
+
+@media screen and (max-width: 767px) {
+  .accounts-grid {
+    grid-template-columns: 1fr;
   }
-  td{
-    padding-left: 150px;
+
+  .validation-modal {
+    padding: 12px;
   }
-  td::before{
-    width: 120px;
+
+  .validation-modal__content {
+    padding: 18px;
+  }
+
+  .decision-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-btn {
+    width: 100%;
   }
 }
 </style>

@@ -9,13 +9,11 @@
       <ScrollUp/>
     </div>
     <AppMessages />
-    <AppFooter />
   </div>
 </template>
 
 <script>
 import SearchBar from './components/SearchBar.vue';
-import AppFooter from './components/AppFooter.vue';
 import ScrollUp from './components/ScrollUp.vue';
 import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
@@ -115,7 +113,6 @@ export default {
   },
   components: {
     SearchBar,
-    AppFooter,
     Loading,
     AppMessages,
     ScrollUp,

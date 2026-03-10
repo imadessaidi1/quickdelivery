@@ -1,23 +1,23 @@
 <template>
   <div class="payment-vue">
     <div class="payment-form">
-        <h2>Payment Information</h2>
+        <h2>{{ $t('paymentInformationTitle') }}</h2>
         <div class="payment-method">
             <div>
               <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
-              <label for="payByCard">Pay by Card</label>
+              <label for="payByCard">{{ $t('paymentPayByCard') }}</label>
             </div>
             <div>
               <input type="radio" id="payByPayPal" value="paypal" v-model="paymentMethod"/>
-              <label for="payByPayPal">Pay with PayPal</label>
+              <label for="payByPayPal">{{ $t('paymentPayWithPaypal') }}</label>
             </div>
         </div>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
             <CreditCard />
-            <button class="btn primary_btn" type="submit">Pay by Card</button>
+            <button class="btn primary_btn" type="submit">{{ $t('paymentPayByCard') }}</button>
         </form>
         <div class="paypal" v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">
-          <button class="btn primary_btn">Pay with PayPal</button>
+          <button class="btn primary_btn">{{ $t('paymentPayWithPaypal') }}</button>
         </div>
         <div class="payment-icons">
           <img src="/visa-ico.png" class="payment-icon"/>

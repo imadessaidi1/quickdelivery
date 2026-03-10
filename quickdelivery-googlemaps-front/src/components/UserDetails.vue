@@ -1,7 +1,7 @@
 <template>
     <div class="user_details_group_">
         <div class="user_details">
-            <h3>User Info.</h3>
+            <h3>{{ $t('userInfo') }}</h3>
             <div class="details">
                 <div class="picture"><img :src="getPicture()" alt="personal image"></div>
                 <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
@@ -52,85 +52,67 @@ export default {
 <style>
 .picture{
     width: 100%;
+    padding-bottom: 4px;
 }
 .picture img{
     display: block;
-    width: 150px;
+    width: 128px;
     height: auto;
-    margin: 0 auto;
-    border: solid 2px black;
-    border-radius: 10px;
-}
-.conditionCheckbox_{
-  align-items: center;
-  padding: 0 0 0 20px;
-}
-.conditionCheckbox span{
-    font-size: 12px;
+    margin: 0 auto 4px;
+    border: 1px solid #dbe1ea;
+    border-radius: 50%;
+    background: #f8fafc;
 }
 .user_details_group_{
     width: 100%;
-    padding: 10px 15px;
+    padding: 0;
 }
 .user_details_group_ .user_details h3{
-    margin-left: 15px;
-    padding-left: 6px;
-    border-left: solid 3px #ff5e00;
+    margin: 0 0 10px;
+    padding-left: 8px;
+    border-left: solid 3px #10b3ff;
+    color: #0f172a;
+    font-size: 0.98rem;
+    line-height: 1.1;
 } 
-.user_details_group_ .user_details div{
-    padding: 6px 0 6.5px 0;
+.user_details_group_ .user_details{
+    padding: 12px 16px;
 }
 .user_details_group_ .user_details .details div{
-    font-size: 14px;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.35;
 }
-.user_profil_container .user_details_group_ .user_details:first-child{
-    border-bottom: solid 1px #d5d5d5;
+.user_details_group_ .user_details:first-child{
+    border-bottom: 1px solid #eef2f7;
 }
-.user_profil_container .user_details_group_{
-    width: 75%;
-    border-radius: 15px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.23);
-    background-color: #f9f9f9;
-}
-.user_profil_container .user_details_group_ .user_details .picture img{
-    border-radius: 50%;
-    border: none;
-    width: 200px;
-    height: 200px;
-}
-.mini_title{
-    padding-left: 10px;
-    font-size: 14px;
-    font-weight: 700;
-}
-.user_profil_container .user_details_group_ button{
-    display: block;
-    margin: 0 auto;
+.user_details_group_ button{
+    display: inline-block;
+    margin: 12px 16px 16px;
 }
 @media screen and (max-width: 1100px){
-    .user_details_group {
-        flex-direction: column;
-    }
-    .user_details_group .user_details{
-        width: 95%;
-        margin: 5px 0;
-    }
-    .user_details_group .user_details .details{
+    .user_details_group_ .user_details .details{
         width: 100%;
-        display: inline-grid;
+        display: grid;
         grid-template-columns: auto auto;
+        gap: 0 12px;
     }
-    .user_details_group .user_details .details div{
+    .user_details_group_ .user_details .details div{
         font-size: 13px;
     }
 }
 @media only screen and (max-width: 760px){
-  .user_profil_container .user_details_group_ .user_details{
-    padding: 15px;
+  .user_details_group_ .user_details{
+    padding: 12px;
+  }
+  .user_details_group_ button{
+    margin: 10px 12px 12px;
   }
 }
 @media screen and (max-width: 600px){
-    .user_details_group .user_details .details .long_text{
+    .user_details_group_ .user_details .details .long_text,
+    .user_details_group_ .user_details .details .picture{
         grid-column-start: 1;
         grid-column-end: 3;
     }

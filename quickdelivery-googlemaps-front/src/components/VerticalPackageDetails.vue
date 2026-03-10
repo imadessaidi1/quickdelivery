@@ -27,7 +27,7 @@
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>Nom complet:</strong> {{getDepartureAddress(this.package_.addresses).firstName}} {{getDepartureAddress(this.package_.addresses).lastName}}
+                    <strong>{{ $t('userFullName') }}:</strong> {{getDepartureAddress(this.package_.addresses).firstName}} {{getDepartureAddress(this.package_.addresses).lastName}}
                 </div>
                 <div>
                     <strong>{{$t('packageAddressPhone')}}:</strong> {{getDepartureAddress(this.package_.addresses).phone}}
@@ -48,7 +48,7 @@
             <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>Nom complet:</strong> {{getArrivalAddress(this.package_.addresses).firstName}} {{getArrivalAddress(this.package_.addresses).lastName}}
+                    <strong>{{ $t('userFullName') }}:</strong> {{getArrivalAddress(this.package_.addresses).firstName}} {{getArrivalAddress(this.package_.addresses).lastName}}
                 </div>
                 <div>
                     <strong>{{$t('packageAddressPhone')}}:</strong> {{getArrivalAddress(this.package_.addresses).phone}}

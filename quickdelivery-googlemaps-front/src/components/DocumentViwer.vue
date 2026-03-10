@@ -70,7 +70,11 @@ export default {
         currentDocInfo(){
             const documentType = Object.keys(this.documents)[this.currentDocIndex];
             const documentName = this.$t(documentType);
-            return `Document ${this.currentDocIndex + 1} of ${Object.keys(this.documents).length}: ${documentName}`;
+            return this.$t('documentPagerLabel', {
+                current: this.currentDocIndex + 1,
+                total: Object.keys(this.documents).length,
+                name: documentName,
+            });
         }
     },
 }
@@ -79,19 +83,28 @@ export default {
 .document-viewer {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   height: 100%;
+  min-height: 0;
   background-color: #323639;
   border-radius: 15px;
+  position: relative;
+  overflow: hidden;
 }
 .document-viewer iframe {
+  flex: 1;
   width: 100%;
-  height: 100%; /* Ajustez la hauteur de l'iframe selon vos besoins */
+  height: 100%;
+  min-height: 0;
   border: none;
 }
 .document_title{
-    margin: 10px 0;
+    margin: 8px 0;
+    color: #fff;
+    display: block;
+    width: 100%;
+    text-align: center;
 }
 .document_state {
   margin: 0 auto 10px auto;
@@ -127,6 +140,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   position: absolute;
+  left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
@@ -147,11 +161,6 @@ export default {
 }
 .nav_btn span{
     font-size: 26px;
-    color: #fff;
-}
-.information_viewer .document_title{
-    display: block;
-    margin: 10px 0;
     color: #fff;
 }
 </style>

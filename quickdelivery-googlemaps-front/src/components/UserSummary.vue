@@ -1,7 +1,7 @@
 <template>
     <div class="user_details_group">
         <div class="user_details">
-            <h3>User Info.</h3>
+            <h3>{{ $t('userInfo') }}</h3>
             <div class="details">
                 <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
@@ -39,14 +39,14 @@
         </div>
         <div class="user_details">
             <h3>{{$t('userDocuments')}}</h3>
-            <span class="mini_title">User Documents</span>
+            <span class="mini_title">{{ $t('userDocumentsUserSection') }}</span>
             <div class="details">
                 <div class="long_text" v-if="userDocuments['ID']"><strong>{{ $t('ID') }}:</strong> {{ userDocuments['ID'].name }}</div>
                 <div class="long_text" v-if="userDocuments['DRIVER_LICENCE']"><strong>{{ $t('DRIVER_LICENCE') }}:</strong> {{ userDocuments['DRIVER_LICENCE'].name }}</div>
                 <div class="long_text" v-if="userDocuments['USER_COMPANY_EXTRACT']"><strong>{{ $t('USER_COMPANY_EXTRACT') }}:</strong> {{ userDocuments['USER_COMPANY_EXTRACT'].name }}</div>
                 <div class="long_text" v-if="userDocuments['USER_COMPANY_INSURANCE']"><strong>{{ $t('USER_COMPANY_INSURANCE') }}:</strong> {{ userDocuments['USER_COMPANY_INSURANCE'].name }}</div>
             </div>
-            <span class="mini_title">Vehicle Documents</span>
+            <span class="mini_title">{{ $t('userDocumentsVehicleSection') }}</span>
             <div class="details">
                 <div class="long_text" v-if="vehicleDocuments['GRAY_CARD']"><strong>{{ $t('GRAY_CARD') }}:</strong> {{ vehicleDocuments['GRAY_CARD'].name }}</div>
                 <div class="long_text" v-if="vehicleDocuments['INSURANCE']"><strong>{{ $t('INSURANCE') }}:</strong> {{ vehicleDocuments['INSURANCE'].name }}</div>

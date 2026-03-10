@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>User Documents.</h2>
+        <h2>{{ $t('userDocumentsTitle') }}</h2>
         <div class="picture_file_container">
             <div class="input_only">
                 <label for="ID">{{$t('userDocumentID')}} :</label>

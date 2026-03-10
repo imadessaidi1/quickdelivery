@@ -3,9 +3,9 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu" ref="handleClickOutsideBurgerMenu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span v-if="canSeeHome" class="infobull" data-tooltip='Home page'><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
-        <span v-if="canSeeMyPackages" class="infobull" data-tooltip='My packages'><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined" data-tooltip="My packages">deployed_code_account</li></router-link></span>
-        <span v-if="canSeeCreatePackage" class="infobull" data-tooltip='New package'><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined" data-tooltip="new package">box_add</li></router-link></span>
+        <span v-if="canSeeHome" class="infobull" :data-tooltip="$t('menuTooltipHome')"><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span v-if="canSeeMyPackages" class="infobull" :data-tooltip="$t('menuTooltipMyPackages')"><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined">deployed_code_account</li></router-link></span>
+        <span v-if="canSeeCreatePackage" class="infobull" :data-tooltip="$t('menuTooltipNewPackage')"><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined">box_add</li></router-link></span>
       </ul>
      </div>
     <transition name="fade">
@@ -39,7 +39,7 @@
         <button class="btn primary_btn" @click="searchInMap">{{ $t('actionSearch') }}</button>
     </div>
 
-    <span class="infobull" data-tooltip='Account' ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
+    <span class="infobull" :data-tooltip="$t('menuTooltipAccount')" ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
   </div>
 </template>
 

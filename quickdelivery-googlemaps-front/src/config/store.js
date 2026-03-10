@@ -132,7 +132,7 @@ export default createStore({
               userRIB: {},
               packagesLastPosition: [],
               location: 'mapPage',
-              mapSearchRadius: 30000,
+              mapSearchRadius: 10000,
   },
   mutations: {
       updatePackage(state, updatedPackage) {

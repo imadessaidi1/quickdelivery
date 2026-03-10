@@ -5,12 +5,15 @@
       <button class="mode-btn" :class="{ active: mobileViewMode === 'list' }" @click="mobileViewMode = 'list'">{{ $t('mobileModeList') }}</button>
     </div>
     <div v-if="!isMobile" class="carousel-toolbar">
-      <div class="radius-group">
-        <button class="btn radius-btn" :class="{ active: searchRadius === 30000 }" @click="updateRadius(30000)">30km</button>
-        <button class="btn radius-btn" :class="{ active: searchRadius === 100000 }" @click="updateRadius(100000)">100km</button>
-        <button class="btn radius-btn" :class="{ active: searchRadius === 300000 }" @click="updateRadius(300000)">300km</button>
+      <div class="radius-block">
+        <span class="radius-label">{{ $t('mapSearchRadiusLabel') }}</span>
+        <div class="radius-group">
+          <button class="btn radius-btn" :class="{ active: searchRadius === 10000 }" @click="updateRadius(10000)">10km</button>
+          <button class="btn radius-btn" :class="{ active: searchRadius === 20000 }" @click="updateRadius(20000)">20km</button>
+          <button class="btn radius-btn" :class="{ active: searchRadius === 30000 }" @click="updateRadius(30000)">30km</button>
+        </div>
       </div>
-      <button class="btn primary_btn" @click="refreshWithCurrentRadius">{{ $t('actionRefresh') }}</button>
+      <button class="btn primary_btn refresh-btn" @click="refreshWithCurrentRadius">{{ $t('actionRefresh') }}</button>
     </div>
     <div v-if="isLoadingPackages" class="carousel-state">{{ $t('stateLoadingPackagesAround') }}</div>
     <div v-else-if="loadError" class="carousel-state error">{{ $t('stateLoadError') }}</div>
@@ -120,7 +123,7 @@ export default {
       positionData: null,
       selectedPackageId: null,
       onMyRoadPackageIds: [],
-      searchRadius: this.$store.state.mapSearchRadius || 30000,
+      searchRadius: this.$store.state.mapSearchRadius || 10000,
       isLoadingPackages: false,
       loadError: false,
       isMobile: window.innerWidth < 768,
@@ -320,8 +323,12 @@ export default {
         this.addressCriteria = null;
         try {
           this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(JSON.stringify(this.positionData), "*");
-          const url = 'packages-around-me?latitude='+positionData.actuallatitude+'&longitude='+positionData.actuallongitude+'&rayonEnMetres='+this.searchRadius;
-          const response = await http.get(this.$i18n.t('rootURL')+url);
+          const url = this.$i18n.t('rootURL')
+            + this.$i18n.t('getPackagesAroundMe')
+            + positionData.actuallatitude
+            + '&longitude=' + positionData.actuallongitude
+            + '&rayonEnMetres=' + this.searchRadius;
+          const response = await http.get(url);
           this.packagesList = Array.isArray(response.data) ? response.data : [];
           this.onMyRoadPackageIds = [];
           this.selectedPackageId = this.packagesList.length > 0 ? this.packagesList[0].id : null;
@@ -444,6 +451,18 @@ export default {
   box-shadow: 0 10px 24px rgba(18, 25, 38, 0.06);
   backdrop-filter: blur(2px);
 }
+.radius-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radius-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
 .radius-group {
   display: flex;
   gap: 6px;
@@ -461,6 +480,21 @@ export default {
   background: #eef2ff;
   border-color: #b8c3dd;
   font-weight: 700;
+}
+
+.refresh-btn {
+  min-width: 112px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.refresh-btn:hover {
+  background: #0f172a;
 }
 .carousel-state {
   padding: 10px;
@@ -537,6 +571,9 @@ export default {
 .vertical-slide-window {
   flex: 1;
   min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .v-nav {
   display: inline-flex;
@@ -674,6 +711,9 @@ export default {
   .radius-group {
     width: 100%;
     justify-content: space-between;
+  }
+  .radius-block {
+    width: 100%;
   }
   .radius-btn {
     flex: 1;

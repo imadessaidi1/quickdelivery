@@ -1,14 +1,24 @@
 <template>
-    <div class="user_profil_container">
-        <div class="information_viewer">
-          <div class="user_details_component">
-              <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
+  <div class="user-profile-layout">
+    <div class="information-viewer">
+      <div class="user-details-shell">
+        <div class="panel-card">
+          <div class="panel-head">
+            <h2>{{ $t('userInfo') || 'Informations' }}</h2>
           </div>
-          <div class="document_viewer">
-              <DocumentViewer :documents = "selectedUser.document"/>
+          <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
+        </div>
+      </div>
+      <div class="document-viewer">
+        <div class="panel-card panel-card-fill">
+          <div class="panel-head">
+            <h2>{{ $t('userDocuments') }}</h2>
           </div>
+          <DocumentViewer :documents="selectedUser.document"/>
+        </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -31,25 +41,56 @@ export default {
 }
 </script>
 <style scoped>
-  .user_profil_container{
-    width: 1150px;
-    margin: 0 auto; 
-  }
-  /**modal part */
-  .information_viewer{
-    padding: 20px 0;
-    display: flex;
-    justify-content: space-between;
+.user-profile-layout {
+  width: 100%;
 }
-.information_viewer .user_details_component{
-  width: 35%;
-  height: 95%;
+
+.information-viewer {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.user-details-shell,
+.document-viewer {
+  min-width: 0;
+}
+
+.panel-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   overflow: hidden;
+  width: 100%;
 }
-.information_viewer .document_viewer {
-  width: 65%;
+
+.panel-card-fill {
+  min-height: 100%;
+  width: 100%;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.document-viewer {
   position: relative;
 }
+
 .modal {
   position: fixed;
   top: 0;
@@ -107,31 +148,14 @@ export default {
   margin: 5px auto;
 }
 @media only screen and (max-width: 1150px){
-  .user_profil_container{
-    width: 95%;
-  }
-  .user_profil_container .user_details_group_ {
-    width: 85%;
+  .information-viewer {
+    grid-template-columns: 1fr;
   }
 }
 @media only screen and (max-width: 760px){
-  .information_viewer{
-    flex-direction: column;
-  }
-  .user_details_component{
-      width: 100% !important;
-  }
-  .user_details_group_{
-    width: 100% !important;
-    padding: 0 0 15px 0;
-    margin: 0 0 15px 0;
-  }
-  .user_profil_container .user_details_group_ .user_details{
-    padding: 15px 0 !important;
-  }
-  .user_profil_container .information_viewer .document_viewer{
+  .information-viewer .document-viewer{
     width: 100%;
-    height: 700px;
+    min-height: 560px;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div class="vehicle-form">
-        <h2>Vehicle info.</h2>
+        <h2>{{ $t('userVehicleInfoTitle') }}</h2>
     <div class="input_container">
         <div class="input_only">
             <label for="registrationNumber">{{$t('userVehicleRegistration')}}:</label>
@@ -22,12 +22,12 @@
         <div class="input_only">
             <label for="energyType">{{$t('userVehicleEnergy')}}:</label>
             <select id="energyType" v-model="vehicle.energyType">
-                <option value="ELECTRIC">Electric</option>
-                <option value="HYBRID">Hybrid</option>
-                <option value="METHANE">Methane</option>
-                <option value="ETHANOL">Ethanol</option>
-                <option value="GASOLINE">Gasoline</option>
-                <option value="DIESEL">Diesel</option>
+                <option value="ELECTRIC">{{ $t('ELECTRIC') }}</option>
+                <option value="HYBRID">{{ $t('HYBRID') }}</option>
+                <option value="METHANE">{{ $t('METHANE') }}</option>
+                <option value="ETHANOL">{{ $t('ETHANOL') }}</option>
+                <option value="GASOLINE">{{ $t('GASOLINE') }}</option>
+                <option value="DIESEL">{{ $t('DIESEL') }}</option>
             </select>
         </div>
     </div>

@@ -1,107 +1,69 @@
 <template>
-    <div>
-        <h2>{{ $t('userDocumentsTitle') }}</h2>
-        <div class="picture_file_container">
-            <div class="input_only">
-                <label for="ID">{{$t('userDocumentID')}} :</label>
-                <input  ref="fileInput0"
-                        :id="ID"
-                        type="file"
-                        accept="image/*, application/pdf"
-                @change="handleUserFileChange(0, 'ID')"
-                />
-                <br/><span v-if="userDocuments && userDocuments['ID'] != undefined"><strong>{{userDocuments['ID'].name}}</strong>
-                <span v-if="userDocuments['ID'].documentStatus === 'REJECTED'">❌</span>
-                <span v-if="userDocuments['ID'].documentStatus === 'ACCEPTED'">✅</span></span>
-                <span v-if="filesErrorMessages['ID']" class="errorMessage" >{{filesErrorMessages['ID']}}</span>
-            </div>
-            <div class="input_only">
-                <label for="PICTURE">{{$t('PICTURE')}} :</label>
-                <input  ref="fileInput4"
-                        :id="PICTURE"
-                        type="file"
-                        accept="image/*"
-                @change="handleUserFileChange(4, 'PICTURE')"
-                />
-                <br/><span v-if="userDocuments && userDocuments['PICTURE'] != undefined"><strong>{{userDocuments['PICTURE'].name}}</strong>
-                <span v-if="userDocuments['PICTURE'].documentStatus === 'REJECTED'">❌</span>
-                <span v-if="userDocuments['PICTURE'].documentStatus === 'ACCEPTED'">✅</span></span>
-                <span v-if="filesErrorMessages['PICTURE']" class="errorMessage" >{{filesErrorMessages['PICTURE']}}</span>
-            </div>
-            <div class="input_only">
-                <label for="DRIVER_LICENCE">{{$t('userDocumentDriverLicence')}} :</label>
-                <input  ref="fileInput1"
-                        :id="DRIVER_LICENCE"
-                        type="file"
-                        accept="image/*, application/pdf"
-                @change="handleUserFileChange(1,'DRIVER_LICENCE')"
-                />
-                <br/><span v-if="userDocuments && userDocuments['DRIVER_LICENCE'] != undefined"><strong>{{userDocuments['DRIVER_LICENCE'].name}}</strong>
-                <span v-if="userDocuments['DRIVER_LICENCE'].documentStatus === 'REJECTED'">❌</span>
-                <span v-if="userDocuments['DRIVER_LICENCE'].documentStatus === 'ACCEPTED'">✅</span></span>
-                <span v-if="filesErrorMessages['DRIVER_LICENCE']" class="errorMessage" >{{filesErrorMessages['DRIVER_LICENCE']}}</span>
-            </div>
-            <div class="input_only">
-                <label for="USER_COMPANY_EXTRACT">{{$t('userDocumentCompanyExtract')}} :</label>
-                <input  ref="fileInput2"
-                        :id="USER_COMPANY_EXTRACT"
-                        type="file"
-                        accept="image/*, application/pdf"
-                @change="handleUserFileChange(2, 'USER_COMPANY_EXTRACT')"
-                />
-                <br/><span v-if="userDocuments && userDocuments['USER_COMPANY_EXTRACT'] != undefined"><strong>{{userDocuments['USER_COMPANY_EXTRACT'].name}}</strong>
-                <span v-if="userDocuments['USER_COMPANY_EXTRACT'].documentStatus === 'REJECTED'">❌</span>
-                <span v-if="userDocuments['USER_COMPANY_EXTRACT'].documentStatus === 'ACCEPTED'">✅</span></span>
-                <span v-if="filesErrorMessages['USER_COMPANY_EXTRACT']" class="errorMessage" >{{filesErrorMessages['USER_COMPANY_EXTRACT']}}</span>
-            </div>
-            <div class="input_only">
-                <label for="USER_COMPANY_INSURANCE">{{$t('userDocumentCompanyInsurance')}} :</label>
-                <input  ref="fileInput3"
-                        :id="USER_COMPANY_INSURANCE"
-                        type="file"
-                        accept="image/*, application/pdf"
-                @change="handleUserFileChange(3, 'USER_COMPANY_INSURANCE')"
-                />
-                <br/><span v-if="userDocuments && userDocuments['USER_COMPANY_INSURANCE'] != undefined"><strong>{{userDocuments['USER_COMPANY_INSURANCE'].name}}</strong>
-                <span v-if="userDocuments['USER_COMPANY_INSURANCE'].documentStatus === 'REJECTED'">❌</span>
-                <span v-if="userDocuments['USER_COMPANY_INSURANCE'].documentStatus === 'ACCEPTED'">✅</span></span>
-                <span v-if="filesErrorMessages['USER_COMPANY_INSURANCE']" class="errorMessage" >{{filesErrorMessages['USER_COMPANY_INSURANCE']}}</span>
-            </div>
-        </div>
-        <div>
-            <h2>{{$t('userPaymentModes')}}</h2>
-            <div class="user-payment-method">
-                <label for="card-option">
-                    <input type="radio" id="card-option" name="payment-type" v-model="selectedPaymentType" value="CARD"/>
-                    {{$t('userPaymentCreditCard')}}
-                </label>
-                <label for="iban-option">
-                    <input type="radio" id="iban-option" name="payment-type" v-model="selectedPaymentType" value="IBAN"/>
-                    {{$t('userIBAN')}}
-                </label>
-                <label for="paypal-option">
-                    <input type="radio" id="paypal-option" name="payment-type" v-model="selectedPaymentType" value="PAYPAL"/>
-                    {{$t('userPayPal')}}
-                </label>
-            </div>
-            <div class="payment-details">
-                <CreditCard v-if="selectedPaymentType === 'CARD'"></CreditCard>
-                <IBAN v-if="selectedPaymentType === 'IBAN'" :filesErrorMessages = "filesErrorMessages"></IBAN>
-            </div>
-        </div>
+  <div class="documents-step">
+    <section class="section-head">
+      <span class="eyebrow">{{ $t('wizardUserStepDocs') }}</span>
+      <h3>{{ $t('userRegistrationDocumentsTitle') }}</h3>
+      <p>{{ $t('userRegistrationDocumentsSubtitle') }}</p>
+    </section>
+
+    <div class="upload-grid">
+      <label v-for="document in visibleDocuments" :key="document.key" class="upload-card">
+        <span>{{ $t(document.label) }}</span>
+        <input
+          :ref="document.ref"
+          type="file"
+          :accept="document.accept"
+          @change="handleUserFileChange(document.ref, document.key)"
+        >
+        <strong>{{ fileName(document.key) }}</strong>
+        <small v-if="documentStatus(document.key)">{{ documentStatus(document.key) }}</small>
+        <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
+      </label>
     </div>
+
+    <section class="payment-card">
+      <div class="section-head compact">
+        <span class="eyebrow">{{ $t('userPaymentModes') }}</span>
+        <h3>{{ $t('userRegistrationPaymentTitle') }}</h3>
+      </div>
+
+      <div class="payment-toggle">
+        <label v-for="option in paymentOptions" :key="option.value" class="toggle-option" :class="{ active: internalSelectedPaymentType === option.value }">
+          <input v-model="internalSelectedPaymentType" type="radio" name="payment-type" :value="option.value">
+          <span>{{ $t(option.label) }}</span>
+        </label>
+      </div>
+
+      <div class="payment-pane">
+        <CreditCard v-if="internalSelectedPaymentType === 'CARD'" />
+        <IBAN v-if="internalSelectedPaymentType === 'IBAN'" :files-error-messages="filesErrorMessages" :is-for-update="isForUpdate" />
+        <div v-if="internalSelectedPaymentType === 'PAYPAL'" class="paypal-panel">
+          {{ $t('userRegistrationPaypalHint') }}
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
+
 <script>
 import CreditCard from './CreditCard.vue';
 import IBAN from './IbanBank.vue';
-import { ref } from 'vue';
+
 export default {
+  emits: ['update:selectedPaymentType'],
   components: {
     CreditCard,
     IBAN,
   },
   props: {
-    isForUpdate: ref(false),
+    isForUpdate: {
+      type: Boolean,
+      default: false,
+    },
+    selectedPaymentType: {
+      type: String,
+      default: 'CARD',
+    },
   },
   computed: {
     user() {
@@ -110,52 +72,199 @@ export default {
     userDocuments() {
       return this.$store.state.userDocuments;
     },
+    visibleDocuments() {
+      const isDeliveryPerson = this.user.type === 'DELIVERY_PERSON';
+      return [
+        { key: 'ID', label: 'userDocumentID', ref: 'fileInputID', accept: 'image/*, application/pdf' },
+        { key: 'PICTURE', label: 'PICTURE', ref: 'fileInputPICTURE', accept: 'image/*' },
+        ...(isDeliveryPerson ? [
+          { key: 'DRIVER_LICENCE', label: 'userDocumentDriverLicence', ref: 'fileInputDRIVER_LICENCE', accept: 'image/*, application/pdf' },
+          { key: 'USER_COMPANY_EXTRACT', label: 'userDocumentCompanyExtract', ref: 'fileInputUSER_COMPANY_EXTRACT', accept: 'image/*, application/pdf' },
+          { key: 'USER_COMPANY_INSURANCE', label: 'userDocumentCompanyInsurance', ref: 'fileInputUSER_COMPANY_INSURANCE', accept: 'image/*, application/pdf' },
+        ] : []),
+      ];
+    },
   },
   data() {
     return {
-      selectedPaymentType: '',
-      ID: 'ID',
-      DRIVER_LICENCE: 'DRIVER_LICENCE',
-      USER_COMPANY_EXTRACT: 'USER_COMPANY_EXTRACT',
-      USER_COMPANY_INSURANCE: 'USER_COMPANY_INSURANCE',
-      PICTURE: 'PICTURE',
       filesErrorMessages: [],
+      internalSelectedPaymentType: 'CARD',
+      paymentOptions: [
+        { value: 'CARD', label: 'userPaymentCreditCard' },
+        { value: 'IBAN', label: 'userIBAN' },
+        { value: 'PAYPAL', label: 'userPayPal' },
+      ],
     };
   },
-  methods: {
-    handleUserFileChange(index, type) {
-      const fileInput = this.$refs[`fileInput${index}`];
-      const file_ = fileInput.files[0];
-      if (file_) {
-        if(this.isForUpdate){
-            this.userDocuments[type] = {file: file_, name: file_.name, documentStatus: 'UPDATED'};
-        }else{
-            this.userDocuments[type] = {file: file_, name: file_.name, documentStatus: 'ACCEPTED'};
-        }
-      }
+  mounted() {
+    if (this.user.paymentModes?.IBAN?.iban) {
+      this.internalSelectedPaymentType = 'IBAN';
+    } else if (this.user.paymentModes?.CREDIT_CARD?.cardNumber) {
+      this.internalSelectedPaymentType = 'CARD';
+    } else {
+      this.internalSelectedPaymentType = this.selectedPaymentType;
+    }
+    this.$emit('update:selectedPaymentType', this.internalSelectedPaymentType);
+  },
+  watch: {
+    selectedPaymentType(value) {
+      this.internalSelectedPaymentType = value || 'CARD';
+    },
+    internalSelectedPaymentType(value) {
+      this.$emit('update:selectedPaymentType', value);
     },
   },
-}
+  methods: {
+    handleUserFileChange(refName, type) {
+      const file = this.$refs[refName]?.[0]?.files?.[0] || this.$refs[refName]?.files?.[0];
+      if (!file) {
+        return;
+      }
+      this.userDocuments[type] = {
+        file,
+        name: file.name,
+        documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
+      };
+    },
+    fileName(type) {
+      return this.userDocuments?.[type]?.name || this.$t('packageDocumentMissing');
+    },
+    documentStatus(type) {
+      const status = this.userDocuments?.[type]?.documentStatus;
+      if (!status || status === 'UPDATED') {
+        return '';
+      }
+      return this.$t(status);
+    },
+  },
+};
 </script>
-<style>
-.user-payment-method {
-  width: 50%;
-  margin: 0 auto 10px auto;
-  display: flex;
-  justify-content: space-evenly;
+
+<style scoped>
+.documents-step {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
 }
-.user-payment-method label{
-  font-size: 12px;
-  display: flex;
+
+.documents-step,
+.documents-step * {
+  box-sizing: border-box;
+}
+
+.section-head h3 {
+  margin: 6px 0 8px;
+  font-size: 1.4rem;
+  color: #14213d;
+}
+
+.section-head p {
+  margin: 0;
+  color: #617086;
+}
+
+.section-head.compact {
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  display: inline-flex;
   align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #27548a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
-.user-payment-method input{
-  margin-right: 5px;
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.upload-card,
+.payment-card {
+  padding: 18px;
+  border: 1px solid #dde5f0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 18px 38px rgba(24, 39, 75, 0.07);
+}
+
+.upload-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.upload-card span {
+  color: #14213d;
+  font-weight: 700;
+}
+
+.upload-card strong {
+  color: #2b5a96;
+  word-break: break-word;
+}
+
+.upload-card small {
+  color: #617086;
+}
+
+.payment-toggle {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.toggle-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #d7dfeb;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #24364f;
+}
+
+.toggle-option.active {
+  border-color: #1f4f89;
+  background: #edf4ff;
+}
+
+.toggle-option input {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.paypal-panel {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  color: #617086;
+}
+
+.errorMessage {
   display: block;
+  font-size: 0.78rem;
+  color: #b42318;
+  word-break: break-word;
 }
-@media screen and (max-width: 600px) {
-  .user-payment-method{
-    width: 100%;
+
+@media screen and (max-width: 1180px) {
+  .upload-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 860px) {
+  .upload-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -1,455 +1,617 @@
 <template>
-    <div class="user_creation_main">
-        <div class="user-form">
-            <Form @submit="submitFormUser" ref="userCreationForm">
-                <div class="wizard-steps">
-                    <div class="step" :class="stepClass(1)">{{ $t('wizardUserStepInfo') }}</div>
-                    <div class="step" :class="stepClass(2)">{{ $t('wizardUserStepDocs') }}</div>
-                    <div class="step" :class="stepClass(3)">{{ $t('wizardUserStepVehicle') }}</div>
-                    <div class="step" :class="stepClass(4)">{{ $t('wizardUserStepSummary') }}</div>
-                </div>
-                <div class="components" v-if="currentStep === 1">
-                    <UserInfo ref="userInfo" :isForUpdate="id"/>
-                </div>
-                <div class="components" v-if="currentStep === 2">
-                    <UserDocuments ref="userDocuments" :isForUpdate="id"/>
-                </div>
-                <div class="components" v-if="currentStep === 3">
-                    <UserVehicleInfo ref="vehicleInfo" :isForUpdate="id"/>
-                </div>
-                <div class="components" v-if="currentStep === 4">
-                  <h2>{{$t('packageSummaryAction')}}</h2>
-                    <UserSummary ref="userSummary" />
-                </div>
-                <br/>
-                <button class="btn primary_btn" type="button" @click="previousStep" v-show="currentStep > 1">{{$t('packagePreviousAction')}}</button>
-                <button class="btn primary_btn" type="submit" v-show="currentStep < 3">{{$t('packageNextAction')}}</button>
-                <button class="btn primary_btn" type="submit" v-show="currentStep === 3">{{$t('packageSummaryAction')}}</button>
-                <button class="btn primary_btn" type="submit" v-show="currentStep === 4">{{$t('userCreateAction')}}</button>
-            </Form>
+  <div class="user-registration-page">
+    <header class="page-header">
+      <div>
+        <span class="page-chip">{{ $t('menuUserSignin') }}</span>
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ pageSubtitle }}</p>
+      </div>
+    </header>
+
+    <Form class="wizard-shell" @submit="handleStepSubmit">
+      <aside class="wizard-sidebar">
+        <button
+          v-for="step in steps"
+          :key="step.id"
+          class="wizard-step"
+          :class="stepState(step.id)"
+          type="button"
+        >
+          <span class="step-index">{{ step.id }}</span>
+          <span class="step-copy">
+            <strong>{{ $t(step.label) }}</strong>
+            <small>{{ $t(step.subtitle) }}</small>
+          </span>
+        </button>
+      </aside>
+
+      <section class="wizard-card">
+        <div class="card-header">
+          <div>
+            <span class="eyebrow">{{ currentStepMeta.id }}/{{ steps.length }}</span>
+            <h2>{{ $t(currentStepMeta.title) }}</h2>
+            <p>{{ $t(currentStepMeta.subtitle) }}</p>
+          </div>
         </div>
-    </div>
+
+        <div class="card-content">
+          <UserInfo v-if="currentStep === 1" ref="userInfo" :is-for-update="isForUpdate" />
+          <UserAddressStep v-else-if="currentStep === 2" ref="userAddress" />
+          <UserDocuments
+            v-else-if="currentStep === 3"
+            ref="userDocuments"
+            v-model:selected-payment-type="selectedPaymentType"
+            :is-for-update="isForUpdate"
+          />
+          <UserVehicleInfo v-else-if="currentStep === 4" ref="vehicleInfo" :is-for-update="isForUpdate" />
+          <UserSummary v-else ref="userSummary" :selected-payment-type="selectedPaymentType" />
+        </div>
+
+        <footer class="card-actions">
+          <button v-if="currentStep > 1" class="btn primary_btn wizard-action-btn" type="button" @click="previousStep">
+            {{ $t('createPackageBackAction') }}
+          </button>
+          <button class="btn primary_btn wizard-action-btn" type="submit">
+            {{ currentStep === steps.length ? submitLabel : $t('packageNextAction') }}
+          </button>
+        </footer>
+      </section>
+    </Form>
+  </div>
 </template>
 
 <script>
-import UserInfo from '../components/UserInfo.vue';
-import UserVehicleInfo from '../components/UserVehicleInfo.vue';
-import UserDocuments from '../components/UserDocuments.vue';
-import UserSummary from '../components/UserSummary.vue';
-import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
-import { validatePasswordConfirmation, validateAddress, validateEmailConfirmation, validatePhoneConfirmation, validateFileInput } from '@/config/comonFunction';
+import http from '@/config/httpInterceptor';
+import { validateAddress, validateEmailConfirmation, validateFileInput, validatePasswordConfirmation, validatePhoneConfirmation } from '@/config/comonFunction';
+import UserAddressStep from '../components/UserAddressStep.vue';
+import UserDocuments from '../components/UserDocuments.vue';
+import UserInfo from '../components/UserInfo.vue';
+import UserSummary from '../components/UserSummary.vue';
+import UserVehicleInfo from '../components/UserVehicleInfo.vue';
+
+const EMPTY_USER = {
+  id: null,
+  version: null,
+  type: 'DELIVERY_PERSON',
+  firstName: '',
+  lastName: '',
+  age: null,
+  birthDate: null,
+  sex: '',
+  emailAddress: '',
+  emailAddressValidation: false,
+  phone: '',
+  phoneValidation: false,
+  activeAccount: false,
+  password: '',
+  passwordConfirmation: '',
+  emailAddressConfirmation: '',
+  phoneConfirmation: '',
+  addressAuto: '',
+  personalAddress: [
+    {
+      id: null,
+      version: null,
+      firstName: '',
+      lastName: '',
+      line1: '',
+      line2: '',
+      town: '',
+      zipCode: '',
+      country: '',
+      floor: 0,
+      dateTime: null,
+      type: 'RESIDENCE',
+      latitude: 0,
+      longitude: 0,
+      email: '',
+      phone: '',
+    },
+  ],
+  documents: [],
+  paymentModes: {
+    CREDIT_CARD: {
+      holderNam: '',
+      cardNumber: '',
+      expiryDate: '',
+      cvv: '',
+    },
+    IBAN: {
+      iban: '',
+      bic: '',
+    },
+  },
+};
+
+const EMPTY_VEHICLE = {
+  registrationNumber: '',
+  brand: '',
+  model: '',
+  energyType: '',
+  vehicleDocuments: {},
+};
 
 export default {
   components: {
-    UserInfo,
-    UserVehicleInfo,
     Form,
+    UserInfo,
+    UserAddressStep,
     UserDocuments,
+    UserVehicleInfo,
     UserSummary,
   },
   props: {
-    id: String
+    id: String,
   },
   data() {
     return {
       currentStep: 1,
       isForUpdate: false,
-      emptyUser: {
-                id: null,
-                version: null,
-                type: 'DELIVERY_PERSON',
-                firstName: '',
-                lastName: '',
-                age: null,
-                birthDate: null,
-                sex: '',
-                emailAddress: '',
-                emailAddressValidation: false,
-                phone: '',
-                phoneValidation: false,
-                activeAccount: false,
-                password: '',
-                passwordConfirmation: '',
-                emailAddressConfirmation: '',
-                phoneConfirmation:'',
-                addressAuto: '',
-                personalAddress: [
-                  {
-                    id: null,
-                    version: null,
-                    firstName: '',
-                    lastName: '',
-                    line1: '',
-                    line2: '',
-                    town: '',
-                    zipCode: '',
-                    country: '',
-                    floor: 0,
-                    dateTime: null,
-                    type: 'RESIDENCE',
-                    latitude: 0,
-                    longitude: 0,
-                    email: '',
-                    phone: ''
-                  }
-                ],
-                documents: [],
-                paymentModes: {
-                    "CREDIT_CARD": {
-                                     cardNumber: '',
-                                     expiryDate: '',
-                                     cvv: '',
-                                    },
-                    "IBAN": {
-                             iban: '',
-                             bic: '',
-                            },
-                },
-      },
-      emptyVehicle: {
-                  registrationNumber: '',
-                  brand: '',
-                  model: '',
-                  energyType: '',
-                  vehicleDocuments: []
-              },
+      selectedPaymentType: 'CARD',
+      steps: [
+        { id: 1, label: 'wizardUserStepInfo', title: 'userRegistrationProfileTitle', subtitle: 'userRegistrationProfileSubtitle' },
+        { id: 2, label: 'wizardUserStepAddress', title: 'userRegistrationAddressTitle', subtitle: 'userRegistrationAddressSubtitle' },
+        { id: 3, label: 'wizardUserStepDocs', title: 'userRegistrationDocumentsTitle', subtitle: 'userRegistrationDocumentsSubtitle' },
+        { id: 4, label: 'wizardUserStepVehicle', title: 'userRegistrationVehicleTitle', subtitle: 'userRegistrationVehicleSubtitle' },
+        { id: 5, label: 'wizardUserStepSummary', title: 'userRegistrationConfirmTitle', subtitle: 'userRegistrationConfirmSubtitle' },
+      ],
     };
   },
-   mounted() {
-    if(this.id){
-        this.isForUpdate = true;
-        http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail')+this.id)
-          .then(response => {
-            this.$store.commit('updateUser', response.data);
-            this.$store.commit('updateVehicle', response.data.vehicles[0]);
-            let userDocument = [];
-            userDocument['ID'] = {name:'ID' , documentStatus: response.data.document['ID'].documentStatus};
-            userDocument['PICTURE'] = {name:'PICTURE' , documentStatus: response.data.document['PICTURE'].documentStatus};
-            userDocument['DRIVER_LICENCE'] = {name:'DRIVER_LICENCE' , documentStatus: response.data.document['DRIVER_LICENCE'].documentStatus};
-            userDocument['USER_COMPANY_EXTRACT'] = {name:'USER_COMPANY_EXTRACT' , documentStatus: response.data.document['USER_COMPANY_EXTRACT'].documentStatus};
-            userDocument['USER_COMPANY_INSURANCE'] = {name:'USER_COMPANY_INSURANCE' , documentStatus: response.data.document['USER_COMPANY_INSURANCE'].documentStatus};
-            if(response.data.document['RIB']){
-                userDocument['RIB'] = {name:'BANK ID' , documentStatus: response.data.document['RIB'].documentStatus};
-            }
-            this.$store.commit('updateUserDocuments', userDocument);
-            let vehicleDocuments = [];
-            vehicleDocuments['GRAY_CARD'] = {name:'GRAY_CARD' , documentStatus: response.data.document['GRAY_CARD'].documentStatus};
-            vehicleDocuments['INSURANCE'] = {name:'INSURANCE' , documentStatus: response.data.document['INSURANCE'].documentStatus};
-            this.$store.commit('updateVehicleDocuments', vehicleDocuments);
-        }).catch(() => {
-          console.error("Unable to process your request this time. Please try again later.");
-        });
-    }else{
-        this.isForUpdate = false;
+  computed: {
+    currentStepMeta() {
+      return this.steps.find((step) => step.id === this.currentStep) || this.steps[0];
+    },
+    pageTitle() {
+      return this.isForUpdate ? this.$t('userRegistrationUpdateTitle') : this.$t('userRegistrationPageTitle');
+    },
+    pageSubtitle() {
+      return this.isForUpdate ? this.$t('userRegistrationUpdateSubtitle') : this.$t('userRegistrationPageSubtitle');
+    },
+    submitLabel() {
+      return this.isForUpdate ? this.$t('userAccountUpdate') : this.$t('userCreateAction');
+    },
+    user() {
+      return this.$store.state.user;
+    },
+  },
+  mounted() {
+    this.initializeStore();
+
+    if (this.id) {
+      this.isForUpdate = true;
+      this.loadUserForUpdate();
     }
   },
   methods: {
-    stepClass(stepNumber) {
-        if (this.currentStep === stepNumber) {
-            return 'active';
-        }
-        if (this.currentStep > stepNumber) {
-            return 'done';
-        }
-        return '';
+    stepState(stepId) {
+      if (this.currentStep === stepId) {
+        return 'active';
+      }
+      if (this.currentStep > stepId) {
+        return 'done';
+      }
+      return '';
     },
-    validatePasswordConfirmation,
-    validateEmailConfirmation,
-    validateAddress,
-    validatePhoneConfirmation,
-    validateFileInput,
-    async nextStep() {
-        if (this.currentStep < 4) {
-            if(this.currentStep === 1){
-                const userInfo = this.$refs.userInfo;
-                const addressAuto = userInfo.$refs.addressAutoComplete;
-                if(!this.isForUpdate){
-                    userInfo.user.addressAuto = addressAuto.address;
-                }
-                let validAddress = false;
-                let existingEmail = false
-                if(!this.isForUpdate){
-                    validAddress = validateAddress(userInfo.user.addressAuto);
-                    existingEmail = await this.existingEmail(userInfo.user.emailAddress);
-                }else{
-                    validAddress=true;
-                    existingEmail = false;
-                }
-                const validPasswordConfirm = validatePasswordConfirmation(userInfo.user.password, userInfo.user.passwordConfirmation);
-                const validEmailConfirmation = validateEmailConfirmation(userInfo.user.emailAddress, userInfo.user.emailAddressConfirmation);
-                const validPhoneConfirmation = validatePhoneConfirmation(userInfo.user.phone, userInfo.user.phoneConfirmation);
+    initializeStore() {
+      this.$store.commit('updateUser', JSON.parse(JSON.stringify(EMPTY_USER)));
+      this.$store.commit('updateVehicle', JSON.parse(JSON.stringify(EMPTY_VEHICLE)));
+      this.$store.commit('updateUserDocuments', []);
+      this.$store.commit('updateVehicleDocuments', []);
+      this.selectedPaymentType = 'CARD';
+    },
+    loadUserForUpdate() {
+      http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + this.id)
+        .then((response) => {
+          this.$store.commit('updateUser', response.data);
+          this.$store.commit('updateVehicle', response.data.vehicles?.[0] || JSON.parse(JSON.stringify(EMPTY_VEHICLE)));
 
-                if(!validPasswordConfirm){
-                    userInfo.isPasswordConfirmationError = true;
-                    userInfo.passwordConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('PasswordConfirmation');
-                }else{
-                    userInfo.isPasswordConfirmationError = false;
-                }
-                if(existingEmail){
-                    userInfo.isExistingEmail = true;
-                    userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
-                }
-                else{
-                    userInfo.isExistingEmail = false;
-                }
-                if(!validEmailConfirmation){
-                    userInfo.isEmailConfirmationError = true;
-                    userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('emailConfirmation');
-                }else{
-                    userInfo.isEmailConfirmationError = false;
-                }
-                if(!validPhoneConfirmation){
-                    userInfo.isPhoneConfirmationError = true;
-                    userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField')+this.$i18n.t('phoneConfirmation');
-                }else{
-                    userInfo.isPhoneConfirmationError = false;
-                }
-                if(!validAddress){
-                    userInfo.isAddressError = true;
-                    userInfo.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
-                }else{
-                    userInfo.isAddressError = false;
-                }
-                if(validPasswordConfirm && validAddress && !existingEmail){
-                    userInfo.isAddressError = false;
-                    userInfo.isPasswordConfirmationError = false;
-                    if(addressAuto.address && addressAuto.address.includes(',')){
-                        const address = addressAuto.address.split(',');
-                        userInfo.user.personalAddress[0].line1 = address[0].trim();
-                        userInfo.user.personalAddress[0].zipCode = address[1].trim().split(' ')[0];
-                        let index = address[1].trim().indexOf(' ');
-                        if (index !== -1) {
-                            userInfo.user.personalAddress[0].town = address[1].substring(index + 1);
-                        }
-                        userInfo.user.personalAddress[0].country = address[2].trim();
-                    }
-                    this.$store.commit('updateUser', userInfo.user);
-                    this.currentStep++;
-                }
-            }else if(this.currentStep === 2){
-                const selectedFilesKeys = [
-                  'ID',
-                  'DRIVER_LICENCE',
-                  'USER_COMPANY_EXTRACT',
-                  'USER_COMPANY_INSURANCE',
-                  'PICTURE',
-                ];
-                const userDocs = this.$refs.userDocuments;
-                if(userDocs.selectedPaymentType === 'IBAN'){
-                    selectedFilesKeys.push('RIB');
-                }
-                const fileValidation = validateFileInput(selectedFilesKeys,this.$store.state.userDocuments);
-                userDocs.filesErrorMessages = [];
-                if(fileValidation && fileValidation.length > 0){
-                    fileValidation.forEach(result => {
-                          userDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
-                    });
-                }else{
-                    this.currentStep++;
-                }
-            }else if(this.currentStep === 3){
-                const selectedFilesKeys = [
-                  'GRAY_CARD',
-                  'INSURANCE'
-                ];
-                const vehicleDocs = this.$refs.vehicleInfo;
-                const fileValidation = validateFileInput(selectedFilesKeys,this.$store.state.vehicleDocuments);
-                vehicleDocs.filesErrorMessages = [];
-                if(fileValidation && fileValidation.length > 0){
-                    fileValidation.forEach(result => {
-                          vehicleDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
-                    });
-                }else{
-                    this.currentStep++;
-                }
-            }else{
-                this.currentStep++;
+          const userDocument = [];
+          ['ID', 'PICTURE', 'DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE', 'RIB'].forEach((key) => {
+            if (response.data.document?.[key]) {
+              userDocument[key] = { name: key === 'RIB' ? 'BANK ID' : key, documentStatus: response.data.document[key].documentStatus };
             }
-        }
-    },
-    previousStep() {
-        if (this.currentStep > 1) {
-            this.currentStep--;
-        }
-    },
-    existingEmail(email) {
-        return new Promise((resolve) => {
-            http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${email}`)
-                .then(response => {
-                    if (response.status === 200 && response.data) {
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la requête API', error);
-                    resolve(false);
-                });
+          });
+          this.$store.commit('updateUserDocuments', userDocument);
+
+          const vehicleDocuments = [];
+          ['GRAY_CARD', 'INSURANCE'].forEach((key) => {
+            if (response.data.document?.[key]) {
+              vehicleDocuments[key] = { name: key, documentStatus: response.data.document[key].documentStatus };
+            }
+          });
+          this.$store.commit('updateVehicleDocuments', vehicleDocuments);
+        })
+        .catch(() => {
+          console.error('Unable to process your request this time. Please try again later.');
         });
     },
+    previousStep() {
+      if (this.currentStep > 1) {
+        this.currentStep -= 1;
+      }
+    },
+    async handleStepSubmit() {
+      if (this.currentStep === 1) {
+        await this.validateProfileStep();
+        return;
+      }
+      if (this.currentStep === 2) {
+        this.validateAddressStep();
+        return;
+      }
+      if (this.currentStep === 3) {
+        this.validateDocumentsStep();
+        return;
+      }
+      if (this.currentStep === 4) {
+        this.validateVehicleStep();
+        return;
+      }
+      await this.submitFormUser();
+    },
+    async validateProfileStep() {
+      const userInfo = this.$refs.userInfo;
+      const validPasswordConfirm = this.isForUpdate || validatePasswordConfirmation(this.user.password, this.user.passwordConfirmation);
+      const validEmailConfirmation = validateEmailConfirmation(this.user.emailAddress, this.user.emailAddressConfirmation);
+      const validPhoneConfirmation = validatePhoneConfirmation(this.user.phone, this.user.phoneConfirmation);
+      const shouldCheckExistingEmail = !this.isForUpdate && !!this.user.emailAddress && validEmailConfirmation;
+      const existingEmail = shouldCheckExistingEmail ? await this.existingEmail(this.user.emailAddress) : false;
 
+      userInfo.isPasswordConfirmationError = !validPasswordConfirm;
+      userInfo.passwordConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('PasswordConfirmation');
+      userInfo.isExistingEmail = existingEmail;
+      userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
+      userInfo.isEmailConfirmationError = !validEmailConfirmation;
+      userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('emailConfirmation');
+      userInfo.isPhoneConfirmationError = !validPhoneConfirmation;
+      userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('phoneConfirmation');
+
+      if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && !existingEmail) {
+        this.currentStep += 1;
+      }
+    },
+    validateAddressStep() {
+      const addressStep = this.$refs.userAddress;
+      const addressAuto = addressStep.$refs.addressAutoComplete.address || this.user.addressAuto;
+      this.user.addressAuto = addressAuto;
+
+      if (!validateAddress(addressAuto)) {
+        addressStep.isAddressError = true;
+        addressStep.errorAddressMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('invalidAddress');
+        return;
+      }
+
+      addressStep.isAddressError = false;
+      const chunks = addressAuto.split(',');
+      const residence = this.user.personalAddress[0];
+      residence.line1 = chunks[0]?.trim() || '';
+      residence.zipCode = chunks[1]?.trim().split(' ')[0] || '';
+      const index = chunks[1]?.trim().indexOf(' ');
+      residence.town = index !== -1 ? chunks[1].trim().substring(index + 1) : '';
+      residence.country = chunks[2]?.trim() || '';
+
+      this.$store.commit('updateUser', { ...this.user });
+      this.currentStep += 1;
+    },
+    validateDocumentsStep() {
+      const selectedFilesKeys = ['ID', 'PICTURE'];
+      if (this.user.type === 'DELIVERY_PERSON') {
+        selectedFilesKeys.push('DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE');
+      }
+
+      const userDocs = this.$refs.userDocuments;
+      const fileValidation = validateFileInput(selectedFilesKeys, this.$store.state.userDocuments);
+      userDocs.filesErrorMessages = [];
+      if (fileValidation?.length) {
+        fileValidation.forEach((result) => {
+          userDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
+        });
+        return;
+      }
+
+      this.currentStep += 1;
+    },
+    validateVehicleStep() {
+      const userDocs = this.$refs.userDocuments;
+      const selectedPaymentType = this.selectedPaymentType || 'CARD';
+
+      if (selectedPaymentType === 'IBAN' && !this.$store.state.userDocuments?.RIB) {
+        userDocs.filesErrorMessages.RIB = this.$i18n.t('fileRequired');
+        this.currentStep = 3;
+        return;
+      }
+
+      if (this.user.type !== 'DELIVERY_PERSON') {
+        this.currentStep += 1;
+        return;
+      }
+
+      const selectedFilesKeys = ['GRAY_CARD', 'INSURANCE'];
+      const vehicleDocs = this.$refs.vehicleInfo;
+      const fileValidation = validateFileInput(selectedFilesKeys, this.$store.state.vehicleDocuments);
+      vehicleDocs.filesErrorMessages = [];
+      if (fileValidation?.length) {
+        fileValidation.forEach((result) => {
+          vehicleDocs.filesErrorMessages[result.missingKey] = this.$i18n.t('fileRequired');
+        });
+        return;
+      }
+
+      this.currentStep += 1;
+    },
+    existingEmail(email) {
+      return new Promise((resolve) => {
+        http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${email}`)
+          .then((response) => {
+            resolve(response.status === 200 && !!response.data);
+          })
+          .catch(() => {
+            resolve(false);
+          });
+      });
+    },
     async submitFormUser() {
-     if(this.currentStep === 4){
-         const formData = new FormData();
-         formData.append('user', JSON.stringify(this.$store.state.user));
-         const entries = Object.entries(this.$store.state.userDocuments);
-         if(this.isForUpdate){
-             entries.forEach(([key, value]) => {
-                if(value.documentStatus === 'UPDATED'){
-                    formData.append(key, value.file);
-                }
-             });
-         }else{
-             entries.forEach(([key, value]) => {
-                formData.append(key, value.file);
-             });
-         }
-         formData.append('vehicle', JSON.stringify(this.$store.state.vehicle));
-         const entriesV = Object.entries(this.$store.state.vehicleDocuments);
-         if(this.isForUpdate){
-             entriesV.forEach(([key, value]) => {
-                if(value.documentStatus === 'UPDATED'){
-                    formData.append(key, value.file);
-                }
-             });
-         }else{
-             entriesV.forEach(([key, value]) => {
-                formData.append(key, value.file);
-             });
-         }
-         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-         formData.append('locale', userLanguage);
-         let url;
-         if(this.isForUpdate){
-            url = this.$i18n.t('userRootURL') + this.$i18n.t('updateUser');
-         }else{
-            url = this.$i18n.t('userRootURL') + this.$i18n.t('createUser');
-         }
-         return http.post(url, formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
-            .then(response => {
-                if(response.status == '200'){
-                   this.$store.commit('updateUser', this.emptyUser);
-                   this.$store.commit('updateVehicle', this.emptyVehicle);
-                   this.$store.commit('updateUserDocuments', []);
-                   this.$store.commit('updateVehicleDocuments', []);
-                   this.$router.push('/');
-                }
-            }).catch(() => {
-                console.error("Unable to process your request this time. Please try again later.");
-            });
-     }else{
-        this.nextStep();
-     }
+      const formData = new FormData();
+      const userState = { ...this.$store.state.user };
+      delete userState.documents;
+      const payloadUser = {
+        ...userState,
+        document: {},
+      };
+      const payloadVehicle = {
+        ...this.$store.state.vehicle,
+        vehicleDocuments: {},
+      };
+      formData.append('user', JSON.stringify(payloadUser));
+
+      Object.entries(this.$store.state.userDocuments || {}).forEach(([key, value]) => {
+        if (!value) {
+          return;
+        }
+        if (this.isForUpdate) {
+          if (value.documentStatus === 'UPDATED' && value.file) {
+            formData.append(key, value.file);
+          }
+          return;
+        }
+        if (value.file) {
+          formData.append(key, value.file);
+        }
+      });
+
+      formData.append('vehicle', JSON.stringify(payloadVehicle));
+      Object.entries(this.$store.state.vehicleDocuments || {}).forEach(([key, value]) => {
+        if (!value) {
+          return;
+        }
+        if (this.isForUpdate) {
+          if (value.documentStatus === 'UPDATED' && value.file) {
+            formData.append(key, value.file);
+          }
+          return;
+        }
+        if (value.file) {
+          formData.append(key, value.file);
+        }
+      });
+
+      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      formData.append('locale', userLanguage);
+
+      const url = this.isForUpdate
+        ? this.$i18n.t('userRootURL') + this.$i18n.t('updateUser')
+        : this.$i18n.t('userRootURL') + this.$i18n.t('createUser');
+
+      return http.post(url, formData, { headers: { acept: 'application/json', 'Content-type': 'multipart/form-data' } })
+        .then((response) => {
+          if (`${response.status}` === '200') {
+            this.initializeStore();
+            this.$router.push('/');
+          }
+        })
+        .catch(() => {
+          console.error('Unable to process your request this time. Please try again later.');
+        });
     },
   },
 };
 </script>
-<style>
-.user_creation_main{
-  height: 100%;
-  display: flex;
-  justify-content: center;
+
+<style scoped>
+.user-registration-page {
+  min-height: 100%;
+  padding: 24px;
+  background: linear-gradient(180deg, #f3f6fb 0%, #eef3f9 100%);
+}
+
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-chip,
+.eyebrow {
+  display: inline-flex;
   align-items: center;
-  overflow: scroll;
-  background-color: #F9F7F7;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e7eefb;
+  color: #28558c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.user_creation_main .user-form {
-  width: 75%;
-  min-height: 70%;
-  padding: 0 20px;
-  margin: 20px auto;
-  border-radius: 5px;
-  background: no-repeat url('../assets/avatar.png') right -160px bottom 50%, #ffffffe1;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+
+.page-header h1,
+.card-header h2 {
+  margin: 8px 0;
+  color: #14213d;
 }
-.file_name{
-  font-size: 13px;
-  display: block;
-  padding-left: 15px;
+
+.page-header p,
+.card-header p {
+  margin: 0;
+  color: #617086;
 }
-.file_name::before{
-  width: 180px;
-  height: 18px;
-  background-image: url('../assets/check.png');
+
+.wizard-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
 }
-.input_only{
-  margin-top: 15px;
-  height: max-content;
+
+.wizard-sidebar,
+.wizard-card {
+  border: 1px solid #dde5f0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
 }
-.user_creation_main .user-form button{
-  margin-bottom: 20px;
+
+.wizard-sidebar {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
 }
-.user_creation_main .user-form form{
-  width: 100%;
-}
-.wizard-steps {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px 0 10px 20px;
-}
-.wizard-steps .step {
-  padding: 6px 10px;
+
+.wizard-step {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #d8e0ec;
   border-radius: 18px;
-  border: 1px solid #d0d7e2;
-  background: #f4f7fb;
-  color: #516074;
-  font-size: 12px;
+  background: #fff;
+  text-align: left;
 }
-.wizard-steps .step.active {
-  background: #e8f2ff;
-  border-color: #70a6e8;
-  color: #1f4f89;
+
+.step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #eef3f9;
+  color: #27548a;
   font-weight: 700;
 }
-.wizard-steps .step.done {
-  background: #edf8f2;
-  border-color: #75c79c;
-  color: #1f7a4e;
+
+.step-copy {
+  display: grid;
+  gap: 2px;
 }
-.user_creation_main .user-form form .components,
-.user_creation_main .user-form form .summary_component{
-  width: 75%;
+
+.step-copy strong {
+  color: #14213d;
 }
-.user_creation_main .user-form form .components h2{
-  border-left: solid 5px #004f87;
-  padding-left: 8px;
-  margin-left: 20px;
+
+.step-copy small {
+  color: #617086;
 }
-.user_creation_main .user-form .package-address {
+
+.wizard-step.active {
+  border-color: #28558c;
+  background: #f5f9ff;
+}
+
+.wizard-step.active .step-index,
+.wizard-step.done .step-index {
+  background: #28558c;
+  color: #fff;
+}
+
+.wizard-step.done {
+  border-color: #b9d4c4;
+  background: #f4fbf7;
+}
+
+.wizard-card {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  min-height: 760px;
+  min-width: 0;
+  overflow: hidden;
 }
-.small_width{
-  display: none;
+
+.card-header {
+  padding: 28px 30px 12px;
 }
-.user-form .primary_btn{
-  margin-bottom: 20px;
-  margin-left: 10px;
+
+.card-content {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 30px 30px;
+  overflow: hidden;
 }
-@media screen and (max-width: 1500px){
-  .user_creation_main .user-form form .summary_component{
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 30px 28px;
+  border-top: 1px solid #e6edf6;
+}
+
+.card-actions .wizard-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 152px;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.card-actions .wizard-action-btn:hover {
+  background: #0f172a;
+}
+
+@media screen and (max-width: 1180px) {
+  .wizard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-sidebar {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow-x: auto;
+  }
+
+  .wizard-step {
+    min-width: 220px;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .user-registration-page {
+    padding: 16px;
+  }
+
+  .wizard-card {
+    min-height: auto;
+  }
+
+  .card-header,
+  .card-content,
+  .card-actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .card-actions {
+    flex-direction: column-reverse;
+  }
+
+  .card-actions .wizard-action-btn {
     width: 100%;
-  }
-  .user_creation_main .user-form form .components{
-    width: 100%;
-  }
-}
-@media screen and (max-width: 1100px) {
-  .user_creation_main {
-    align-items: baseline;
-  }
-  .user_creation_main .user-form {
-    margin: 50px auto;
-  }
-}
-@media screen and (max-width: 600px) {
-  
-  .user_creation_main .user-form {
-    width: 75%;
-    padding: 30px;
   }
 }
 </style>

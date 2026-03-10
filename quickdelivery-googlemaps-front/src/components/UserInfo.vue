@@ -1,109 +1,113 @@
 <template>
-    <div>
-        <h2>User Informations</h2>
+  <div class="user-profile-step">
+    <section class="profile-intro">
+      <span class="eyebrow">{{ $t('wizardUserStepInfo') }}</span>
+      <h3>{{ $t('userRegistrationProfileTitle') }}</h3>
+      <p>{{ $t('userRegistrationProfileSubtitle') }}</p>
+    </section>
 
-        <div class="input_container">
-            <div class="input_only">
-                <label for="firstName">{{$t('packageAddressFirstName')}}:</label>
-                <Field id="firstName" v-model="user.firstName" name="firstName" :rules="validateString"/>
-                <ErrorMessage class="errorMessage" name="firstName" />
-            </div>
-            <div class="input_only">
-                <label for="lastName">{{$t('packageAddressLastName')}}:</label>
-                <Field id="lastName" type="text" v-model="user.lastName" name="lastName" :rules="validateString"/>
-                <ErrorMessage class="errorMessage" name="lastName" />
-            </div>
-            <div class="input_only">
-                <label for="sex">{{$t('userGender')}}:</label>
-                <select id="sex" v-model="user.sex">
-                    <option value="MAL">Mal</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                </select>
-                <ErrorMessage class="errorMessage" name="sex" />
-            </div>
-            <div class="input_only">
-                <label for="age">{{$t('userBirthDate')}}:</label>
-                <!--<Field id="age" type="number" v-model="user.age" name="age" :rules="validateNumericField"/>-->
-                <VueDatePicker placeholder="Select Date" id="dateTime" v-model="user.birthDate" :flow="flow" :enable-time-picker="false"/>
+    <div class="profile-grid">
+      <div class="field-wrap">
+        <label for="accountType">{{ $t('userRegistrationAccountType') }}</label>
+        <select id="accountType" v-model="user.type">
+          <option value="DELIVERY_PERSON">{{ $t('DELIVERY_PERSON') }}</option>
+          <option value="CUSTOMER">{{ $t('CUSTOMER') }}</option>
+        </select>
+      </div>
 
-                <ErrorMessage class="errorMessage" name="age" />
-            </div>
-            <div class="input_only">
-                <label for="email">{{$t('packageAddressEmail')}}:</label>
-                <Field id="email" type="email" v-model="user.emailAddress" name="email" :rules="validateEmail"/>
-                <ErrorMessage class="errorMessage" name="email" />
-                <span v-if="isExistingEmail" class="errorMessage">{{existingEmailErrorMessage}}</span>
-            </div>
+      <div class="field-wrap">
+        <label for="sex">{{ $t('userGender') }}</label>
+        <select id="sex" v-model="user.sex">
+          <option value="MAL">{{ $t('userRegistrationGenderMale') }}</option>
+          <option value="FEMALE">{{ $t('userRegistrationGenderFemale') }}</option>
+          <option value="OTHER">{{ $t('userRegistrationGenderOther') }}</option>
+        </select>
+      </div>
 
-        </div>
-        <div class="input_container">
-            <div class="input_only">
-                <label for="emailAddressConfirmation">{{$t('userEmailConfirmation')}}:</label>
-                <Field id="emailAddressConfirmation" type="email" v-model="user.emailAddressConfirmation" name="emailAddressConfirmation" :rules="validateEmail"/>
-                <ErrorMessage class="errorMessage" name="emailAddressConfirmation" />
-                <span v-if="isEmailConfirmationError" class="errorMessage">{{emailConfirmationErrorMessage}}</span>
-            </div>
-            <div class="input_only">
-                <label for="phone">{{$t('packageAddressPhone')}}:</label>
-                <Field id="phone" type="text" v-model="user.phone" name="phone" :rules="validatePhone"/>
-                <ErrorMessage class="errorMessage" name="phone" />
-            </div>
-            <div class="input_only">
-                <label for="phoneConfirmation">{{$t('userPhoneConfirmation')}}:</label>
-                <Field id="phoneConfirmation" type="text" v-model="user.phoneConfirmation" name="phoneConfirmation" :rules="validatePhone"/>
-                <ErrorMessage class="errorMessage" name="phoneConfirmation" />
-                <span v-if="isPhoneConfirmationError" class="errorMessage">{{phoneConfirmationErrorMessage}}</span>
-            </div>
-            <div class="input_only" v-show="!isForUpdate">
-                <label for="password">{{$t('userPassword')}}:</label>
-                <Field id="password" type="password" v-model="user.password" name="password" :rules="validatePassword"/>
-                <ErrorMessage class="errorMessage" name="password" />
-            </div>
-            <div class="input_only" v-show="!isForUpdate">
-                <label for="passwordConfirmation">{{$t('userPasswordConfirmation')}}:</label>
-                <input id="passwordConfirmation" type="password" v-model="user.passwordConfirmation" name="passwordConfirmation"/>
-                <span v-if="isPasswordConfirmationError" class="errorMessage">{{passwordConfirmationErrorMessage}}</span>
-            </div>
-        </div>
-        <div class="input_container">
+      <div class="field-wrap">
+        <label for="firstName">{{ $t('packageAddressFirstName') }}</label>
+        <Field id="firstName" v-model="user.firstName" name="firstName" :rules="validateString" />
+        <ErrorMessage class="errorMessage" name="firstName" />
+      </div>
 
-        </div>
-        <div>
-            <label for="address">{{$t('packageAddressAddress')}}:</label>
-            <AddressAutocomplete id="address" ref="addressAutoComplete" :existingAddress="user.addressAuto"/>
-            <br/><span><strong class="file_name">{{ user.addressAuto }}</strong></span>
-            <span v-if="isAddressError" class="errorMessage" >{{errorAddressMessage}}</span>
-        </div>
+      <div class="field-wrap">
+        <label for="lastName">{{ $t('packageAddressLastName') }}</label>
+        <Field id="lastName" v-model="user.lastName" name="lastName" :rules="validateString" />
+        <ErrorMessage class="errorMessage" name="lastName" />
+      </div>
 
+      <div class="field-wrap">
+        <label for="birthDate">{{ $t('userBirthDate') }}</label>
+        <VueDatePicker id="birthDate" v-model="user.birthDate" :flow="flow" :enable-time-picker="false" />
+      </div>
+
+      <div class="field-wrap">
+        <label for="email">{{ $t('packageAddressEmail') }}</label>
+        <Field id="email" v-model="user.emailAddress" type="email" name="email" :rules="validateEmail" />
+        <ErrorMessage class="errorMessage" name="email" />
+        <span v-if="isExistingEmail" class="errorMessage">{{ existingEmailErrorMessage }}</span>
+      </div>
+
+      <div class="field-wrap">
+        <label for="emailAddressConfirmation">{{ $t('userEmailConfirmation') }}</label>
+        <Field id="emailAddressConfirmation" v-model="user.emailAddressConfirmation" type="email" name="emailAddressConfirmation" :rules="validateEmail" />
+        <ErrorMessage class="errorMessage" name="emailAddressConfirmation" />
+        <span v-if="isEmailConfirmationError" class="errorMessage">{{ emailConfirmationErrorMessage }}</span>
+      </div>
+
+      <div class="field-wrap">
+        <label for="phone">{{ $t('packageAddressPhone') }}</label>
+        <Field id="phone" v-model="user.phone" type="text" name="phone" :rules="validatePhone" />
+        <ErrorMessage class="errorMessage" name="phone" />
+      </div>
+
+      <div class="field-wrap">
+        <label for="phoneConfirmation">{{ $t('userPhoneConfirmation') }}</label>
+        <Field id="phoneConfirmation" v-model="user.phoneConfirmation" type="text" name="phoneConfirmation" :rules="validatePhone" />
+        <ErrorMessage class="errorMessage" name="phoneConfirmation" />
+        <span v-if="isPhoneConfirmationError" class="errorMessage">{{ phoneConfirmationErrorMessage }}</span>
+      </div>
+
+      <div v-if="!isForUpdate" class="field-wrap">
+        <label for="password">{{ $t('userPassword') }}</label>
+        <Field id="password" v-model="user.password" type="password" name="password" :rules="validatePassword" />
+        <ErrorMessage class="errorMessage" name="password" />
+      </div>
+
+      <div v-if="!isForUpdate" class="field-wrap">
+        <label for="passwordConfirmation">{{ $t('userPasswordConfirmation') }}</label>
+        <input id="passwordConfirmation" v-model="user.passwordConfirmation" type="password">
+        <span v-if="isPasswordConfirmationError" class="errorMessage">{{ passwordConfirmationErrorMessage }}</span>
+      </div>
     </div>
+  </div>
 </template>
+
 <script>
-import { Field, ErrorMessage } from 'vee-validate';
-import { validatePhone, validateEmail, validateString, validatePassword, validateNumericField } from '@/config/comonFunction';
-import AddressAutocomplete from './AddressAutocomplete.vue';
-import VueDatePicker from '@vuepic/vue-datepicker';
 import { ref } from 'vue';
+import { ErrorMessage, Field } from 'vee-validate';
+import VueDatePicker from '@vuepic/vue-datepicker';
+import { validateEmail, validatePassword, validatePhone, validateString } from '@/config/comonFunction';
+
 export default {
   components: {
-    AddressAutocomplete,
     Field,
     ErrorMessage,
     VueDatePicker,
+  },
+  props: {
+    isForUpdate: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     user() {
       return this.$store.state.user;
     },
   },
-  props: {
-    isForUpdate: ref(false),
-  },
   data() {
     return {
-      selectedPaymentType: 'CARD',
-      isAddressError: false,
-      errorAddressMessage:'',
       isPasswordConfirmationError: false,
       passwordConfirmationErrorMessage: '',
       isExistingEmail: false,
@@ -120,14 +124,99 @@ export default {
     validateEmail,
     validateString,
     validatePassword,
-    validateNumericField,
   },
-}
+};
 </script>
-<style>
-.user-payment-method {
-  margin-bottom: 20px;
-  display: flex;
+
+<style scoped>
+.user-profile-step {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.user-profile-step,
+.user-profile-step * {
+  box-sizing: border-box;
+}
+
+.profile-intro h3 {
+  margin: 6px 0 8px;
+  font-size: 1.45rem;
+  color: #14213d;
+}
+
+.profile-intro p {
+  margin: 0;
+  color: #617086;
+}
+
+.eyebrow {
+  display: inline-flex;
   align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #27548a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field-wrap {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.field-wrap label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #24364f;
+}
+
+.field-wrap :deep(input),
+.field-wrap select {
+  width: 100%;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #ced7e4;
+  border-radius: 14px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.field-wrap :deep(.dp__main) {
+  width: 100%;
+}
+
+.field-wrap :deep(.dp__input) {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  border-color: #ced7e4;
+  box-sizing: border-box;
+}
+
+.errorMessage {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #b42318;
+  word-break: break-word;
+}
+
+@media screen and (max-width: 1040px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

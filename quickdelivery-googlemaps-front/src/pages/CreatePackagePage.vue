@@ -1,349 +1,509 @@
 <template>
-    <div class="packege_creation_main">
-      <div class="package-form">
-        <Form @submit="submitFormPackage" ref="packageCreationForm">
-          <div class="wizard-steps">
-            <div class="step" :class="stepClass(1)">{{ $t('wizardPackageStepInfo') }}</div>
-            <div class="step" :class="stepClass(2)">{{ $t('wizardPackageStepDeparture') }}</div>
-            <div class="step" :class="stepClass(3)">{{ $t('wizardPackageStepArrival') }}</div>
-            <div class="step" :class="stepClass(4)">{{ $t('wizardPackageStepSummary') }}</div>
-          </div>
-          <div class="components" v-if="currentStep === 1">
-              <h2>{{$t('createNewPackage')}}</h2>
-              <PackageCreation ref="packageInfo"/>
-          </div>
-          <div class="components" v-if="currentStep === 2">
-              <h2>{{$t('packageAddressDepartureAddresses')}}</h2>
-              <PackageAddress ref="departureAddress" :addressType="departure"/>
-              <br/>
-          </div>
-          <div class="components" v-if="currentStep === 3">
-              <h2>{{$t('packageAddressArrivalAddresses')}}</h2>
-              <PackageAddress ref="arrivalAddress" :addressType="arrival"/>
-              <br/>
-          </div>
-          <div class="summary_component" v-show="currentStep === 4">
-              <h2>{{$t('packageSummaryAction')}}</h2>
-              <PackageSummary ref="packageSummary"/>
-          </div>
-          <br/>
-          <!--<button class="btn primary_btn" @click="callNotification">notification</button>&nbsp;-->
-        <button class="btn primary_btn" type="button" @click="previousStep" v-show="currentStep > 1">{{$t('packagePreviousAction')}}</button>
-        <button class="btn primary_btn" type="submit" v-show="currentStep < 3">{{$t('packageNextAction')}}</button>
-        <button class="btn primary_btn" type="submit" v-show="currentStep === 3">{{$t('packageSummaryAction')}}</button>
-        <button class="btn primary_btn" type="submit" v-show="currentStep === 4">{{$t('packageCreateAction')}}</button>
-        </Form>
+  <div class="create-package-page">
+    <header class="page-header">
+      <div>
+        <span class="page-chip">{{ $t('menuNewPackage') }}</span>
+        <h1>{{ $t('createPackagePageTitle') }}</h1>
+        <p>{{ $t('createPackagePageSubtitle') }}</p>
       </div>
-    </div>
-</template>
-<script>
-import PackageCreation from '../components/PackageCreation.vue';
-import PackageAddress from '../components/PackageAddress.vue';
-import PackageSummary from '../components/PackageDetails.vue';
-import http from '@/config/httpInterceptor';
-import { Form } from 'vee-validate';
-import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
+    </header>
 
-export default{
+    <Form class="wizard-shell" @submit="handleStepSubmit">
+      <aside class="wizard-sidebar">
+        <button
+          v-for="step in steps"
+          :key="step.id"
+          class="wizard-step"
+          :class="stepState(step.id)"
+          type="button"
+        >
+          <span class="step-index">{{ step.id }}</span>
+          <span class="step-copy">
+            <strong>{{ $t(step.label) }}</strong>
+            <small>{{ stepHint(step.id) }}</small>
+          </span>
+        </button>
+      </aside>
+
+      <section class="wizard-card">
+        <div class="card-header">
+          <div>
+            <span class="eyebrow">{{ currentStepMeta.id }}/{{ steps.length }}</span>
+            <h2>{{ $t(currentStepMeta.title) }}</h2>
+            <p>{{ $t(currentStepMeta.subtitle) }}</p>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <PackageAddress
+            v-if="currentStep === 1"
+            ref="departureAddress"
+            addressType="DEPARTURE"
+          />
+
+          <PackageAddress
+            v-else-if="currentStep === 2"
+            ref="arrivalAddress"
+            addressType="ARRIVAL"
+          />
+
+          <PackageCreation
+            v-else-if="currentStep === 3"
+            v-model:selectedPreset="selectedPreset"
+          />
+
+          <PackageOptions
+            v-else-if="currentStep === 4"
+            v-model="wizardOptions"
+          />
+
+          <PackageConfirmationSummary
+            v-else
+            :options="wizardOptions"
+            :selected-preset="selectedPreset"
+          />
+        </div>
+
+        <footer class="card-actions">
+          <button
+            v-if="currentStep > 1"
+            class="btn primary_btn wizard-action-btn"
+            type="button"
+            @click="previousStep"
+          >
+            {{ $t('createPackageBackAction') }}
+          </button>
+
+          <button class="btn primary_btn wizard-action-btn" type="submit">
+            {{ currentStep === steps.length ? $t('createPackageSubmitAction') : $t('packageNextAction') }}
+          </button>
+        </footer>
+      </section>
+    </Form>
+  </div>
+</template>
+
+<script>
+import { Form } from 'vee-validate';
+import http from '@/config/httpInterceptor';
+import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
+import PackageAddress from '../components/PackageAddress.vue';
+import PackageConfirmationSummary from '../components/PackageConfirmationSummary.vue';
+import PackageCreation from '../components/PackageCreation.vue';
+import PackageOptions from '../components/PackageOptions.vue';
+
+const EMPTY_PACKAGE = {
+  id: null,
+  version: null,
+  creationDate: null,
+  reference: '',
+  height: 0,
+  width: 0,
+  depth: 0,
+  weight: 0,
+  pictureURL: '',
+  status: '',
+  deliveryPrice: null,
+  senderID: null,
+  packageReservations: [],
+  addresses: [
+    {
+      firstName: '',
+      lastName: '',
+      line1: '',
+      line2: '',
+      town: '',
+      zipCode: '',
+      country: '',
+      floor: 0,
+      dateTime: null,
+      email: '',
+      phone: '',
+      type: 'DEPARTURE',
+      addressAuto: '',
+      latitude: 0,
+      longitude: 0,
+    },
+    {
+      firstName: '',
+      lastName: '',
+      line1: '',
+      line2: '',
+      town: '',
+      zipCode: '',
+      country: '',
+      floor: 0,
+      dateTime: null,
+      email: '',
+      phone: '',
+      type: 'ARRIVAL',
+      addressAuto: '',
+      latitude: 0,
+      longitude: 0,
+    },
+  ],
+  lastPositionLatitude: null,
+  lastPositionLongitude: null,
+};
+
+export default {
   components: {
-    PackageCreation,
-    PackageAddress,
-    PackageSummary,
     Form,
+    PackageAddress,
+    PackageCreation,
+    PackageOptions,
+    PackageConfirmationSummary,
   },
   data() {
     return {
       currentStep: 1,
-      widthSize: window.innerWidth,
-      departure: 'DEPARTURE',
-      arrival: 'ARRIVAL',
-      emptyPackage: {
-            id: null,
-            version: null,
-            creationDate: null,
-            reference: "",
-            height: 0,
-            width: 0,
-            depth: 0,
-            weight: 0,
-            pictureURL: "",
-            status: "",
-            deliveryPrice: null,
-            senderID: null,
-            packageReservations: [],
-            addresses: [{
-            firstName: "",
-            lastName: "",
-            line1: "",
-            line2: "",
-            town: "",
-            zipCode: "",
-            country: "",
-            floor:0,
-            dateTime: null,
-            email: "",
-            phone: "",
-            type: "DEPARTURE",
-            latitude: 0,
-            longitude: 0,
-          },
-          {
-            firstName: "",
-            lastName: "",
-            line1: "",
-            line2: "",
-            town: "",
-            zipCode: "",
-            country: "",
-            floor:0,
-            dateTime: null,
-            email: "",
-            phone: "",
-            type: "ARRIVAL",
-            latitude: 0,
-            longitude: 0,
-          }],
-          lastPositionLatitude: null,
-          lastPositionLongitude: null
-        }
+      selectedPreset: 'MEDIUM',
+      wizardOptions: {
+        deliverySpeed: 'STANDARD',
+        insurance: false,
+      },
+      steps: [
+        { id: 1, label: 'wizardCreateStepPickup', title: 'createPackagePickupTitle', subtitle: 'createPackagePickupSubtitle' },
+        { id: 2, label: 'wizardCreateStepDelivery', title: 'createPackageDeliveryTitle', subtitle: 'createPackageDeliverySubtitle' },
+        { id: 3, label: 'wizardCreateStepPackage', title: 'createPackageInfoTitle', subtitle: 'createPackageInfoSubtitle' },
+        { id: 4, label: 'wizardCreateStepOptions', title: 'createPackageOptionsTitle', subtitle: 'createPackageOptionsSubtitle' },
+        { id: 5, label: 'wizardCreateStepConfirm', title: 'createPackageConfirmTitle', subtitle: 'createPackageConfirmSubtitle' },
+      ],
     };
-  },
-  mounted() {
-    this.initializePackageAndDocuments();
   },
   computed: {
     package_() {
       return this.$store.state.package_;
     },
     documentS() {
-      return this.$store.state.documentS;
+      return this.$store.state.documentS || [];
+    },
+    currentStepMeta() {
+      return this.steps.find((step) => step.id === this.currentStep) || this.steps[0];
     },
   },
+  mounted() {
+    this.$store.commit('updateDocuments', []);
+    this.$store.commit('updatePackage', JSON.parse(JSON.stringify(EMPTY_PACKAGE)));
+  },
   methods: {
-    stepClass(stepNumber) {
-      if (this.currentStep === stepNumber) {
+    stepState(stepId) {
+      if (this.currentStep === stepId) {
         return 'active';
       }
-      if (this.currentStep > stepNumber) {
+      if (this.currentStep > stepId) {
         return 'done';
       }
       return '';
     },
-    initializePackageAndDocuments() {
-      this.$store.commit('updateDocuments', []);
-      this.$store.commit('updatePackage', this.emptyPackage);
-    },
-    nextStep() {
-      if (this.currentStep < 5) {
-        if(this.currentStep === 1){
-           this.$refs.packageInfo.package_.status='PAYMENTPENDING';
-           this.$store.commit('updatePackage', this.$refs.packageInfo.package_);
-           this.$store.commit('updateDocuments', this.$refs.packageInfo.documentS);
-           this.currentStep++;
-        }else if(this.currentStep === 2){
-           this.$refs.departureAddress.address.type = 'DEPARTURE';
-           const addressAuto=this.$refs.departureAddress.$refs.addressAutoComplete;
-           if(addressAuto.address){
-                this.$refs.departureAddress.address.addressAuto = addressAuto.address;
-           }
-           if(!validateAddress(this.$refs.departureAddress.address.addressAuto)){
-                this.$refs.departureAddress.isAddressError = true;
-                this.$refs.departureAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
-           }else{
-               this.$refs.departureAddress.isAddressError = false;
-               const address = this.$refs.departureAddress.address.addressAuto.split(',');
-               this.$refs.departureAddress.address.line1 = address[0].trim();
-               this.$refs.departureAddress.address.zipCode = address[1].trim().split(' ')[0];
-               let index = address[1].trim().indexOf(' ');
-                if (index !== -1) {
-                    this.$refs.departureAddress.address.town = address[1].substring(index + 1); // Extrait la partie après le premier espace
-                }
-               this.$refs.departureAddress.address.country = address[2].trim();
-               this.$store.commit('updatePackageDepartureAddress', this.$refs.departureAddress.address);
-               this.currentStep++;
-           }
-        }else if(this.currentStep === 3){
-           this.$refs.arrivalAddress.address.type = 'ARRIVAL';
-           const addressAuto_=this.$refs.arrivalAddress.$refs.addressAutoComplete;
-           if(addressAuto_.address){
-                this.$refs.arrivalAddress.address.addressAuto = addressAuto_.address;
-           }
-           if(!validateAddress(this.$refs.arrivalAddress.address.addressAuto)){
-                this.$refs.arrivalAddress.isAddressError = true;
-                this.$refs.arrivalAddress.errorAddressMessage=this.$i18n.t('mandatoryField')+this.$i18n.t('invalidAddress');
-           }
-           if(!validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
-                this.$refs.arrivalAddress.isDateTimeError = true;
-                this.$refs.arrivalAddress.errorDeliveryDateTimeMessage=this.$i18n.t('packageDeliveryInvalidDateTime');
-           }
-           if(validateAddress(this.$refs.arrivalAddress.address.addressAuto) && validateDeliveryDateTime(this.$store.state.package_.addresses[0].dateTime,this.$store.state.package_.addresses[1].dateTime)){
-               this.$refs.arrivalAddress.isAddressError = false;
-               this.$refs.arrivalAddress.isDateTimeError = false;
-               const address_ = this.$refs.arrivalAddress.address.addressAuto.split(',');
-               this.$refs.arrivalAddress.address.line1 = address_[0].trim();
-               this.$refs.arrivalAddress.address.zipCode = address_[1].trim().split(' ')[0];
-               let index = address_[1].trim().indexOf(' ');
-                if (index !== -1) {
-                    this.$refs.arrivalAddress.address.town = address_[1].substring(index + 1);
-                }
-               this.$refs.arrivalAddress.address.country = address_[2].trim();
-               this.$store.commit('updatePackageArrivalAddress', this.$refs.arrivalAddress.address);
-               this.currentStep++;
-           }
-        }
-      }
+    stepHint(stepId) {
+      const map = {
+        1: 'createPackagePickupSubtitle',
+        2: 'createPackageDeliverySubtitle',
+        3: 'createPackageInfoSubtitle',
+        4: 'createPackageOptionsSubtitle',
+        5: 'createPackageConfirmSubtitle',
+      };
+      return this.$t(map[stepId]);
     },
     previousStep() {
       if (this.currentStep > 1) {
-        this.currentStep--;
+        this.currentStep -= 1;
       }
     },
-    /*callNotification(){
-        http.get(this.$i18n.t('rootURL') + this.$i18n.t('notify'))
-            .then(response => {
-                console.info('Notification request sent.', response.status);
-            }).catch(() => {
-                console.error("Unable to process your request this time. Please try again later.");
-            });
-    },*/
-    async submitFormPackage() {
-     if(this.currentStep === 4){
-         const formData = new FormData();
-         this.package_.senderID = this.$store.state.connectedUser.id;
-         formData.append('packageDTO', JSON.stringify(this.package_));
-         formData.append('files', this.documentS[0]);
-         formData.append('files', this.documentS[1]);
-         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-         formData.append('locale', userLanguage);
-         return http.post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, { headers: { acept: 'application/json','Content-type': 'multipart/form-data' } })
-            .then(response => {
-                this.$store.commit('updatePackage', response.data);
-                if(response.status == '200'){
-                    this.$router.push('/paymentPage');
-                }
-            }).catch(() => {
-                console.error("Unable to process your request this time. Please try again later.");
-            });
-     }else{
-        this.nextStep();
-     }
+    async handleStepSubmit() {
+      if (this.currentStep === 1) {
+        this.validateAndStoreAddress(this.$refs.departureAddress, 'DEPARTURE');
+        return;
+      }
+
+      if (this.currentStep === 2) {
+        this.validateAndStoreAddress(this.$refs.arrivalAddress, 'ARRIVAL', true);
+        return;
+      }
+
+      if (this.currentStep === 3) {
+        this.package_.status = 'PAYMENTPENDING';
+        this.currentStep += 1;
+        return;
+      }
+
+      if (this.currentStep === 4) {
+        this.currentStep += 1;
+        return;
+      }
+
+      await this.submitPackage();
+    },
+    validateAndStoreAddress(componentRef, type, validateDeliveryWindow = false) {
+      const addressComponent = Array.isArray(componentRef) ? componentRef[0] : componentRef;
+      const address = addressComponent.address;
+      const addressAuto = addressComponent.$refs.addressAutoComplete.address || address.addressAuto;
+
+      address.type = type;
+      address.addressAuto = addressAuto;
+
+      if (!validateAddress(address.addressAuto)) {
+        addressComponent.isAddressError = true;
+        addressComponent.errorAddressMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('invalidAddress');
+        return;
+      }
+
+      if (validateDeliveryWindow && !validateDeliveryDateTime(this.package_.addresses[0].dateTime, this.package_.addresses[1].dateTime)) {
+        addressComponent.isDateTimeError = true;
+        addressComponent.errorDeliveryDateTimeMessage = this.$i18n.t('createPackageDateTimeError');
+        return;
+      }
+
+      addressComponent.isAddressError = false;
+      addressComponent.isDateTimeError = false;
+
+      const chunks = address.addressAuto.split(',');
+      address.line1 = chunks[0]?.trim() || '';
+      address.zipCode = chunks[1]?.trim().split(' ')[0] || '';
+      const index = chunks[1]?.trim().indexOf(' ');
+      address.town = index !== -1 ? chunks[1].trim().substring(index + 1) : '';
+      address.country = chunks[2]?.trim() || '';
+
+      if (type === 'DEPARTURE') {
+        this.$store.commit('updatePackageDepartureAddress', { ...address });
+      } else {
+        this.$store.commit('updatePackageArrivalAddress', { ...address });
+      }
+
+      this.currentStep += 1;
+    },
+    async submitPackage() {
+      const formData = new FormData();
+      this.package_.senderID = this.$store.state.connectedUser.id;
+      this.package_.status = 'PAYMENTPENDING';
+      formData.append('packageDTO', JSON.stringify(this.package_));
+
+      this.documentS.forEach((file) => {
+        if (file) {
+          formData.append('files', file);
+        }
+      });
+
+      const locale = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      formData.append('locale', locale);
+
+      return http
+        .post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, {
+          headers: { acept: 'application/json', 'Content-type': 'multipart/form-data' },
+        })
+        .then((response) => {
+          this.$store.commit('updatePackage', response.data);
+          if (`${response.status}` === '200') {
+            this.$router.push('/paymentPage');
+          }
+        })
+        .catch(() => {
+          console.error('Unable to process your request this time. Please try again later.');
+        });
     },
   },
-}
+};
 </script>
-<style>
-.packege_creation_main{
-  height: 100%;
-  display: flex;
-  justify-content: center;
+
+<style scoped>
+.create-package-page {
+  min-height: 100%;
+  padding: 24px;
+  background: linear-gradient(180deg, #f3f6fb 0%, #eef3f9 100%);
+}
+
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-chip,
+.eyebrow {
+  display: inline-flex;
   align-items: center;
-  overflow: scroll;
-  background: #F9F7F7; 
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e7eefb;
+  color: #28558c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.packege_creation_main .package-form {
-  width: 75%;
-  min-height: 70%;
-  padding: 0 20px;
-  margin: 0 auto;
-  border-radius: 5px;
-  background: no-repeat url('../assets/box 2.png') right -160px bottom 50%, #ffffffe1;
-  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+
+.page-header h1,
+.card-header h2 {
+  margin: 8px 0;
+  color: #14213d;
 }
-.packege_creation_main .package-form button{
-  margin-bottom: 20px;
-  margin-left: 10px;
+
+.page-header p,
+.card-header p {
+  margin: 0;
+  color: #617086;
 }
-.packege_creation_main .package-form form{
-  width: 100%;
+
+.wizard-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
 }
-.wizard-steps {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px 0 10px 20px;
+
+.wizard-sidebar,
+.wizard-card {
+  border: 1px solid #dde5f0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
 }
-.wizard-steps .step {
-  padding: 6px 10px;
+
+.wizard-sidebar {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.wizard-step {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #d8e0ec;
   border-radius: 18px;
-  border: 1px solid #d0d7e2;
-  background: #f4f7fb;
-  color: #516074;
-  font-size: 12px;
+  background: #fff;
+  text-align: left;
 }
-.wizard-steps .step.active {
-  background: #e8f2ff;
-  border-color: #70a6e8;
-  color: #1f4f89;
+
+.step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #eef3f9;
+  color: #27548a;
   font-weight: 700;
 }
-.wizard-steps .step.done {
-  background: #edf8f2;
-  border-color: #75c79c;
-  color: #1f7a4e;
+
+.step-copy {
+  display: grid;
+  gap: 2px;
 }
-.packege_creation_main .package-form form .components,
-.packege_creation_main .package-form form .summary_component{
-  width: 75%;
+
+.step-copy strong {
+  color: #14213d;
 }
-.packege_creation_main .package-form form .components h2{
-  border-left: solid 5px #ff7b00;
-  padding-left: 8px;
-  margin-left: 20px;
+
+.step-copy small {
+  color: #617086;
 }
-.packege_creation_main .package-form .package-address {
+
+.wizard-step.active {
+  border-color: #28558c;
+  background: #f5f9ff;
+}
+
+.wizard-step.active .step-index,
+.wizard-step.done .step-index {
+  background: #28558c;
+  color: #fff;
+}
+
+.wizard-step.done {
+  border-color: #b9d4c4;
+  background: #f4fbf7;
+}
+
+.wizard-card {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  min-height: 720px;
+  min-width: 0;
+  overflow: hidden;
 }
-.input_container{
-  display: inline-block;
-  width: 50%;
+
+.card-header {
+  padding: 28px 30px 12px;
 }
-.input_only{
-  height: 85px;
+
+.card-content {
+  flex: 1;
+  padding: 14px 30px 30px;
+  min-width: 0;
+  overflow: hidden;
 }
-.input_container input,
-.input_container select
-{
-  width: 65%;
-  background-color: #fff;
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 30px 28px;
+  border-top: 1px solid #e6edf6;
 }
-.small_width{
-  display: none;
+
+.card-actions .btn {
+  min-width: 150px;
 }
-@media screen and (max-width: 1500px){
-  .packege_creation_main .package-form form .summary_component{
+
+.card-actions .wizard-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 152px;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.card-actions .wizard-action-btn:hover {
+  background: #0f172a;
+}
+
+@media screen and (max-width: 1180px) {
+  .wizard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-sidebar {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow-x: auto;
+  }
+
+  .wizard-step {
+    min-width: 220px;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .create-package-page {
+    padding: 16px;
+  }
+
+  .wizard-card {
+    min-height: auto;
+  }
+
+  .card-header,
+  .card-content,
+  .card-actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .card-actions {
+    flex-direction: column-reverse;
+  }
+
+  .card-actions .btn {
     width: 100%;
   }
-  .packege_creation_main .package-form form .components{
-    width: 100%;
-  }
 }
-@media screen and (max-width: 1100px) {
-  .input_container{
-    width: 100%;
-  }
-  .packege_creation_main {
-    align-items: baseline;
-  }
-  .input_container input,
-  .input_container select{
-    width: 83%;
-  }
-  .packege_creation_main .package-form {
-    margin: 50px auto;
-  }
-}
-@media screen and (max-width: 600px) {
-  
-  .packege_creation_main .package-form {
-    width: 75%;
-    padding: 30px;
-  }
-  .input_container input,
-  .picture_file_container .input_only input,
-  .input_container select{
-    width: 93%;
-    height: 30px;
-  }
-}
-</style>  
+</style>

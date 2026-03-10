@@ -238,7 +238,7 @@
 				google.maps.event.addListener(marker, 'click', function() {
 					infowindow.setContent(markerInfo);
 					infowindow.open(map,marker);
-					//window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
+					window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
 				});
 				markers.push(marker);
                 markersByPackageId[String(arrivalAddress.packageID)] = marker;

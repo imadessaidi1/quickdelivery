@@ -30,13 +30,13 @@
     </transition>
 
     <div v-show="showTextSearch" class="search-zone">
-        <input type="text" id="searchInput" placeholder="Rechercher..."><button class="btn primary_btn">Search</button>
+        <input type="text" id="searchInput" :placeholder="$t('mapSearchPlaceholder')"><button class="btn primary_btn">{{ $t('actionSearch') }}</button>
     </div>
     <div v-show="showAddressSearch" class="search-zone">
         <div class="address-zone">
           <AddressAutocomplete id="address" ref="addressAutoComplete"/>
         </div>
-        <button class="btn primary_btn" @click="searchInMap">Search</button>
+        <button class="btn primary_btn" @click="searchInMap">{{ $t('actionSearch') }}</button>
     </div>
 
     <span class="infobull" data-tooltip='Account' ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
@@ -156,16 +156,15 @@ export default {
 <style>
 .search-bar {
   display: flex;
-  min-height: 55px;
+  min-height: 62px;
   box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 40px;
-  background-color: rgba(219, 226, 239, 0.52) !important;
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  padding: 0 28px;
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e7ebf2;
   position: relative;
-  z-index: 2;
+  z-index: 6;
 }
 .search-zone {
   flex: 1;
@@ -189,9 +188,9 @@ export default {
 .login-menu{
   position: absolute;
   background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 .horizontal-menu {
   top: 100%;
@@ -219,22 +218,30 @@ export default {
 #searchInput {
   width: 100%;
   max-width: 560px;
-  height: 35px;
-  border: none;
+  height: 40px;
+  border: 1px solid #e2e8f0;
   padding: 0 15px;
   margin: 0;
-  border: solid 2px rgba(120, 183, 255, 0);
-  border-radius: 6px;
+  border-radius: 12px;
+  background: #ffffff;
   transition: all 300ms;
 }
 #searchInput:hover{
-  border: solid 2px #0086df;
+  border-color: #b9c6de;
 }
 .search-zone button {
-  height: 35px;
+  height: 40px;
   white-space: nowrap;
   flex-shrink: 0;
-  min-width: 88px;
+  min-width: 96px;
+  border-radius: 12px;
+  border: none;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+}
+.search-zone button:hover {
+  background: #0f172a;
 }
 .search-zone #address {
   width: 100%;
@@ -249,19 +256,19 @@ export default {
 .address-zone :deep(input),
 .address-zone :deep(.autocomplete-input) {
   width: 100%;
-  height: 35px;
-  border: none;
+  height: 40px;
+  border: 1px solid #e2e8f0;
   padding: 0 15px;
   margin: 0;
-  border: solid 2px rgba(120, 183, 255, 0);
-  border-radius: 6px;
+  border-radius: 12px;
+  background: #ffffff;
   transition: all 300ms;
 }
 .address-zone :deep(input:hover),
 .address-zone :deep(.autocomplete-input:hover),
 .address-zone :deep(input:focus),
 .address-zone :deep(.autocomplete-input:focus) {
-  border: solid 2px #0086df;
+  border-color: #b9c6de;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity 300ms;
@@ -276,7 +283,7 @@ export default {
 
 @media screen and (max-width: 580px) {
   .search-bar {
-    padding: 0 12px;
+    padding: 0 10px;
     gap: 6px;
   }
   .search-zone {
@@ -294,7 +301,7 @@ export default {
   .address-zone :deep(input),
   .address-zone :deep(.autocomplete-input),
   .search-zone button {
-    height: 33px;
+    height: 35px;
   }
   .search-zone button {
     min-width: 74px;

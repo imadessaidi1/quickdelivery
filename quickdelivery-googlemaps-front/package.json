@@ -5,13 +5,22 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:sync:all": "npm run build && npx cap sync android && npx cap sync ios",
+    "cap:sync:android": "npm run build && npx cap sync android",
+    "cap:sync:ios": "npm run build && npx cap sync ios",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "node scripts/open-ios.js",
+    "cap:open:ios:force": "npx cap open ios"
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
+    "@capacitor/app": "^7.1.0",
     "@capacitor/cli": "^7.2.0",
     "@capacitor/core": "^7.2.0",
     "@capacitor/geolocation": "^7.1.1",
+    "@capacitor/ios": "^7.2.0",
     "@jcesarmobile/ssl-skip": "^0.4.0",
     "@vee-validate/yup": "^4.12.4",
     "@vuepic/vue-datepicker": "^8.0.0",

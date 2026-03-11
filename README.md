@@ -211,7 +211,144 @@ Option alternative: Run configuration `npm`
 - Dans IntelliJ: bouton `Stop` sur chaque configuration en cours.
 - En terminal: `Ctrl + C` dans chaque terminal.
 
-## 8. Troubleshooting
+## 8. Application Mobile
+
+L'application mobile repose sur le front Vue [quickdelivery-googlemaps-front](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front), embarque via Capacitor dans :
+- Android : [android](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/android)
+- iOS : [ios](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/ios)
+
+Identite Capacitor :
+- `appId`: `com.quickdelivery.app`
+- `appName`: `QuickDelivery`
+
+### 8.1 Prerequis Mobile
+
+- Node.js + npm
+- Android Studio pour Android
+- SDK Android installe
+- macOS + Xcode + CocoaPods pour iOS
+
+### 8.2 Scripts Mobile
+
+Depuis [quickdelivery-googlemaps-front](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front) :
+
+```powershell
+npm run cap:sync
+```
+
+```powershell
+npm run cap:sync:all
+```
+
+```powershell
+npm run cap:sync:android
+```
+
+```powershell
+npm run cap:sync:ios
+```
+
+```powershell
+npm run cap:open:android
+```
+
+```powershell
+npm run cap:open:ios
+```
+
+Notes :
+- `cap:sync:*` relance automatiquement `npm run build`
+- sur Windows, `cap:open:ios` affiche un message explicite car Xcode n'est pas disponible
+- sur Mac, tu peux aussi utiliser `npm run cap:open:ios:force`
+
+### 8.3 Executer L'App Mobile Android
+
+1. Demarrer tout le backend comme pour le web.
+2. Demarrer le front une premiere fois si tu veux verifier le build web :
+
+```powershell
+cd quickdelivery-googlemaps-front
+npm install
+npm run build
+```
+
+3. Synchroniser Android :
+
+```powershell
+npm run cap:sync:android
+```
+
+4. Ouvrir le projet natif :
+
+```powershell
+npm run cap:open:android
+```
+
+5. Depuis Android Studio :
+- attendre la synchro Gradle
+- choisir un emulateur ou un device physique
+- lancer l'application
+
+### 8.4 Tester L'App Mobile Android
+
+Verifier au minimum :
+- ouverture de l'application
+- acces a la landing publique
+- navigation vers connexion / creation de compte
+- creation de colis
+- affichage carte / geolocalisation
+- consultation des colis et suivi
+
+Prevoir un device/emulateur ayant acces aux services locaux :
+- emulateur Android :
+  - si l'app appelle `localhost` depuis le mobile, il faudra souvent remplacer par `10.0.2.2` pour atteindre la machine hote
+- device physique :
+  - utiliser l'IP reseau locale de ta machine au lieu de `localhost`
+
+Si tes URLs front/back sont encore en `localhost`, le web desktop marchera mais pas forcement l'app mobile hors navigateur. C'est le point principal a verifier avant campagne de tests mobile.
+
+### 8.5 Executer L'App Mobile iOS
+
+1. Depuis Windows, tu peux seulement generer/synchroniser le projet :
+
+```powershell
+cd quickdelivery-googlemaps-front
+npm run cap:sync:ios
+```
+
+2. Sur un Mac :
+- recuperer le projet
+- installer CocoaPods si besoin
+- lancer :
+
+```bash
+cd quickdelivery-googlemaps-front
+npm install
+npm run cap:sync:ios
+npm run cap:open:ios
+```
+
+3. Dans Xcode :
+- choisir un simulateur ou un iPhone physique
+- verifier la signature
+- lancer l'application
+
+### 8.6 Tester L'App Mobile iOS
+
+Verifier les memes parcours que sur Android :
+- landing publique
+- authentification
+- creation de compte
+- creation de colis
+- paiement de test
+- suivi
+- geolocalisation
+
+Attention aux memes contraintes reseau :
+- `localhost` depuis le simulateur/device iOS ne cible pas automatiquement les services de ta machine de dev
+- utiliser l'IP reseau de la machine ou une configuration adaptee
+
+## 9. Troubleshooting
 
 - Si un service n'arrive pas a charger sa config:
   - Verifier que `quickdemivery-config-server` tourne sur `8889`.
@@ -223,3 +360,7 @@ Option alternative: Run configuration `npm`
   - Verifier que `config-server`, `registry`, `oauth`, `users`, `packages` sont deja lances.
 - Si le front ne repond pas:
   - Regarder l'URL exacte affichee dans la console (`App running at`).
+- Si l'app mobile ne joint pas le backend:
+  - verifier les URLs `localhost`
+  - sur emulateur Android, tester avec `10.0.2.2`
+  - sur device physique, utiliser l'IP locale de la machine de developpement

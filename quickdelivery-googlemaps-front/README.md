@@ -1,24 +1,40 @@
 # quickdelivery-googlemaps-front
 
-## Project setup
-```
+Front web Vue 3 de QuickDelivery.
+
+## Installation
+```bash
 npm install
 ```
 
-### Compiles and hot-reloads for development
-```
+## Scripts principaux
+
+### Développement
+```bash
 npm run serve
 ```
 
-### Compiles and minifies for production
-```
+### Build
+```bash
 npm run build
 ```
 
-### Lints and fixes files
-```
+### Lint
+```bash
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Capacitor
+```bash
+npm run cap:sync
+npm run cap:sync:all
+npm run cap:sync:android
+npm run cap:sync:ios
+npm run cap:open:android
+npm run cap:open:ios
+```
+
+La documentation d'execution et de test mobile a ete deplacee dans le [README racine](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/README.md).
+
+## Référence Vue CLI
+Voir [Configuration Reference](https://cli.vuejs.org/config/).

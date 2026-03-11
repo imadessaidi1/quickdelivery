@@ -1,5 +1,8 @@
 {
-  "appId": "com.example.app",
-  "appName": "quickdelivery-googlemaps-front",
-  "webDir": "dist"
+  "appId": "com.quickdelivery.app",
+  "appName": "QuickDelivery",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http"
+  }
 }

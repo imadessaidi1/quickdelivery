@@ -41,11 +41,24 @@
       "serviceAccountsEnabled": false,
       "frontchannelLogout": true,
       "redirectUris": [
+        "quickdelivery://auth/callback",
+        "https://localhost/",
+        "https://localhost/app",
+        "https://localhost/createPackage",
+        "https://localhost/usersAccountValidation",
+        "http://localhost/app",
+        "http://localhost/createPackage",
+        "http://localhost/usersAccountValidation",
+        "http://localhost/",
         "http://localhost:8084/createPackage",
         "http://localhost:8084/",
+        "http://localhost:8084/app",
         "http://localhost:8084/usersAccountValidation"
       ],
       "webOrigins": [
+        "quickdelivery://auth",
+        "https://localhost",
+        "http://localhost",
         "http://localhost:8084"
       ],
       "attributes": {

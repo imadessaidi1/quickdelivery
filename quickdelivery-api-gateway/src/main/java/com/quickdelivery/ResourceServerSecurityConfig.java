@@ -23,8 +23,10 @@ public class ResourceServerSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
+                "http://localhost",
                 "http://localhost:8084",
                 "http://localhost:8080",
+                "https://localhost",
                 "https://localhost:8084",
                 "https://localhost:8080"
         ));

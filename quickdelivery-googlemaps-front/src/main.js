@@ -3,9 +3,13 @@ import App from './App.vue';
 import i18n from './config/i18n';
 import store from './config/store';
 import router from './routers';
-import { handleAuthCallback } from './config/auth';
+import { handleAuthCallback, initializeMobileAuthCallbackListener } from './config/auth';
+import { ensureMobileBackendHostConfigured } from './config/network';
 
 async function bootstrap() {
+  ensureMobileBackendHostConfigured();
+  await initializeMobileAuthCallbackListener();
+
   try {
     await handleAuthCallback();
   } catch (e) {

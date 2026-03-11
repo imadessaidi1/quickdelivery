@@ -1,10 +1,14 @@
 package com.baeldung.auth.config;
 
+import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.keycloak.Config;
 import org.keycloak.exportimport.ExportImportManager;
+import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.services.managers.ApplianceBootstrap;
 import org.keycloak.services.managers.RealmManager;
@@ -66,16 +70,71 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 
 			RealmManager manager = new RealmManager(session);
 			Resource lessonRealmImportFile = new ClassPathResource(keycloakServerProperties.getRealmImportFile());
+			RealmRepresentation realmRepresentation =
+					JsonSerialization.readValue(lessonRealmImportFile.getInputStream(), RealmRepresentation.class);
 
-			manager.importRealm(
-					JsonSerialization.readValue(lessonRealmImportFile.getInputStream(), RealmRepresentation.class));
+			manager.importRealm(realmRepresentation);
+			synchronizeFrontClient(session, realmRepresentation.getRealm());
 
 			session.getTransactionManager().commit();
 		} catch (Exception ex) {
-			LOG.warn("Failed to import Realm json file: {}", ex.getMessage());
+			LOG.warn("Failed to import Realm json file: {}. Trying to synchronize existing realm.", ex.getMessage());
 			session.getTransactionManager().rollback();
+			synchronizeExistingRealm();
 		}
 
 		session.close();
+	}
+
+	private void synchronizeExistingRealm() {
+		KeycloakSession session = getSessionFactory().create();
+
+		try {
+			session.getTransactionManager().begin();
+			synchronizeFrontClient(session, "quickdelivery");
+			session.getTransactionManager().commit();
+		} catch (Exception ex) {
+			LOG.warn("Failed to synchronize existing realm client: {}", ex.getMessage());
+			session.getTransactionManager().rollback();
+		} finally {
+			session.close();
+		}
+	}
+
+	private void synchronizeFrontClient(KeycloakSession session, String realmName) {
+		RealmModel realm = session.realms().getRealmByName(realmName);
+		if (realm == null) {
+			LOG.warn("Realm {} not found for front client synchronization.", realmName);
+			return;
+		}
+
+		ClientModel frontClient = realm.getClientByClientId("quickdelivery-front");
+		if (frontClient == null) {
+			LOG.warn("Client quickdelivery-front not found in realm {}.", realmName);
+			return;
+		}
+
+		Set<String> redirectUris = new LinkedHashSet<>(frontClient.getRedirectUris());
+		redirectUris.add("http://localhost/");
+		redirectUris.add("http://localhost/app");
+		redirectUris.add("http://localhost/createPackage");
+		redirectUris.add("http://localhost/usersAccountValidation");
+		redirectUris.add("https://localhost/");
+		redirectUris.add("https://localhost/app");
+		redirectUris.add("https://localhost/createPackage");
+		redirectUris.add("https://localhost/usersAccountValidation");
+		redirectUris.add("quickdelivery://auth/callback");
+		redirectUris.add("http://localhost:8084/");
+		redirectUris.add("http://localhost:8084/app");
+		redirectUris.add("http://localhost:8084/createPackage");
+		redirectUris.add("http://localhost:8084/usersAccountValidation");
+		frontClient.setRedirectUris(redirectUris);
+
+		Set<String> webOrigins = new LinkedHashSet<>(frontClient.getWebOrigins());
+		webOrigins.add("http://localhost");
+		webOrigins.add("https://localhost");
+		webOrigins.add("http://localhost:8084");
+		webOrigins.add("quickdelivery://auth");
+		frontClient.setWebOrigins(webOrigins);
 	}
 }

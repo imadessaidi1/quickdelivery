@@ -1,13 +1,14 @@
 // i18n.js
 import { createI18n } from 'vue-i18n';
-const ipAddress = 'localhost';
-const gatewayPort = '8087';
+import { getGatewayBaseUrl, getWsBaseUrl } from './network';
+
+const gatewayBaseUrl = getGatewayBaseUrl();
 const messages = {
   en: {
     //API URLS
-    wsURL: `ws://${ipAddress}:${gatewayPort}/ws`,
-    rootURL: `http://${ipAddress}:${gatewayPort}/packages/v1/`,
-    userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
+    wsURL: getWsBaseUrl(),
+    rootURL: `${gatewayBaseUrl}/packages/v1/`,
+    userRootURL: `${gatewayBaseUrl}/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     reserveBatchPackageUrl: 'reserve-batch',
@@ -426,9 +427,9 @@ const messages = {
   },
   fr: {
     //API URLS
-    wsURL: `ws://${ipAddress}:${gatewayPort}/ws`,
-    rootURL: `http://${ipAddress}:${gatewayPort}/packages/v1/`,
-    userRootURL: `http://${ipAddress}:${gatewayPort}/users/v1/`,
+    wsURL: getWsBaseUrl(),
+    rootURL: `${gatewayBaseUrl}/packages/v1/`,
+    userRootURL: `${gatewayBaseUrl}/users/v1/`,
     createPackageUrl: 'create',
     reservePackageUrl: 'reserve?',
     reserveBatchPackageUrl: 'reserve-batch',

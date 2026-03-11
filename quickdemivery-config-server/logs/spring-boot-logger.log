@@ -52985,3 +52985,203 @@ Caused by: org.apache.hc.client5.http.HttpHostConnectException: Connect to http:
 2026-03-10 23:23:15,908 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
 2026-03-10 23:25:57,043 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
 2026-03-10 23:28:15,911 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:30:57,054 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:33:15,917 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:35:57,065 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:38:15,928 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:40:57,085 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:43:15,935 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:45:57,090 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:48:15,943 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:50:57,092 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:53:15,950 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:54:31,619 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-10 23:54:32,769 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-10 23:55:57,103 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-10 23:56:56,966 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-10 23:56:56,966 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-10 23:58:15,956 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:00:57,115 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:03:15,966 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:03:38,979 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:03:39,026 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:05:57,192 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:08:16,056 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:10:57,199 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:13:09,606 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:13:09,607 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:13:16,063 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:15:57,201 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:18:16,066 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:20:57,344 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:21:59,240 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:21:59,353 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:22:02,201 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:22:02,201 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:23:16,078 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:23:40,062 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:23:40,078 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:23:42,612 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-1] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:23:42,711 WARN c.n.d.TimedSupervisorTask [DiscoveryClient-0] task supervisor timed out
+java.util.concurrent.TimeoutException: null
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:204)
+	at com.netflix.discovery.TimedSupervisorTask.run(TimedSupervisorTask.java:68)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-11 00:25:57,351 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:28:16,081 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:30:57,358 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:33:16,096 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:35:57,363 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 00:38:16,098 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 06:56:20,232 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 06:58:38,942 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:01:20,251 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:04:54,975 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:07:36,271 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:09:54,983 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:12:36,283 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:14:54,998 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:17:36,300 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:19:55,002 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:22:36,312 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration
+2026-03-11 07:24:55,019 INFO c.n.d.s.r.a.ConfigClusterResolver [AsyncResolver-bootstrap-executor-0] Resolving eureka endpoints via configuration

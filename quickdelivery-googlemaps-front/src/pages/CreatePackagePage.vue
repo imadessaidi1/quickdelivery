@@ -8,7 +8,21 @@
       </div>
     </header>
 
-    <Form class="wizard-shell" @submit="handleStepSubmit">
+    <section v-if="showGuestChoice" class="guest-entry-card">
+      <span class="page-chip">{{ $t('guestCreatePackageChip') }}</span>
+      <h2>{{ $t('guestCreatePackageTitle') }}</h2>
+      <p>{{ $t('guestCreatePackageSubtitle') }}</p>
+      <div class="guest-entry-actions">
+        <router-link class="btn primary_btn guest-entry-btn" to="/register">
+          {{ $t('guestCreatePackageRegisterAction') }}
+        </router-link>
+        <button class="btn primary_btn guest-entry-btn" type="button" @click="continueAsGuest">
+          {{ $t('guestCreatePackageAnonymousAction') }}
+        </button>
+      </div>
+    </section>
+
+    <Form v-if="canAccessWizard" class="wizard-shell" @submit="handleStepSubmit">
       <aside class="wizard-sidebar">
         <button
           v-for="step in steps"
@@ -87,6 +101,7 @@
 import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
+import { hasValidAccessToken } from '@/config/auth';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageConfirmationSummary from '../components/PackageConfirmationSummary.vue';
 import PackageCreation from '../components/PackageCreation.vue';
@@ -169,6 +184,7 @@ export default {
         { id: 4, label: 'wizardCreateStepOptions', title: 'createPackageOptionsTitle', subtitle: 'createPackageOptionsSubtitle' },
         { id: 5, label: 'wizardCreateStepConfirm', title: 'createPackageConfirmTitle', subtitle: 'createPackageConfirmSubtitle' },
       ],
+      allowAnonymousCreation: false,
     };
   },
   computed: {
@@ -181,12 +197,24 @@ export default {
     currentStepMeta() {
       return this.steps.find((step) => step.id === this.currentStep) || this.steps[0];
     },
+    isAuthenticated() {
+      return hasValidAccessToken();
+    },
+    showGuestChoice() {
+      return !this.isAuthenticated && !this.allowAnonymousCreation;
+    },
+    canAccessWizard() {
+      return this.isAuthenticated || this.allowAnonymousCreation;
+    },
   },
   mounted() {
     this.$store.commit('updateDocuments', []);
     this.$store.commit('updatePackage', JSON.parse(JSON.stringify(EMPTY_PACKAGE)));
   },
   methods: {
+    continueAsGuest() {
+      this.allowAnonymousCreation = true;
+    },
     stepState(stepId) {
       if (this.currentStep === stepId) {
         return 'active';
@@ -275,7 +303,7 @@ export default {
     },
     async submitPackage() {
       const formData = new FormData();
-      this.package_.senderID = this.$store.state.connectedUser.id;
+      this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser?.id ?? null : null;
       this.package_.status = 'PAYMENTPENDING';
       formData.append('packageDTO', JSON.stringify(this.package_));
 
@@ -315,6 +343,48 @@ export default {
 
 .page-header {
   margin-bottom: 18px;
+}
+
+.guest-entry-card {
+  margin-bottom: 24px;
+  padding: 28px 30px;
+  border: 1px solid #dde5f0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
+}
+
+.guest-entry-card h2 {
+  margin: 10px 0 8px;
+  color: #14213d;
+}
+
+.guest-entry-card p {
+  margin: 0;
+  color: #617086;
+}
+
+.guest-entry-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.guest-entry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .page-chip,
@@ -491,6 +561,10 @@ export default {
     min-height: auto;
   }
 
+  .guest-entry-card {
+    padding: 22px 18px;
+  }
+
   .card-header,
   .card-content,
   .card-actions {
@@ -503,6 +577,14 @@ export default {
   }
 
   .card-actions .btn {
+    width: 100%;
+  }
+
+  .guest-entry-actions {
+    flex-direction: column;
+  }
+
+  .guest-entry-btn {
     width: 100%;
   }
 }

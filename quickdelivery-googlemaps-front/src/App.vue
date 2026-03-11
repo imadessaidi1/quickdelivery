@@ -3,7 +3,7 @@
     <loading v-model:active="isLoading"
              :can-cancel="true"
              :is-full-page="true"/>
-    <SearchBar/>
+    <SearchBar v-if="showSearchBar" />
     <div class="router-view">
       <router-view/>
       <ScrollUp/>
@@ -19,12 +19,15 @@ import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import http from '@/config/httpInterceptor';
-import { hasValidAccessToken, redirectToLogin } from '@/config/auth';
+import { hasValidAccessToken } from '@/config/auth';
 
 export default {
   computed: {
     isLoading() {
       return this.$store.state.isLoading;
+    },
+    showSearchBar() {
+      return !this.$route.meta?.public;
     },
   },
   data() {
@@ -34,7 +37,6 @@ export default {
   },
   async mounted() {
     if (!hasValidAccessToken()) {
-      await redirectToLogin();
       return;
     }
 

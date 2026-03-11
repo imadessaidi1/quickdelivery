@@ -3,6 +3,8 @@ import * as VueRouter from 'vue-router'
 import PackageCreation from '../pages/CreatePackagePage.vue';
 import MyPackages from '../pages/MyPackages.vue';
 import HomePage from '../pages/HomePage.vue';
+import LandingPage from '../pages/LandingPage.vue';
+import LoginPage from '../pages/LoginPage.vue';
 import PaymentPage from '../pages/PaymentPage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
 import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
@@ -12,8 +14,26 @@ import UserAccountPage from '../pages/UserAccountPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
-        {
+      {
         path: '/',
+        name: 'landingPage',
+        component: LandingPage,
+        meta: { public: true }
+        },
+        {
+        path: '/login',
+        name: 'loginPage',
+        component: LoginPage,
+        meta: { public: true, publicOnly: true }
+        },
+        {
+        path: '/register',
+        name: 'publicRegisterPage',
+        component: UserSignInPage,
+        meta: { public: true, publicOnly: true }
+        },
+        {
+        path: '/app',
         name: 'homePage',
         component: HomePage,
         meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'] }
@@ -22,7 +42,7 @@ const routes = [
         path: '/createPackage',
         name: 'createPackage',
         component: PackageCreation,
-        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_ADMIN'] }
+        meta: { public: true }
         },
         {
         path: '/myPackages',
@@ -34,7 +54,7 @@ const routes = [
         path: '/paymentPage',
         name: 'paymentPage',
         component:PaymentPage,
-        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_ADMIN'] }
+        meta: { public: true }
         },
         {
         path: '/userSignInPage',
@@ -82,6 +102,9 @@ const router = VueRouter.createRouter({
 });
 
 router.beforeEach(async (to) => {
+    if (to.meta?.publicOnly && hasValidAccessToken()) {
+        return resolveLandingPathForCurrentUser();
+    }
     if (to.meta?.requiresAuth && !hasValidAccessToken()) {
         await redirectToLogin();
         return false;

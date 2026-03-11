@@ -10,7 +10,7 @@ const OIDC_REDIRECT_KEY = 'qd_oidc_redirect';
 
 const ALLOWED_REDIRECTS = new Set([
   '/createPackage',
-  '/',
+  '/app',
   '/usersAccountValidation'
 ]);
 
@@ -43,7 +43,7 @@ function defaultRedirectPath() {
   return '/';
 }
 
-async function buildAuthorizeUrl() {
+async function buildAuthorizeUrl(options = {}) {
   const codeVerifier = randomString(96);
   let codeChallengeMethod = 'S256';
   let codeChallenge = '';
@@ -69,6 +69,9 @@ async function buildAuthorizeUrl() {
   authorizeUrl.searchParams.set('state', state);
   authorizeUrl.searchParams.set('code_challenge', codeChallenge);
   authorizeUrl.searchParams.set('code_challenge_method', codeChallengeMethod);
+  if (options.loginHint) {
+    authorizeUrl.searchParams.set('login_hint', options.loginHint);
+  }
   return authorizeUrl.toString();
 }
 
@@ -121,12 +124,12 @@ function getLandingPathByRoles(roles) {
     return '/usersAccountValidation';
   }
   if (roles.includes('ROLE_LIVREUR')) {
-    return '/';
+    return '/app';
   }
   if (roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO')) {
     return '/createPackage';
   }
-  return '/';
+  return '/app';
 }
 
 export function resolveLandingPathForRoles(roles) {
@@ -170,8 +173,8 @@ export function hasValidAccessToken() {
   return payload.exp > now + 10;
 }
 
-export async function redirectToLogin() {
-  const authUrl = await buildAuthorizeUrl();
+export async function redirectToLogin(options = {}) {
+  const authUrl = await buildAuthorizeUrl(options);
   window.location.assign(authUrl);
 }
 

@@ -3,7 +3,7 @@
      <a @click="toggleMenu" class="material-symbols-outlined burger_menu" ref="handleClickOutsideBurgerMenu">menu</a>
      <div class="menu vertical-menu">
       <ul>
-        <span v-if="canSeeHome" class="infobull" :data-tooltip="$t('menuTooltipHome')"><router-link @click="toggleMenu(0)" to="/"><li class="material-symbols-outlined">home</li></router-link></span>
+        <span v-if="canSeeHome" class="infobull" :data-tooltip="$t('menuTooltipHome')"><router-link @click="toggleMenu(0)" to="/app"><li class="material-symbols-outlined">home</li></router-link></span>
         <span v-if="canSeeMyPackages" class="infobull" :data-tooltip="$t('menuTooltipMyPackages')"><router-link @click="toggleMenu(1)" to="/myPackages"><li class="material-symbols-outlined">deployed_code_account</li></router-link></span>
         <span v-if="canSeeCreatePackage" class="infobull" :data-tooltip="$t('menuTooltipNewPackage')"><router-link @click="toggleMenu(2)" to="/createPackage"><li class="material-symbols-outlined">box_add</li></router-link></span>
       </ul>
@@ -11,7 +11,7 @@
     <transition name="fade">
       <div v-if="isActiveMenu" class="menu horizontal-menu">
         <ul>
-          <router-link v-if="canSeeHome" @click="toggleMenu(0)" to="/"><li>{{$t('menuHome')}}</li></router-link>
+          <router-link v-if="canSeeHome" @click="toggleMenu(0)" to="/app"><li>{{$t('menuHome')}}</li></router-link>
           <router-link v-if="canSeeMyPackages" @click="toggleMenu(1)" to="/myPackages"><li>{{$t('menuMyPackages')}}</li></router-link>
           <router-link v-if="canSeeCreatePackage" @click="toggleMenu(2)" to="/createPackage"><li>{{$t('menuNewPackage')}}</li></router-link>
         </ul>
@@ -83,7 +83,7 @@ export default {
       return this.isAdmin || this.isClient || this.isLivreur;
     },
     showAddressSearch() {
-      return this.$route.path === '/';
+      return this.$route.path === '/app';
     },
     showTextSearch() {
       return this.$route.path === '/myPackages';

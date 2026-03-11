@@ -1,5 +1,12 @@
 <template>
-    <div class="packege_creation_main">
+    <div class="package-details-page">
+        <div class="page-head">
+            <button class="btn primary_btn back-btn" type="button" @click="goBack">{{ $t('actionBack') }}</button>
+            <div>
+                <h1>{{ $t('packagesArroundMArkerDetailActionsDetails') }}</h1>
+                <p>{{ package_.reference || id }}</p>
+            </div>
+        </div>
         <div class="package-form">
             <div class="summary_component">
                 <PackageSummary/>
@@ -49,9 +56,10 @@ export default{
         PackageSummary,
         Field,
         ErrorMessage,
-  },
+    },
   props: {
-    id: String
+    id: String,
+    returnTo: String,
   },
   data() {
     return {
@@ -122,6 +130,17 @@ export default{
   },
   methods: {
     validateNumericField,
+    goBack() {
+      if (window.history.length > 1) {
+        this.$router.back();
+        return;
+      }
+      if (this.returnTo) {
+        this.$router.push(this.returnTo);
+        return;
+      }
+      this.$router.push('/');
+    },
     reserve() {
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
@@ -171,8 +190,57 @@ export default{
 }
 </script>
 <style>
+  .package-details-page {
+    min-height: 100%;
+    padding: 24px;
+    background: #f6f7f9;
+    box-sizing: border-box;
+  }
+  .page-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .page-head h1 {
+    margin: 0;
+    color: #0f172a;
+  }
+  .page-head p {
+    margin: 6px 0 0;
+    color: #64748b;
+  }
+  .back-btn {
+    min-width: 110px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    background: #020617;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  }
+  .package-form {
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #ffffff;
+    padding: 18px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  }
   .input_only input {
     margin: 10px 0;
     width: 200px;
+  }
+  @media screen and (max-width: 767px) {
+    .package-details-page {
+      padding: 16px;
+    }
+    .page-head {
+      flex-direction: column;
+    }
   }
 </style>

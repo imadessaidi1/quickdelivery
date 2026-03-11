@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PackageMain" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.quickdelivery.PackageMain" />
+    <module name="quickdelivery-packages" />
+    <envs>
+      <env name="QUICKDELIVERY_MAIL_USERNAME" value="quickdelivery085@gmail.com" />
+      <env name="QUICKDELIVERY_MAIL_PASSWORD" value="__SET_GMAIL_APP_PASSWORD__" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

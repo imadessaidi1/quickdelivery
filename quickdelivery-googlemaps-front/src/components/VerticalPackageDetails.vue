@@ -65,17 +65,11 @@
             </div>
         </div>
     </div>
-    <DocumentPdfModal v-if="package_.documentS && package_.documentS['PACKAGE_PICTURE']" ref="docImgModal" classe="modal" :byteArrayPDF="getData('PACKAGE_PICTURE')"/>
-    <DocumentPdfModal v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']" ref="docPdfModal" classe="modal" :byteArrayPDF="getData('PACKAGE_INVOICE')"/>
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
-import DocumentPdfModal from '../components/DocumentPdfModal.vue';
 
 export default {
-    components: {
-      DocumentPdfModal,
-    },
     computed: {
         package_() {
           return this.$store.state.package_;
@@ -100,10 +94,24 @@ export default {
         getDepartureAddress,
         getArrivalAddress,
         openDocumentPDFModal(){
-          this.$refs.docPdfModal.openModal();
+          this.$router.push({
+            path: '/document',
+            query: {
+              reference: this.package_.reference,
+              documentType: 'PACKAGE_INVOICE',
+              returnTo: this.$route.fullPath,
+            },
+          });
         },
         openDocumentIMGModal(){
-          this.$refs.docImgModal.openModal();
+          this.$router.push({
+            path: '/document',
+            query: {
+              reference: this.package_.reference,
+              documentType: 'PACKAGE_PICTURE',
+              returnTo: this.$route.fullPath,
+            },
+          });
         },
         formatDate(dateTime) {
             const date = new Date(dateTime);
@@ -116,18 +124,6 @@ export default {
             };
             const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
             return date.toLocaleDateString(userLanguage, options);
-        },
-        getData(docType){
-            var data;
-            if(docType === 'PACKAGE_INVOICE'){
-                data = 'data:application/pdf;base64,'+this.package_.documentS[docType].data;
-            }else{
-                data = 'data:image/png;base64,'+this.package_.documentS[docType].data;
-            }
-            return data;
-        },
-        getIMGData(){
-            return 'data:image/png;base64,'+this.package_.documentS[1].data;
         },
     },
 }

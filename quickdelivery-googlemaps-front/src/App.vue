@@ -5,7 +5,12 @@
              :is-full-page="true"/>
     <SearchBar v-if="showSearchBar" />
     <div class="router-view">
-      <router-view/>
+      <router-view v-slot="{ Component, route }">
+        <keep-alive include="homePage">
+          <component v-if="route.meta?.keepAlive" :is="Component" :key="route.name" />
+        </keep-alive>
+        <component v-if="!route.meta?.keepAlive" :is="Component" :key="route.fullPath" />
+      </router-view>
       <ScrollUp/>
     </div>
     <AppMessages />
@@ -27,7 +32,10 @@ export default {
       return this.$store.state.isLoading;
     },
     showSearchBar() {
-      return !this.$route.meta?.public;
+      if (!this.$route.meta?.public) {
+        return true;
+      }
+      return hasValidAccessToken();
     },
   },
   data() {

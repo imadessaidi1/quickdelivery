@@ -112,7 +112,15 @@ export default {
       this.$store.commit('updatePackage', this.package_);
       if (this.modal && this.modal.openModal) {
         this.modal.openModal();
+        return;
       }
+      this.$router.push({
+        path: '/package',
+        query: {
+          id: this.package_.reference,
+          returnTo: this.$route.fullPath,
+        },
+      });
     },
     destinationAddress() {
       let destinationAddressS = '';

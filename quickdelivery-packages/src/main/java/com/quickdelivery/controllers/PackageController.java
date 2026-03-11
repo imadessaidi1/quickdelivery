@@ -105,6 +105,12 @@ public class PackageController {
         });
     }
 
+    @PutMapping("/confirm-guest-payment")
+    public void confirmGuestPayment(@RequestParam("packageID") Long packageID,
+                                    @RequestParam("guestAccessToken") String guestAccessToken) {
+        packagesService.confirmGuestPackagePayment(packageID, guestAccessToken);
+    }
+
     @PutMapping("/reserve{packageID}{deliveryPersonID}{locale}")
     public void reservePackage(@RequestParam("packageID") Long packageID,
                                @RequestParam("deliveryPersonID") Long deliveryPersonID,
@@ -159,7 +165,21 @@ public class PackageController {
     public CHECK_STATUS checkOTPForDeliveryPackage(@RequestParam("packageID") Long packageID,
                                            @RequestParam("deliveryPersonID") Long deliveryPersonID,
                                            @RequestParam("deliveryOTP") String deliveryOTP){
-        return packagesService.checkOTPForPickUpPackage(packageID,deliveryPersonID,deliveryOTP);
+        return packagesService.checkOTPForDeliverPackage(packageID,deliveryPersonID,deliveryOTP);
+    }
+
+    @GetMapping("/checkGuestOTPForPickup{packageID}{guestAccessToken}{pickUpOTP}")
+    public CHECK_STATUS checkGuestOTPForPickUpPackage(@RequestParam("packageID") Long packageID,
+                                                      @RequestParam("guestAccessToken") String guestAccessToken,
+                                                      @RequestParam("pickUpOTP") String pickUpOTP){
+        return packagesService.checkGuestOTPForPickUpPackage(packageID, guestAccessToken, pickUpOTP);
+    }
+
+    @GetMapping("/checkGuestOTPForDelivery{packageID}{guestAccessToken}{deliveryOTP}")
+    public CHECK_STATUS checkGuestOTPForDeliveryPackage(@RequestParam("packageID") Long packageID,
+                                                        @RequestParam("guestAccessToken") String guestAccessToken,
+                                                        @RequestParam("deliveryOTP") String deliveryOTP){
+        return packagesService.checkGuestOTPForDeliverPackage(packageID, guestAccessToken, deliveryOTP);
     }
     @GetMapping("/getPackagesByDeliveryPerson{deliveryPersonID}")
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(@RequestParam("deliveryPersonID") Long deliveryPersonID){
@@ -169,6 +189,12 @@ public class PackageController {
     @GetMapping("/getPackage{reference}")
     public PackageDTO getPackagesByID(@RequestParam("reference") String reference){
         return packagesService.findPackageByReference(reference);
+    }
+
+    @GetMapping("/getGuestPackage{reference}{guestAccessToken}")
+    public PackageDTO getGuestPackage(@RequestParam("reference") String reference,
+                                      @RequestParam("guestAccessToken") String guestAccessToken){
+        return packagesService.findGuestPackageByReference(reference, guestAccessToken);
     }
 
     @GetMapping("/notify")

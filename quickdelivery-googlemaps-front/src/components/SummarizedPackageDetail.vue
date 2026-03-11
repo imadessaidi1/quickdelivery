@@ -71,7 +71,13 @@ export default{
         },
         details(){
           this.$store.commit('updatePackage', this.package_);
-          this.modal.openModal();
+          this.$router.push({
+            path: '/package',
+            query: {
+              id: this.package_.reference,
+              returnTo: this.$route.fullPath,
+            },
+          });
         },
     }
 }

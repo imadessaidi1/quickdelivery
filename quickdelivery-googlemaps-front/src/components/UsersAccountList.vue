@@ -31,51 +31,13 @@
       </article>
     </div>
 
-    <div v-if="selectedUser" class="validation-modal">
-      <div class="validation-modal__content">
-        <button class="close-btn" @click="hideDetails">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-
-        <div class="modal-header">
-          <div>
-            <h2>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h2>
-            <p>{{ selectedUser.emailAddress }}</p>
-          </div>
-          <span class="status-chip">{{ $t('validationPendingBadge') }}</span>
-        </div>
-
-        <div class="modal-grid">
-          <div class="details-card">
-            <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}"/>
-          </div>
-          <div class="documents-card">
-            <DocumentViewer :documents="selectedUser.document"/>
-          </div>
-        </div>
-
-        <div class="decision-panel">
-          <label class="toggle-line" for="validationCheckbox">
-            <input id="validationCheckbox" v-model="selectedUser.activeAccount" type="checkbox">
-            <span>{{ $t('userValidationCheckboxLabel') }}</span>
-          </label>
-          <button class="details-btn save-btn" @click="saveValidation">{{ $t('userValidationSave') }}</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-import UserDetails from '../components/UserDetails.vue';
-import DocumentViewer from '../components/DocumentViwer.vue';
-import http from '@/config/httpInterceptor';
+const STORAGE_KEY = 'qd_validation_user';
 
 export default {
-  components: {
-    UserDetails,
-    DocumentViewer,
-  },
   props: {
     users: {
       type: Array,
@@ -83,21 +45,18 @@ export default {
     },
   },
   data() {
-    return {
-      selectedUser: null,
-    };
-  },
-  computed: {
-    selectedVehicle() {
-      return this.selectedUser?.vehicles?.[0] || {};
-    },
+    return {};
   },
   methods: {
     showDetails(user) {
-      this.selectedUser = JSON.parse(JSON.stringify(user));
-    },
-    hideDetails() {
-      this.selectedUser = null;
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      this.$router.push({
+        path: '/userValidationDetails',
+        query: {
+          id: user.id || '',
+          returnTo: this.$route.fullPath,
+        },
+      });
     },
     vehicleSummary(user) {
       const vehicle = user?.vehicles?.[0];
@@ -110,26 +69,6 @@ export default {
       const directDocs = Object.keys(user?.document || {}).length;
       const userDocs = Object.keys(user?.documents || {}).length;
       return directDocs || userDocs || 0;
-    },
-    async saveValidation() {
-      const formData = new FormData();
-      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-      const url = this.$i18n.t('userRootURL') + this.$i18n.t('validateUser');
-      formData.append('locale', userLanguage);
-      const userCopy = JSON.parse(JSON.stringify(this.selectedUser));
-      if (userCopy.document) {
-        for (const docType in userCopy.document) {
-          userCopy.document[docType].data = '';
-        }
-      }
-      formData.append('user', JSON.stringify(userCopy));
-      try {
-        await http.put(url, formData);
-        this.hideDetails();
-        this.$parent.loadUsers();
-      } catch (error) {
-        console.error('Unable to process your request at this time. Please try again later.', error);
-      }
     },
   },
 };
@@ -226,128 +165,15 @@ export default {
   justify-content: flex-start;
 }
 
-.validation-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.42);
-  overflow-y: auto;
-}
-
-.validation-modal__content {
-  position: relative;
-  width: min(1220px, 100%);
-  padding: 24px;
-  border-radius: 22px;
-  background: #f8fafc;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #0f172a;
-}
-
-.modal-header p {
-  margin: 6px 0 0;
-  color: #64748b;
-}
-
-.modal-grid {
-  display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.2fr);
-  gap: 18px;
-}
-
-.details-card,
-.documents-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  background: #ffffff;
-  overflow: hidden;
-}
-
-.decision-panel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 18px;
-  padding: 18px 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  background: #ffffff;
-}
-
-.toggle-line {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #334155;
-  font-weight: 600;
-}
-
-.save-btn {
-  min-width: 156px;
-}
-
-.close-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #dbe1ea;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f172a;
-}
-
 @media screen and (max-width: 1200px) {
   .accounts-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .modal-grid {
-    grid-template-columns: 1fr;
   }
 }
 
 @media screen and (max-width: 767px) {
   .accounts-grid {
     grid-template-columns: 1fr;
-  }
-
-  .validation-modal {
-    padding: 12px;
-  }
-
-  .validation-modal__content {
-    padding: 18px;
-  }
-
-  .decision-panel {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .save-btn {
-    width: 100%;
   }
 }
 </style>

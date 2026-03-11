@@ -323,7 +323,15 @@ export default {
         .then((response) => {
           this.$store.commit('updatePackage', response.data);
           if (`${response.status}` === '200') {
-            this.$router.push('/paymentPage');
+            this.$router.push({
+              path: '/paymentPage',
+              query: {
+                packageId: response.data?.id ?? '',
+                reference: response.data?.reference ?? '',
+                guestMode: response.data?.guestMode ? 'true' : 'false',
+                guestAccessToken: response.data?.guestAccessToken ?? '',
+              },
+            });
           }
         })
         .catch(() => {

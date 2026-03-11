@@ -20,19 +20,40 @@ import java.util.Properties;
 public class MailHelper {
     private static JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
-
-        mailSender.setUsername("quickdelivery085@gmail.com");
-        mailSender.setPassword("tkfv dmdw nomn beba");
+        mailSender.setHost(resolveMailSetting("quickdelivery.mail.host", "QUICKDELIVERY_MAIL_HOST", "smtp.gmail.com"));
+        mailSender.setPort(Integer.parseInt(resolveMailSetting("quickdelivery.mail.port", "QUICKDELIVERY_MAIL_PORT", "587")));
+        mailSender.setUsername(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME"));
+        mailSender.setPassword(resolveRequiredMailSecret("quickdelivery.mail.password", "QUICKDELIVERY_MAIL_PASSWORD"));
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
+        props.put("mail.smtp.auth", resolveMailSetting("quickdelivery.mail.smtp.auth", "QUICKDELIVERY_MAIL_SMTP_AUTH", "true"));
+        props.put("mail.smtp.starttls.enable", resolveMailSetting("quickdelivery.mail.smtp.starttls.enable", "QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE", "true"));
+        props.put("mail.debug", resolveMailSetting("quickdelivery.mail.debug", "QUICKDELIVERY_MAIL_DEBUG", "false"));
 
         return mailSender;
+    }
+
+    private static String resolveMailSetting(String propertyName, String envName, String defaultValue) {
+        String value = System.getProperty(propertyName);
+        if (value == null || value.isBlank()) {
+            value = System.getenv(envName);
+        }
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    private static String resolveRequiredMailSecret(String propertyName, String envName) {
+        String value = System.getProperty(propertyName);
+        if (value == null || value.isBlank()) {
+            value = System.getenv(envName);
+        }
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("Missing mail configuration: " + propertyName + " / " + envName);
+        }
+        return value;
     }
 
 

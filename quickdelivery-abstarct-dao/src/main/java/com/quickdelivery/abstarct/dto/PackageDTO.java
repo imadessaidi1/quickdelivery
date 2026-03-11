@@ -25,6 +25,8 @@ public class PackageDTO {
     private PACKAGE_STATUS status;
     private Double deliveryPrice;
     private Long senderID;
+    private Boolean guestMode;
+    private String guestAccessToken;
 
     private String distanceToDestination;
     private List<PackageReservationDTO> packageReservations;
@@ -118,6 +120,22 @@ public class PackageDTO {
 
     public void setSenderID(Long senderID) {
         this.senderID = senderID;
+    }
+
+    public Boolean getGuestMode() {
+        return guestMode;
+    }
+
+    public void setGuestMode(Boolean guestMode) {
+        this.guestMode = guestMode;
+    }
+
+    public String getGuestAccessToken() {
+        return guestAccessToken;
+    }
+
+    public void setGuestAccessToken(String guestAccessToken) {
+        this.guestAccessToken = guestAccessToken;
     }
 
     public Timestamp getCreationDate() {

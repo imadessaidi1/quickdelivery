@@ -144,20 +144,14 @@
         </tbody>
       </table>
     </div>
-
-    <PackageDetailsModal ref="AppModal" classe="modal"/>
   </div>
 </template>
 
 <script>
-import PackageDetailsModal from '../components/PackageDetailsModal.vue';
 import http from '@/config/httpInterceptor';
 import { getCurrentUserRoles } from '@/config/auth';
 
 export default {
-  components: {
-    PackageDetailsModal,
-  },
   data() {
     return {
       packagesByStatus: [],
@@ -261,7 +255,13 @@ export default {
     },
     openDetails(package_) {
       this.$store.commit('updatePackage', package_);
-      this.$refs.AppModal.openModal();
+      this.$router.push({
+        path: '/package',
+        query: {
+          id: package_.reference,
+          returnTo: this.$route.fullPath,
+        },
+      });
     },
     getAddressByType(package_, type) {
       return (package_.addresses || []).find((address) => address.type === type) || {};

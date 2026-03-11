@@ -33,6 +33,9 @@ public interface IPackagesService {
     void deliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException;
     CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP);
     CHECK_STATUS checkOTPForDeliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP);
+    CHECK_STATUS checkGuestOTPForPickUpPackage(Long packageID, String guestAccessToken, String pickUpOTP);
+    CHECK_STATUS checkGuestOTPForDeliverPackage(Long packageID, String guestAccessToken, String deliveryOTP);
+    void confirmGuestPackagePayment(Long packageID, String guestAccessToken);
     PackageDTO findPackageByID(Long id);
     PackageDTO updatePackage(PackageDTO packageDTO);
     void deletePackage(PackageDTO packageDTO);
@@ -45,6 +48,7 @@ public interface IPackagesService {
     List<Address> findUsersAroundPosition(String aPackage);
 
     PackageDTO findPackageByReference(String reference);
+    PackageDTO findGuestPackageByReference(String reference, String guestAccessToken);
 
     boolean isUserWithOngoingDelivery(Long usedId);
 

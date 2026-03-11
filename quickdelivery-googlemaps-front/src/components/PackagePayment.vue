@@ -31,7 +31,61 @@
 
 <script>
 import http from '@/config/httpInterceptor';
+import { hasValidAccessToken } from '@/config/auth';
 import CreditCard from './CreditCard.vue';
+
+const EMPTY_PACKAGE = {
+  id: null,
+  version: null,
+  creationDate: null,
+  reference: '',
+  height: 0,
+  width: 0,
+  depth: 0,
+  weight: 0,
+  pictureURL: '',
+  status: '',
+  deliveryPrice: null,
+  senderID: null,
+  packageReservations: [],
+  addresses: [
+    {
+      firstName: '',
+      lastName: '',
+      line1: '',
+      line2: '',
+      town: '',
+      zipCode: '',
+      country: '',
+      floor: 0,
+      dateTime: null,
+      email: '',
+      phone: '',
+      type: 'DEPARTURE',
+      latitude: 0,
+      longitude: 0,
+    },
+    {
+      firstName: '',
+      lastName: '',
+      line1: '',
+      line2: '',
+      town: '',
+      zipCode: '',
+      country: '',
+      floor: 0,
+      dateTime: null,
+      email: '',
+      phone: '',
+      type: 'ARRIVAL',
+      latitude: 0,
+      longitude: 0,
+    },
+  ],
+  lastPositionLatitude: null,
+  lastPositionLongitude: null,
+};
+
 export default {
   computed: {
     package_() {
@@ -48,63 +102,45 @@ export default {
       expiryDate: '',
       cvv: '',
       amount: '',
-      package: {
-        id: null,
-        version: null,
-        creationDate: null,
-        reference: "",
-        height: 0,
-        width: 0,
-        depth: 0,
-        weight: 0,
-        pictureURL: "",
-        status: "",
-        deliveryPrice: null,
-        senderID: null,
-        packageReservations: [],
-        addresses: [{
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        floor:0,
-        dateTime: null,
-        email: "",
-        phone: "",
-        type: "DEPARTURE",
-        latitude: 0,
-        longitude: 0,
-      },
-      {
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        floor:0,
-        dateTime: null,
-        email: "",
-        phone: "",
-        type: "ARRIVAL",
-        latitude: 0,
-        longitude: 0,
-      }],
-      lastPositionLatitude: null,
-      lastPositionLongitude: null
-    }
     };
   },
   methods: {
+    resolveCurrentPackage() {
+      const packageFromStore = this.package_ || {};
+      const packageId = packageFromStore.id ?? this.$route.query.packageId ?? null;
+      const reference = packageFromStore.reference || this.$route.query.reference || '';
+      const guestMode = typeof packageFromStore.guestMode === 'boolean'
+        ? packageFromStore.guestMode
+        : this.$route.query.guestMode === 'true';
+      const guestAccessToken = packageFromStore.guestAccessToken || this.$route.query.guestAccessToken || '';
+
+      return {
+        ...packageFromStore,
+        id: packageId ? Number(packageId) : null,
+        reference,
+        guestMode,
+        guestAccessToken,
+      };
+    },
     processCardPayment() {
-        http.put(this.$i18n.t('rootURL') + this.$i18n.t('updatePackageStatus')+'?'+this.package_.id+'=NEW')
+        const currentPackage = this.resolveCurrentPackage();
+        if (!currentPackage.id) {
+          console.error('Missing package identifier for payment confirmation.');
+          return;
+        }
+
+        const request = currentPackage.guestMode && !hasValidAccessToken()
+          ? http.put(
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('confirmGuestPackagePayment')}?packageID=${currentPackage.id}&guestAccessToken=${encodeURIComponent(currentPackage.guestAccessToken || '')}`
+            )
+          : http.put(
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('updatePackageStatus')}?${currentPackage.id}=NEW`
+            );
+
+        request
           .then(response => {
-            if(response.status == '200'){
-               this.$store.commit('updatePackage', this.package);
+            if (response.status === 200) {
+               this.$store.commit('updatePackage', { ...EMPTY_PACKAGE });
                this.$store.commit('updateDocuments', []);
                this.$router.push('/');
             }

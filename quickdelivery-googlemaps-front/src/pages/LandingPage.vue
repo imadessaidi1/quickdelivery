@@ -9,6 +9,7 @@
           <li><a href="#services">{{ $t('landingNavServices') }}</a></li>
           <li><a href="#how-it-works">{{ $t('landingNavHowItWorks') }}</a></li>
           <li><a href="#testimonials">{{ $t('landingNavTestimonials') }}</a></li>
+          <li><router-link class="nav-cta nav-cta-secondary" to="/createPackage">{{ $t('menuNewPackage') }}</router-link></li>
           <li><a href="#" @click.prevent="startLogin">{{ $t('landingLoginAction') }}</a></li>
           <li><router-link class="nav-cta" to="/register">{{ $t('landingRegisterAction') }}</router-link></li>
         </ul>
@@ -21,6 +22,7 @@
           <h1>{{ $t('landingHeroTitle') }}</h1>
           <p>{{ $t('landingHeroSubtitle') }}</p>
           <div class="hero-actions">
+            <router-link class="hero-btn tertiary" to="/createPackage">{{ $t('menuNewPackage') }}</router-link>
             <a class="hero-btn" href="#" @click.prevent="startLogin">{{ $t('landingLoginAction') }}</a>
             <router-link class="hero-btn secondary" to="/register">{{ $t('landingRegisterAction') }}</router-link>
           </div>
@@ -202,6 +204,7 @@
         <h1>{{ $t('landingCtaTitle') }}</h1>
         <p>{{ $t('landingCtaSubtitle') }}</p>
         <div class="hero-actions">
+          <router-link class="hero-btn tertiary" to="/createPackage">{{ $t('menuNewPackage') }}</router-link>
           <a class="hero-btn" href="#" @click.prevent="startLogin">{{ $t('landingLoginAction') }}</a>
           <router-link class="hero-btn secondary" to="/register">{{ $t('landingRegisterAction') }}</router-link>
         </div>
@@ -326,6 +329,11 @@ export default {
   background: #fa6400;
 }
 
+.nav-cta-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
 .banner {
   min-height: 100vh;
   background-size: cover;
@@ -385,6 +393,11 @@ export default {
 .hero-btn.secondary {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.hero-btn.tertiary {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .hero-btn:hover {

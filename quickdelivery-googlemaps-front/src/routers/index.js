@@ -9,8 +9,11 @@ import PaymentPage from '../pages/PaymentPage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
 import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
 import PackageTrackingPage from '../pages/PackageTrackingPage.vue';
+import PackageTrackingSummaryPage from '../pages/PackageTrackingSummaryPage.vue';
 import UserAccountValidationPage from '../pages/UserAccountValidationPage.vue';
 import UserAccountPage from '../pages/UserAccountPage.vue';
+import UserValidationDetailsPage from '../pages/UserValidationDetailsPage.vue';
+import DocumentPage from '../pages/DocumentPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -36,7 +39,7 @@ const routes = [
         path: '/app',
         name: 'homePage',
         component: HomePage,
-        meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'] }
+        meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'], keepAlive: true }
         },
         {
         path: '/createPackage',
@@ -73,7 +76,7 @@ const routes = [
         path: '/package',
         name: 'PackageConsultationPage',
         component: PackageConsultationPage,
-        props: (route) => ({ id: route.query.id }),
+        props: (route) => ({ id: route.query.id, returnTo: route.query.returnTo }),
         meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {
@@ -84,15 +87,40 @@ const routes = [
         meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
         },
         {
+        path: '/packageTrackingSummary',
+        name: 'PackageTrackingSummaryPage',
+        component: PackageTrackingSummaryPage,
+        props: (route) => ({ packageReference: route.query.packageReference, returnTo: route.query.returnTo }),
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
         path: '/usersAccountValidation',
         name: 'UserAccountValidationPage',
         component: UserAccountValidationPage,
         meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
         },
         {
+        path: '/userValidationDetails',
+        name: 'UserValidationDetailsPage',
+        component: UserValidationDetailsPage,
+        props: (route) => ({ returnTo: route.query.returnTo }),
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
         path: '/userAccount',
         name: 'UserAccountPage',
         component: UserAccountPage,
+        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
+        },
+        {
+        path: '/document',
+        name: 'DocumentPage',
+        component: DocumentPage,
+        props: (route) => ({
+          reference: route.query.reference,
+          documentType: route.query.documentType,
+          returnTo: route.query.returnTo,
+        }),
         meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
       ];

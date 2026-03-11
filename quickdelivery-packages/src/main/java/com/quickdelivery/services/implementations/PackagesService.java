@@ -92,6 +92,7 @@ public class PackagesService implements IPackagesService {
         ExecutorService executorService;
         Package aPackage;
         try {
+            validatePackageCreationRequest(packageDTO);
             executorService = Executors.newFixedThreadPool(3);
             packageAddressGeocoding(packageDTO);
             packageDistanceCalculation(packageDTO);
@@ -115,6 +116,8 @@ public class PackagesService implements IPackagesService {
             packages.save(aPackage);
             packageDTO.setId(aPackage.getId());
             packageDTO.setVersion(aPackage.getVersion());
+            packageDTO.setGuestMode(Boolean.TRUE.equals(aPackage.getGuestMode()));
+            packageDTO.setGuestAccessToken(aPackage.getGuestAccessToken());
             FileHelper.saveFilesInParallel(filesMap, packagesDirectory+aPackage.getReference(), false);
             executorService.submit(() -> {
                 QRCodeGenerator.generateQRCode(getPackageByIdURL + packageDTO.getReference(),
@@ -396,7 +399,10 @@ public class PackagesService implements IPackagesService {
     public CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP) {
         Package aPackage = packages.findById(packageID).get();
         List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getPickUpOTP().equals(pickUpOTP)).collect(Collectors.toList());
-        if(packageReservation_.size()>0 && aPackage.getSender().getId().equals(senderID)) {
+        if(Boolean.TRUE.equals(aPackage.getGuestMode())){
+            return CHECK_STATUS.KO;
+        }
+        if(packageReservation_.size()>0 && aPackage.getSender() != null && aPackage.getSender().getId().equals(senderID)) {
            return CHECK_STATUS.OK;
         }else{
             return CHECK_STATUS.KO;
@@ -407,11 +413,51 @@ public class PackagesService implements IPackagesService {
     public CHECK_STATUS checkOTPForDeliverPackage(Long packageID, Long deliveryPersonID, String deliveryOTP) {
         Package aPackage = packages.findById(packageID).get();
         List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream().filter(packageReservation -> packageReservation.getDeliveryOTP().equals(deliveryOTP)).collect(Collectors.toList());
-        if(packageReservation_.size()>0 && aPackage.getSender().getId().equals(deliveryPersonID)) {
+        if(Boolean.TRUE.equals(aPackage.getGuestMode())){
+            return CHECK_STATUS.KO;
+        }
+        if(packageReservation_.size()>0 && aPackage.getSender() != null && aPackage.getSender().getId().equals(deliveryPersonID)) {
             return CHECK_STATUS.OK;
         }else{
             return CHECK_STATUS.KO;
         }
+    }
+
+    @Override
+    public CHECK_STATUS checkGuestOTPForPickUpPackage(Long packageID, String guestAccessToken, String pickUpOTP) {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream()
+                .filter(packageReservation -> packageReservation.getPickUpOTP().equals(pickUpOTP))
+                .collect(Collectors.toList());
+        if (packageReservation_.size() > 0 && isValidGuestToken(aPackage, guestAccessToken)) {
+            return CHECK_STATUS.OK;
+        }
+        return CHECK_STATUS.KO;
+    }
+
+    @Override
+    public CHECK_STATUS checkGuestOTPForDeliverPackage(Long packageID, String guestAccessToken, String deliveryOTP) {
+        Package aPackage = packages.findById(packageID).get();
+        List<PackageReservation> packageReservation_ = aPackage.getPackageReservations().stream()
+                .filter(packageReservation -> packageReservation.getDeliveryOTP().equals(deliveryOTP))
+                .collect(Collectors.toList());
+        if (packageReservation_.size() > 0 && isValidGuestToken(aPackage, guestAccessToken)) {
+            return CHECK_STATUS.OK;
+        }
+        return CHECK_STATUS.KO;
+    }
+
+    @Override
+    public void confirmGuestPackagePayment(Long packageID, String guestAccessToken) {
+        Package aPackage = packages.findById(packageID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+        if (!isValidGuestToken(aPackage, guestAccessToken)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid guest access token");
+        }
+        if (!PACKAGE_STATUS.PAYMENTPENDING.equals(aPackage.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not waiting for payment");
+        }
+        packages.updatePackagesStatus(PACKAGE_STATUS.NEW, packageID);
     }
 
     @Override
@@ -491,16 +537,22 @@ public class PackagesService implements IPackagesService {
 
     private Package preparPackage(PackageDTO packageDTO, Locale locale) throws MalformedURLException, FileNotFoundException {
         Package aPackage = modelMapper.map(packageDTO, Package.class);
+        User sender = resolveSender(packageDTO);
+        boolean guestMode = sender == null;
         StringBuffer reference = new StringBuffer();
         aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
         packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
-        aPackage.setSender(null);
+        aPackage.setSender(sender);
+        aPackage.setGuestMode(guestMode);
+        aPackage.setGuestAccessToken(guestMode ? UUID.randomUUID().toString() : null);
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
         reference.append(packageReferenceStart).append(packageDTO.getAddresses().get(0).getCountry().substring(0,2).toUpperCase()).append(aPackage.getCreationDate().toString().replaceAll("[\\s\\-:.]", ""));
         aPackage.setReference(reference.toString());
         packageDTO.setReference(reference.toString());
         packageDTO.setCreationDate(aPackage.getCreationDate());
+        packageDTO.setGuestMode(guestMode);
+        packageDTO.setGuestAccessToken(aPackage.getGuestAccessToken());
         //GeoHelper.getDirection(geoApiContext, getDepartureAddress(packageDTO.getAddresses()).toString(), getArrivalAddress(packageDTO.getAddresses()).toString());
         packageDTO.setId(aPackage.getId());
         packageDTO.setVersion(aPackage.getVersion());
@@ -537,13 +589,73 @@ public class PackagesService implements IPackagesService {
         aPackage.setDistanceToDestination(distancePackageDestination.rows[0].elements[0].duration+"/"+distancePackageDestination.rows[0].elements[0].distance);
     }
 
+    private void validatePackageCreationRequest(PackageDTO packageDTO) {
+        if (packageDTO == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Package payload is required");
+        }
+        if (packageDTO.getAddresses() == null || packageDTO.getAddresses().size() < 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pickup and delivery addresses are required");
+        }
+        AddressDTO departureAddress = getDepartureAddress(packageDTO.getAddresses());
+        AddressDTO arrivalAddress = getArrivalAddress(packageDTO.getAddresses());
+        if (departureAddress == null || arrivalAddress == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pickup and delivery addresses are required");
+        }
+
+        boolean guestMode = packageDTO.getSenderID() == null;
+        packageDTO.setGuestMode(guestMode);
+        if (guestMode) {
+            validateGuestAddressContact(departureAddress, "pickup");
+        }
+        validateGuestAddressContact(arrivalAddress, "delivery");
+    }
+
+    private void validateGuestAddressContact(AddressDTO address, String label) {
+        if (isBlank(address.getFirstName()) || isBlank(address.getLastName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Contact name is required for " + label);
+        }
+        if (isBlank(address.getPhone())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number is required for " + label);
+        }
+        if ("pickup".equals(label) && isBlank(address.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required for pickup");
+        }
+    }
+
+    private User resolveSender(PackageDTO packageDTO) {
+        if (packageDTO.getSenderID() == null) {
+            return null;
+        }
+        return users.findById(packageDTO.getSenderID())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sender not found"));
+    }
+
+    private boolean isValidGuestToken(Package aPackage, String guestAccessToken) {
+        return Boolean.TRUE.equals(aPackage.getGuestMode())
+                && guestAccessToken != null
+                && Objects.equals(aPackage.getGuestAccessToken(), guestAccessToken);
+    }
+
+    private String buildFollowupLink(Package aPackage) {
+        if (Boolean.TRUE.equals(aPackage.getGuestMode()) && aPackage.getGuestAccessToken() != null) {
+            return packageFollowupLink + aPackage.getReference() + "?guestAccessToken=" + aPackage.getGuestAccessToken();
+        }
+        return packageFollowupLink + aPackage.getReference();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
     private void sendPackageCreationEMail(Package aPackage, Locale locale, String template, String subject, EMAIL_TYPE type){
         Map<String, Object> templateModel = new HashMap<>();
+        Address departureAddress = getDepartureAddress(aPackage.getAddresses());
+        Address arrivalAddress = getArrivalAddress(aPackage.getAddresses());
         if(type.equals(EMAIL_TYPE.PACKAGE_CREATION) || type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_SENDER) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_SENDER)
                 ||type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_SENDER)) {
-            templateModel.put("recipientName", getDepartureAddress(aPackage.getAddresses()).getFirstName() + " " + getDepartureAddress(aPackage.getAddresses()).getLastName());
+            templateModel.put("recipientName", departureAddress.getFirstName() + " " + departureAddress.getLastName());
         }else if(type.equals(EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER) ||type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER)) {
-            templateModel.put("recipientName", getArrivalAddress(aPackage.getAddresses()).getFirstName() + " " + getArrivalAddress(aPackage.getAddresses()).getLastName());
+            templateModel.put("recipientName", arrivalAddress.getFirstName() + " " + arrivalAddress.getLastName());
         }
         templateModel.put("height", aPackage.getHeight());
         templateModel.put("width", aPackage.getWidth());
@@ -551,8 +663,10 @@ public class PackagesService implements IPackagesService {
         templateModel.put("weight", aPackage.getWeight());
         templateModel.put("packageReference", aPackage.getReference());
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("followupLink", packageFollowupLink+aPackage.getReference());
+        templateModel.put("followupLink", buildFollowupLink(aPackage));
         templateModel.put("evaluationLink", evaluateLink+aPackage.getReference());
+        templateModel.put("guestMode", Boolean.TRUE.equals(aPackage.getGuestMode()));
+        templateModel.put("guestAccessToken", aPackage.getGuestAccessToken());
         if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
             aPackage.getPackageReservations().stream().forEach(packageReservation -> {
                 if (packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING)) {
@@ -565,10 +679,10 @@ public class PackagesService implements IPackagesService {
             });
         }
         templateModel.put("deliveryPrice", aPackage.getDeliveryPrice());
-        templateModel.put("departureAddress", getDepartureAddress(aPackage.getAddresses()).formatedtoString());
-        templateModel.put("pickupDateTime", getDepartureAddress(aPackage.getAddresses()).getDateTime());
-        templateModel.put("arrivalAddress", getArrivalAddress(aPackage.getAddresses()).formatedtoString());
-        templateModel.put("deliveryDateTime", getArrivalAddress(aPackage.getAddresses()).getDateTime());
+        templateModel.put("departureAddress", departureAddress.formatedtoString());
+        templateModel.put("pickupDateTime", departureAddress.getDateTime());
+        templateModel.put("arrivalAddress", arrivalAddress.formatedtoString());
+        templateModel.put("deliveryDateTime", arrivalAddress.getDateTime());
         String attachement;
         if(type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY) || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER)
                 || type.equals(EMAIL_TYPE.PACKAGE_PICKUP_SENDER) || type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER) || type.equals(EMAIL_TYPE.PACKAGE_DELIVERY_SENDER)){
@@ -577,7 +691,7 @@ public class PackagesService implements IPackagesService {
             attachement = packagesDirectory+aPackage.getReference()+packageLabelEnds;
         }
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(messageSource,templateResolver,getDepartureAddress(aPackage.getAddresses()).getEmail(),
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource,templateResolver,departureAddress.getEmail(),
                     subject,templateModel, locale, template,attachement);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
@@ -614,6 +728,15 @@ public class PackagesService implements IPackagesService {
             }
         });
         packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
+        return packageDTO;
+    }
+
+    @Override
+    public PackageDTO findGuestPackageByReference(String reference, String guestAccessToken) {
+        PackageDTO packageDTO = findPackageByReference(reference);
+        if (!Boolean.TRUE.equals(packageDTO.getGuestMode()) || !Objects.equals(packageDTO.getGuestAccessToken(), guestAccessToken)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid guest access token");
+        }
         return packageDTO;
     }
 

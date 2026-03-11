@@ -38,18 +38,6 @@
         <button @click="details" class="details-btn">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
       </div>
     </div>
-
-    <div v-if="showModal" class="tracking-modal">
-      <div class="tracking-modal-content">
-        <button class="close-btn" @click="closeDetails">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-        <div class="modal-header">
-          <h2>{{ $t('trackingSummaryTitle') }}</h2>
-        </div>
-        <PackageSummary/>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -64,7 +52,6 @@ export default {
   data() {
     return {
       googleMapPath: process.env.BASE_URL + 'google-maps-package-tracking.html',
-      showModal: false,
     };
   },
   props: {
@@ -83,10 +70,13 @@ export default {
       this.$refs.map.contentWindow.postMessage('PackageReference:' + this.$parent.packageReference, '*');
     },
     details() {
-      this.showModal = true;
-    },
-    closeDetails() {
-      this.showModal = false;
+      this.$router.push({
+        path: '/packageTrackingSummary',
+        query: {
+          packageReference: this.$parent.packageReference,
+          returnTo: this.$route.fullPath,
+        },
+      });
     },
   },
   watch: {
@@ -223,52 +213,6 @@ export default {
   font-weight: 600;
   font-size: 0.82rem;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
-}
-
-.tracking-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-  background: rgba(15, 23, 42, 0.42);
-}
-
-.tracking-modal-content {
-  position: relative;
-  width: min(960px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 16px;
-  border-radius: 18px;
-  background: #f8fafc;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
-}
-
-.modal-header {
-  margin-bottom: 16px;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #0f172a;
-}
-
-.close-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #dbe1ea;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f172a;
 }
 
 @media screen and (max-width: 1100px) {

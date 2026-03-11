@@ -138,7 +138,6 @@ export default {
 .modal {
   z-index: 4;
 }
-
 @media screen and (min-width: 1024px) {
   .home-page {
     grid-template-columns: 1fr minmax(340px, 28vw);

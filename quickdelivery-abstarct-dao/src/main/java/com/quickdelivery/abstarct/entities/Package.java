@@ -52,6 +52,10 @@ public class Package {
     @ManyToOne
     @JoinColumn(name="sender_id")
     private User sender;
+    @Column
+    private Boolean guestMode;
+    @Column
+    private String guestAccessToken;
 
     @Column(precision = 11, scale = 8)
     private BigDecimal lastPositionLatitude;
@@ -124,6 +128,22 @@ public class Package {
 
     public void setSender(User sender) {
         this.sender = sender;
+    }
+
+    public Boolean getGuestMode() {
+        return guestMode;
+    }
+
+    public void setGuestMode(Boolean guestMode) {
+        this.guestMode = guestMode;
+    }
+
+    public String getGuestAccessToken() {
+        return guestAccessToken;
+    }
+
+    public void setGuestAccessToken(String guestAccessToken) {
+        this.guestAccessToken = guestAccessToken;
     }
 
     public Integer getVersion() {

@@ -17,6 +17,7 @@ import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.EMAIL_TEMPLATE_TYPE;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Users;
+import com.quickdelivery.services.interfaces.IKeycloakProvisioningService;
 import com.quickdelivery.services.interfaces.IUserServices;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -68,9 +69,13 @@ public class UserServices implements IUserServices {
     @Autowired
     @Qualifier("myTemplateResolver")
     private ITemplateResolver templateResolver;
+    @Autowired
+    private IKeycloakProvisioningService keycloakProvisioningService;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+        String rawPassword = user.getPassword();
         User userEntity = modelMapper.map(user,User.class);
+        userEntity.setPassword(null);
         user.getPersonalAddress().stream().forEach(address -> {
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, address);
@@ -100,10 +105,13 @@ public class UserServices implements IUserServices {
                     userEntity.getDocument().add(document);
                 });
         users.save(userEntity);
+        keycloakProvisioningService.provisionUser(userEntity, rawPassword);
         FileHelper.saveFilesInParallel(filesMap, filesPath, false);
         userEntity.getPersonalAddress().stream().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
         user.setId(userEntity.getId());
         user.setVersion(userEntity.getVersion());
+        user.setPassword(null);
+        user.setPasswordConfirmation(null);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         executorService.submit(() -> {
             sendUserAccountCreationEmail(user, userEntity, locale);
@@ -114,6 +122,7 @@ public class UserServices implements IUserServices {
     @Override
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         User userEntity = modelMapper.map(user,User.class);
+        userEntity.setPassword(null);
         user.getPersonalAddress().stream().forEach(address -> {
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, address);
@@ -148,6 +157,7 @@ public class UserServices implements IUserServices {
     public UserDTO userValidation(UserDTO user, Locale locale) {
         User userFromDB = users.findById(user.getId()).get();
         userFromDB.setActiveAccount(user.getActiveAccount());
+        userFromDB.setEmailAddressValidation(user.getEmailAddressValidation());
         Set<Document> documentListFromFront = new HashSet<>();
         user.getDocument().keySet().stream().forEach(documentType -> {
             Document document = modelMapper.map(user.getDocument().get(documentType), Document.class);
@@ -156,6 +166,7 @@ public class UserServices implements IUserServices {
         });
         userFromDB.setDocument(documentListFromFront);
         users.save(userFromDB);
+        keycloakProvisioningService.syncUserState(userFromDB);
         List<Document> rejectedDocuments = userFromDB.getDocument().stream()
                 .filter(document -> document.getDocumentStatus() == DOCUMENT_STATUS.REJECTED)
                 .collect(Collectors.toList());
@@ -179,6 +190,7 @@ public class UserServices implements IUserServices {
         user.setActiveAccount(true);
         user.setEmailAddressValidation(true);
         users.save(user);
+        keycloakProvisioningService.syncUserState(user);
         return CHECK_STATUS.OK;
     }
 
@@ -190,7 +202,8 @@ public class UserServices implements IUserServices {
             userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
             userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
             userDTO.setPhoneConfirmation(userDTO.getPhone());
-            userDTO.setPasswordConfirmation(userDTO.getPassword());
+            userDTO.setPassword(null);
+            userDTO.setPasswordConfirmation(null);
             user.getDocument().stream().forEach(document -> {
                 DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
                 try {
@@ -221,6 +234,8 @@ public class UserServices implements IUserServices {
                 }
                 userDTO.getDocument().put(document.getType(), documentDTO);
             });
+            userDTO.setPassword(null);
+            userDTO.setPasswordConfirmation(null);
             userDTOList.add(userDTO);
         });
         return userDTOList;

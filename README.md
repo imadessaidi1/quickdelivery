@@ -6,6 +6,8 @@
 - Maven 3.9+
 - Node.js 18+ et npm
 - MySQL accessible en local (base `QuickDeliveryDB`)
+- MySQL accessible en local (base `KeycloakDB`)
+- certificat TLS de dev present dans `certs/quickdelivery-dev.p12`
 
 ## 2. Demarrage Rapide (Terminal)
 
@@ -20,10 +22,10 @@ Lancer ensuite chaque service dans un terminal separe, dans cet ordre:
 
 1. Config Server (`8889`)
 2. Discovery Server / Eureka (`8080`)
-3. OAuth Authorization Server (`18084`)
+3. OAuth Authorization Server (`18443`)
 4. Users Service (`8081`)
 5. Packages Service (`8082`)
-6. API Gateway (`8087`)
+6. API Gateway (`8443`)
 
 ```powershell
 cd quickdemivery-config-server
@@ -65,28 +67,102 @@ npm run serve
 
 ## 3. URLs Utiles
 
-- Front (Vue): `http://localhost:8084` (ou le port affiche par `npm run serve`)
+- Front (Vue): `https://localhost:8084`
 - Config Server base: `http://localhost:8889`
 - Config Server actuator health: `http://localhost:8889/actuator/health`
 - Registry/Eureka dashboard: `http://localhost:8080`
 - Registry/Eureka actuator health: `http://localhost:8080/actuator/health`
-- API Gateway base: `http://localhost:8087`
-- API Gateway actuator health: `http://localhost:8087/actuator/health`
-- OAuth base: `http://localhost:18084/auth`
-- OAuth realm base: `http://localhost:18084/auth/realms/quickdelivery`
-- OAuth OpenID configuration: `http://localhost:18084/auth/realms/quickdelivery/.well-known/openid-configuration`
-- OAuth token endpoint: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token`
-- OAuth certs (JWKS): `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/certs`
-- OAuth logout endpoint: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/logout`
-- Users via gateway: `http://localhost:8087/users/v1/...`
-- Packages via gateway: `http://localhost:8087/packages/v1/...`
-- Packages websocket via gateway: `ws://localhost:8087/ws`
+- API Gateway base: `https://localhost:8443`
+- API Gateway actuator health: `https://localhost:8443/actuator/health`
+- OAuth base: `https://localhost:18443/auth`
+- OAuth realm base: `https://localhost:18443/auth/realms/quickdelivery`
+- OAuth OpenID configuration: `https://localhost:18443/auth/realms/quickdelivery/.well-known/openid-configuration`
+- OAuth token endpoint: `https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token`
+- OAuth certs (JWKS): `https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/certs`
+- OAuth logout endpoint: `https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/logout`
+- Users via gateway: `https://localhost:8443/users/v1/...`
+- Packages via gateway: `https://localhost:8443/packages/v1/...`
+- Packages websocket via gateway: `wss://localhost:8443/ws`
 - Users direct (bloque): `http://localhost:8081/...`
 - Packages direct (bloque): `http://localhost:8082/...`
 
 Les appels front doivent passer par la gateway. Les appels directs vers les services backend (`8081`, `8082`) sont rejetes par filtre de securite.
 
-## 4. Authentification Front + JWT
+## 4. Reseau Dev, LAN Et Production
+
+### 4.1 Fonctionnement en developpement
+
+- le front tourne sur `https://<host-dev>:8084`
+- la gateway est exposee sur `https://<host-dev>:8443`
+- OAuth/Keycloak est expose sur `https://<host-dev>:18443/auth`
+- le WebSocket front passe par la gateway sur `wss://<host-dev>:8443/ws`
+
+Le front derive automatiquement ses URLs backend a partir du hostname du navigateur si aucune variable d'environnement n'est fournie:
+
+- gateway: `https://<host>:8443`
+- auth: `https://<host>:18443/auth`
+- websocket: `wss://<host>:8443/ws`
+
+La gateway et OAuth detectent aussi automatiquement les hosts locaux du poste de developpement pour accepter:
+
+- les origins CORS du front
+- les redirect URIs Keycloak
+- les web origins Keycloak
+- les issuers JWT LAN du poste
+
+Resultat:
+
+- si ton PC change d'adresse IP sur le meme reseau, le mode dev continue de fonctionner apres redemarrage des services
+- un autre developpeur sur son propre reseau local n'a pas besoin de recoder une IP dans le projet
+
+### 4.2 Variables d'environnement Front
+
+Le front supporte trois surcharges explicites:
+
+- `VUE_APP_GATEWAY_BASE_URL`
+- `VUE_APP_AUTH_BASE_URL`
+- `VUE_APP_WS_BASE_URL`
+
+Modeles fournis:
+
+- [`.env.development.local.example`](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/.env.development.local.example)
+- [`.env.production.example`](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/.env.production.example)
+
+Usage:
+
+1. copier `.env.development.local.example` vers `.env.development.local` si tu veux figer des URLs de dev
+2. copier `.env.production.example` vers `.env.production` pour un build de prod
+
+Si tu ne crées pas ces fichiers, le mode auto base sur le hostname reste actif.
+
+### 4.3 Variables d'environnement Backend
+
+Les services exposes utilisent maintenant ces surcharges:
+
+- `QUICKDELIVERY_FRONTEND_BASE_URLS`
+- `QUICKDELIVERY_AUTH_ISSUER_URIS`
+
+Elles sont lues via le Config Server dans:
+
+- [APIGatewayApplication.yml](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/config/APIGatewayApplication.yml)
+- [oauth-authorization-server.yml](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/config/oauth-authorization-server.yml)
+
+Comportement:
+
+- si elles sont vides: auto-decouverte des hosts locaux pour le dev
+- si elles sont renseignees: utilisation stricte des URLs fournies, utile pour la recette et la prod
+
+### 4.4 Exemple Production
+
+Exemple de valeurs stables en production:
+
+- `QUICKDELIVERY_FRONTEND_BASE_URLS=https://app.quickdelivery.com`
+- `QUICKDELIVERY_AUTH_ISSUER_URIS=https://auth.quickdelivery.com/auth/realms/quickdelivery`
+- `VUE_APP_GATEWAY_BASE_URL=https://api.quickdelivery.com`
+- `VUE_APP_AUTH_BASE_URL=https://auth.quickdelivery.com/auth`
+- `VUE_APP_WS_BASE_URL=wss://api.quickdelivery.com/ws`
+
+## 5. Authentification Front + JWT
 
 - Le front utilise OAuth2/OIDC (Keycloak realm `quickdelivery`) avec Authorization Code + PKCE.
 - Si le token est absent/invalide, le front redirige automatiquement vers la page de login Keycloak.
@@ -106,11 +182,11 @@ Comptes techniques:
 Postman (client OAuth de test):
 
 - `client_id`: `quickdelivery-postman`
-- token URL: `http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token`
+- token URL: `https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token`
 - grant type: `password`
 - username/password: utiliser un des comptes de test ci-dessus
 
-## 5. Consulter La Configuration Dans Le Config Server
+## 6. Consulter La Configuration Dans Le Config Server
 
 - Auth basic par defaut:
 - username: `configuser`
@@ -129,7 +205,7 @@ Exemple PowerShell:
 ```powershell
 curl -u configuser:configpass http://localhost:8889/APIGatewayApplication/default
 ```
-## 6. Actions A Faire Dans IntelliJ
+## 7. Actions A Faire Dans IntelliJ
 
 ### 6.1 Ouvrir le projet
 
@@ -206,12 +282,30 @@ Option alternative: Run configuration `npm`
 4. `Command`: `run`
 5. `Scripts`: `serve`
 
-## 7. Arreter Tous Les Services
+## 8. Certificats TLS En Developpement
+
+Les surfaces exposees au navigateur/mobile sont en HTTPS:
+
+- front: `8084`
+- gateway: `8443`
+- oauth: `18443`
+
+Le certificat de dev par defaut est:
+
+- [quickdelivery-dev.p12](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/certs/quickdelivery-dev.p12)
+
+Points importants:
+
+- le navigateur du poste de dev doit faire confiance au certificat si besoin
+- un telephone ou un autre PC du meme reseau doit aussi faire confiance au certificat pour eviter les erreurs TLS
+- la gateway configure automatiquement un truststore JVM pour faire confiance au certificat OAuth local
+
+## 9. Arreter Tous Les Services
 
 - Dans IntelliJ: bouton `Stop` sur chaque configuration en cours.
 - En terminal: `Ctrl + C` dans chaque terminal.
 
-## 8. Application Mobile
+## 10. Application Mobile
 
 L'application mobile repose sur le front Vue [quickdelivery-googlemaps-front](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front), embarque via Capacitor dans :
 - Android : [android](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/android)
@@ -348,18 +442,25 @@ Attention aux memes contraintes reseau :
 - `localhost` depuis le simulateur/device iOS ne cible pas automatiquement les services de ta machine de dev
 - utiliser l'IP reseau de la machine ou une configuration adaptee
 
-## 9. Troubleshooting
+## 11. Troubleshooting
 
 - Si un service n'arrive pas a charger sa config:
   - Verifier que `quickdemivery-config-server` tourne sur `8889`.
 - Si l'auth OAuth ne demarre pas:
-  - Verifier qu'aucun process n'utilise `18084`.
+  - Verifier qu'aucun process n'utilise `18443`.
 - Si `users`/`packages` ne demarrent pas apres changement Maven:
   - Relancer `mvn clean install -DskipTests` a la racine.
 - Si la gateway ne demarre pas:
   - Verifier que `config-server`, `registry`, `oauth`, `users`, `packages` sont deja lances.
 - Si le front ne repond pas:
-  - Regarder l'URL exacte affichee dans la console (`App running at`).
+  - Verifier que `npm run serve` expose bien `https://localhost:8084`.
+- Si l'auth marche en local mais pas depuis un autre device du LAN:
+  - verifier que le certificat TLS est accepte sur ce device
+  - verifier que le device appelle bien l'URL du poste de dev, pas `localhost`
+- Si le front charge mais que les appels API sont bloques:
+  - verifier que `quickdelivery-api-gateway` a bien ete redemarre apres changement de reseau/config
+- Si les tokens sont rejetes apres changement d'host/IP:
+  - redemarrer `oauth-authorization-server` et `quickdelivery-api-gateway`
 - Si l'app mobile ne joint pas le backend:
   - verifier les URLs `localhost`
   - sur emulateur Android, tester avec `10.0.2.2`

@@ -1,4 +1,7 @@
 const MOBILE_BACKEND_HOST_OVERRIDE_KEY = 'qd_backend_host';
+const EXPLICIT_GATEWAY_BASE_URL = (process.env.VUE_APP_GATEWAY_BASE_URL || '').trim();
+const EXPLICIT_AUTH_BASE_URL = (process.env.VUE_APP_AUTH_BASE_URL || '').trim();
+const EXPLICIT_WS_BASE_URL = (process.env.VUE_APP_WS_BASE_URL || '').trim();
 
 function normalizeHost(rawHost) {
   const trimmed = typeof rawHost === 'string' ? rawHost.trim() : '';
@@ -98,13 +101,22 @@ export function resolveBackendHost() {
 }
 
 export function getGatewayBaseUrl() {
+  if (EXPLICIT_GATEWAY_BASE_URL) {
+    return EXPLICIT_GATEWAY_BASE_URL;
+  }
   return `https://${resolveBackendHost()}:8443`;
 }
 
 export function getAuthBaseUrl() {
+  if (EXPLICIT_AUTH_BASE_URL) {
+    return EXPLICIT_AUTH_BASE_URL;
+  }
   return `https://${resolveBackendHost()}:18443/auth`;
 }
 
 export function getWsBaseUrl() {
+  if (EXPLICIT_WS_BASE_URL) {
+    return EXPLICIT_WS_BASE_URL;
+  }
   return `wss://${resolveBackendHost()}:8443/ws`;
 }

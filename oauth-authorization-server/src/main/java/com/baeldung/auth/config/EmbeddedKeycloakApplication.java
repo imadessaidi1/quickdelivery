@@ -115,60 +115,17 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 		}
 
 		Set<String> redirectUris = new LinkedHashSet<>(frontClient.getRedirectUris());
-		redirectUris.add("http://localhost/");
-		redirectUris.add("http://localhost/app");
-		redirectUris.add("http://localhost/createPackage");
-		redirectUris.add("http://localhost/usersAccountValidation");
-		redirectUris.add("https://localhost/");
-		redirectUris.add("https://localhost/app");
-		redirectUris.add("https://localhost/createPackage");
-		redirectUris.add("https://localhost/usersAccountValidation");
 		redirectUris.add("quickdelivery://auth/callback");
-		redirectUris.add("http://localhost:8080/");
-		redirectUris.add("http://localhost:8080/app");
-		redirectUris.add("http://localhost:8080/createPackage");
-		redirectUris.add("http://localhost:8080/usersAccountValidation");
-		redirectUris.add("http://localhost:8084/");
-		redirectUris.add("http://localhost:8084/app");
-		redirectUris.add("http://localhost:8084/createPackage");
-		redirectUris.add("http://localhost:8084/usersAccountValidation");
-		redirectUris.add("https://localhost:8080/");
-		redirectUris.add("https://localhost:8080/app");
-		redirectUris.add("https://localhost:8080/createPackage");
-		redirectUris.add("https://localhost:8080/usersAccountValidation");
-		redirectUris.add("https://localhost:8084/");
-		redirectUris.add("https://localhost:8084/app");
-		redirectUris.add("https://localhost:8084/createPackage");
-		redirectUris.add("https://localhost:8084/usersAccountValidation");
-		redirectUris.add("http://192.168.0.24:8080/");
-		redirectUris.add("http://192.168.0.24:8080/app");
-		redirectUris.add("http://192.168.0.24:8080/createPackage");
-		redirectUris.add("http://192.168.0.24:8080/usersAccountValidation");
-		redirectUris.add("http://192.168.0.24:8084/");
-		redirectUris.add("http://192.168.0.24:8084/app");
-		redirectUris.add("http://192.168.0.24:8084/createPackage");
-		redirectUris.add("http://192.168.0.24:8084/usersAccountValidation");
-		redirectUris.add("https://192.168.0.24:8080/");
-		redirectUris.add("https://192.168.0.24:8080/app");
-		redirectUris.add("https://192.168.0.24:8080/createPackage");
-		redirectUris.add("https://192.168.0.24:8080/usersAccountValidation");
-		redirectUris.add("https://192.168.0.24:8084/");
-		redirectUris.add("https://192.168.0.24:8084/app");
-		redirectUris.add("https://192.168.0.24:8084/createPackage");
-		redirectUris.add("https://192.168.0.24:8084/usersAccountValidation");
+		for (String baseUrl : PublicEndpointResolver.resolveFrontendBaseUrls(System.getProperty("quickdelivery.frontend.base-urls"))) {
+			redirectUris.add(baseUrl + "/");
+			redirectUris.add(baseUrl + "/app");
+			redirectUris.add(baseUrl + "/createPackage");
+			redirectUris.add(baseUrl + "/usersAccountValidation");
+		}
 		frontClient.setRedirectUris(redirectUris);
 
 		Set<String> webOrigins = new LinkedHashSet<>(frontClient.getWebOrigins());
-		webOrigins.add("http://localhost");
-		webOrigins.add("https://localhost");
-		webOrigins.add("http://localhost:8080");
-		webOrigins.add("https://localhost:8080");
-		webOrigins.add("http://localhost:8084");
-		webOrigins.add("https://localhost:8084");
-		webOrigins.add("http://192.168.0.24:8080");
-		webOrigins.add("https://192.168.0.24:8080");
-		webOrigins.add("http://192.168.0.24:8084");
-		webOrigins.add("https://192.168.0.24:8084");
+		webOrigins.addAll(PublicEndpointResolver.resolveFrontendBaseUrls(System.getProperty("quickdelivery.frontend.base-urls")));
 		webOrigins.add("quickdelivery://auth");
 		frontClient.setWebOrigins(webOrigins);
 	}

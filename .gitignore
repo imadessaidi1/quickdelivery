@@ -59,8 +59,4 @@ dist/
 .cache/
 **/.cache/
 coverage/
-certs/*.crt
-certs/*.p12
-certs/*.pem
-certs/*.key
 **/coverage/

@@ -21,8 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.util.LinkedHashSet;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -32,26 +32,16 @@ public class ResourceServerSecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:https://localhost:18443/auth/realms/quickdelivery}")
     private String primaryIssuerUri;
 
-    @Value("${quickdelivery.security.additional-issuer-uris:https://192.168.0.24:18443/auth/realms/quickdelivery}")
+    @Value("${quickdelivery.security.additional-issuer-uris:}")
     private String additionalIssuerUris;
+
+    @Value("${quickdelivery.frontend.base-urls:}")
+    private String frontendBaseUrls;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost",
-                "http://localhost:8080",
-                "http://localhost:8084",
-                "https://localhost",
-                "https://localhost:8080",
-                "https://localhost:8084",
-                "http://192.168.0.24:8080",
-                "https://192.168.0.24:8080",
-                "http://192.168.0.24:8084",
-                "https://192.168.0.24:8084",
-                "capacitor://localhost",
-                "ionic://localhost"
-        ));
+        config.setAllowedOrigins(List.copyOf(PublicEndpointResolver.resolveFrontendOrigins(frontendBaseUrls)));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
@@ -65,12 +55,7 @@ public class ResourceServerSecurityConfig {
         String jwkSetUri = primaryIssuerUri + "/protocol/openid-connect/certs";
         NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
 
-        Set<String> allowedIssuers = new LinkedHashSet<>();
-        allowedIssuers.add(primaryIssuerUri);
-        Arrays.stream(additionalIssuerUris.split(","))
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .forEach(allowedIssuers::add);
+        Set<String> allowedIssuers = PublicEndpointResolver.resolveIssuerUris(primaryIssuerUri, additionalIssuerUris);
 
         OAuth2TokenValidator<Jwt> defaultValidator = JwtValidators.createDefault();
         OAuth2TokenValidator<Jwt> issuerValidator = jwt -> {

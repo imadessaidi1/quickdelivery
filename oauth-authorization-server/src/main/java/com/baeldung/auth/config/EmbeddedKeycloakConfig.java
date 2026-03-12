@@ -40,6 +40,9 @@ public class EmbeddedKeycloakConfig {
 	@Value("${spring.datasource.driver-class-name:}")
 	private String springDatasourceDriverClassName;
 
+	@Value("${quickdelivery.frontend.base-urls:}")
+	private String frontendBaseUrls;
+
 	@Bean
 	ServletRegistrationBean<HttpServlet30Dispatcher> keycloakJaxRsApplication(
 			KeycloakServerProperties keycloakServerProperties, DataSource dataSource) throws Exception {
@@ -126,6 +129,7 @@ public class EmbeddedKeycloakConfig {
 		setIfPresent("keycloak.connectionsJpa.user", springDatasourceUsername);
 		setIfPresent("keycloak.connectionsJpa.password", springDatasourcePassword);
 		setIfPresent("keycloak.connectionsJpa.driver", springDatasourceDriverClassName);
+		setIfPresent("quickdelivery.frontend.base-urls", frontendBaseUrls);
 
 		if ("com.mysql.cj.jdbc.Driver".equals(springDatasourceDriverClassName)) {
 			System.setProperty("keycloak.connectionsJpa.driverDialect", "org.hibernate.dialect.MySQLDialect");
@@ -137,6 +141,7 @@ public class EmbeddedKeycloakConfig {
 				maskSecret(System.getProperty("keycloak.connectionsJpa.password")),
 				System.getProperty("keycloak.connectionsJpa.driver"),
 				System.getProperty("keycloak.connectionsJpa.driverDialect"));
+		LOG.info("Keycloak frontend base URLs: {}", System.getProperty("quickdelivery.frontend.base-urls", "<auto-discovery>"));
 	}
 
 	private void setIfPresent(String key, String value) {

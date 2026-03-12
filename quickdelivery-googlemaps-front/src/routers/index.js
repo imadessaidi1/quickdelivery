@@ -64,13 +64,13 @@ const routes = [
         name: 'userSignInPageUpdate',
         component:UserSignInPage,
         props: (route) => ({ id: route.query.id }),
-        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {
         path: '/userSignInPage',
         name: 'userSignInPage',
         component:UserSignInPage,
-        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {
         path: '/package',

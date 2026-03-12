@@ -22,7 +22,7 @@
                 <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
             </div>
         </div>
-        <button class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
+        <button v-if="showUpdateButton" class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 <script>
@@ -30,7 +30,11 @@ export default {
     props: {
         user: null,
         vehicle: null,
-        userDocuments: []
+        userDocuments: [],
+        showUpdateButton: {
+            type: Boolean,
+            default: true,
+        },
       },
     methods: {
         formatDate(dateTime) {
@@ -45,6 +49,12 @@ export default {
         },
         getPicture(){
             return 'data:image/png;base64,'+this.user.document['PICTURE'].data;
+        },
+        toUpdate() {
+            if (!this.user?.emailAddress) {
+                return;
+            }
+            this.$router.push('/userSignInPage?id=' + encodeURIComponent(this.user.emailAddress));
         }
     },
 }

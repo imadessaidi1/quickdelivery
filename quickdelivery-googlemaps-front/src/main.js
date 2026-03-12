@@ -5,6 +5,7 @@ import store from './config/store';
 import router from './routers';
 import { handleAuthCallback, initializeMobileAuthCallbackListener } from './config/auth';
 import { ensureMobileBackendHostConfigured } from './config/network';
+import { hydrateConnectedUser } from './config/session';
 
 async function bootstrap() {
   ensureMobileBackendHostConfigured();
@@ -14,6 +15,12 @@ async function bootstrap() {
     await handleAuthCallback();
   } catch (e) {
     console.error('OIDC callback processing failed:', e);
+  }
+
+  try {
+    await hydrateConnectedUser();
+  } catch (e) {
+    console.error('Connected user hydration failed:', e);
   }
 
   const app = createApp(App);

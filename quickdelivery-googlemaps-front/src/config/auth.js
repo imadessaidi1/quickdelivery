@@ -100,7 +100,24 @@ function parseJwt(token) {
 }
 
 export function getCurrentUserIdentity() {
-  return null;
+  const token = getAccessToken();
+  if (!token) {
+    return null;
+  }
+
+  const payload = parseJwt(token);
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    sub: payload.sub || '',
+    email: payload.email || '',
+    username: payload.preferred_username || '',
+    givenName: payload.given_name || '',
+    familyName: payload.family_name || '',
+    fullName: payload.name || '',
+  };
 }
 
 function getRealmRoles(token) {

@@ -39,7 +39,12 @@
         <button class="btn primary_btn" @click="searchInMap">{{ $t('actionSearch') }}</button>
     </div>
 
-    <span class="infobull" :data-tooltip="$t('menuTooltipAccount')" ref="handleClickOutsideUserMenu"><a class="material-symbols-outlined" @click="loginMenu">person</a></span>
+    <span class="infobull account-trigger" :data-tooltip="$t('menuTooltipAccount')" ref="handleClickOutsideUserMenu">
+      <a class="account-link" @click="loginMenu">
+        <span class="material-symbols-outlined">person</span>
+        <span v-if="connectedUserFullName" class="account-name">{{ connectedUserFullName }}</span>
+      </a>
+    </span>
   </div>
 </template>
 
@@ -87,6 +92,11 @@ export default {
     },
     showTextSearch() {
       return this.$route.path === '/myPackages';
+    },
+    connectedUserFullName() {
+      const firstName = this.$store.state.connectedUser?.firstName || '';
+      const lastName = this.$store.state.connectedUser?.lastName || '';
+      return `${firstName} ${lastName}`.trim();
     },
   },
   mounted() {
@@ -183,6 +193,23 @@ export default {
   'wght' 400,
   'GRAD' 0,
   'opsz' 24
+}
+.account-trigger {
+  display: inline-flex;
+  align-items: center;
+}
+.account-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.account-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
 }
 .horizontal-menu,
 .login-menu{
@@ -306,6 +333,9 @@ export default {
   .search-zone button {
     min-width: 74px;
     padding: 0 10px;
+  }
+  .account-name {
+    display: none;
   }
 }
 

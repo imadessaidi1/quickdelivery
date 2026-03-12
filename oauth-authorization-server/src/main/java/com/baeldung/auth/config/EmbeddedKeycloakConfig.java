@@ -14,6 +14,9 @@ import javax.sql.DataSource;
 import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.keycloak.platform.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -23,10 +26,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EmbeddedKeycloakConfig {
 
+	private static final Logger LOG = LoggerFactory.getLogger(EmbeddedKeycloakConfig.class);
+
+	@Value("${spring.datasource.url:}")
+	private String springDatasourceUrl;
+
+	@Value("${spring.datasource.username:}")
+	private String springDatasourceUsername;
+
+	@Value("${spring.datasource.password:}")
+	private String springDatasourcePassword;
+
+	@Value("${spring.datasource.driver-class-name:}")
+	private String springDatasourceDriverClassName;
+
 	@Bean
 	ServletRegistrationBean<HttpServlet30Dispatcher> keycloakJaxRsApplication(
 			KeycloakServerProperties keycloakServerProperties, DataSource dataSource) throws Exception {
 
+		propagateDatasourceSettingsToKeycloak();
 		mockJndiEnvironment(dataSource);
 		EmbeddedKeycloakApplication.keycloakServerProperties = keycloakServerProperties;
 
@@ -95,5 +113,42 @@ public class EmbeddedKeycloakConfig {
 	@ConditionalOnMissingBean(name = "springBootPlatform")
 	protected SimplePlatformProvider springBootPlatform() {
 		return (SimplePlatformProvider) Platform.getPlatform();
+	}
+
+	private void propagateDatasourceSettingsToKeycloak() {
+		LOG.info("Spring datasource resolved: url={}, user={}, password={}, driver={}",
+				springDatasourceUrl,
+				springDatasourceUsername,
+				maskSecret(springDatasourcePassword),
+				springDatasourceDriverClassName);
+
+		setIfPresent("keycloak.connectionsJpa.url", springDatasourceUrl);
+		setIfPresent("keycloak.connectionsJpa.user", springDatasourceUsername);
+		setIfPresent("keycloak.connectionsJpa.password", springDatasourcePassword);
+		setIfPresent("keycloak.connectionsJpa.driver", springDatasourceDriverClassName);
+
+		if ("com.mysql.cj.jdbc.Driver".equals(springDatasourceDriverClassName)) {
+			System.setProperty("keycloak.connectionsJpa.driverDialect", "org.hibernate.dialect.MySQLDialect");
+		}
+
+		LOG.info("Keycloak datasource bridge: url={}, user={}, password={}, driver={}, dialect={}",
+				System.getProperty("keycloak.connectionsJpa.url"),
+				System.getProperty("keycloak.connectionsJpa.user"),
+				maskSecret(System.getProperty("keycloak.connectionsJpa.password")),
+				System.getProperty("keycloak.connectionsJpa.driver"),
+				System.getProperty("keycloak.connectionsJpa.driverDialect"));
+	}
+
+	private void setIfPresent(String key, String value) {
+		if (value != null && !value.isBlank()) {
+			System.setProperty(key, value);
+		}
+	}
+
+	private String maskSecret(String value) {
+		if (value == null || value.isBlank()) {
+			return "<empty>";
+		}
+		return "****";
 	}
 }

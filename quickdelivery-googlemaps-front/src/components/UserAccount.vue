@@ -6,7 +6,7 @@
           <div class="panel-head">
             <h2>{{ $t('userInfo') || 'Informations' }}</h2>
           </div>
-          <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents"/>
+          <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents" :show-update-button="true"/>
         </div>
       </div>
       <div class="document-viewer">
@@ -32,11 +32,6 @@ export default {
   },
   props: {
     selectedUser: null,
-  },
-  methods: {
-    toUpdate() {
-      this.$router.push('/userSignInPage?id='+this.selectedUser.emailAddress);
-    },
   },
 }
 </script>

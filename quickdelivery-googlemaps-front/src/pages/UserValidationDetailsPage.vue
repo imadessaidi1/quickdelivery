@@ -15,7 +15,7 @@
     <template v-else>
       <div class="page-grid">
         <div class="details-card">
-          <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}" />
+          <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}" :show-update-button="false" />
         </div>
         <div class="documents-card">
           <DocumentViewer :documents="selectedUser.document || {}" />

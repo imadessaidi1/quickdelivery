@@ -37,3 +37,26 @@ build/
 ### Runtime Logs ###
 **/logs/
 *.log
+*.out
+*.err
+*.tmp
+*.temp
+*.bak
+*.pid
+*.seed
+
+### OS / Temp ###
+Thumbs.db
+Desktop.ini
+~$*
+*.swp
+*.swo
+*.orig
+
+### Generated / Local runtime ###
+dist/
+**/dist/
+.cache/
+**/.cache/
+coverage/
+**/coverage/

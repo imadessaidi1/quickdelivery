@@ -61,11 +61,13 @@ export default createStore({
     },
     documentS: [],
     connectedUser: {
-      firstName: 'Imad',
-      lastName: 'ESSAIDI',
-      email: 'nezha.kemrach@gmail.com',
-      id: 1952,
-      type: 'DELIVERY_PERSON',
+      id: null,
+      firstName: '',
+      lastName: '',
+      email: '',
+      type: '',
+      roles: [],
+      loaded: false,
     },
     user: {
                 id: null,
@@ -173,6 +175,20 @@ export default createStore({
       },
       updateVehicleDocuments(state, updatedVehicleDocuments) {
         state.vehicleDocuments = updatedVehicleDocuments;
+      },
+      updateConnectedUser(state, connectedUser) {
+        state.connectedUser = connectedUser;
+      },
+      resetConnectedUser(state) {
+        state.connectedUser = {
+          id: null,
+          firstName: '',
+          lastName: '',
+          email: '',
+          type: '',
+          roles: [],
+          loaded: false,
+        };
       },
       updateLocation(state, updateLocation) {
         state.location = updateLocation;

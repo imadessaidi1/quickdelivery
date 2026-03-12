@@ -75,7 +75,6 @@ public class UserServices implements IUserServices {
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         String rawPassword = user.getPassword();
         User userEntity = modelMapper.map(user,User.class);
-        userEntity.setPassword(null);
         user.getPersonalAddress().stream().forEach(address -> {
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, address);

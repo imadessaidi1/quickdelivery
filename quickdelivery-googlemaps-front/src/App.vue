@@ -48,6 +48,10 @@ export default {
       return;
     }
 
+    if (!this.$store.state.connectedUser?.id) {
+      return;
+    }
+
     await http.get(this.$i18n.t('rootURL') + this.$i18n.t('userWithOngoingDelivery')+this.$store.state.connectedUser.id)
       .then(response => {
         this.isUserWithOngoingDelivery = response.data;

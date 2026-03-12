@@ -3,6 +3,6 @@
   "appName": "QuickDelivery",
   "webDir": "dist",
   "server": {
-    "androidScheme": "http"
+    "androidScheme": "https"
   }
 }

@@ -98,13 +98,13 @@ export function resolveBackendHost() {
 }
 
 export function getGatewayBaseUrl() {
-  return `http://${resolveBackendHost()}:8087`;
+  return `https://${resolveBackendHost()}:8443`;
 }
 
 export function getAuthBaseUrl() {
-  return `http://${resolveBackendHost()}:18084/auth`;
+  return `https://${resolveBackendHost()}:18443/auth`;
 }
 
 export function getWsBaseUrl() {
-  return `ws://${resolveBackendHost()}:8087/ws`;
+  return `wss://${resolveBackendHost()}:8443/ws`;
 }

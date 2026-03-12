@@ -1,34 +1,56 @@
 package com.quickdelivery;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import java.util.LinkedHashSet;
 import java.util.Arrays;
+import java.util.Set;
 
 @Configuration
 @EnableReactiveMethodSecurity
 public class ResourceServerSecurityConfig {
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:https://localhost:18443/auth/realms/quickdelivery}")
+    private String primaryIssuerUri;
+
+    @Value("${quickdelivery.security.additional-issuer-uris:https://192.168.0.24:18443/auth/realms/quickdelivery}")
+    private String additionalIssuerUris;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost",
-                "http://localhost:8084",
                 "http://localhost:8080",
+                "http://localhost:8084",
                 "https://localhost",
+                "https://localhost:8080",
                 "https://localhost:8084",
-                "https://localhost:8080"
+                "http://192.168.0.24:8080",
+                "https://192.168.0.24:8080",
+                "http://192.168.0.24:8084",
+                "https://192.168.0.24:8084",
+                "capacitor://localhost",
+                "ionic://localhost"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
@@ -36,6 +58,38 @@ public class ResourceServerSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public ReactiveJwtDecoder jwtDecoder() {
+        String jwkSetUri = primaryIssuerUri + "/protocol/openid-connect/certs";
+        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        Set<String> allowedIssuers = new LinkedHashSet<>();
+        allowedIssuers.add(primaryIssuerUri);
+        Arrays.stream(additionalIssuerUris.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .forEach(allowedIssuers::add);
+
+        OAuth2TokenValidator<Jwt> defaultValidator = JwtValidators.createDefault();
+        OAuth2TokenValidator<Jwt> issuerValidator = jwt -> {
+            String issuer = jwt.getIssuer() != null ? jwt.getIssuer().toString() : "";
+            if (allowedIssuers.contains(issuer)) {
+                return OAuth2TokenValidatorResult.success();
+            }
+            return OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Unsupported issuer: " + issuer, null));
+        };
+
+        decoder.setJwtValidator(token -> {
+            OAuth2TokenValidatorResult defaultResult = defaultValidator.validate(token);
+            if (defaultResult.hasErrors()) {
+                return defaultResult;
+            }
+            return issuerValidator.validate(token);
+        });
+
+        return decoder;
     }
 
     @Bean

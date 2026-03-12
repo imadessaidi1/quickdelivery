@@ -1147,11 +1147,11 @@
     "variable":  [
                      {
                          "key":  "gateway_url",
-                         "value":  "http://localhost:8087"
+                         "value":  "https://localhost:8443"
                      },
                      {
                          "key":  "iam_token_url",
-                         "value":  "http://localhost:18084/auth/realms/quickdelivery/protocol/openid-connect/token"
+                         "value":  "https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token"
                      },
                      {
                          "key":  "iam_client_id",

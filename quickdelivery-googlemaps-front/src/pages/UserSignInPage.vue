@@ -11,7 +11,7 @@
     <Form class="wizard-shell" @submit="handleStepSubmit">
       <aside class="wizard-sidebar">
         <button
-          v-for="step in steps"
+          v-for="step in visibleSteps"
           :key="step.id"
           class="wizard-step"
           :class="stepState(step.id)"
@@ -28,7 +28,7 @@
       <section class="wizard-card">
         <div class="card-header">
           <div>
-            <span class="eyebrow">{{ currentStepMeta.id }}/{{ steps.length }}</span>
+            <span class="eyebrow">{{ currentStepMeta.id }}/{{ visibleSteps.length }}</span>
             <h2>{{ $t(currentStepMeta.title) }}</h2>
             <p>{{ $t(currentStepMeta.subtitle) }}</p>
           </div>
@@ -52,7 +52,7 @@
             {{ $t('createPackageBackAction') }}
           </button>
           <button class="btn primary_btn wizard-action-btn" type="submit">
-            {{ currentStep === steps.length ? submitLabel : $t('packageNextAction') }}
+            {{ isLastStep ? submitLabel : $t('packageNextAction') }}
           </button>
         </footer>
       </section>
@@ -159,8 +159,20 @@ export default {
     };
   },
   computed: {
+    isClientRegistrationFlow() {
+      return !this.isForUpdate && this.user.type !== 'DELIVERY_PERSON';
+    },
+    visibleSteps() {
+      if (this.isClientRegistrationFlow) {
+        return [this.steps[0]];
+      }
+      return this.steps;
+    },
+    isLastStep() {
+      return this.currentStep === this.visibleSteps[this.visibleSteps.length - 1].id;
+    },
     currentStepMeta() {
-      return this.steps.find((step) => step.id === this.currentStep) || this.steps[0];
+      return this.steps.find((step) => step.id === this.currentStep) || this.visibleSteps[0];
     },
     pageTitle() {
       return this.isForUpdate ? this.$t('userRegistrationUpdateTitle') : this.$t('userRegistrationPageTitle');
@@ -268,6 +280,10 @@ export default {
       userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('phoneConfirmation');
 
       if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && !existingEmail) {
+        if (this.isClientRegistrationFlow) {
+          await this.submitFormUser();
+          return;
+        }
         this.currentStep += 1;
       }
     },

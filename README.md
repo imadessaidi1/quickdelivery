@@ -152,6 +152,33 @@ Comportement:
 - si elles sont vides: auto-decouverte des hosts locaux pour le dev
 - si elles sont renseignees: utilisation stricte des URLs fournies, utile pour la recette et la prod
 
+Les services Java qui appellent des surfaces HTTPS locales utilisent aussi un truststore JVM local de dev:
+
+- gateway
+- users
+- packages
+
+Variables supportees:
+
+- gateway:
+  - `API_GATEWAY_SSL_TRUST_STORE`
+  - `API_GATEWAY_SSL_TRUST_STORE_PASSWORD`
+  - `API_GATEWAY_SSL_TRUST_STORE_TYPE`
+- users:
+  - `USERS_SSL_TRUST_STORE`
+  - `USERS_SSL_TRUST_STORE_PASSWORD`
+  - `USERS_SSL_TRUST_STORE_TYPE`
+- packages:
+  - `PACKAGES_SSL_TRUST_STORE`
+  - `PACKAGES_SSL_TRUST_STORE_PASSWORD`
+  - `PACKAGES_SSL_TRUST_STORE_TYPE`
+
+Valeurs de dev par defaut:
+
+- fichier: `certs/quickdelivery-dev.p12`
+- type: `PKCS12`
+- mot de passe: `QuickDelivery123@`
+
 ### 4.4 Exemple Production
 
 Exemple de valeurs stables en production:
@@ -299,6 +326,14 @@ Points importants:
 - le navigateur du poste de dev doit faire confiance au certificat si besoin
 - un telephone ou un autre PC du meme reseau doit aussi faire confiance au certificat pour eviter les erreurs TLS
 - la gateway configure automatiquement un truststore JVM pour faire confiance au certificat OAuth local
+- `quickdelivery-users` configure automatiquement un truststore JVM pour appeler OAuth en HTTPS
+- `quickdelivery-packages` configure automatiquement un truststore JVM pour les appels HTTPS internes
+
+Au demarrage, les logs attendus sont:
+
+- `Gateway truststore: path=..., type=PKCS12`
+- `Users truststore: path=..., type=PKCS12`
+- `Packages truststore: path=..., type=PKCS12`
 
 ## 9. Arreter Tous Les Services
 

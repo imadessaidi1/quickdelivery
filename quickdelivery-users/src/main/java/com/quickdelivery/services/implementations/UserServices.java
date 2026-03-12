@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class UserServices implements IUserServices {
+    private static final String DELIVERY_PERSON = "DELIVERY_PERSON";
+
     @Value("${mapquest.geocode.url.part1}")
     private String mapQuestURL1;
     @Value("${mapquest.geocode.url.part2}")
@@ -73,23 +75,26 @@ public class UserServices implements IUserServices {
     private IKeycloakProvisioningService keycloakProvisioningService;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+        boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
         String rawPassword = user.getPassword();
+        sanitizeAddresses(user, deliveryPerson);
         User userEntity = modelMapper.map(user,User.class);
-        user.getPersonalAddress().stream().forEach(address -> {
-            try {
-                GeoHelper.AddressGeoCoding(geoApiContext, address);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ApiException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        userEntity.getPersonalAddress().stream().forEach(address -> address.setResidents(userEntity));
-        Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
-        vehicle.setUser(userEntity);
-        userEntity.getVehicles().add(vehicle);
+        if (deliveryPerson) {
+            user.getPersonalAddress().forEach(address -> {
+                try {
+                    GeoHelper.AddressGeoCoding(geoApiContext, address);
+                } catch (IOException | InterruptedException | ApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
+            Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
+            vehicle.setUser(userEntity);
+            userEntity.getVehicles().add(vehicle);
+        } else {
+            userEntity.setPersonalAddress(new HashSet<>());
+            userEntity.setVehicles(new HashSet<>());
+        }
         String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
         filesMap.entrySet().stream()
                 .forEach(entry -> {
@@ -105,8 +110,10 @@ public class UserServices implements IUserServices {
                 });
         users.save(userEntity);
         keycloakProvisioningService.provisionUser(userEntity, rawPassword);
-        FileHelper.saveFilesInParallel(filesMap, filesPath, false);
-        userEntity.getPersonalAddress().stream().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
+        if (!filesMap.isEmpty()) {
+            FileHelper.saveFilesInParallel(filesMap, filesPath, false);
+        }
+        userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
         user.setId(userEntity.getId());
         user.setVersion(userEntity.getVersion());
         user.setPassword(null);
@@ -120,21 +127,24 @@ public class UserServices implements IUserServices {
 
     @Override
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+        boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+        sanitizeAddresses(user, deliveryPerson);
         User userEntity = modelMapper.map(user,User.class);
         userEntity.setPassword(null);
-        user.getPersonalAddress().stream().forEach(address -> {
-            try {
-                GeoHelper.AddressGeoCoding(geoApiContext, address);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ApiException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        userEntity.getPersonalAddress().stream().forEach(address -> address.setResidents(userEntity));
-        userEntity.getVehicles().stream().forEach(vehicle -> vehicle.setUser(userEntity));
+        if (deliveryPerson) {
+            user.getPersonalAddress().forEach(address -> {
+                try {
+                    GeoHelper.AddressGeoCoding(geoApiContext, address);
+                } catch (IOException | InterruptedException | ApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
+            userEntity.getVehicles().forEach(vehicle -> vehicle.setUser(userEntity));
+        } else {
+            userEntity.setPersonalAddress(new HashSet<>());
+            userEntity.setVehicles(new HashSet<>());
+        }
         user.getDocument().entrySet().stream()
                 .forEach(entry -> {
                     Document document = modelMapper.map(entry.getValue(),Document.class);
@@ -198,7 +208,9 @@ public class UserServices implements IUserServices {
         User user = users.findByEmail(email);
         if(user != null) {
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
+                userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            }
             userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
             userDTO.setPhoneConfirmation(userDTO.getPhone());
             userDTO.setPassword(null);
@@ -223,7 +235,9 @@ public class UserServices implements IUserServices {
         List<UserDTO> userDTOList = new ArrayList<>();
         userList.stream().forEach(user -> {
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
+                userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+            }
             user.getDocument().stream().forEach(document -> {
                 DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
                 try {
@@ -242,7 +256,7 @@ public class UserServices implements IUserServices {
 
     private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
+        templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("validationLink", emailValidationLink+userEntity.getId());
         try {
             MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.uservalidation", null, locale),templateModel,
@@ -254,7 +268,7 @@ public class UserServices implements IUserServices {
 
     private void sendUserDocumentsUpdateRequest(UserDTO user, User userEntity, List<Document> rejectedDocuments, Locale locale){
         Map<String, Object> templateModel = new HashMap<>();
-        templateModel.put("recipientName", user.getPersonalAddress().get(0).getFirstName()+" "+user.getPersonalAddress().get(0).getLastName());
+        templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("updateLink", userUpdateLink+user.getEmailAddress());
         try {
             MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.userUpdateDocsRequest", null, locale),templateModel,
@@ -262,5 +276,38 @@ public class UserServices implements IUserServices {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void sanitizeAddresses(UserDTO user, boolean deliveryPerson) {
+        if (user.getPersonalAddress() == null) {
+            user.setPersonalAddress(new ArrayList<>());
+            return;
+        }
+
+        user.setPersonalAddress(user.getPersonalAddress().stream()
+                .filter(Objects::nonNull)
+                .filter(address -> deliveryPerson || hasAddressContent(address))
+                .collect(Collectors.toList()));
+    }
+
+    private boolean hasAddressContent(com.quickdelivery.abstarct.dto.AddressDTO address) {
+        return hasText(address.getLine1())
+                || hasText(address.getTown())
+                || hasText(address.getZipCode())
+                || hasText(address.getCountry());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String resolveRecipientName(UserDTO user) {
+        String firstName = Objects.toString(user.getFirstName(), "").trim();
+        String lastName = Objects.toString(user.getLastName(), "").trim();
+        String fullName = (firstName + " " + lastName).trim();
+        if (!fullName.isBlank()) {
+            return fullName;
+        }
+        return Objects.toString(user.getEmailAddress(), "");
     }
 }

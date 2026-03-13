@@ -4,17 +4,6 @@
       <button class="mode-btn" :class="{ active: mobileViewMode === 'map' }" @click="mobileViewMode = 'map'">{{ $t('mobileModeMap') }}</button>
       <button class="mode-btn" :class="{ active: mobileViewMode === 'list' }" @click="mobileViewMode = 'list'">{{ $t('mobileModeList') }}</button>
     </div>
-    <div v-if="!isMobile" class="carousel-toolbar">
-      <div class="radius-block">
-        <span class="radius-label">{{ $t('mapSearchRadiusLabel') }}</span>
-        <div class="radius-group">
-          <button class="btn radius-btn" :class="{ active: searchRadius === 10000 }" @click="updateRadius(10000)">10km</button>
-          <button class="btn radius-btn" :class="{ active: searchRadius === 20000 }" @click="updateRadius(20000)">20km</button>
-          <button class="btn radius-btn" :class="{ active: searchRadius === 30000 }" @click="updateRadius(30000)">30km</button>
-        </div>
-      </div>
-      <button class="btn primary_btn refresh-btn" @click="refreshWithCurrentRadius">{{ $t('actionRefresh') }}</button>
-    </div>
     <div v-if="isLoadingPackages" class="carousel-state">{{ $t('stateLoadingPackagesAround') }}</div>
     <div v-else-if="loadError" class="carousel-state error">{{ $t('stateLoadError') }}</div>
     <div v-else-if="packagesList.length === 0" class="carousel-state">{{ $t('stateEmptyPackagesAround') }}</div>
@@ -28,23 +17,29 @@
           <div class="count-chip">{{ packagesList.length }}</div>
         </div>
         <div class="vertical-carousel">
-          <button class="v-nav up" :disabled="desktopSlideIndex === 0" @click="goDesktop(-1)" aria-label="Previous package">
+          <button class="v-nav up" :disabled="desktopSlideIndex === 0" @click="goDesktop(-2)" aria-label="Previous package">
             <span class="material-symbols-outlined">expand_less</span>
           </button>
           <div class="vertical-slide-window">
-            <div v-if="packagesList[desktopSlideIndex]" class="package-item selected" :key="packagesList[desktopSlideIndex].id || desktopSlideIndex">
+            <div
+              v-for="(package_, visibleIndex) in visibleDesktopPackages"
+              :key="package_.id || visibleIndex"
+              class="package-item"
+              :class="{ selected: selectedPackageId === package_.id }"
+              @click="displayDirection(desktopSlideIndex + visibleIndex)"
+            >
               <MarkerDetails
-                :package_="packagesList[desktopSlideIndex]"
+                :package_="package_"
                 :mapVue="getMapVue()"
                 :modal="getPackageModal()"
-                :isSelected="true"
+                :isSelected="selectedPackageId === package_.id"
               />
             </div>
           </div>
-          <button class="v-nav down" :disabled="desktopSlideIndex >= packagesList.length - 1" @click="goDesktop(1)" aria-label="Next package">
+          <button class="v-nav down" :disabled="desktopSlideIndex >= packagesList.length - 2" @click="goDesktop(2)" aria-label="Next package">
             <span class="material-symbols-outlined">expand_more</span>
           </button>
-          <div class="v-counter">{{ desktopSlideIndex + 1 }} / {{ packagesList.length }}</div>
+          <div class="v-counter">{{ desktopSlideIndex + 1 }}-{{ Math.min(desktopSlideIndex + visibleDesktopPackages.length, packagesList.length) }} / {{ packagesList.length }}</div>
         </div>
       </div>
       <template v-else>
@@ -136,6 +131,9 @@ export default {
     };
   },
   computed: {
+    visibleDesktopPackages() {
+      return this.packagesList.slice(this.desktopSlideIndex, this.desktopSlideIndex + 2);
+    },
     selectedPackageForMobileMap() {
       if (!this.packagesList.length) {
         return null;
@@ -156,6 +154,7 @@ export default {
     this.$emit('mobile-view-change', this.mobileViewMode);
     window.addEventListener('resize', this.handleResize);
     window.addEventListener('qd-search-around-address', this.handleAddressSearch);
+    window.addEventListener('qd-refresh-package-search', this.handleSearchRefresh);
     window.onmessage = (e) => {
         if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
            const packageID = e.data.split(':')[1];
@@ -180,6 +179,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('qd-search-around-address', this.handleAddressSearch);
+    window.removeEventListener('qd-refresh-package-search', this.handleSearchRefresh);
   },
   methods: {
     handleResize() {
@@ -220,6 +220,14 @@ export default {
       }
       this.searchRadius = radius;
       this.$store.commit('updateMapSearchRadius', radius);
+      this.refreshWithCurrentRadius();
+    },
+    handleSearchRefresh(event) {
+      const mode = event?.detail?.mode;
+      if (mode === 'aroundMe') {
+        this.refreshPackagesList(this.positionData);
+        return;
+      }
       this.refreshWithCurrentRadius();
     },
     refreshWithCurrentRadius() {
@@ -439,63 +447,6 @@ export default {
   color: #ffffff;
   border-color: #0f172a;
 }
-.carousel-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e6e9f0;
-  box-shadow: 0 10px 24px rgba(18, 25, 38, 0.06);
-  backdrop-filter: blur(2px);
-}
-.radius-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.radius-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-}
-
-.radius-group {
-  display: flex;
-  gap: 6px;
-}
-.radius-btn {
-  border: solid 1px #d7deea;
-  background: #f8fafc;
-  color: #1f2937;
-  border-radius: 10px;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.radius-btn.active {
-  background: #eef2ff;
-  border-color: #b8c3dd;
-  font-weight: 700;
-}
-
-.refresh-btn {
-  min-width: 112px;
-  height: 40px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
-}
-
-.refresh-btn:hover {
-  background: #0f172a;
-}
 .carousel-state {
   padding: 10px;
   border-radius: 8px;
@@ -571,9 +522,10 @@ export default {
 .vertical-slide-window {
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
 }
 .v-nav {
   display: inline-flex;
@@ -702,21 +654,6 @@ export default {
   }
   .carousel-state {
     margin-bottom: 0;
-  }
-}
-@media screen and (max-width: 580px) {
-  .carousel-toolbar {
-    flex-wrap: wrap;
-  }
-  .radius-group {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .radius-block {
-    width: 100%;
-  }
-  .radius-btn {
-    flex: 1;
   }
 }
 </style>

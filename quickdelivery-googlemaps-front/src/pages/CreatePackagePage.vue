@@ -672,12 +672,17 @@ export default {
   }
 
   .wizard-sidebar {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: flex;
     overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
   }
 
   .wizard-step {
-    min-width: 220px;
+    min-width: 200px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 }
 
@@ -688,6 +693,44 @@ export default {
 
   .wizard-card {
     min-height: auto;
+  }
+
+  .wizard-sidebar {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .wizard-step {
+    min-width: 72px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: 16px;
+  }
+
+  .step-index {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .step-copy {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .step-copy strong {
+    font-size: 0.72rem;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .step-copy small {
+    display: none;
   }
 
   .guest-entry-card {
@@ -715,6 +758,24 @@ export default {
 
   .guest-entry-btn {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .wizard-sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    overflow: hidden;
+  }
+
+  .wizard-step {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .step-copy strong {
+    font-size: 0.68rem;
+    max-width: 46px;
   }
 }
 </style>

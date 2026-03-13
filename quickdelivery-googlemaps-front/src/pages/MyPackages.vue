@@ -339,6 +339,7 @@ export default {
   align-items: center;
   justify-content: center;
   min-width: 152px;
+  max-width: 100%;
   height: 42px;
   padding: 0 18px;
   border-radius: 12px;
@@ -347,6 +348,7 @@ export default {
   text-decoration: none;
   font-weight: 600;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  box-sizing: border-box;
 }
 
 .filters-panel {
@@ -736,6 +738,7 @@ export default {
 
   .primary-action {
     width: 100%;
+    min-width: 0;
   }
 
   .stats-grid,

@@ -76,6 +76,15 @@
             :options="wizardOptions"
             :selected-preset="selectedPreset"
           />
+
+          <LegalConsentCard
+            v-if="currentStep === steps.length"
+            v-model="legalConsentAccepted"
+            :flow="legalFlow"
+            :return-to="$route.fullPath"
+            :show-error="showLegalConsentError"
+            @open-terms="saveDraftBeforeLegalConsultation"
+          />
         </div>
 
         <footer class="card-actions">
@@ -101,7 +110,9 @@
 import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
-import { hasValidAccessToken } from '@/config/auth';
+import { getCurrentUserIdentity, hasValidAccessToken } from '@/config/auth';
+import { LEGAL_FLOW_PACKAGE_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
+import LegalConsentCard from '../components/LegalConsentCard.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageConfirmationSummary from '../components/PackageConfirmationSummary.vue';
 import PackageCreation from '../components/PackageCreation.vue';
@@ -164,6 +175,7 @@ const EMPTY_PACKAGE = {
 export default {
   components: {
     Form,
+    LegalConsentCard,
     PackageAddress,
     PackageCreation,
     PackageOptions,
@@ -185,9 +197,14 @@ export default {
         { id: 5, label: 'wizardCreateStepConfirm', title: 'createPackageConfirmTitle', subtitle: 'createPackageConfirmSubtitle' },
       ],
       allowAnonymousCreation: false,
+      legalConsentAccepted: false,
+      showLegalConsentError: false,
     };
   },
   computed: {
+    legalFlow() {
+      return LEGAL_FLOW_PACKAGE_CREATION;
+    },
     package_() {
       return this.$store.state.package_;
     },
@@ -208,12 +225,104 @@ export default {
     },
   },
   mounted() {
-    this.$store.commit('updateDocuments', []);
-    this.$store.commit('updatePackage', JSON.parse(JSON.stringify(EMPTY_PACKAGE)));
+    if (!this.restoreDraftIfAvailable()) {
+      this.$store.commit('updateDocuments', []);
+      this.$store.commit('updatePackage', JSON.parse(JSON.stringify(EMPTY_PACKAGE)));
+      this.prefillDepartureAddressFromConnectedUser();
+    }
   },
   methods: {
+    restoreDraftIfAvailable() {
+      const draft = loadLegalDraft(this.legalFlow);
+      if (!draft) {
+        return false;
+      }
+
+      this.currentStep = draft.currentStep || 1;
+      this.selectedPreset = draft.selectedPreset || 'MEDIUM';
+      this.wizardOptions = draft.wizardOptions || {
+        deliverySpeed: 'STANDARD',
+        insurance: false,
+      };
+      this.allowAnonymousCreation = !!draft.allowAnonymousCreation;
+      this.legalConsentAccepted = !!draft.legalConsentAccepted;
+      this.showLegalConsentError = false;
+      this.$store.commit('updateDocuments', draft.documentS || []);
+      this.$store.commit('updatePackage', draft.package_ || JSON.parse(JSON.stringify(EMPTY_PACKAGE)));
+      clearLegalDraft(this.legalFlow);
+      return true;
+    },
+    saveDraftBeforeLegalConsultation() {
+      saveLegalDraft(this.legalFlow, {
+        currentStep: this.currentStep,
+        selectedPreset: this.selectedPreset,
+        wizardOptions: this.wizardOptions,
+        allowAnonymousCreation: this.allowAnonymousCreation,
+        legalConsentAccepted: this.legalConsentAccepted,
+        package_: this.$store.state.package_,
+        documentS: this.$store.state.documentS,
+      });
+    },
+    async prefillDepartureAddressFromConnectedUser() {
+      if (!this.isAuthenticated) {
+        return;
+      }
+
+      const departureAddress = this.$store.state.package_?.addresses?.[0];
+      if (!departureAddress || this.hasDepartureAddressData(departureAddress)) {
+        return;
+      }
+
+      const identity = getCurrentUserIdentity();
+      const email = identity?.email;
+      if (!email) {
+        return;
+      }
+
+      try {
+        const response = await http.get(
+          `${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`
+        );
+        const user = response?.data;
+        const residence = Array.isArray(user?.personalAddress) ? user.personalAddress[0] : null;
+        const formattedAddress = residence
+          ? [residence.line1, residence.zipCode ? `${residence.zipCode} ${residence.town || ''}`.trim() : residence.town, residence.country]
+              .filter((value) => !!value)
+              .join(', ')
+          : '';
+
+        this.$store.commit('updatePackageDepartureAddress', {
+          ...departureAddress,
+          firstName: user?.firstName || this.$store.state.connectedUser?.firstName || '',
+          lastName: user?.lastName || this.$store.state.connectedUser?.lastName || '',
+          email: user?.emailAddress || this.$store.state.connectedUser?.email || email,
+          phone: user?.phone || '',
+          floor: residence?.floor ?? departureAddress.floor,
+          addressAuto: formattedAddress || departureAddress.addressAuto,
+          line1: residence?.line1 || departureAddress.line1,
+          line2: residence?.line2 || departureAddress.line2,
+          town: residence?.town || departureAddress.town,
+          zipCode: residence?.zipCode || departureAddress.zipCode,
+          country: residence?.country || departureAddress.country,
+          latitude: residence?.latitude ?? departureAddress.latitude,
+          longitude: residence?.longitude ?? departureAddress.longitude,
+        });
+      } catch (error) {
+        // Keep the wizard usable even if profile hydration fails.
+      }
+    },
+    hasDepartureAddressData(address) {
+      return Boolean(
+        address.firstName ||
+        address.lastName ||
+        address.email ||
+        address.phone ||
+        address.addressAuto
+      );
+    },
     continueAsGuest() {
       this.allowAnonymousCreation = true;
+      this.showLegalConsentError = false;
     },
     stepState(stepId) {
       if (this.currentStep === stepId) {
@@ -302,6 +411,13 @@ export default {
       this.currentStep += 1;
     },
     async submitPackage() {
+      const hasConsulted = hasLegalPageBeenConsulted(this.legalFlow);
+      if (!hasConsulted || !this.legalConsentAccepted) {
+        this.showLegalConsentError = true;
+        return;
+      }
+
+      this.showLegalConsentError = false;
       const formData = new FormData();
       this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser?.id ?? null : null;
       this.package_.status = 'PAYMENTPENDING';
@@ -323,6 +439,7 @@ export default {
         .then((response) => {
           this.$store.commit('updatePackage', response.data);
           if (`${response.status}` === '200') {
+            clearLegalDraft(this.legalFlow);
             this.$router.push({
               path: '/paymentPage',
               query: {
@@ -543,6 +660,10 @@ export default {
 
 .card-actions .wizard-action-btn:hover {
   background: #0f172a;
+}
+
+.card-content :deep(.legal-consent-card) {
+  margin-top: 18px;
 }
 
 @media screen and (max-width: 1180px) {

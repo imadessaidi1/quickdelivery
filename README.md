@@ -158,6 +158,15 @@ Les services Java qui appellent des surfaces HTTPS locales utilisent aussi un tr
 - users
 - packages
 
+Objectif:
+
+- faire confiance au certificat HTTPS local QuickDelivery
+- conserver en meme temps les certificats publics du JDK
+- permettre aux services d'appeler a la fois:
+  - OAuth local sur `https://localhost:18443`
+  - la gateway locale en HTTPS
+  - des APIs HTTPS externes comme Google Maps
+
 Variables supportees:
 
 - gateway:
@@ -178,6 +187,60 @@ Valeurs de dev par defaut:
 - fichier: `certs/quickdelivery-dev.p12`
 - type: `PKCS12`
 - mot de passe: `QuickDelivery123@`
+
+Comportement:
+
+- le service charge le `cacerts` standard du JDK
+- le certificat de dev QuickDelivery est ajoute a ce truststore standard
+- un truststore fusionne temporaire est ensuite expose au process Java
+- cela permet de faire confiance a la fois:
+  - au HTTPS local QuickDelivery
+  - aux services HTTPS externes comme Google Maps
+
+Mise en place minimale:
+
+1. verifier que le fichier `certs/quickdelivery-dev.p12` existe dans le depot
+2. ne rien configurer si tu veux utiliser les valeurs par defaut
+3. sinon definir les variables du service concerne avant son demarrage
+4. redemarrer completement le service
+
+Exemples PowerShell:
+
+Gateway:
+
+```powershell
+$env:API_GATEWAY_SSL_TRUST_STORE="C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\certs\quickdelivery-dev.p12"
+$env:API_GATEWAY_SSL_TRUST_STORE_PASSWORD="QuickDelivery123@"
+$env:API_GATEWAY_SSL_TRUST_STORE_TYPE="PKCS12"
+cd quickdelivery-api-gateway
+mvn spring-boot:run
+```
+
+Users:
+
+```powershell
+$env:USERS_SSL_TRUST_STORE="C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\certs\quickdelivery-dev.p12"
+$env:USERS_SSL_TRUST_STORE_PASSWORD="QuickDelivery123@"
+$env:USERS_SSL_TRUST_STORE_TYPE="PKCS12"
+cd quickdelivery-users
+mvn spring-boot:run
+```
+
+Packages:
+
+```powershell
+$env:PACKAGES_SSL_TRUST_STORE="C:\Users\imess\Documents\WorkSpace\Projects\DEV_WorkSpace\quickdelivery-parent\certs\quickdelivery-dev.p12"
+$env:PACKAGES_SSL_TRUST_STORE_PASSWORD="QuickDelivery123@"
+$env:PACKAGES_SSL_TRUST_STORE_TYPE="PKCS12"
+cd quickdelivery-packages
+mvn spring-boot:run
+```
+
+Quand utiliser ces surcharges:
+
+- utile si le certificat n'est pas a l'emplacement par defaut
+- utile si un autre dev utilise un autre keystore local
+- inutile si tu gardes le certificat versionne dans `certs/`
 
 ### 4.4 Exemple Production
 
@@ -212,6 +275,43 @@ Postman (client OAuth de test):
 - token URL: `https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token`
 - grant type: `password`
 - username/password: utiliser un des comptes de test ci-dessus
+
+### 5.1 Collection Postman du projet
+
+La collection versionnee est:
+
+- [quickdelivery-api-gateway.postman_collection.json](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-api-gateway.postman_collection.json)
+
+Elle est alignee sur le setup HTTPS/TLS actuel:
+
+- `gateway_url = https://localhost:8443`
+- `iam_token_url = https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token`
+
+Important:
+
+- si Postman appelle encore `8087` ou `18084`, ce n'est pas la collection du depot mais une variable d'environnement Postman active qui ecrase les variables de collection
+- verifier dans Postman la valeur resolue de `{{gateway_url}}` et `{{iam_token_url}}`
+- verifier aussi l'environnement actif avant execution
+
+### 5.2 Configuration Postman recommandee
+
+Pour utiliser Postman avec le setup local actuel:
+
+1. importer la collection du projet
+2. verifier que les variables resolues sont bien:
+   - `https://localhost:8443`
+   - `https://localhost:18443/...`
+3. dans `Settings > General`, mettre temporairement `SSL certificate verification = OFF` pour le dev local autosigne
+4. ne pas utiliser `http://` sur les ports `8443` et `18443`
+
+Erreurs typiques:
+
+- `ECONNREFUSED 127.0.0.1:18084`
+  - la requete vise encore l'ancien port OAuth
+- `This combination of host and port requires TLS`
+  - la requete part en `http://` vers un port HTTPS
+- `ECONNREFUSED 192.168.x.x:8087`
+  - une variable Postman active pointe encore vers l'ancienne gateway HTTP
 
 ## 6. Consulter La Configuration Dans Le Config Server
 
@@ -325,15 +425,15 @@ Points importants:
 
 - le navigateur du poste de dev doit faire confiance au certificat si besoin
 - un telephone ou un autre PC du meme reseau doit aussi faire confiance au certificat pour eviter les erreurs TLS
-- la gateway configure automatiquement un truststore JVM pour faire confiance au certificat OAuth local
-- `quickdelivery-users` configure automatiquement un truststore JVM pour appeler OAuth en HTTPS
-- `quickdelivery-packages` configure automatiquement un truststore JVM pour les appels HTTPS internes
+- la gateway ajoute automatiquement le certificat dev QuickDelivery au truststore JVM standard
+- `quickdelivery-users` ajoute automatiquement le certificat dev QuickDelivery au truststore JVM standard
+- `quickdelivery-packages` ajoute automatiquement le certificat dev QuickDelivery au truststore JVM standard
 
 Au demarrage, les logs attendus sont:
 
-- `Gateway truststore: path=..., type=PKCS12`
-- `Users truststore: path=..., type=PKCS12`
-- `Packages truststore: path=..., type=PKCS12`
+- `Gateway truststore: path=..., type=PKCS12, mode=merged-default`
+- `Users truststore: path=..., type=PKCS12, mode=merged-default`
+- `Packages truststore: path=..., type=PKCS12, mode=merged-default`
 
 ## 9. Arreter Tous Les Services
 

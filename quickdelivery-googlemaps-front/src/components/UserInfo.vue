@@ -57,14 +57,12 @@
 
       <div class="field-wrap">
         <label for="phone">{{ $t('packageAddressPhone') }}</label>
-        <Field id="phone" v-model="user.phone" type="text" name="phone" :rules="validatePhone" />
-        <ErrorMessage class="errorMessage" name="phone" />
+        <PhoneNumberField input-id="phone" v-model="user.phone" name="phone" />
       </div>
 
       <div class="field-wrap">
         <label for="phoneConfirmation">{{ $t('userPhoneConfirmation') }}</label>
-        <Field id="phoneConfirmation" v-model="user.phoneConfirmation" type="text" name="phoneConfirmation" :rules="validatePhone" />
-        <ErrorMessage class="errorMessage" name="phoneConfirmation" />
+        <PhoneNumberField input-id="phoneConfirmation" v-model="user.phoneConfirmation" name="phoneConfirmation" />
         <span v-if="isPhoneConfirmationError" class="errorMessage">{{ phoneConfirmationErrorMessage }}</span>
       </div>
 
@@ -87,13 +85,15 @@
 import { ref } from 'vue';
 import { ErrorMessage, Field } from 'vee-validate';
 import VueDatePicker from '@vuepic/vue-datepicker';
-import { validateEmail, validatePassword, validatePhone, validateString } from '@/config/comonFunction';
+import { validateEmail, validatePassword, validateString } from '@/config/comonFunction';
+import PhoneNumberField from './PhoneNumberField.vue';
 
 export default {
   components: {
     Field,
     ErrorMessage,
     VueDatePicker,
+    PhoneNumberField,
   },
   props: {
     isForUpdate: {
@@ -120,7 +120,6 @@ export default {
     };
   },
   methods: {
-    validatePhone,
     validateEmail,
     validateString,
     validatePassword,
@@ -149,6 +148,7 @@ export default {
 .profile-intro p {
   margin: 0;
   color: #617086;
+  max-width: 42ch;
 }
 
 .eyebrow {
@@ -180,6 +180,7 @@ export default {
   margin-bottom: 8px;
   font-weight: 600;
   color: #24364f;
+  line-height: 1.25;
 }
 
 .field-wrap :deep(input),
@@ -217,6 +218,73 @@ export default {
 @media screen and (max-width: 1040px) {
   .profile-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 720px) {
+  .user-profile-step {
+    gap: 18px;
+  }
+
+  .profile-intro h3 {
+    font-size: 1.2rem;
+    line-height: 1.15;
+  }
+
+  .profile-intro p {
+    max-width: none;
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .profile-grid {
+    gap: 14px;
+  }
+
+  .field-wrap label {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+
+  .field-wrap :deep(input),
+  .field-wrap select,
+  .field-wrap :deep(.dp__input) {
+    min-height: 44px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .field-wrap :deep(.dp__input_wrap) {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .user-profile-step {
+    gap: 16px;
+  }
+
+  .profile-intro {
+    display: grid;
+    gap: 8px;
+  }
+
+  .profile-intro h3 {
+    margin: 0;
+    font-size: 1.08rem;
+  }
+
+  .profile-intro p {
+    font-size: 0.92rem;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+  }
+
+  .profile-grid {
+    gap: 12px;
   }
 }
 </style>

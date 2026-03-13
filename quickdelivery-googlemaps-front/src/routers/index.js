@@ -6,6 +6,7 @@ import HomePage from '../pages/HomePage.vue';
 import LandingPage from '../pages/LandingPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import PaymentPage from '../pages/PaymentPage.vue';
+import TermsOfUsePage from '../pages/TermsOfUsePage.vue';
 import UserSignInPage from '../pages/UserSignInPage.vue';
 import PackageConsultationPage from '../pages/PackageConsultationPage.vue';
 import PackageTrackingPage from '../pages/PackageTrackingPage.vue';
@@ -40,6 +41,12 @@ const routes = [
         name: 'homePage',
         component: HomePage,
         meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'], keepAlive: true }
+        },
+        {
+        path: '/terms-of-use',
+        name: 'termsOfUsePage',
+        component: TermsOfUsePage,
+        meta: { public: true }
         },
         {
         path: '/createPackage',

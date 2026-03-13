@@ -40,8 +40,7 @@
 
         <div class="field-wrap">
           <label for="phone">{{ $t('packageAddressPhoneLabel') }}</label>
-          <Field id="phone" v-model="address.phone" type="text" name="address.phone" :rules="validatePhone" />
-          <ErrorMessage class="errorMessage" name="address.phone" />
+          <PhoneNumberField :input-id="`${addressType}-phone`" v-model="address.phone" name="address.phone" />
         </div>
 
         <div class="field-wrap field-wide">
@@ -85,7 +84,8 @@ import { ErrorMessage, Field } from 'vee-validate';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import AddressAutocomplete from './AddressAutocomplete.vue';
-import { validateEmail, validateNumericFieldAcceptZero, validatePhone, validateString } from '@/config/comonFunction';
+import PhoneNumberField from './PhoneNumberField.vue';
+import { validateEmail, validateNumericFieldAcceptZero, validateString } from '@/config/comonFunction';
 
 export default {
   components: {
@@ -93,6 +93,7 @@ export default {
     Field,
     ErrorMessage,
     VueDatePicker,
+    PhoneNumberField,
   },
   props: {
     addressType: {
@@ -137,7 +138,6 @@ export default {
     },
   },
   methods: {
-    validatePhone,
     validateEmail,
     validateString,
     validateNumericFieldAcceptZero,

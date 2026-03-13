@@ -3,17 +3,20 @@
         <div class="user_details">
             <h3>{{ $t('userInfo') }}</h3>
             <div class="details">
-                <div class="picture"><img :src="getPicture()" alt="personal image"></div>
+                <div class="picture">
+                    <img v-if="pictureSrc" :src="pictureSrc" alt="personal image">
+                    <div v-else class="picture-fallback">{{ initials }}</div>
+                </div>
                 <div><strong>{{$t('packageAddressFirstName')}}:</strong> {{ user.firstName }}</div>
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
                 <div><strong>{{$t('userGender')}}:</strong> {{ user.sex }}</div>
                 <div><strong>{{$t('userBirthDate')}}:</strong> {{ formatDate(user.birthDate) }}</div>
                 <div class="long_text"><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
                 <div class="long_text"><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
-                <div class="long_text"><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
+                <div class="long_text" v-if="user.addressAuto"><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
             </div>
         </div>
-        <div class="user_details">
+        <div v-if="hasVehicleInfo" class="user_details">
             <h3>{{$t('userVehicle')}}</h3>
             <div class="details">
                 <div class="long_text"><strong>{{$t('userVehicleRegistration')}}:</strong> {{ vehicle.registrationNumber }}</div>
@@ -36,8 +39,33 @@ export default {
             default: true,
         },
       },
+    computed: {
+        pictureSrc() {
+            const pictureData = this.user?.document?.PICTURE?.data;
+            if (!pictureData) {
+                return '';
+            }
+            return 'data:image/png;base64,' + pictureData;
+        },
+        initials() {
+            const firstName = (this.user?.firstName || '').trim();
+            const lastName = (this.user?.lastName || '').trim();
+            return `${firstName.charAt(0)}${lastName.charAt(0)}`.trim().toUpperCase() || '?';
+        },
+        hasVehicleInfo() {
+            return !!(
+                this.vehicle?.registrationNumber
+                || this.vehicle?.brand
+                || this.vehicle?.model
+                || this.vehicle?.energyType
+            );
+        },
+    },
     methods: {
         formatDate(dateTime) {
+            if (!dateTime) {
+                return '';
+            }
             const date = new Date(dateTime);
             const options = {
                 day: '2-digit',
@@ -46,9 +74,6 @@ export default {
             };
             const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
             return date.toLocaleDateString(userLanguage, options);
-        },
-        getPicture(){
-            return 'data:image/png;base64,'+this.user.document['PICTURE'].data;
         },
         toUpdate() {
             if (!this.user?.emailAddress) {
@@ -72,6 +97,20 @@ export default {
     border: 1px solid #dbe1ea;
     border-radius: 50%;
     background: #f8fafc;
+}
+.picture-fallback{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 4px;
+    border: 1px solid #dbe1ea;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 700;
 }
 .user_details_group_{
     width: 100%;

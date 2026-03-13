@@ -31,7 +31,6 @@
 
 <script>
 import http from '@/config/httpInterceptor';
-import { hasValidAccessToken } from '@/config/auth';
 import CreditCard from './CreditCard.vue';
 
 const EMPTY_PACKAGE = {
@@ -129,9 +128,11 @@ export default {
           return;
         }
 
-        const request = currentPackage.guestMode && !hasValidAccessToken()
+        const request = currentPackage.guestMode
           ? http.put(
-              `${this.$i18n.t('rootURL')}${this.$i18n.t('confirmGuestPackagePayment')}?packageID=${currentPackage.id}&guestAccessToken=${encodeURIComponent(currentPackage.guestAccessToken || '')}`
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('confirmGuestPackagePayment')}?packageID=${currentPackage.id}&guestAccessToken=${encodeURIComponent(currentPackage.guestAccessToken || '')}`,
+              null,
+              { skipAuth: true }
             )
           : http.put(
               `${this.$i18n.t('rootURL')}${this.$i18n.t('updatePackageStatus')}?${currentPackage.id}=NEW`

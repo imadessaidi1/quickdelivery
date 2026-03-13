@@ -50,7 +50,7 @@ export function validatePhone(value) {
     if (!value) {
       return this.$i18n.t('mandatoryField');
     }
-    const regex = /^(\+\d{1,4}|00\d{1,4}|0)([1-9]\d{9})$/;
+    const regex = /^\+[1-9]\d{5,14}$/;
     if (!regex.test(value)) {
       return this.$i18n.t('invalidPhone');
     }

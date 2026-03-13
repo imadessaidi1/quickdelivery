@@ -21,7 +21,7 @@ const instance = axios.create();
 instance.interceptors.request.use(
   function(config) {
     store.commit('updateLoaderStatus', true);
-    if (hasValidAccessToken()) {
+    if (!config.skipAuth && hasValidAccessToken()) {
       const token = getAccessToken();
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,11 +32,12 @@ instance.interceptors.request.use(
     store.commit('updateLoaderStatus', false);
     const status = error?.response?.status;
     const requestUrl = error?.config?.url || '';
+    const skipAuth = !!error?.config?.skipAuth;
     const isTokenRequest = requestUrl.includes('/protocol/openid-connect/token');
     const isGatewayBusinessCall = requestUrl.includes('/users/v1/') || requestUrl.includes('/packages/v1/');
-    if (!isTokenRequest && (status === 401 || status === 403)) {
+    if (!skipAuth && !isTokenRequest && (status === 401 || status === 403)) {
       triggerLoginRedirect();
-    } else if (!isTokenRequest && !status && isGatewayBusinessCall) {
+    } else if (!skipAuth && !isTokenRequest && !status && isGatewayBusinessCall) {
       // Browser-side CORS/network failures on protected calls should also force auth flow.
       triggerLoginRedirect();
     }

@@ -1,8 +1,9 @@
 <template>
     <div class="document-viewer">
-        <strong><span class="document_title">{{ currentDocInfo() }}</span></strong>
-        <iframe :src="currentDocData"></iframe>
-        <div class="document_state">
+        <strong><span class="document_title">{{ currentDocInfo }}</span></strong>
+        <iframe v-if="currentDocData" :src="currentDocData"></iframe>
+        <div v-else class="document-empty">{{ $t('packageDocumentMissing') }}</div>
+        <div v-if="currentDocument" class="document_state">
             <label for="accept-option">
                 <input type="radio" id="accept-option" name="accept-option" v-model="currentDocument.documentStatus" value="ACCEPTED"/>
                 {{$t('userDocumentAccepted')}}
@@ -21,44 +22,74 @@
     </div>
 </template>
 <script>
-import { ref } from 'vue';
 export default {
     props: {
-        documents: ref([]),
+        documents: {
+            type: Object,
+            default: () => ({}),
+        },
     },
     data() {
         return {
-          currentDocIndex: ref(0),
-          currentDocName: ref(''),
-          currentDocData: ref(0),
-          documentsCount: ref(0),
-          currentDocument: Object,
+          currentDocIndex: 0,
+          currentDocData: '',
+          currentDocument: null,
         };
     },
     mounted() {
-        const documentType = Object.keys(this.documents)[this.currentDocIndex];
-        this.currentDocument = this.documents[documentType];
-        this.formatDocData(this.currentDocument);
-        this.documentsCount = Object.keys(this.documents).length;
+        this.syncCurrentDocument();
+    },
+    computed: {
+        documentKeys() {
+            return Object.keys(this.documents || {});
+        },
+        currentDocInfo() {
+            const documentType = this.documentKeys[this.currentDocIndex];
+            if (!documentType) {
+                return this.$t('packageDocumentMissing');
+            }
+            const documentName = this.$t(documentType);
+            return this.$t('documentPagerLabel', {
+                current: this.currentDocIndex + 1,
+                total: this.documentKeys.length,
+                name: documentName,
+            });
+        },
+    },
+    watch: {
+        documents: {
+            deep: true,
+            handler() {
+                if (this.currentDocIndex >= this.documentKeys.length) {
+                    this.currentDocIndex = 0;
+                }
+                this.syncCurrentDocument();
+            },
+        },
     },
     methods: {
         nextDocument(){
-             if (this.currentDocIndex < Object.keys(this.documents).length - 1) {
+             if (this.currentDocIndex < this.documentKeys.length - 1) {
                 this.currentDocIndex++;
-                const documentType = Object.keys(this.documents)[this.currentDocIndex];
-                this.currentDocument = this.documents[documentType];
-                this.formatDocData(this.currentDocument);
+                this.syncCurrentDocument();
               }
         },
         previousDocument(){
             if (this.currentDocIndex > 0) {
                 this.currentDocIndex--;
-                const documentType = Object.keys(this.documents)[this.currentDocIndex];
-                this.currentDocument = this.documents[documentType];
-                this.formatDocData(this.currentDocument);
+                this.syncCurrentDocument();
             }
         },
+        syncCurrentDocument() {
+            const documentType = this.documentKeys[this.currentDocIndex];
+            this.currentDocument = documentType ? this.documents[documentType] : null;
+            this.formatDocData(this.currentDocument);
+        },
         formatDocData(document){
+            if (!document?.docURL || !document?.data) {
+                this.currentDocData = '';
+                return;
+            }
             const lastDotIndex = document.docURL.lastIndexOf('.');
             const documentNameEndsWith = document.docURL.substring(lastDotIndex + 1);
             if(documentNameEndsWith === 'pdf'){
@@ -67,15 +98,6 @@ export default {
                 this.currentDocData = 'data:image/png;base64,'+document.data;
             }
         },
-        currentDocInfo(){
-            const documentType = Object.keys(this.documents)[this.currentDocIndex];
-            const documentName = this.$t(documentType);
-            return this.$t('documentPagerLabel', {
-                current: this.currentDocIndex + 1,
-                total: Object.keys(this.documents).length,
-                name: documentName,
-            });
-        }
     },
 }
 </script>
@@ -98,6 +120,14 @@ export default {
   height: 100%;
   min-height: 0;
   border: none;
+}
+.document-empty{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 240px;
+  color: #fff;
 }
 .document_title{
     margin: 8px 0;

@@ -45,6 +45,15 @@
           />
           <UserVehicleInfo v-else-if="currentStep === 4" ref="vehicleInfo" :is-for-update="isForUpdate" />
           <UserSummary v-else ref="userSummary" :selected-payment-type="selectedPaymentType" />
+
+          <LegalConsentCard
+            v-if="shouldShowLegalConsent"
+            v-model="legalConsentAccepted"
+            :flow="legalFlow"
+            :return-to="$route.fullPath"
+            :show-error="showLegalConsentError"
+            @open-terms="saveDraftBeforeLegalConsultation"
+          />
         </div>
 
         <footer class="card-actions">
@@ -63,7 +72,9 @@
 <script>
 import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
+import { LEGAL_FLOW_ACCOUNT_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
 import { validateAddress, validateEmailConfirmation, validateFileInput, validatePasswordConfirmation, validatePhoneConfirmation } from '@/config/comonFunction';
+import LegalConsentCard from '../components/LegalConsentCard.vue';
 import UserAddressStep from '../components/UserAddressStep.vue';
 import UserDocuments from '../components/UserDocuments.vue';
 import UserInfo from '../components/UserInfo.vue';
@@ -135,6 +146,7 @@ const EMPTY_VEHICLE = {
 export default {
   components: {
     Form,
+    LegalConsentCard,
     UserInfo,
     UserAddressStep,
     UserDocuments,
@@ -156,11 +168,16 @@ export default {
         { id: 4, label: 'wizardUserStepVehicle', title: 'userRegistrationVehicleTitle', subtitle: 'userRegistrationVehicleSubtitle' },
         { id: 5, label: 'wizardUserStepSummary', title: 'userRegistrationConfirmTitle', subtitle: 'userRegistrationConfirmSubtitle' },
       ],
+      legalConsentAccepted: false,
+      showLegalConsentError: false,
     };
   },
   computed: {
+    legalFlow() {
+      return LEGAL_FLOW_ACCOUNT_CREATION;
+    },
     isClientRegistrationFlow() {
-      return !this.isForUpdate && this.user.type !== 'DELIVERY_PERSON';
+      return this.user.type !== 'DELIVERY_PERSON';
     },
     visibleSteps() {
       if (this.isClientRegistrationFlow) {
@@ -183,12 +200,25 @@ export default {
     submitLabel() {
       return this.isForUpdate ? this.$t('userAccountUpdate') : this.$t('userCreateAction');
     },
+    shouldShowLegalConsent() {
+      if (this.isForUpdate) {
+        return false;
+      }
+
+      if (this.isClientRegistrationFlow) {
+        return this.currentStep === 1;
+      }
+
+      return this.currentStep === this.visibleSteps[this.visibleSteps.length - 1].id;
+    },
     user() {
       return this.$store.state.user;
     },
   },
   mounted() {
-    this.initializeStore();
+    if (!this.restoreDraftIfAvailable()) {
+      this.initializeStore();
+    }
 
     if (this.id) {
       this.isForUpdate = true;
@@ -211,6 +241,44 @@ export default {
       this.$store.commit('updateUserDocuments', []);
       this.$store.commit('updateVehicleDocuments', []);
       this.selectedPaymentType = 'CARD';
+      this.legalConsentAccepted = false;
+      this.showLegalConsentError = false;
+    },
+    restoreDraftIfAvailable() {
+      if (this.id) {
+        return false;
+      }
+
+      const draft = loadLegalDraft(this.legalFlow);
+      if (!draft) {
+        return false;
+      }
+
+      this.$store.commit('updateUser', draft.user || JSON.parse(JSON.stringify(EMPTY_USER)));
+      this.$store.commit('updateVehicle', draft.vehicle || JSON.parse(JSON.stringify(EMPTY_VEHICLE)));
+      this.$store.commit('updateUserDocuments', draft.userDocuments || []);
+      this.$store.commit('updateVehicleDocuments', draft.vehicleDocuments || []);
+      this.selectedPaymentType = draft.selectedPaymentType || 'CARD';
+      this.currentStep = draft.currentStep || 1;
+      this.legalConsentAccepted = !!draft.legalConsentAccepted;
+      this.showLegalConsentError = false;
+      clearLegalDraft(this.legalFlow);
+      return true;
+    },
+    saveDraftBeforeLegalConsultation() {
+      if (this.isForUpdate) {
+        return;
+      }
+
+      saveLegalDraft(this.legalFlow, {
+        currentStep: this.currentStep,
+        user: this.$store.state.user,
+        vehicle: this.$store.state.vehicle,
+        userDocuments: this.$store.state.userDocuments,
+        vehicleDocuments: this.$store.state.vehicleDocuments,
+        selectedPaymentType: this.selectedPaymentType,
+        legalConsentAccepted: this.legalConsentAccepted,
+      });
     },
     loadUserForUpdate() {
       http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + this.id)
@@ -278,9 +346,13 @@ export default {
       userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('emailConfirmation');
       userInfo.isPhoneConfirmationError = !validPhoneConfirmation;
       userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('phoneConfirmation');
+      this.showLegalConsentError = false;
 
       if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && !existingEmail) {
         if (this.isClientRegistrationFlow) {
+          if (!this.validateLegalConsent()) {
+            return;
+          }
           await this.submitFormUser();
           return;
         }
@@ -367,7 +439,21 @@ export default {
           });
       });
     },
+    validateLegalConsent() {
+      if (this.isForUpdate) {
+        return true;
+      }
+
+      const hasConsulted = hasLegalPageBeenConsulted(this.legalFlow);
+      const isAccepted = this.legalConsentAccepted;
+      this.showLegalConsentError = !hasConsulted || !isAccepted;
+      return hasConsulted && isAccepted;
+    },
     async submitFormUser() {
+      if (!this.validateLegalConsent()) {
+        return;
+      }
+
       const formData = new FormData();
       const userState = { ...this.$store.state.user };
       delete userState.documents;
@@ -422,6 +508,7 @@ export default {
       return http.post(url, formData, { headers: { acept: 'application/json', 'Content-type': 'multipart/form-data' } })
         .then((response) => {
           if (`${response.status}` === '200') {
+            clearLegalDraft(this.legalFlow);
             this.initializeStore();
             this.$router.push('/');
           }
@@ -587,6 +674,10 @@ export default {
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
+.card-content :deep(.legal-consent-card) {
+  margin-top: 18px;
+}
+
 .card-actions .wizard-action-btn:hover {
   background: #0f172a;
 }
@@ -597,12 +688,17 @@ export default {
   }
 
   .wizard-sidebar {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: flex;
     overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
   }
 
   .wizard-step {
-    min-width: 220px;
+    min-width: 200px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 }
 
@@ -613,6 +709,44 @@ export default {
 
   .wizard-card {
     min-height: auto;
+  }
+
+  .wizard-sidebar {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .wizard-step {
+    min-width: 72px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border-radius: 16px;
+  }
+
+  .step-index {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .step-copy {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .step-copy strong {
+    font-size: 0.72rem;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .step-copy small {
+    display: none;
   }
 
   .card-header,
@@ -628,6 +762,24 @@ export default {
 
   .card-actions .wizard-action-btn {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .wizard-sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+    overflow: hidden;
+  }
+
+  .wizard-step {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .step-copy strong {
+    font-size: 0.68rem;
+    max-width: 46px;
   }
 }
 </style>

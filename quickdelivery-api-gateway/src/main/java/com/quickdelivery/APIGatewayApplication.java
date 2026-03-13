@@ -15,6 +15,8 @@ import org.springframework.core.env.MapPropertySource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -32,25 +34,34 @@ public class APIGatewayApplication {
     }
 
     private static void configureLocalTrustStore() {
-        setSystemPropertyIfBlank("javax.net.ssl.trustStoreType",
-                System.getenv().getOrDefault("API_GATEWAY_SSL_TRUST_STORE_TYPE", "PKCS12"));
+        Path trustStorePath = resolveTrustStorePath();
+        String trustStoreType = System.getenv().getOrDefault("API_GATEWAY_SSL_TRUST_STORE_TYPE", "PKCS12");
+        String trustStorePassword = System.getenv().getOrDefault("API_GATEWAY_SSL_TRUST_STORE_PASSWORD", "QuickDelivery123@");
 
-        if (System.getProperty("javax.net.ssl.trustStore") == null || System.getProperty("javax.net.ssl.trustStore").isBlank()) {
-            Path trustStorePath = resolveTrustStorePath();
-            if (trustStorePath != null) {
-                System.setProperty("javax.net.ssl.trustStore", trustStorePath.toAbsolutePath().normalize().toString());
-            }
+        if (trustStorePath == null) {
+            System.out.println("Gateway truststore: no additional dev truststore found");
+            return;
         }
 
-        setSystemPropertyIfBlank(
-                "javax.net.ssl.trustStorePassword",
-                System.getenv().getOrDefault("API_GATEWAY_SSL_TRUST_STORE_PASSWORD", "QuickDelivery123@")
-        );
+        try {
+            Path mergedTrustStorePath = buildMergedTrustStore(
+                    "api-gateway-truststore",
+                    trustStorePath,
+                    trustStoreType,
+                    trustStorePassword
+            );
 
-        System.out.println(
-                "Gateway truststore: path=" + System.getProperty("javax.net.ssl.trustStore")
-                        + ", type=" + System.getProperty("javax.net.ssl.trustStoreType")
-        );
+            System.setProperty("javax.net.ssl.trustStore", mergedTrustStorePath.toAbsolutePath().normalize().toString());
+            System.setProperty("javax.net.ssl.trustStoreType", "PKCS12");
+            System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
+
+            System.out.println(
+                    "Gateway truststore: path=" + mergedTrustStorePath.toAbsolutePath().normalize()
+                            + ", type=PKCS12, mode=merged-default"
+            );
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to configure gateway SSL truststore", exception);
+        }
     }
 
     private static Path resolveTrustStorePath() {
@@ -70,11 +81,57 @@ public class APIGatewayApplication {
         return null;
     }
 
-    private static void setSystemPropertyIfBlank(String key, String value) {
-        String existingValue = System.getProperty(key);
-        if (existingValue == null || existingValue.isBlank()) {
-            System.setProperty(key, value);
+    private static Path buildMergedTrustStore(String prefix, Path localTrustStorePath, String localTrustStoreType, String password) throws Exception {
+        KeyStore mergedKeyStore = loadDefaultCacerts(password);
+        KeyStore localKeyStore = KeyStore.getInstance(localTrustStoreType);
+        try (var inputStream = Files.newInputStream(localTrustStorePath)) {
+            localKeyStore.load(inputStream, password.toCharArray());
         }
+
+        var aliases = localKeyStore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            Certificate certificate = localKeyStore.getCertificate(alias);
+            if (certificate != null) {
+                mergedKeyStore.setCertificateEntry("quickdelivery-" + alias, certificate);
+            }
+        }
+
+        Path mergedPath = Files.createTempFile(prefix, ".p12");
+        try (var outputStream = Files.newOutputStream(mergedPath)) {
+            mergedKeyStore.store(outputStream, password.toCharArray());
+        }
+        mergedPath.toFile().deleteOnExit();
+        return mergedPath;
+    }
+
+    private static KeyStore loadDefaultCacerts(String password) throws Exception {
+        Path cacertsPath = Paths.get(System.getProperty("java.home"), "lib", "security", "cacerts");
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        try (var inputStream = Files.newInputStream(cacertsPath)) {
+            try {
+                keyStore.load(inputStream, "changeit".toCharArray());
+                return keyStore;
+            } catch (Exception ignored) {
+            }
+        }
+
+        keyStore = KeyStore.getInstance("JKS");
+        try (var inputStream = Files.newInputStream(cacertsPath)) {
+            keyStore.load(inputStream, "changeit".toCharArray());
+        }
+
+        KeyStore pkcs12KeyStore = KeyStore.getInstance("PKCS12");
+        pkcs12KeyStore.load(null, password.toCharArray());
+        var aliases = keyStore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            Certificate certificate = keyStore.getCertificate(alias);
+            if (certificate != null) {
+                pkcs12KeyStore.setCertificateEntry(alias, certificate);
+            }
+        }
+        return pkcs12KeyStore;
     }
 
     /*@Autowired

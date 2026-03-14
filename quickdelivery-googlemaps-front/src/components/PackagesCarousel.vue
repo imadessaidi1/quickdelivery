@@ -26,13 +26,14 @@
               :key="package_.id || visibleIndex"
               class="package-item"
               :class="{ selected: selectedPackageId === package_.id }"
-              @click="displayDirection(desktopSlideIndex + visibleIndex)"
+              @click="displayDirection(desktopSlideIndex + visibleIndex, { preserveDesktopWindow: true })"
             >
               <MarkerDetails
                 :package_="package_"
                 :mapVue="getMapVue()"
                 :modal="getPackageModal()"
                 :isSelected="selectedPackageId === package_.id"
+                :dense="true"
               />
             </div>
           </div>
@@ -275,13 +276,15 @@ export default {
         console.error('Bulk reserve failed', error);
       }
     },
-    displayDirection(index) {
+    displayDirection(index, options = {}) {
       const selectedPackage = this.packagesList?.[index];
       if (!selectedPackage || !Array.isArray(selectedPackage.addresses) || selectedPackage.addresses.length === 0) {
         return;
       }
       this.selectedPackageId = selectedPackage.id;
-      this.desktopSlideIndex = index;
+      if (!options.preserveDesktopWindow) {
+        this.desktopSlideIndex = index;
+      }
       this.mobileMapSlideIndex = index;
       this.onMyRoadPackageIds = [];
       this.$parent.$refs.mapVue.$refs.map.contentWindow.postMessage(`SelectedPackage:${selectedPackage.id}`, "*");
@@ -358,24 +361,21 @@ export default {
       this.isLoadingPackages = true;
       this.loadError = false;
       try {
+        if (!this.positionData?.actuallatitude || !this.positionData?.actuallongitude) {
+          this.positionData = await this.getCurrentLocation();
+        }
         const params = new URLSearchParams({
+          latitude: String(this.positionData.actuallatitude),
+          longitude: String(this.positionData.actuallongitude),
           line1: criteria.line1 || '',
           zipCode: criteria.zipCode || '',
           town: criteria.town || '',
           country: criteria.country || '',
           rayonEnMetres: String(this.searchRadius),
         });
-        const url = this.$i18n.t('rootURL') + this.$i18n.t('getPackagesAroundAddress') + params.toString();
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('getPackagesAroundMeByDestination') + params.toString();
         const response = await http.get(url);
-        if (Array.isArray(response.data)) {
-          this.packagesList = response.data;
-        } else if (response.data && typeof response.data === 'object') {
-          this.packagesList = Object.values(response.data)
-            .filter((entry) => Array.isArray(entry))
-            .flat();
-        } else {
-          this.packagesList = [];
-        }
+        this.packagesList = Array.isArray(response.data) ? response.data : [];
         this.onMyRoadPackageIds = [];
         this.selectedPackageId = this.packagesList.length > 0 ? this.packagesList[0].id : null;
         this.desktopSlideIndex = 0;
@@ -475,7 +475,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 14px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid #ebedf2;
   background: #ffffff;
 }
@@ -514,8 +514,8 @@ export default {
 .vertical-carousel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   height: 100%;
   min-height: 0;
 }
@@ -523,8 +523,8 @@ export default {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-rows: repeat(2, minmax(190px, 1fr));
+  gap: 8px;
   align-content: start;
 }
 .v-nav {
@@ -550,15 +550,14 @@ export default {
 }
 .package-item {
   border-radius: 14px;
-  border: 1px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease;
+  min-height: 0;
 }
 .package-item:hover {
-  border-color: #d4dced;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
 .package-item.selected {
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 1px #94a3b8;
+  box-shadow: none;
 }
 .mobile-list {
   display: flex;
@@ -589,15 +588,21 @@ export default {
   .carousel-wrapper {
     background: rgba(255, 255, 255, 0.84);
     border-radius: 12px;
-    padding: 8px;
+    padding: 6px;
     border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   }
   .mobile-mode-switch {
     display: flex;
     gap: 8px;
+    margin-bottom: 2px;
   }
-.mobile-map-card {
+  .mode-btn {
+    height: 38px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  .mobile-map-card {
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -654,6 +659,28 @@ export default {
   }
   .carousel-state {
     margin-bottom: 0;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .carousel-wrapper {
+    padding: 5px;
+    border-radius: 10px;
+  }
+
+  .mobile-mode-switch {
+    gap: 6px;
+  }
+
+  .mode-btn {
+    height: 36px;
+    font-size: 12px;
+  }
+
+  :deep(.mobile-map-carousel .carousel__prev),
+  :deep(.mobile-map-carousel .carousel__next) {
+    width: 26px;
+    height: 26px;
   }
 }
 </style>

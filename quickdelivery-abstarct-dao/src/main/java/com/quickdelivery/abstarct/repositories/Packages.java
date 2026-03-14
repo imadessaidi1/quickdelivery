@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface Packages extends CrudRepository<Package, Long> {
     @Query("SELECT a FROM Address a " +
-            "WHERE st_distance_sphere(POINT(a.latitude, a.longitude), POINT(:latitude, :longitude)) <= :rayonEnMetres " +
+            "WHERE st_distance_sphere(POINT(a.longitude, a.latitude), POINT(:longitude, :latitude)) <= :rayonEnMetres " +
             "AND a.packaged.status='NEW' " +
             "AND a.type = 'DEPARTURE'")
     List<Address> findAddressAroundPosition(@Param("latitude") String latitude,
@@ -31,8 +31,8 @@ public interface Packages extends CrudRepository<Package, Long> {
     @Query("SELECT DISTINCT p FROM Package p " +
             "INNER JOIN p.addresses adDep " +
             "INNER JOIN p.addresses adArr " +
-            "WHERE ST_Distance_Sphere(POINT(adDep.latitude, adDep.longitude), POINT(:startLat, :startLong)) < :startRadius " +
-            "AND ST_Distance_Sphere(POINT(adArr.latitude, adArr.longitude), POINT(:endLat, :endLong)) < :endRadius " +
+            "WHERE ST_Distance_Sphere(POINT(adDep.longitude, adDep.latitude), POINT(:startLong, :startLat)) < :startRadius " +
+            "AND ST_Distance_Sphere(POINT(adArr.longitude, adArr.latitude), POINT(:endLong, :endLat)) < :endRadius " +
             "AND adDep.type = 'DEPARTURE' " +
             "AND adArr.type = 'ARRIVAL'")
     List<Package> findPackagesOnMyRoadByRadius(@Param("startLat") String startLat,
@@ -69,6 +69,13 @@ public interface Packages extends CrudRepository<Package, Long> {
             "FROM Package p JOIN FETCH p.packageReservations r " +
             "WHERE r.deliveryPerson.id = :deliveryPersonID")
     List<Package> findPackagesByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
+
+    @Query("SELECT DISTINCT p " +
+            "FROM Package p " +
+            "LEFT JOIN FETCH p.addresses a " +
+            "LEFT JOIN FETCH p.packageReservations r " +
+            "WHERE p.sender.id = :senderID")
+    List<Package> findPackagesBySender(@Param("senderID") long senderID);
 
     @Query("SELECT p " +
             "FROM Package p " +

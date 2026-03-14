@@ -32,8 +32,7 @@ import java.util.Map;
 @EnableAspectJAutoProxy
 @RequestMapping("/packages/v1")
 public class PackageController {
-    @Value("${package.services.packageConsultation.url}")
-    private String packageConsultationUrl;
+    private static final String PACKAGE_CONSULTATION_PATH = "/package?id=";
     @Autowired
     private IPackagesService packagesService;
     @Autowired
@@ -137,6 +136,7 @@ public class PackageController {
                               @RequestParam("locale") Locale locale){
         try {
             packagesService.pickUpPackage(packageID,deliveryPersonID,pickUpOTP,locale);
+            notifyPackagePickup(packageID);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -149,6 +149,7 @@ public class PackageController {
                               @RequestParam("locale") Locale locale){
         try {
             packagesService.deliverPackage(packageID,deliveryPersonID,deliveryOTP,locale);
+            notifyPackageDelivery(packageID);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -184,6 +185,11 @@ public class PackageController {
     @GetMapping("/getPackagesByDeliveryPerson{deliveryPersonID}")
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(@RequestParam("deliveryPersonID") Long deliveryPersonID){
         return packagesService.getPackagesByDeliveryPerson(deliveryPersonID);
+    }
+
+    @GetMapping("/getPackagesBySender{senderID}")
+    public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(@RequestParam("senderID") Long senderID){
+        return packagesService.getPackagesBySender(senderID);
     }
 
     @GetMapping("/getPackage{reference}")
@@ -241,6 +247,26 @@ public class PackageController {
         }
     }
 
+    @GetMapping("/packages-around-me-by-destination")
+    public List<PackageDTO> packagesAroundMeByDestination(@RequestParam(name = "latitude", required = true) String latitude,
+                                                          @RequestParam(name = "longitude", required = true) String longitude,
+                                                          @RequestParam(name = "line1", required = true) String line1,
+                                                          @RequestParam(name = "zipCode", required = true) String zipCode,
+                                                          @RequestParam(name = "town", required = true) String town,
+                                                          @RequestParam(name = "country", required = true) String country,
+                                                          @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres) {
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setLine1(line1);
+        addressDTO.setCountry(country);
+        addressDTO.setTown(town);
+        addressDTO.setZipCode(zipCode);
+        try {
+            return packagesService.getPackagesAroundPositionWithDestination(latitude, longitude, addressDTO, rayonEnMetres);
+        } catch (IOException | InterruptedException | ApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void notifyPackageCreation(String aPackage){
         List<Address> addressAroundNewPackage = packagesService.findUsersAroundPosition(aPackage);
         for (Address address : addressAroundNewPackage){
@@ -249,7 +275,7 @@ public class PackageController {
             messageDTO.setType("NEW_PACKAGE_NOTIFICATION");
             messageDTO.setTo(address.getResidents().getId().toString());
             messageDTO.setMessage("There is a new package around you :)");
-            messageDTO.setUrl(packageConsultationUrl+aPackage);
+            messageDTO.setUrl(PACKAGE_CONSULTATION_PATH + aPackage);
             ObjectMapper objectMapper = new ObjectMapper();
             String json;
             try {
@@ -267,7 +293,7 @@ public class PackageController {
             messageDTO.setType("PACKAGE_RESERVATION_OTP_NOTIFICATION");
             messageDTO.setTo(userID.toString());
             messageDTO.setMessage("You reserved a package. Here is the password to pick it up : "+otp);
-            messageDTO.setUrl(packageConsultationUrl+packageReference);
+            messageDTO.setUrl(PACKAGE_CONSULTATION_PATH + packageReference);
             ObjectMapper objectMapper = new ObjectMapper();
             String json;
             try {
@@ -276,5 +302,44 @@ public class PackageController {
                 throw new RuntimeException(e);
             }
             webSocketHandler.sendMessageToAll(json);
+    }
+
+    private void notifyPackagePickup(Long packageID) {
+        PackageDTO packageDTO = packagesService.findPackageByID(packageID);
+        if (packageDTO.getSenderID() == null) {
+            return;
+        }
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setFrom("PACKAGE_SERVICE");
+        messageDTO.setType("PACKAGE_PICKUP_NOTIFICATION");
+        messageDTO.setTo(packageDTO.getSenderID().toString());
+        messageDTO.setMessage("Your package has been picked up.");
+        messageDTO.setUrl(PACKAGE_CONSULTATION_PATH + packageDTO.getReference());
+        sendSocketMessage(messageDTO);
+    }
+
+    private void notifyPackageDelivery(Long packageID) {
+        PackageDTO packageDTO = packagesService.findPackageByID(packageID);
+        if (packageDTO.getSenderID() == null) {
+            return;
+        }
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setFrom("PACKAGE_SERVICE");
+        messageDTO.setType("PACKAGE_DELIVERY_NOTIFICATION");
+        messageDTO.setTo(packageDTO.getSenderID().toString());
+        messageDTO.setMessage("Your package has been delivered.");
+        messageDTO.setUrl(PACKAGE_CONSULTATION_PATH + packageDTO.getReference());
+        sendSocketMessage(messageDTO);
+    }
+
+    private void sendSocketMessage(MessageDTO messageDTO) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(messageDTO);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        webSocketHandler.sendMessageToAll(json);
     }
 }

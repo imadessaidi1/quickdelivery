@@ -15,6 +15,7 @@ import UserAccountValidationPage from '../pages/UserAccountValidationPage.vue';
 import UserAccountPage from '../pages/UserAccountPage.vue';
 import UserValidationDetailsPage from '../pages/UserValidationDetailsPage.vue';
 import DocumentPage from '../pages/DocumentPage.vue';
+import DashboardPage from '../pages/DashboardPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -41,6 +42,27 @@ const routes = [
         name: 'homePage',
         component: HomePage,
         meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'], keepAlive: true }
+        },
+        {
+        path: '/dashboard/admin',
+        name: 'adminDashboardPage',
+        component: DashboardPage,
+        props: { dashboardType: 'admin' },
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
+        path: '/dashboard/courier',
+        name: 'courierDashboardPage',
+        component: DashboardPage,
+        props: { dashboardType: 'courier' },
+        meta: { requiresAuth: true, roles: ['ROLE_LIVREUR'] }
+        },
+        {
+        path: '/dashboard/client',
+        name: 'clientDashboardPage',
+        component: DashboardPage,
+        props: { dashboardType: 'client' },
+        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO'] }
         },
         {
         path: '/terms-of-use',
@@ -70,7 +92,7 @@ const routes = [
         path: '/userSignInPage',
         name: 'userSignInPageUpdate',
         component:UserSignInPage,
-        props: (route) => ({ id: route.query.id }),
+        props: (route) => ({ id: route.query.id, updateToken: route.query.updateToken }),
         meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {
@@ -137,6 +159,9 @@ const router = VueRouter.createRouter({
 });
 
 router.beforeEach(async (to) => {
+    if (to.path === '/userSignInPage' && to.query.updateToken) {
+        return true;
+    }
     if (to.meta?.publicOnly && hasValidAccessToken()) {
         return resolveLandingPathForCurrentUser();
     }

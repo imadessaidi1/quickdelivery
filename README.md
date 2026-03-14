@@ -242,6 +242,41 @@ Quand utiliser ces surcharges:
 - utile si un autre dev utilise un autre keystore local
 - inutile si tu gardes le certificat versionne dans `certs/`
 
+### 4.3.1 Configuration SMTP des emails applicatifs
+
+Les emails envoyes par `users` et `packages` utilisent la configuration servie par le Config Server.
+
+Proprietes actuellement definies:
+
+- `quickdelivery.mail.host=smtp.gmail.com`
+- `quickdelivery.mail.port=587`
+- `quickdelivery.mail.username=quickdelivery529@gmail.com`
+- `quickdelivery.mail.password=Quickdelivery123@`
+- `quickdelivery.mail.smtp.auth=true`
+- `quickdelivery.mail.smtp.starttls.enable=true`
+- `quickdelivery.mail.debug=false`
+
+Fichiers concernes:
+
+- [Users_Service.properties](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/config/Users_Service.properties)
+- [Package_Service.properties](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/config/Package_Service.properties)
+
+Lecture effective au runtime:
+
+- `quickdelivery-users` propage ces proprietes Spring en `System.setProperty(...)` au demarrage dans [UsersMain.java](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-users/src/main/java/com/quickdelivery/UsersMain.java)
+- `quickdelivery-packages` fait la meme chose dans [PackageMain.java](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-packages/src/main/java/com/quickdelivery/PackageMain.java)
+- le helper d'envoi lit ensuite ces proprietes dans [MailHelper.java](/C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-abstarct-dao/src/main/java/com/quickdelivery/abstarct/helpers/MailHelper.java)
+
+Logs attendus au demarrage:
+
+- `Users mail config: host=smtp.gmail.com, port=587, username=quickdelivery529@gmail.com, password=****`
+- `Packages mail config: host=smtp.gmail.com, port=587, username=quickdelivery529@gmail.com, password=****`
+
+Important:
+
+- si Gmail refuse encore l'authentification, le mot de passe doit etre un mot de passe d'application valide, pas le mot de passe principal du compte
+- les emails `users` et `packages` sont maintenant non bloquants: un echec SMTP ne doit plus casser un parcours metier comme creation de compte, reservation ou livraison
+
 ### 4.4 Exemple Production
 
 Exemple de valeurs stables en production:
@@ -268,6 +303,89 @@ Comptes techniques:
 
 - Keycloak master admin: `bael-admin` / `pass`
 - Config Server basic auth: `configuser` / `configpass`
+
+### 5.1 Recreer Un Admin Keycloak
+
+Si le compte admin applicatif du realm `quickdelivery` a ete supprime, tu peux le recreer depuis le master admin Keycloak.
+
+Compte admin applicatif attendu:
+
+- username: `admin.test`
+- email: `admin.test@quickdelivery.local`
+- mot de passe: `Quickdelivery123@`
+- role realm: `ROLE_ADMIN`
+
+Prerequis:
+
+1. demarrer `oauth-authorization-server`
+2. verifier que Keycloak repond sur `https://localhost:18443/auth`
+
+Script PowerShell de recreation/mise a jour:
+
+```powershell
+$token = (
+  curl.exe -k -s -X POST "https://localhost:18443/auth/realms/master/protocol/openid-connect/token" `
+    -H "Content-Type: application/x-www-form-urlencoded" `
+    --data "grant_type=password&client_id=admin-cli&username=bael-admin&password=pass" |
+  ConvertFrom-Json
+).access_token
+
+$userLookup = curl.exe -k -s `
+  -H "Authorization: Bearer $token" `
+  "https://localhost:18443/auth/admin/realms/quickdelivery/users?username=admin.test" |
+  ConvertFrom-Json
+
+$role = curl.exe -k -s `
+  -H "Authorization: Bearer $token" `
+  "https://localhost:18443/auth/admin/realms/quickdelivery/roles/ROLE_ADMIN" |
+  ConvertFrom-Json
+
+$userPayload = '{"username":"admin.test","enabled":true,"emailVerified":true,"firstName":"Admin","lastName":"Test","email":"admin.test@quickdelivery.local"}'
+$pwdPayload = '{"type":"password","value":"Quickdelivery123@","temporary":false}'
+$rolePayload = "[{`"id`":`"$($role.id)`",`"name`":`"ROLE_ADMIN`"}]"
+
+$userFile = Join-Path $env:TEMP "quickdelivery-admin-user.json"
+$pwdFile = Join-Path $env:TEMP "quickdelivery-admin-password.json"
+$roleFile = Join-Path $env:TEMP "quickdelivery-admin-role.json"
+
+Set-Content -Path $userFile -Value $userPayload -Encoding ascii
+Set-Content -Path $pwdFile -Value $pwdPayload -Encoding ascii
+Set-Content -Path $roleFile -Value $rolePayload -Encoding ascii
+
+if ($userLookup.Count -eq 0) {
+  curl.exe -k -X POST "https://localhost:18443/auth/admin/realms/quickdelivery/users" `
+    -H "Authorization: Bearer $token" `
+    -H "Content-Type: application/json" `
+    --data-binary "@$userFile"
+
+  $userLookup = curl.exe -k -s `
+    -H "Authorization: Bearer $token" `
+    "https://localhost:18443/auth/admin/realms/quickdelivery/users?username=admin.test" |
+    ConvertFrom-Json
+}
+
+$userId = $userLookup[0].id
+
+curl.exe -k -X PUT "https://localhost:18443/auth/admin/realms/quickdelivery/users/$userId" `
+  -H "Authorization: Bearer $token" `
+  -H "Content-Type: application/json" `
+  --data-binary "@$userFile"
+
+curl.exe -k -X PUT "https://localhost:18443/auth/admin/realms/quickdelivery/users/$userId/reset-password" `
+  -H "Authorization: Bearer $token" `
+  -H "Content-Type: application/json" `
+  --data-binary "@$pwdFile"
+
+curl.exe -k -X POST "https://localhost:18443/auth/admin/realms/quickdelivery/users/$userId/role-mappings/realm" `
+  -H "Authorization: Bearer $token" `
+  -H "Content-Type: application/json" `
+  --data-binary "@$roleFile"
+```
+
+Verification:
+
+1. se connecter au front avec `admin.test` / `Quickdelivery123@`
+2. verifier l'acces a `usersAccountValidation`
 
 Postman (client OAuth de test):
 

@@ -12,7 +12,9 @@ import java.util.Locale;
 public interface IUserServices {
     UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
     UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
+    UserDTO updateUserByToken(String updateToken, UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale);
     UserDTO findByID(Long id);
+    UserDTO findByUpdateToken(String updateToken);
     UserDTO userValidation(UserDTO user, Locale locale);
     void deleteUSer(UserDTO user);
     CHECK_STATUS validateUserEmail(Long id);

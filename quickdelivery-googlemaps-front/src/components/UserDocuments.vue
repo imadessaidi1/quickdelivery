@@ -72,9 +72,12 @@ export default {
     userDocuments() {
       return this.$store.state.userDocuments;
     },
+    canUpdateRejectedOnly() {
+      return this.isForUpdate && this.user?.activeAccount !== true;
+    },
     visibleDocuments() {
       const isDeliveryPerson = this.user.type === 'DELIVERY_PERSON';
-      return [
+      const documents = [
         { key: 'ID', label: 'userDocumentID', ref: 'fileInputID', accept: 'image/*, application/pdf' },
         { key: 'PICTURE', label: 'PICTURE', ref: 'fileInputPICTURE', accept: 'image/*' },
         ...(isDeliveryPerson ? [
@@ -83,6 +86,10 @@ export default {
           { key: 'USER_COMPANY_INSURANCE', label: 'userDocumentCompanyInsurance', ref: 'fileInputUSER_COMPANY_INSURANCE', accept: 'image/*, application/pdf' },
         ] : []),
       ];
+      if (!this.canUpdateRejectedOnly) {
+        return documents;
+      }
+      return documents.filter((document) => ['REJECTED', 'UPDATED'].includes(this.userDocuments?.[document.key]?.documentStatus));
     },
   },
   data() {
@@ -113,6 +120,16 @@ export default {
     internalSelectedPaymentType(value) {
       this.$emit('update:selectedPaymentType', value);
     },
+    userDocuments: {
+      deep: true,
+      handler(documents) {
+        Object.keys(this.filesErrorMessages).forEach((key) => {
+          if (documents?.[key]?.file) {
+            delete this.filesErrorMessages[key];
+          }
+        });
+      },
+    },
   },
   methods: {
     handleUserFileChange(refName, type) {
@@ -125,9 +142,17 @@ export default {
         name: file.name,
         documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
       };
+      delete this.filesErrorMessages[type];
     },
     fileName(type) {
-      return this.userDocuments?.[type]?.name || this.$t('packageDocumentMissing');
+      const storedName = this.userDocuments?.[type]?.name;
+      if (storedName && ![type, 'BANK ID'].includes(storedName)) {
+        return storedName;
+      }
+      if (this.userDocuments?.[type]) {
+        return this.$t(type);
+      }
+      return this.$t('packageDocumentMissing');
     },
     documentStatus(type) {
       const status = this.userDocuments?.[type]?.documentStatus;
@@ -200,7 +225,7 @@ export default {
   min-width: 0;
 }
 
-.upload-card span {
+.upload-card > span {
   color: #14213d;
   font-weight: 700;
 }
@@ -249,6 +274,8 @@ export default {
   color: #617086;
 }
 
+.upload-card .errorMessage,
+.payment-card .errorMessage,
 .errorMessage {
   display: block;
   font-size: 0.78rem;

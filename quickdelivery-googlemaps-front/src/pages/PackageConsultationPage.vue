@@ -142,13 +142,15 @@ export default{
       this.$router.push('/');
     },
     reserve() {
+      if (!this.$store.state.connectedUser?.id) {
+        console.error('Missing connected user identifier for reservation.');
+        return Promise.resolve();
+      }
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
       return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$store.commit('updatePackage', this.package);
-            this.$store.commit('updateDocuments', []);
             this.$router.push('/');
           }
           return response.data;
@@ -157,13 +159,15 @@ export default{
         });
     },
     pickup(){
+        if (!this.$store.state.connectedUser?.id) {
+          console.error('Missing connected user identifier for pickup.');
+          return Promise.resolve();
+        }
         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
         const url = this.$i18n.t('rootURL') + this.$i18n.t('pickup') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&pickUpOTP=" + this.otp + "&locale=" + userLanguage;
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$store.commit('updatePackage', this.package);
-            this.$store.commit('updateDocuments', []);
             this.$router.push('/');
           }
           return response.data;
@@ -172,13 +176,15 @@ export default{
         });
     },
     deliver(){
+        if (!this.$store.state.connectedUser?.id) {
+          console.error('Missing connected user identifier for delivery.');
+          return Promise.resolve();
+        }
         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
         const url = this.$i18n.t('rootURL') + this.$i18n.t('deliver') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&deliveryOTP=" + this.deliveryOtp + "&locale=" + userLanguage;
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
-            this.$store.commit('updatePackage', this.package);
-            this.$store.commit('updateDocuments', []);
             this.$router.push('/');
           }
           return response.data;

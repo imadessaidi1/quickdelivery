@@ -119,6 +119,9 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 		for (String baseUrl : PublicEndpointResolver.resolveFrontendBaseUrls(System.getProperty("quickdelivery.frontend.base-urls"))) {
 			redirectUris.add(baseUrl + "/");
 			redirectUris.add(baseUrl + "/app");
+			redirectUris.add(baseUrl + "/dashboard/admin");
+			redirectUris.add(baseUrl + "/dashboard/courier");
+			redirectUris.add(baseUrl + "/dashboard/client");
 			redirectUris.add(baseUrl + "/createPackage");
 			redirectUris.add(baseUrl + "/usersAccountValidation");
 		}

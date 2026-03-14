@@ -83,12 +83,12 @@ export default {
       }
     },
     goBack() {
-      if (window.history.length > 1) {
-        this.$router.back();
-        return;
-      }
       if (this.returnTo) {
         this.$router.push(this.returnTo);
+        return;
+      }
+      if (window.history.length > 1) {
+        this.$router.back();
         return;
       }
       this.$router.push('/');

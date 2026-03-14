@@ -14,7 +14,7 @@
       <div class="vehicle-grid">
         <div class="field-wrap">
           <label for="registrationNumber">{{ $t('userVehicleRegistration') }}</label>
-          <Field id="registrationNumber" v-model="vehicle.registrationNumber" type="text" name="registrationNumber" :rules="validateCarRegistrationNumber" />
+          <Field id="registrationNumber" v-model="vehicle.registrationNumber" type="text" name="registrationNumber" :rules="validateCarRegistrationNumber" @input="normalizeRegistrationNumber" />
           <ErrorMessage class="errorMessage" name="registrationNumber" />
         </div>
 
@@ -44,18 +44,11 @@
       </div>
 
       <div class="upload-grid">
-        <label class="upload-card">
-          <span>{{ $t('userVehicleGryCard') }}</span>
-          <input ref="fileInputGRAY_CARD" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange('fileInputGRAY_CARD', 'GRAY_CARD')">
-          <strong>{{ fileName('GRAY_CARD') }}</strong>
-          <span v-if="filesErrorMessages['GRAY_CARD']" class="errorMessage">{{ filesErrorMessages['GRAY_CARD'] }}</span>
-        </label>
-
-        <label class="upload-card">
-          <span>{{ $t('userVehicleInsurance') }}</span>
-          <input ref="fileInputINSURANCE" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange('fileInputINSURANCE', 'INSURANCE')">
-          <strong>{{ fileName('INSURANCE') }}</strong>
-          <span v-if="filesErrorMessages['INSURANCE']" class="errorMessage">{{ filesErrorMessages['INSURANCE'] }}</span>
+        <label v-for="document in visibleVehicleDocuments" :key="document.key" class="upload-card">
+          <span>{{ $t(document.label) }}</span>
+          <input :ref="document.ref" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange(document.ref, document.key)">
+          <strong>{{ fileName(document.key) }}</strong>
+          <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
         </label>
       </div>
     </template>
@@ -87,6 +80,19 @@ export default {
     vehicleDocuments() {
       return this.$store.state.vehicleDocuments;
     },
+    canUpdateRejectedOnly() {
+      return this.isForUpdate && this.user?.activeAccount !== true;
+    },
+    visibleVehicleDocuments() {
+      const documents = [
+        { key: 'GRAY_CARD', label: 'userVehicleGryCard', ref: 'fileInputGRAY_CARD' },
+        { key: 'INSURANCE', label: 'userVehicleInsurance', ref: 'fileInputINSURANCE' },
+      ];
+      if (!this.canUpdateRejectedOnly) {
+        return documents;
+      }
+      return documents.filter((document) => ['REJECTED', 'UPDATED'].includes(this.vehicleDocuments?.[document.key]?.documentStatus));
+    },
   },
   data() {
     return {
@@ -97,7 +103,7 @@ export default {
     validateCarRegistrationNumber,
     validateRequired,
     handleVehicleFileChange(refName, type) {
-      const file = this.$refs[refName]?.files?.[0];
+      const file = this.$refs[refName]?.[0]?.files?.[0] || this.$refs[refName]?.files?.[0];
       if (!file) {
         return;
       }
@@ -106,9 +112,33 @@ export default {
         name: file.name,
         documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
       };
+      delete this.filesErrorMessages[type];
+    },
+    normalizeRegistrationNumber(event) {
+      const rawValue = event?.target?.value ?? this.vehicle.registrationNumber ?? '';
+      this.vehicle.registrationNumber = rawValue.toUpperCase();
     },
     fileName(type) {
-      return this.vehicleDocuments?.[type]?.name || this.$t('packageDocumentMissing');
+      const storedName = this.vehicleDocuments?.[type]?.name;
+      if (storedName && storedName !== type) {
+        return storedName;
+      }
+      if (this.vehicleDocuments?.[type]) {
+        return this.$t(type);
+      }
+      return this.$t('packageDocumentMissing');
+    },
+  },
+  watch: {
+    vehicleDocuments: {
+      deep: true,
+      handler(documents) {
+        Object.keys(this.filesErrorMessages).forEach((key) => {
+          if (documents?.[key]?.file) {
+            delete this.filesErrorMessages[key];
+          }
+        });
+      },
     },
   },
 };
@@ -191,7 +221,7 @@ export default {
   min-width: 0;
 }
 
-.upload-card span {
+.upload-card > span {
   color: #14213d;
   font-weight: 700;
 }
@@ -205,6 +235,7 @@ export default {
   color: #617086;
 }
 
+.upload-card .errorMessage,
 .errorMessage {
   display: block;
   font-size: 0.78rem;

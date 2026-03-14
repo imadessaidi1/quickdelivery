@@ -111,6 +111,7 @@ import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
 import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunction';
 import { getCurrentUserIdentity, hasValidAccessToken } from '@/config/auth';
+import { hydrateConnectedUser } from '@/config/session';
 import { LEGAL_FLOW_PACKAGE_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
 import LegalConsentCard from '../components/LegalConsentCard.vue';
 import PackageAddress from '../components/PackageAddress.vue';
@@ -419,7 +420,14 @@ export default {
 
       this.showLegalConsentError = false;
       const formData = new FormData();
-      this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser?.id ?? null : null;
+      if (this.isAuthenticated && !this.$store.state.connectedUser?.id) {
+        await hydrateConnectedUser();
+      }
+      if (this.isAuthenticated && !this.$store.state.connectedUser?.id) {
+        console.error('Unable to resolve the connected user before package creation.');
+        return;
+      }
+      this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser.id : null;
       this.package_.status = 'PAYMENTPENDING';
       formData.append('packageDTO', JSON.stringify(this.package_));
 

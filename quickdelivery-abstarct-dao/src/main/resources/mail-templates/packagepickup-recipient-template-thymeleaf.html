@@ -1,75 +1,77 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #007bff;
-            text-align: center;
-        }
-        ul, ol {
-            padding-left: 20px;
-        }
-        p, li {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuickDelivery</title>
 </head>
-<body>
-<div class="container">
-    <h1>📦 <span th:text="#{email.packagePickupDetails(${packageReference})}"></span> 🎉🎉🎉</h1>
-    <p><span th:text="#{email.greetings(${recipientName})}"></span></p>
-    <p><span th:text="#{email.packageDetails}"></span></p>
-
-    <p><span style="font-size: 24px;">ℹ️</span><strong><span th:text="#{email.details}"></span><strong></p>
-    <ul>
-        <ul>
-            <li><strong><span th:text="#{email.dimensions}"></span></strong><span th:text="${height}"></span> x <span th:text="${width}"></span> x <span th:text="${depth}"></span></li>
-            <li><strong><span th:text="#{email.weight}"></span></strong><span th:text="${weight}"></span></li>
-            <li><strong><span th:text="#{email.departureAddress}"></span></strong><span th:text="${departureAddress}"></span></li>
-            <li><strong><span th:text="#{email.arrivalAddress}"></span></strong><span th:text="${arrivalAddress}"></span></li>
-        </ul>
-
-    </ul>
-
-    <p><span style="font-size: 24px;">🚀</span><strong><span th:text="#{email.nextSteps}"></span><strong></p>
-    <ol>
-        <li><span th:text="#{email.step10}"></span><span><a th:href="${followupLink}" th:text="#{email.packageFollow}" /></span></li>
-        <li><span th:text="#{email.step11}"></span></li>
-    </ol>
-    <p><span style="font-size: 24px;">🔒</span><strong><span th:text="#{email.deliveryPassword}"></span></strong> <span th:text="${deliveryOtp}"></span></p>
-
-    <p class="footer"><span th:text="#{email.signature}"></span>,<br/>
-        <img src="url_to_your_logo" alt="logo" style="width: 100px;"><br/>
-        <span th:text="#{email.service}"></span><br/>
-        <span th:text="#{email.address}"></span><br/>
-        <span th:text="#{email.email}"></span><br/>
-        <span th:text="#{email.tel}"></span></p>
-
-    <p style="text-align: center;">
-        <a href="link_to_facebook"><img src="url_to_facebook_icon" alt="Facebook" style="width: 30px; margin-right: 10px;"></a>
-        <a href="link_to_instagram"><img src="url_to_instagram_icon" alt="Instagram" style="width: 30px; margin-right: 10px;"></a>
-        <a href="link_to_twitter"><img src="url_to_twitter_icon" alt="Twitter" style="width: 30px;"></a>
-    </p>
-</div>
+<body style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;color:#172033;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f4f6fb;margin:0;padding:24px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;">
+                <tr>
+                    <td style="background:#0f2d52;padding:24px 32px;">
+                        <div style="font-size:26px;font-weight:700;color:#ffffff;letter-spacing:0.4px;">QuickDelivery</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px;">
+                        <p style="margin:0 0 12px;font-size:16px;" th:text="|#{email.greeting} ${recipientName},|">Hello John,</p>
+<h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;color:#0f2d52;" th:text="#{email.packagePickup.receiver.title}">Your incoming package is on the way</h1>
+<p style="margin:0 0 8px;font-size:15px;line-height:1.7;" th:text="#{email.packagePickup.receiver.message}">
+    The package is now on its way to the destination address.
+</p>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.7;" th:text="#{email.packagePickupDetails}">
+    The delivery person is heading to the delivery point. Follow the progress from the app.
+</p><table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;background:#f8fafc;border:1px solid #e4e9f2;border-radius:12px;">
+    <tr>
+        <td style="padding:20px;">
+            <div style="font-size:13px;color:#5d6a7f;margin-bottom:8px;" th:text="#{email.reference}">Reference</div>
+            <div style="font-size:20px;font-weight:700;color:#0f2d52;margin-bottom:20px;" th:text="${packageReference}">PACKFR202403170011066297223</div>
+            <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.departureAddress}">Pickup address</div>
+            <div style="font-size:15px;line-height:1.5;margin-bottom:16px;" th:text="${departureAddress}">10 rue Example, Paris</div>
+            <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.arrivalAddress}">Delivery address</div>
+            <div style="font-size:15px;line-height:1.5;margin-bottom:16px;" th:text="${arrivalAddress}">20 avenue Example, Lyon</div>
+            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td style="padding:0 16px 12px 0;vertical-align:top;">
+                        <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.pickupDate}">Pickup date</div>
+                        <div style="font-size:15px;" th:text="${pickupDateTime}">2026-03-13 10:30</div>
+                    </td>
+                    <td style="padding:0 16px 12px 0;vertical-align:top;">
+                        <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.weight}">Weight</div>
+                        <div style="font-size:15px;" th:text="${weight}">2 kg</div>
+                    </td>
+                    <td style="padding:0;vertical-align:top;">
+                        <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.dimensions}">Dimensions</div>
+                        <div style="font-size:15px;" th:text="${length} + ' x ' + ${width} + ' x ' + ${height} + ' cm'">30 x 20 x 15 cm</div>
+                    </td>
+                </tr>
+            </table>
+            <div style="font-size:13px;color:#5d6a7f;margin-bottom:6px;" th:text="#{email.deliveryPrice}">Delivery price</div>
+            <div style="font-size:16px;font-weight:700;color:#0f2d52;" th:text="${deliveryPrice} + ' EUR'">12 EUR</div>
+        </td>
+    </tr>
+</table><table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
+    <tr>
+        <td style="border-radius:10px;background:#0f2d52;">
+            <a th:href="${followupLink}" href="#" style="display:inline-block;padding:14px 22px;color:#ffffff;text-decoration:none;font-weight:700;" th:text="#{email.followPackage}">
+                Track my package
+            </a>
+        </td>
+    </tr>
+</table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 32px;background:#f8fafc;color:#5d6a7f;font-size:13px;line-height:1.5;">
+                        <div th:text="#{email.signature}">The QuickDelivery team</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

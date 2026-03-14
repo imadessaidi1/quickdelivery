@@ -1,6 +1,8 @@
 <template>
     <div v-if="showMessage" class="message-container" :class="{ 'success': requestSuccess, 'error': !requestSuccess }">
-       <span v-if="requestSuccess">{{ $t('requestSuccessful') }}</span><span v-if="!requestSuccess">{{ $t('requestUnsuccessful') }}</span>
+       <span v-if="requestMessage && requestMessage !== 'success' && requestMessage !== 'error'">{{ requestMessage }}</span>
+       <span v-else-if="requestSuccess">{{ $t('requestSuccessful') }}</span>
+       <span v-else>{{ $t('requestUnsuccessful') }}</span>
        <button @click="dismissMessage"><span class="material-symbols-outlined">cancel</span></button>
     </div>
 </template>

@@ -70,6 +70,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
 import { LEGAL_FLOW_ACCOUNT_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
@@ -155,6 +156,7 @@ export default {
   },
   props: {
     id: String,
+    updateToken: String,
   },
   data() {
     return {
@@ -176,12 +178,65 @@ export default {
     legalFlow() {
       return LEGAL_FLOW_ACCOUNT_CREATION;
     },
+    isPendingAccountValidation() {
+      return this.isForUpdate && this.user?.activeAccount !== true;
+    },
+    isPublicTokenUpdate() {
+      return !!this.updateToken;
+    },
     isClientRegistrationFlow() {
       return this.user.type !== 'DELIVERY_PERSON';
     },
+    editableUserDocumentKeys() {
+      if (!this.isPendingAccountValidation) {
+        return [];
+      }
+      const documentKeys = ['ID', 'PICTURE'];
+      if (this.user.type === 'DELIVERY_PERSON') {
+        documentKeys.push('DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE');
+      }
+      if (this.$store.state.userDocuments?.RIB?.documentStatus === 'REJECTED') {
+        documentKeys.push('RIB');
+      }
+      return documentKeys.filter((key) => ['REJECTED', 'UPDATED'].includes(this.$store.state.userDocuments?.[key]?.documentStatus));
+    },
+    editableVehicleDocumentKeys() {
+      if (!this.isPendingAccountValidation || this.user.type !== 'DELIVERY_PERSON') {
+        return [];
+      }
+      return ['GRAY_CARD', 'INSURANCE'].filter((key) => ['REJECTED', 'UPDATED'].includes(this.$store.state.vehicleDocuments?.[key]?.documentStatus));
+    },
+    hasEditableRejectedUserDocuments() {
+      return this.editableUserDocumentKeys.length > 0;
+    },
+    hasEditableRejectedVehicleDocuments() {
+      return this.editableVehicleDocumentKeys.length > 0;
+    },
     visibleSteps() {
       if (this.isClientRegistrationFlow) {
+        if (this.hasEditableRejectedUserDocuments) {
+          return [this.steps[0], this.steps[2]];
+        }
         return [this.steps[0]];
+      }
+      if (this.isPendingAccountValidation) {
+        return this.steps.filter((step) => {
+          if (step.id === 3) {
+            return this.hasEditableRejectedUserDocuments;
+          }
+          if (step.id === 4) {
+            return this.hasEditableRejectedVehicleDocuments;
+          }
+          return step.id === 1 || step.id === 2;
+        });
+      }
+      if (this.isForUpdate) {
+        return this.steps.filter((step) => {
+          if (step.id === 3) {
+            return this.hasEditableRejectedUserDocuments;
+          }
+          return true;
+        });
       }
       return this.steps;
     },
@@ -221,6 +276,12 @@ export default {
     }
 
     if (this.id) {
+      this.isForUpdate = true;
+      this.loadUserForUpdate();
+      return;
+    }
+
+    if (this.updateToken) {
       this.isForUpdate = true;
       this.loadUserForUpdate();
     }
@@ -281,10 +342,39 @@ export default {
       });
     },
     loadUserForUpdate() {
-      http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + this.id)
+      const url = this.isPublicTokenUpdate
+        ? `${this.$i18n.t('userRootURL')}public-update-profile?updateToken=${encodeURIComponent(this.updateToken)}`
+        : this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + encodeURIComponent(this.id);
+      http.get(url)
         .then((response) => {
-          this.$store.commit('updateUser', response.data);
-          this.$store.commit('updateVehicle', response.data.vehicles?.[0] || JSON.parse(JSON.stringify(EMPTY_VEHICLE)));
+          const residence = response.data.personalAddress?.[0] || {};
+          const normalizedAddressAuto = response.data.addressAuto
+            || [residence.line1, residence.line2, `${residence.zipCode || ''} ${residence.town || ''}`.trim(), residence.country]
+              .filter((chunk) => !!chunk && `${chunk}`.trim().length)
+              .join(', ');
+          const normalizedUser = {
+            ...JSON.parse(JSON.stringify(EMPTY_USER)),
+            ...response.data,
+            addressAuto: normalizedAddressAuto,
+            personalAddress: response.data.personalAddress?.length ? response.data.personalAddress : JSON.parse(JSON.stringify(EMPTY_USER.personalAddress)),
+            paymentModes: {
+              CREDIT_CARD: {
+                ...EMPTY_USER.paymentModes.CREDIT_CARD,
+                ...(response.data.paymentModes?.CREDIT_CARD || {}),
+              },
+              IBAN: {
+                ...EMPTY_USER.paymentModes.IBAN,
+                ...(response.data.paymentModes?.IBAN || {}),
+              },
+            },
+          };
+          const normalizedVehicle = {
+            ...JSON.parse(JSON.stringify(EMPTY_VEHICLE)),
+            ...(response.data.vehicles?.[0] || {}),
+          };
+
+          this.$store.commit('updateUser', normalizedUser);
+          this.$store.commit('updateVehicle', normalizedVehicle);
 
           const userDocument = [];
           ['ID', 'PICTURE', 'DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE', 'RIB'].forEach((key) => {
@@ -301,14 +391,27 @@ export default {
             }
           });
           this.$store.commit('updateVehicleDocuments', vehicleDocuments);
+          this.selectedPaymentType = normalizedUser.paymentModes?.IBAN?.iban
+            || normalizedUser.paymentModes?.IBAN?.bic
+            || userDocument.RIB
+            ? 'IBAN'
+            : 'CARD';
+          this.currentStep = 1;
         })
         .catch(() => {
           console.error('Unable to process your request this time. Please try again later.');
         });
     },
     previousStep() {
-      if (this.currentStep > 1) {
-        this.currentStep -= 1;
+      const currentIndex = this.visibleSteps.findIndex((step) => step.id === this.currentStep);
+      if (currentIndex > 0) {
+        this.currentStep = this.visibleSteps[currentIndex - 1].id;
+      }
+    },
+    goToNextVisibleStep() {
+      const currentIndex = this.visibleSteps.findIndex((step) => step.id === this.currentStep);
+      if (currentIndex !== -1 && currentIndex < this.visibleSteps.length - 1) {
+        this.currentStep = this.visibleSteps[currentIndex + 1].id;
       }
     },
     async handleStepSubmit() {
@@ -356,7 +459,7 @@ export default {
           await this.submitFormUser();
           return;
         }
-        this.currentStep += 1;
+        this.goToNextVisibleStep();
       }
     },
     validateAddressStep() {
@@ -371,24 +474,39 @@ export default {
       }
 
       addressStep.isAddressError = false;
-      const chunks = addressAuto.split(',');
+      const chunks = addressAuto.split(',').map((chunk) => chunk.trim()).filter(Boolean);
       const residence = this.user.personalAddress[0];
-      residence.line1 = chunks[0]?.trim() || '';
-      residence.zipCode = chunks[1]?.trim().split(' ')[0] || '';
-      const index = chunks[1]?.trim().indexOf(' ');
-      residence.town = index !== -1 ? chunks[1].trim().substring(index + 1) : '';
-      residence.country = chunks[2]?.trim() || '';
+      const lineChunks = chunks.slice(0, Math.max(chunks.length - 2, 1));
+      const cityChunk = chunks[chunks.length - 2] || '';
+      const cityTokens = cityChunk.split(' ').filter(Boolean);
+      residence.line1 = lineChunks.join(', ');
+      residence.zipCode = cityTokens[0] || '';
+      residence.town = cityTokens.slice(1).join(' ');
+      residence.country = chunks[chunks.length - 1] || '';
 
       this.$store.commit('updateUser', { ...this.user });
-      this.currentStep += 1;
+      if (this.isLastStep) {
+        this.submitFormUser();
+        return;
+      }
+      this.goToNextVisibleStep();
     },
     validateDocumentsStep() {
-      const selectedFilesKeys = ['ID', 'PICTURE'];
-      if (this.user.type === 'DELIVERY_PERSON') {
-        selectedFilesKeys.push('DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE');
-      }
+      const selectedFilesKeys = this.isForUpdate
+        ? this.editableUserDocumentKeys
+        : [
+            'ID',
+            'PICTURE',
+            ...(this.user.type === 'DELIVERY_PERSON'
+              ? ['DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE']
+              : []),
+          ];
 
       const userDocs = this.$refs.userDocuments;
+      if (!selectedFilesKeys.length) {
+        this.goToNextVisibleStep();
+        return;
+      }
       const fileValidation = validateFileInput(selectedFilesKeys, this.$store.state.userDocuments);
       userDocs.filesErrorMessages = [];
       if (fileValidation?.length) {
@@ -398,25 +516,38 @@ export default {
         return;
       }
 
-      this.currentStep += 1;
+      if (!this.isForUpdate && (this.selectedPaymentType || 'CARD') === 'IBAN' && !this.$store.state.userDocuments?.RIB?.file) {
+        userDocs.filesErrorMessages.RIB = this.$i18n.t('fileRequired');
+        return;
+      }
+
+      if (this.isLastStep) {
+        this.submitFormUser();
+        return;
+      }
+      this.goToNextVisibleStep();
     },
     validateVehicleStep() {
       const userDocs = this.$refs.userDocuments;
       const selectedPaymentType = this.selectedPaymentType || 'CARD';
 
-      if (selectedPaymentType === 'IBAN' && !this.$store.state.userDocuments?.RIB) {
+      if (!this.isForUpdate && selectedPaymentType === 'IBAN' && !this.$store.state.userDocuments?.RIB) {
         userDocs.filesErrorMessages.RIB = this.$i18n.t('fileRequired');
         this.currentStep = 3;
         return;
       }
 
       if (this.user.type !== 'DELIVERY_PERSON') {
-        this.currentStep += 1;
+        this.goToNextVisibleStep();
         return;
       }
 
-      const selectedFilesKeys = ['GRAY_CARD', 'INSURANCE'];
+      const selectedFilesKeys = this.isForUpdate ? this.editableVehicleDocumentKeys : ['GRAY_CARD', 'INSURANCE'];
       const vehicleDocs = this.$refs.vehicleInfo;
+      if (!selectedFilesKeys.length) {
+        this.goToNextVisibleStep();
+        return;
+      }
       const fileValidation = validateFileInput(selectedFilesKeys, this.$store.state.vehicleDocuments);
       vehicleDocs.filesErrorMessages = [];
       if (fileValidation?.length) {
@@ -426,11 +557,15 @@ export default {
         return;
       }
 
-      this.currentStep += 1;
+      if (this.isLastStep) {
+        this.submitFormUser();
+        return;
+      }
+      this.goToNextVisibleStep();
     },
     existingEmail(email) {
       return new Promise((resolve) => {
-        http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${email}`)
+        axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`)
           .then((response) => {
             resolve(response.status === 200 && !!response.data);
           })
@@ -467,42 +602,44 @@ export default {
       };
       formData.append('user', JSON.stringify(payloadUser));
 
-      Object.entries(this.$store.state.userDocuments || {}).forEach(([key, value]) => {
-        if (!value) {
-          return;
-        }
-        if (this.isForUpdate) {
-          if (value.documentStatus === 'UPDATED' && value.file) {
+      if (!this.isForUpdate) {
+        Object.entries(this.$store.state.userDocuments || {}).forEach(([key, value]) => {
+          if (value?.file) {
             formData.append(key, value.file);
           }
-          return;
-        }
-        if (value.file) {
-          formData.append(key, value.file);
-        }
-      });
+        });
+      } else if (this.isPendingAccountValidation) {
+        this.editableUserDocumentKeys.forEach((key) => {
+          const value = this.$store.state.userDocuments?.[key];
+          if (value?.documentStatus === 'UPDATED' && value?.file) {
+            formData.append(key, value.file);
+          }
+        });
+      }
 
       formData.append('vehicle', JSON.stringify(payloadVehicle));
-      Object.entries(this.$store.state.vehicleDocuments || {}).forEach(([key, value]) => {
-        if (!value) {
-          return;
-        }
-        if (this.isForUpdate) {
-          if (value.documentStatus === 'UPDATED' && value.file) {
+      if (!this.isForUpdate) {
+        Object.entries(this.$store.state.vehicleDocuments || {}).forEach(([key, value]) => {
+          if (value?.file) {
             formData.append(key, value.file);
           }
-          return;
-        }
-        if (value.file) {
-          formData.append(key, value.file);
-        }
-      });
+        });
+      } else if (this.isPendingAccountValidation) {
+        this.editableVehicleDocumentKeys.forEach((key) => {
+          const value = this.$store.state.vehicleDocuments?.[key];
+          if (value?.documentStatus === 'UPDATED' && value?.file) {
+            formData.append(key, value.file);
+          }
+        });
+      }
 
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       formData.append('locale', userLanguage);
 
       const url = this.isForUpdate
-        ? this.$i18n.t('userRootURL') + this.$i18n.t('updateUser')
+        ? (this.isPublicTokenUpdate
+            ? `${this.$i18n.t('userRootURL')}public-update?updateToken=${encodeURIComponent(this.updateToken)}`
+            : this.$i18n.t('userRootURL') + this.$i18n.t('updateUser'))
         : this.$i18n.t('userRootURL') + this.$i18n.t('createUser');
 
       return http.post(url, formData, { headers: { acept: 'application/json', 'Content-type': 'multipart/form-data' } })

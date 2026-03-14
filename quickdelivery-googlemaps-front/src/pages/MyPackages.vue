@@ -165,6 +165,9 @@ export default {
     };
   },
   computed: {
+    connectedUserId() {
+      return this.$store.state.connectedUser?.id ?? null;
+    },
     canCreatePackage() {
       const roles = getCurrentUserRoles();
       return roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO') || roles.includes('ROLE_ADMIN');
@@ -228,7 +231,15 @@ export default {
       this.loadError = false;
       this.packagesByStatus = [];
       try {
-        const response = await http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackagesByDeliveryPersonUrl') + this.$store.state.connectedUser.id);
+        if (!this.connectedUserId) {
+          this.collapsedStatuses = {};
+          return;
+        }
+        const roles = getCurrentUserRoles();
+        const endpoint = roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO')
+          ? this.$i18n.t('getPackagesBySenderUrl')
+          : this.$i18n.t('getPackagesByDeliveryPersonUrl');
+        const response = await http.get(this.$i18n.t('rootURL') + endpoint + this.connectedUserId);
         Object.entries(response.data).forEach(([status, packagesArray]) => {
           if (typeof status === 'string' && Array.isArray(packagesArray)) {
             this.packagesByStatus.push({ satuts_: status, groupedPackagesList: packagesArray });

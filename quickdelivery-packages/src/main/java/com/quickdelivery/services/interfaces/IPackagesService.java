@@ -26,6 +26,7 @@ public interface IPackagesService {
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(AddressDTO address, double rayonEnMetres) throws IOException, InterruptedException, ApiException;
 
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
+    List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
     PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException;
     ReserveBatchResultDTO reservePackagesBatch(List<Long> packageIds, Long deliveryPersonID, Locale locale);
@@ -44,6 +45,7 @@ public interface IPackagesService {
     void updatePackageStatus(PACKAGE_STATUS status, Long id);
 
     Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID);
+    Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(Long senderID);
 
     List<Address> findUsersAroundPosition(String aPackage);
 

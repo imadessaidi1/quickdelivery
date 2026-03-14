@@ -12,7 +12,7 @@
       <ErrorMessage class="errorMessage" name="bic" />
     </div>
 
-    <label class="upload-card">
+    <label v-if="showRibUpload" class="upload-card">
       <span>{{ $t('userRIB') }}</span>
       <input ref="fileInputRIB" type="file" accept="image/*, application/pdf" @change="handleRibFileChange('RIB')">
       <strong>{{ userDocuments['RIB']?.name || $t('packageDocumentMissing') }}</strong>
@@ -47,6 +47,12 @@ export default {
     userDocuments() {
       return this.$store.state.userDocuments;
     },
+    showRibUpload() {
+      if (!this.isForUpdate) {
+        return true;
+      }
+      return this.user?.activeAccount !== true && ['REJECTED', 'UPDATED'].includes(this.userDocuments?.RIB?.documentStatus);
+    },
   },
   methods: {
     validateIBAN,
@@ -61,6 +67,9 @@ export default {
         name: file.name,
         documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
       };
+      if (this.filesErrorMessages[type]) {
+        delete this.filesErrorMessages[type];
+      }
     },
   },
 };
@@ -111,7 +120,7 @@ export default {
   background: #fff;
 }
 
-.upload-card span {
+.upload-card > span {
   color: #14213d;
   font-weight: 700;
 }
@@ -120,6 +129,7 @@ export default {
   color: #2b5a96;
 }
 
+.upload-card .errorMessage,
 .errorMessage {
   margin-top: 6px;
   font-size: 0.78rem;

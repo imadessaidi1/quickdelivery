@@ -53,21 +53,21 @@ export default{
         },
         destinationAddress_() {
          let selectedAddress;
-          this.package_.addresses.forEach(address => {
+          (this.package_?.addresses || []).forEach(address => {
             if(address.type === 'ARRIVAL'){
               selectedAddress = address;
             }
           });
-          return selectedAddress;
+          return selectedAddress || {};
         },
         departureAddress_() {
           let selectedAddress;
-          this.package_.addresses.forEach(address => {
+          (this.package_?.addresses || []).forEach(address => {
             if(address.type === 'DEPARTURE'){
               selectedAddress = address;
             }
           });
-          return selectedAddress;
+          return selectedAddress || {};
         },
         details(){
           this.$store.commit('updatePackage', this.package_);

@@ -1,7 +1,7 @@
 <template>
   <div class="validation-details-page">
     <div class="page-head">
-      <button class="btn primary_btn back-btn" type="button" @click="goBack">
+      <button v-if="showBackButton" class="btn primary_btn back-btn" type="button" @click="goBack">
         {{ $t('actionBack') }}
       </button>
       <div v-if="selectedUser">
@@ -50,7 +50,7 @@ export default {
   props: {
     returnTo: {
       type: String,
-      default: '/usersAccountValidation',
+      default: '',
     },
   },
   data() {
@@ -61,6 +61,9 @@ export default {
   computed: {
     selectedVehicle() {
       return this.selectedUser?.vehicles?.[0] || {};
+    },
+    showBackButton() {
+      return !!this.returnTo;
     },
   },
   mounted() {
@@ -77,11 +80,11 @@ export default {
   },
   methods: {
     goBack() {
-      if (window.history.length > 1) {
-        this.$router.back();
+      if (this.returnTo) {
+        this.$router.push(this.returnTo);
         return;
       }
-      this.$router.push(this.returnTo || '/usersAccountValidation');
+      this.$router.push('/usersAccountValidation');
     },
     async saveValidation() {
       const formData = new FormData();
@@ -98,7 +101,7 @@ export default {
       try {
         await http.put(url, formData);
         sessionStorage.removeItem(STORAGE_KEY);
-        this.$router.push('/usersAccountValidation');
+        this.$router.push(this.returnTo || '/usersAccountValidation');
       } catch (error) {
         console.error('Unable to process your request at this time. Please try again later.', error);
       }

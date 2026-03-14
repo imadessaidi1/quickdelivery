@@ -27,19 +27,19 @@
             <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{ $t('userFullName') }}:</strong> {{getDepartureAddress(this.package_.addresses).firstName}} {{getDepartureAddress(this.package_.addresses).lastName}}
+                    <strong>{{ $t('userFullName') }}:</strong> {{departureAddress.firstName}} {{departureAddress.lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{getDepartureAddress(this.package_.addresses).phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{departureAddress.phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{getDepartureAddress(this.package_.addresses).addressAuto}}</strong>
+                    <strong>{{departureAddress.addressAuto}}</strong>
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{getDepartureAddress(this.package_.addresses).floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{departureAddress.floor}}
                 </div>
-                <div class="dateTime_line" v-show="getDepartureAddress(this.package_.addresses).dateTime">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(getDepartureAddress(this.package_.addresses).dateTime) }}
+                <div class="dateTime_line" v-show="departureAddress.dateTime">
+                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(departureAddress.dateTime) }}
                 </div>
             </div>
             
@@ -48,16 +48,16 @@
             <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
             <div class="details">
                 <div>
-                    <strong>{{ $t('userFullName') }}:</strong> {{getArrivalAddress(this.package_.addresses).firstName}} {{getArrivalAddress(this.package_.addresses).lastName}}
+                    <strong>{{ $t('userFullName') }}:</strong> {{arrivalAddress.firstName}} {{arrivalAddress.lastName}}
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{getArrivalAddress(this.package_.addresses).phone}}
+                    <strong>{{$t('packageAddressPhone')}}:</strong> {{arrivalAddress.phone}}
                 </div>
                 <div class="adresse_line">
-                    <strong>{{getArrivalAddress(this.package_.addresses).addressAuto}}</strong>
+                    <strong>{{arrivalAddress.addressAuto}}</strong>
                 </div>
                 <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{getArrivalAddress(this.package_.addresses).floor}}
+                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{arrivalAddress.floor}}
                 </div>
                 <!--<div class="dateTime_line">
                     <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(getArrivalAddress(this.package_.addresses).dateTime) }}
@@ -77,18 +77,18 @@ export default {
         documentS() {
           return this.$store.state.documentS;
         },
+        departureAddress() {
+          return getDepartureAddress(this.package_?.addresses || []) || {};
+        },
+        arrivalAddress() {
+          return getArrivalAddress(this.package_?.addresses || []) || {};
+        },
     },
     data() {
       return {
-        departureAddress: Object,
-        arrivalAddress: Object,
         name: 'my-pdf-file.pdf', //change which pdf file loads
         path: 'pdfjs-2.3.200-dist/web/viewer.html'
       };
-    },
-    mounted() {
-        this.departureAddress = getDepartureAddress(this.package_.addresses);
-        this.arrivalAddress = getArrivalAddress(this.package_.addresses);
     },
     methods: {
         getDepartureAddress,

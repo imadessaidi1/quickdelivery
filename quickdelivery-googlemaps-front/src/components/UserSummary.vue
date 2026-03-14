@@ -76,22 +76,11 @@
       </section>
     </div>
 
-    <div class="conditionCheckbox">
-      <Field name="userCondition" type="checkbox" value="consent" />
-      <span>{{ $t('packageCreationAgreement') }}</span>
-      <ErrorMessage name="userCondition" />
-    </div>
   </div>
 </template>
 
 <script>
-import { ErrorMessage, Field } from 'vee-validate';
-
 export default {
-  components: {
-    Field,
-    ErrorMessage,
-  },
   props: {
     selectedPaymentType: {
       type: String,
@@ -168,18 +157,6 @@ export default {
   display: block;
   margin-top: 3px;
   color: #14213d;
-}
-
-.conditionCheckbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 4px;
-}
-
-.conditionCheckbox span {
-  color: #617086;
-  font-size: 0.9rem;
 }
 
 @media screen and (max-width: 820px) {

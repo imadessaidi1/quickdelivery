@@ -3,11 +3,13 @@ package com.quickdelivery.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.services.interfaces.IUserServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ import java.util.Locale;
 public class UsersController {
     @Autowired
     private IUserServices userServices;
+    @Value("${quickdelivery.frontend.base-url:}")
+    private String frontendBaseUrl;
     @PostMapping("/create")
     public UserDTO createUser(MultipartHttpServletRequest request, @RequestParam("user") String user,
                               @RequestParam("vehicle") String vehicle,
@@ -57,6 +61,22 @@ public class UsersController {
         }
         return userServices.updateNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
     }
+    @PostMapping("/public-update")
+    public UserDTO publicUpdateUser(MultipartHttpServletRequest request, @RequestParam("updateToken") String updateToken,
+                                    @RequestParam("user") String user,
+                                    @RequestParam("vehicle") String vehicle,
+                                    @RequestParam("locale") Locale locale){
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserDTO userDTO = null;
+        VehicleDTO vehicleDTO = null;
+        try {
+            userDTO = objectMapper.readValue(user, UserDTO.class);
+            vehicleDTO = objectMapper.readValue(vehicle, VehicleDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return userServices.updateUserByToken(updateToken, userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
+    }
     @PutMapping("/validateUser")
     public UserDTO validateUser(@RequestParam("user") String user,
                               @RequestParam("locale") Locale locale){
@@ -81,11 +101,15 @@ public class UsersController {
     public UserDTO findUserByEmail(@RequestParam(name = "email", required = true) String email){
         return userServices.findByEmail(email);
     }
+    @GetMapping("/public-update-profile")
+    public UserDTO findUserByUpdateToken(@RequestParam(name = "updateToken", required = true) String updateToken){
+        return userServices.findByUpdateToken(updateToken);
+    }
     @GetMapping("/validateEmail{id}")
     public ResponseEntity<Void> validateUserEmail(@RequestParam(name = "id", required = true) Long id){
         CHECK_STATUS status = userServices.validateUserEmail(id);
         if(status.equals(CHECK_STATUS.OK)) {
-            String frontendURL = "http://localhost:8080/";
+            String frontendURL = PublicUrlResolver.resolvePreferredFrontendBaseUrl(frontendBaseUrl);
             return ResponseEntity.status(HttpStatus.FOUND).header("Location", frontendURL).build();
         }else{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

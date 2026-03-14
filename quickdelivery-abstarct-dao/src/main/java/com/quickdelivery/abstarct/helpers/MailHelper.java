@@ -24,12 +24,13 @@ public class MailHelper {
         mailSender.setPort(Integer.parseInt(resolveMailSetting("quickdelivery.mail.port", "QUICKDELIVERY_MAIL_PORT", "587")));
         mailSender.setUsername(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME"));
         mailSender.setPassword(resolveRequiredMailSecret("quickdelivery.mail.password", "QUICKDELIVERY_MAIL_PASSWORD"));
-
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", resolveMailSetting("quickdelivery.mail.smtp.auth", "QUICKDELIVERY_MAIL_SMTP_AUTH", "true"));
         props.put("mail.smtp.starttls.enable", resolveMailSetting("quickdelivery.mail.smtp.starttls.enable", "QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE", "true"));
         props.put("mail.debug", resolveMailSetting("quickdelivery.mail.debug", "QUICKDELIVERY_MAIL_DEBUG", "false"));
+        props.put("mail.mime.charset", "UTF-8");
+        props.put("mail.mime.allowutf8", "true");
 
         return mailSender;
     }
@@ -42,7 +43,7 @@ public class MailHelper {
         if (value == null || value.isBlank()) {
             return defaultValue;
         }
-        return value;
+        return value.trim();
     }
 
     private static String resolveRequiredMailSecret(String propertyName, String envName) {
@@ -53,7 +54,10 @@ public class MailHelper {
         if (value == null || value.isBlank()) {
             throw new IllegalStateException("Missing mail configuration: " + propertyName + " / " + envName);
         }
-        return value;
+        if ("quickdelivery.mail.password".equals(propertyName)) {
+            return value.replaceAll("\\s+", "");
+        }
+        return value.trim();
     }
 
 
@@ -93,7 +97,7 @@ public class MailHelper {
         MimeMessage message = getJavaMailSender().createMimeMessage();
 
         try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text);

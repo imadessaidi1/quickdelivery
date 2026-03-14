@@ -330,12 +330,23 @@ export default {
 }
 @media screen and (min-width: 1024px) {
   .home-page {
-    grid-template-columns: 1fr minmax(340px, 28vw);
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 32vw);
     min-height: 620px;
   }
 
   .packages-shell {
     height: 100%;
+    min-width: 420px;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  .home-page {
+    grid-template-columns: minmax(0, 1fr) minmax(460px, 31vw);
+  }
+
+  .packages-shell {
+    min-width: 460px;
   }
 }
 
@@ -343,14 +354,15 @@ export default {
   .home-page {
     min-height: 480px;
     padding: 8px;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
   }
 
   .map-shell {
-    min-height: 360px;
+    min-height: 292px;
+    border-radius: 14px;
   }
 
   .map-search-toolbar {
@@ -368,6 +380,10 @@ export default {
   .mobile-search-toolbar {
     position: static;
     inset: auto;
+    padding: 10px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
   }
 
   .search-block,
@@ -381,6 +397,11 @@ export default {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .radius-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .radius-btn,
   .toolbar-btn {
     width: 100%;
@@ -391,12 +412,24 @@ export default {
     max-width: 100%;
     min-width: 0;
     overflow-x: hidden;
+    margin-top: -2px;
   }
 
   .map-legend {
     left: 10px;
     bottom: 10px;
     padding: 8px 10px;
+    min-width: 126px;
+  }
+
+  .legend-title {
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .legend-row {
+    gap: 6px;
+    font-size: 11px;
   }
 
   .home-page.mobile-map-mode .packages-shell {
@@ -409,6 +442,28 @@ export default {
 
   .home-page.mobile-list-mode .packages-shell {
     min-height: calc(100vh - 140px);
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .map-shell {
+    min-height: 272px;
+  }
+
+  .mobile-search-toolbar {
+    padding: 8px;
+  }
+
+  .search-address-input,
+  .search-address-input:deep(.address-autocomplete-input) {
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .radius-btn,
+  .toolbar-btn {
+    height: 40px;
+    font-size: 12px;
   }
 }
 </style>

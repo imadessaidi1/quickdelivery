@@ -14,7 +14,10 @@ const OIDC_REDIRECT_KEY = 'qd_oidc_redirect';
 const ALLOWED_REDIRECTS = new Set([
   '/createPackage',
   '/app',
-  '/usersAccountValidation'
+  '/usersAccountValidation',
+  '/dashboard/admin',
+  '/dashboard/courier',
+  '/dashboard/client'
 ]);
 
 function base64UrlEncode(bytes) {
@@ -152,15 +155,15 @@ export function getCurrentUserRoles() {
 
 function getLandingPathByRoles(roles) {
   if (roles.includes('ROLE_ADMIN')) {
-    return '/usersAccountValidation';
+    return '/dashboard/admin';
   }
   if (roles.includes('ROLE_LIVREUR')) {
-    return '/app';
+    return '/dashboard/courier';
   }
   if (roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO')) {
-    return '/createPackage';
+    return '/dashboard/client';
   }
-  return '/app';
+  return '/dashboard/client';
 }
 
 export function resolveLandingPathForRoles(roles) {

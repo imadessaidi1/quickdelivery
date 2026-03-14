@@ -40,8 +40,9 @@ export function validateString(value) {
     if (!value) {
       return this.$i18n.t('mandatoryField');
     }
-    const regex = /^[a-zA-Z]+$/;
-    if (!regex.test(value)) {
+    const normalizedValue = String(value).trim();
+    const regex = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
+    if (!regex.test(normalizedValue)) {
       return this.$i18n.t('invalidString');
     }
     return true;
@@ -60,7 +61,7 @@ export function validatePhone(value) {
 export function validateAddress(value){
     if(!value){
         return false;
-    }else if(value.split(',').length !== 3){
+    }else if(value.split(',').map((chunk) => chunk.trim()).filter(Boolean).length < 3){
         return false;
     }else{
         return true;
@@ -76,6 +77,9 @@ export function validateDeliveryDateTime(pickupDateTime, deliveryDateTime){
 }
 
 export function validateIBAN(input) {
+           if (!input) {
+               return this.$i18n.t('mandatoryField');
+           }
            var CODE_LENGTHS = {
                AD: 24, AE: 23, AT: 20, AZ: 28, BA: 20, BE: 16, BG: 22, BH: 22, BR: 29,
                CH: 21, CR: 21, CY: 28, CZ: 24, DE: 22, DK: 18, DO: 28, EE: 20, ES: 24,
@@ -87,7 +91,7 @@ export function validateIBAN(input) {
                AL: 28, BY: 28, EG: 29, GE: 22, IQ: 23, LC: 32, SC: 31, ST: 25,
                SV: 28, TL: 23, UA: 29, VA: 22, VG: 24, XK: 20
            };
-           var iban = String(input).toUpperCase().replace(/[^A-Z0-9]/g, ''), // keep only alphanumeric characters
+           var iban = String(input).toUpperCase().replace(/[\s-]/g, '').replace(/[^A-Z0-9]/g, ''), // keep only alphanumeric characters
                    code = iban.match(/^([A-Z]{2})(\d{2})([A-Z\d]+)$/), // match and capture (1) the country code, (2) the check digits, and (3) the rest
                    digits;
            // check syntax and length
@@ -155,8 +159,8 @@ export function validateCreditCardNumber(cardNumber) {
             if (!cardNumber) {
                 return this.$i18n.t('mandatoryField');
             }else{
-           // Supprimer les espaces de la saisie
-           cardNumber = cardNumber.replace(/\s/g, '');
+           // Supprimer les espaces et tirets de la saisie
+           cardNumber = cardNumber.replace(/[\s-]/g, '');
 
            // Vérifier que la carte contient uniquement des chiffres
            if (!/^\d+$/.test(cardNumber)) {
@@ -256,12 +260,12 @@ export function validateCarRegistrationNumber(registrationNumber) {
             if (!registrationNumber) {
                 return this.$i18n.t('mandatoryField');
             }else{
-           // Expression régulière pour valider le numéro d'immatriculation
-           // Exemple de format: AB-123-CD ou ABC-123-DE
-           const regex = /^[A-Z]{1,3}-\d{1,4}-[A-Z]{1,3}$/;
+           const normalizedRegistrationNumber = registrationNumber.trim().toUpperCase();
+           // Format français SIV: AA-123-AA, with optional spaces or dashes in input
+           const regex = /^[A-Z]{2}[- ]?\d{3}[- ]?[A-Z]{2}$/;
 
            // Vérifier si le numéro d'immatriculation correspond à l'expression régulière
-           if(!regex.test(registrationNumber)){
+           if(!regex.test(normalizedRegistrationNumber)){
                 return this.$i18n.t('incorrectCarRegistrationNumber');
            }
            return true;

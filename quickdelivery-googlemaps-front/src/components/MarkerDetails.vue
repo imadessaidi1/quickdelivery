@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="marker-details" :class="{ selected: isSelected, compact: compact }">
+  <div class="marker-details" :class="{ selected: isSelected, compact: compact, dense: dense }">
     <template v-if="compact">
       <div class="compact-head">
         <div class="compact-ref">#{{ package_.reference }}</div>
@@ -84,6 +84,10 @@ export default {
       default: false,
     },
     compact: {
+      type: Boolean,
+      default: false,
+    },
+    dense: {
       type: Boolean,
       default: false,
     },
@@ -173,6 +177,10 @@ export default {
 }
 
 .marker-details.compact {
+  padding: 10px;
+}
+
+.marker-details.dense {
   padding: 10px;
 }
 
@@ -268,6 +276,10 @@ export default {
   flex: 0 0 auto;
 }
 
+.marker-details.dense .price-wrap {
+  font-size: 16px;
+}
+
 .address-line {
   display: flex;
   gap: 8px;
@@ -300,6 +312,11 @@ export default {
   line-height: 1.3;
 }
 
+.marker-details.dense .value {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -307,6 +324,12 @@ export default {
   margin: 10px 0;
   padding-top: 8px;
   border-top: 1px solid #eef2f7;
+}
+
+.marker-details.dense .metrics-row {
+  gap: 6px;
+  margin: 8px 0;
+  padding-top: 6px;
 }
 
 .metric-label {
@@ -319,6 +342,14 @@ export default {
   font-size: 12px;
   font-weight: 700;
   color: #111827;
+}
+
+.marker-details.dense .metric-label {
+  font-size: 10px;
+}
+
+.marker-details.dense .metric-value {
+  font-size: 11px;
 }
 
 .actions-row {
@@ -335,6 +366,12 @@ export default {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.marker-details.dense .details-btn,
+.marker-details.dense .reserve-btn {
+  height: 34px;
+  font-size: 12px;
 }
 
 .details-btn {

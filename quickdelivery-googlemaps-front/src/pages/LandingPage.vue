@@ -9,9 +9,9 @@
           <li><a href="#services">{{ $t('landingNavServices') }}</a></li>
           <li><a href="#how-it-works">{{ $t('landingNavHowItWorks') }}</a></li>
           <li><a href="#testimonials">{{ $t('landingNavTestimonials') }}</a></li>
-          <li><router-link class="nav-cta nav-cta-secondary" to="/createPackage">{{ $t('menuNewPackage') }}</router-link></li>
+          <li><router-link to="/createPackage">{{ $t('menuNewPackage') }}</router-link></li>
           <li><a href="#" @click.prevent="startLogin">{{ $t('landingLoginAction') }}</a></li>
-          <li><router-link class="nav-cta" to="/register">{{ $t('landingRegisterAction') }}</router-link></li>
+          <li><router-link to="/register">{{ $t('landingRegisterAction') }}</router-link></li>
         </ul>
       </div>
     </nav>
@@ -314,24 +314,12 @@ export default {
 }
 
 .navbar ul a:hover,
-.nav-cta,
 .router-link-active {
   color: #fff;
 }
 
 .navbar ul a:hover {
   border-color: #fff;
-}
-
-.nav-cta {
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: #fa6400;
-}
-
-.nav-cta-secondary {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .banner {

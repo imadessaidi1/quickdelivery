@@ -38,7 +38,13 @@
 
       <div class="field-wrap">
         <label for="birthDate">{{ $t('userBirthDate') }}</label>
-        <VueDatePicker id="birthDate" v-model="user.birthDate" :flow="flow" :enable-time-picker="false" />
+        <VueDatePicker
+          id="birthDate"
+          v-model="user.birthDate"
+          :flow="flow"
+          :enable-time-picker="false"
+          :max-date="birthDateMaxDate"
+        />
       </div>
 
       <div class="field-wrap">
@@ -104,6 +110,14 @@ export default {
   computed: {
     user() {
       return this.$store.state.user;
+    },
+    birthDateMaxDate() {
+      if (this.user?.type !== 'DELIVERY_PERSON') {
+        return null;
+      }
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() - 18);
+      return maxDate;
     },
   },
   data() {

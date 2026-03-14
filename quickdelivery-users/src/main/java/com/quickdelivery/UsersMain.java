@@ -7,9 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.nio.file.Files;
@@ -43,7 +45,10 @@ public class UsersMain {
     }
     public static void main(String[] args) {
         configureLocalTrustStore();
-        SpringApplication.run(UsersMain.class, args);
+        SpringApplication application = new SpringApplication(UsersMain.class);
+        application.addListeners((ApplicationEnvironmentPreparedEvent event) ->
+                configureMailSystemProperties(event.getEnvironment(), "Users"));
+        application.run(args);
     }
 
     private static void configureLocalTrustStore() {
@@ -145,5 +150,29 @@ public class UsersMain {
             }
         }
         return pkcs12KeyStore;
+    }
+
+    private static void configureMailSystemProperties(Environment environment, String serviceName) {
+        applyMailProperty(environment, "quickdelivery.mail.host");
+        applyMailProperty(environment, "quickdelivery.mail.port");
+        applyMailProperty(environment, "quickdelivery.mail.username");
+        applyMailProperty(environment, "quickdelivery.mail.password");
+        applyMailProperty(environment, "quickdelivery.mail.smtp.auth");
+        applyMailProperty(environment, "quickdelivery.mail.smtp.starttls.enable");
+        applyMailProperty(environment, "quickdelivery.mail.debug");
+
+        System.out.println(
+                serviceName + " mail config: host=" + environment.getProperty("quickdelivery.mail.host", "smtp.gmail.com")
+                        + ", port=" + environment.getProperty("quickdelivery.mail.port", "587")
+                        + ", username=" + environment.getProperty("quickdelivery.mail.username", "")
+                        + ", password=****"
+        );
+    }
+
+    private static void applyMailProperty(Environment environment, String propertyName) {
+        String value = environment.getProperty(propertyName);
+        if (value != null && !value.isBlank()) {
+            System.setProperty(propertyName, value);
+        }
     }
 }

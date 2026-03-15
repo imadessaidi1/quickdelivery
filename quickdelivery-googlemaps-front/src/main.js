@@ -3,6 +3,7 @@ import App from './App.vue';
 import i18n from './config/i18n';
 import store from './config/store';
 import router from './routers';
+import './styles/design-system.css';
 import { handleAuthCallback, initializeMobileAuthCallbackListener } from './config/auth';
 import { ensureMobileBackendHostConfigured } from './config/network';
 import { hydrateConnectedUser } from './config/session';

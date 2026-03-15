@@ -1,0 +1,381 @@
+:root {
+  --qd-bg: #f8efe4;
+  --qd-bg-alt: #fff7f0;
+  --qd-surface: rgba(255, 251, 246, 0.94);
+  --qd-surface-strong: #fffaf4;
+  --qd-surface-info: rgba(237, 245, 255, 0.96);
+  --qd-primary: #1f5fae;
+  --qd-primary-dark: #12355f;
+  --qd-primary-soft: #e8f1ff;
+  --qd-accent: #ef7d32;
+  --qd-accent-dark: #cf6320;
+  --qd-accent-soft: #fff1e3;
+  --qd-success: #2d9b63;
+  --qd-success-soft: #edf8f1;
+  --qd-warning-soft: #fff3d6;
+  --qd-danger-soft: #fdebec;
+  --qd-text: #1b2b40;
+  --qd-muted: #6e7f94;
+  --qd-border: #dfd5c8;
+  --qd-border-strong: #c9d8ea;
+  --qd-shadow: 0 18px 42px rgba(42, 56, 76, 0.12);
+  --qd-shadow-soft: 0 10px 24px rgba(42, 56, 76, 0.08);
+}
+
+html,
+body,
+#app {
+  background:
+    radial-gradient(circle at top left, rgba(31, 95, 174, 0.12), transparent 22%),
+    radial-gradient(circle at top right, rgba(239, 125, 50, 0.16), transparent 18%),
+    linear-gradient(180deg, #fff7f0 0%, #f8efe4 100%);
+  color: var(--qd-text);
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+}
+
+.fullPage {
+  background: transparent;
+}
+
+.create-package-page,
+.dashboard-page,
+.document-page,
+.home-page,
+.login-page,
+.my-packages-page,
+.package-details-page,
+.package-tracking-page,
+.tracking-summary-page,
+.terms-page,
+.user-account-page,
+.user-registration-page,
+.user-validation-page,
+.validation-details-page {
+  background:
+    radial-gradient(circle at top left, rgba(31, 95, 174, 0.08), transparent 24%),
+    linear-gradient(180deg, #fff8f2 0%, #f7efe4 100%) !important;
+}
+
+.page-header,
+.page-head,
+.hero-card,
+.summary-shell,
+.page-shell,
+.document-frame-shell,
+.guest-entry-card,
+.filters-panel,
+.packages-table-shell,
+.group-header,
+.wizard-sidebar,
+.wizard-card,
+.panel-card,
+.package-card,
+.stat-card,
+.map-shell,
+.packages-shell,
+.map-search-toolbar,
+.map-legend,
+.user-profile-layout .panel-card,
+.action-card,
+.todo-list li,
+.upcoming-item,
+.timeline-item > div:last-child,
+.status-group,
+.journey-card,
+.card,
+.user_review,
+.login-page .login-shell,
+.terms-card,
+.document-card {
+  background: var(--qd-surface) !important;
+  border-color: var(--qd-border) !important;
+  box-shadow: var(--qd-shadow-soft) !important;
+}
+
+.page-chip,
+.eyebrow,
+.header-chip,
+.hero-chip,
+.group-count {
+  background: var(--qd-primary-soft) !important;
+  color: var(--qd-primary-dark) !important;
+  border: 1px solid rgba(31, 95, 174, 0.14);
+}
+
+.header-chip,
+.hero-account {
+  background: linear-gradient(135deg, var(--qd-primary-dark), var(--qd-primary)) !important;
+  color: #fff !important;
+}
+
+.hero-account span {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.page-header h1,
+.page-head h1,
+.hero-card h1,
+.panel-head h2,
+.card-header h2,
+.journey-head h2,
+.statistics_head h2,
+.services h1,
+.how-it-works h1,
+.users_feedback h2,
+.join-us h1 {
+  color: var(--qd-primary-dark) !important;
+}
+
+.page-header p,
+.page-head p,
+.hero-card p,
+.panel-head p,
+.card-header p,
+.statistics_head p,
+.services p,
+.how-subtitle,
+.users_feedback > p,
+.join-us p,
+.timeline-item p,
+.upcoming-item span,
+.stat-card span,
+.group-title + .group-count,
+.empty-state,
+.page-state {
+  color: var(--qd-muted) !important;
+}
+
+.page-state {
+  background: var(--qd-primary-soft) !important;
+  border: 1px solid rgba(31, 95, 174, 0.14);
+}
+
+.page-state.error {
+  background: var(--qd-danger-soft) !important;
+}
+
+.btn.primary_btn,
+.primary-action,
+.toolbar-btn.primary,
+.details-btn,
+.table-btn,
+.guest-entry-btn,
+.wizard-action-btn,
+.terms-action-btn,
+.save-btn,
+.back-btn {
+  background: linear-gradient(135deg, var(--qd-accent), var(--qd-accent-dark)) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 12px 24px rgba(239, 125, 50, 0.24) !important;
+}
+
+.toolbar-btn.secondary,
+.view-btn.active,
+.radius-btn.active {
+  background: linear-gradient(135deg, var(--qd-primary), var(--qd-primary-dark)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.view-btn,
+.radius-btn,
+.toolbar-btn.secondary {
+  border-color: rgba(31, 95, 174, 0.14) !important;
+}
+
+.btn.primary_btn:hover,
+.primary-action:hover,
+.toolbar-btn.primary:hover,
+.details-btn:hover,
+.table-btn:hover,
+.guest-entry-btn:hover,
+.wizard-action-btn:hover,
+.terms-action-btn:hover,
+.save-btn:hover,
+.back-btn:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.field-wrap :is(input, select, textarea),
+.search-field,
+.status-select,
+.search-address-input,
+.search-address-input:deep(.address-autocomplete-input),
+.input_only input,
+.field-wrap :deep(.dp__input),
+.field-wrap :deep(.dp__main),
+.phone-field input,
+.package-card input,
+.package-card select {
+  background: #fffdf9 !important;
+  border-color: rgba(31, 95, 174, 0.16) !important;
+}
+
+.field-wrap label,
+.search-field span,
+.address-row small,
+.card-meta small,
+.legend-title,
+.legend-row,
+.group-title,
+.panel-head h2,
+.step-copy strong,
+.step-copy small {
+  color: var(--qd-primary-dark) !important;
+}
+
+.wizard-step {
+  background: rgba(255, 248, 242, 0.82) !important;
+  border-color: rgba(31, 95, 174, 0.1) !important;
+}
+
+.wizard-step .step-index {
+  background: rgba(31, 95, 174, 0.08) !important;
+  color: var(--qd-primary-dark) !important;
+}
+
+.wizard-step.active {
+  background: linear-gradient(180deg, #eef5ff 0%, #f8fbff 100%) !important;
+  border-color: rgba(31, 95, 174, 0.28) !important;
+}
+
+.wizard-step.done {
+  background: linear-gradient(180deg, #edf8f1 0%, #f8fcfa 100%) !important;
+  border-color: rgba(45, 155, 99, 0.22) !important;
+}
+
+.wizard-step.active .step-index,
+.wizard-step.done .step-index {
+  color: #fff !important;
+}
+
+.wizard-step.active .step-index {
+  background: linear-gradient(135deg, var(--qd-primary), var(--qd-primary-dark)) !important;
+}
+
+.wizard-step.done .step-index {
+  background: linear-gradient(135deg, var(--qd-success), #247b4e) !important;
+}
+
+.dashboard-page .stat-card:nth-child(1),
+.my-packages-page .stat-card:nth-child(1) {
+  background: linear-gradient(180deg, #fff9f3 0%, #fffdf9 100%) !important;
+}
+
+.dashboard-page .stat-card:nth-child(2),
+.my-packages-page .stat-card:nth-child(2) {
+  background: linear-gradient(180deg, #fff3e6 0%, #fffaf5 100%) !important;
+}
+
+.dashboard-page .stat-card:nth-child(3),
+.my-packages-page .stat-card:nth-child(3) {
+  background: linear-gradient(180deg, #edf6ff 0%, #fbfdff 100%) !important;
+}
+
+.dashboard-page .stat-card:nth-child(4),
+.my-packages-page .stat-card:nth-child(4) {
+  background: linear-gradient(180deg, #edf8f1 0%, #fbfefc 100%) !important;
+}
+
+.dashboard-page .action-card,
+.my-packages-page .package-card,
+.user-account-page .panel-card,
+.user-validation-page .panel-card,
+.validation-details-page .panel-card,
+.tracking-summary-page .summary-shell,
+.document-page .page-shell,
+.package-details-page .package-form {
+  background: var(--qd-surface-strong) !important;
+}
+
+.status-badge.status-delivered {
+  background: var(--qd-success-soft) !important;
+  color: #236f47 !important;
+}
+
+.status-badge.status-indelivery,
+.status-badge.status-pickedup,
+.status-badge.status-reserved {
+  background: var(--qd-accent-soft) !important;
+  color: var(--qd-accent-dark) !important;
+}
+
+.status-badge.status-new,
+.status-badge.status-paymentpending {
+  background: var(--qd-primary-soft) !important;
+  color: var(--qd-primary-dark) !important;
+}
+
+.map-shell {
+  background: linear-gradient(180deg, #e6f0ff 0%, #fff9f0 100%) !important;
+}
+
+.map-search-toolbar {
+  background: rgba(255, 251, 246, 0.96) !important;
+  border-color: rgba(31, 95, 174, 0.12) !important;
+}
+
+.map-legend {
+  background: rgba(255, 250, 244, 0.92) !important;
+}
+
+.navbar.scrolled {
+  background: linear-gradient(135deg, var(--qd-primary-dark), var(--qd-primary)) !important;
+}
+
+.navbar ul a,
+.logo a {
+  color: #f6efe8 !important;
+}
+
+.navbar ul a:hover,
+.router-link-active {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.hero-btn,
+.landing-page .journey-actions .hero-btn {
+  background: linear-gradient(135deg, var(--qd-accent), var(--qd-accent-dark)) !important;
+  box-shadow: 0 12px 24px rgba(239, 125, 50, 0.2);
+}
+
+.hero-btn.secondary,
+.hero-btn.tertiary {
+  background: rgba(15, 45, 79, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.search-bar {
+  background: linear-gradient(180deg, #fff9f3 0%, #fdf3e9 100%) !important;
+  border-bottom-color: rgba(31, 95, 174, 0.12) !important;
+}
+
+.horizontal-menu,
+.login-menu {
+  background: var(--qd-surface-strong) !important;
+  border-color: rgba(31, 95, 174, 0.12) !important;
+}
+
+.account-link,
+.account-name,
+.menu a,
+.menu li {
+  color: var(--qd-primary-dark) !important;
+}
+
+.package-details-page .page-head,
+.document-page .page-shell,
+.tracking-summary-page .summary-shell,
+.user-account-page .page-header,
+.user-validation-page .page-header,
+.validation-details-page .page-head {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}

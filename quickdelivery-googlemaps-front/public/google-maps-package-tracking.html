@@ -32,7 +32,7 @@
 	   let carIcon;
 	   let arrivalIcon;
 	   let routeInfo;
-	   const gatewayBaseUrl = 'http://localhost:8087';
+	   const gatewayBaseUrl = url.searchParams.get("gatewayBaseUrl") || 'http://localhost:8087';
 	   function initMap() {
           window.top.postMessage('StartLoading', '*');
           directionsRenderer = new google.maps.DirectionsRenderer({
@@ -88,20 +88,27 @@
 						}
 						map.setCenter(initialLocation);
 						resolve();
+					} else if (xhr.status === 404) {
+						window.top.postMessage('PackageNotFound', '*');
+						reject(new Error('PackageNotFound'));
 					} else {
 						console.error("Erreur de l'API :", xhr.statusText);
+						window.top.postMessage('TrackingError', '*');
+						reject(new Error(xhr.statusText || 'TrackingError'));
 					}
 				};
 				xhr.onerror = function() {
 					console.error("Erreur de réseau lors de la requête vers l'API.");
-					reject();
+					window.top.postMessage('TrackingError', '*');
+					reject(new Error('TrackingError'));
 				};
 				xhr.send();
 				window.top.postMessage('EndLoading', '*');
 				}
 			} catch (error) {
 				console.error(error);
-				reject();
+				window.top.postMessage('TrackingError', '*');
+				reject(error);
 			}
 		});
 		Promise.all([packagePromise]).then(() => {
@@ -109,7 +116,7 @@
 			addMarker(departureAddress, carIcon, map);
 			addMarker(arrivalAddress, arrivalIcon, map);
 			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
-		});
+		}).catch(() => {});
 		
       }
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
@@ -141,7 +148,7 @@
         if (typeof e.data === 'string' && e.data.includes('PackageReference:')) {
 			packageRef = e.data.split(':')[1];
 			initMap();
-        }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;')){
+        }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;') && map && arrivalAddress){
             removeAllMarkers();
             newPosition = JSON.parse(e.data.split(';')[1]);
             departureAddress = {lat: Number(newPosition.latitude), lng: Number(newPosition.longitude)};
@@ -154,12 +161,12 @@
 		  if(position != undefined){
 					var marker = new google.maps.Marker({
 					  position: position,
-					  title: arrivalAddress.packageID+"",
+					  title: arrivalAddress?.packageID+"",
 					  icon: icon,
 					  map:map,
 					  zIndex: Math.round(position.lat*-100000)<<5
 				  });
-				  marker.myname = arrivalAddress.packageID;
+				  marker.myname = arrivalAddress?.packageID;
 				  markers.push(marker);
 				  /*google.maps.event.addListener(marker, 'click', function() {
 					infowindow.setContent(markerInfo);

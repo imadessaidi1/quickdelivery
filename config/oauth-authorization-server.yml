@@ -1,0 +1,43 @@
+server:
+  port: ${OAUTH_SERVER_PORT:18443}
+  ssl:
+    enabled: true
+    key-store: ${OAUTH_SSL_KEY_STORE:file:./certs/quickdelivery-dev.p12}
+    key-store-password: ${OAUTH_SSL_KEY_STORE_PASSWORD:QuickDelivery123@}
+    key-store-type: PKCS12
+    key-alias: ${OAUTH_SSL_KEY_ALIAS:quickdelivery-dev}
+
+spring:
+  application:
+    name: oauth-authorization-server
+  jpa:
+    defer-datasource-initialization: true
+  datasource:
+    url: ${OAUTH_DB_URL:jdbc:mysql://localhost:3306/KeycloakDB}
+    username: ${OAUTH_DB_USERNAME:KeycloakUser}
+    password: ${OAUTH_DB_PASSWORD:Keycloak123@}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+keycloak:
+  connectionsJpa:
+    url: ${OAUTH_DB_URL:jdbc:mysql://localhost:3306/KeycloakDB}
+    driver: com.mysql.cj.jdbc.Driver
+    driverDialect: org.hibernate.dialect.MySQLDialect
+    user: ${OAUTH_DB_USERNAME:KeycloakUser}
+    password: ${OAUTH_DB_PASSWORD:Keycloak123@}
+
+  server:
+    contextPath: /auth
+    adminUser:
+      username: ${KEYCLOAK_ADMIN_USERNAME:bael-admin}
+      password: ${KEYCLOAK_ADMIN_PASSWORD:pass}
+    realmImportFile: quickdelivery-realm.json
+  frontendUrl: ${KEYCLOAK_FRONTEND_URL:}
+  adminUrl: ${KEYCLOAK_ADMIN_URL:}
+  hostname:
+    default:
+      forceBackendUrlToFrontendUrl: ${KEYCLOAK_FORCE_BACKEND_TO_FRONTEND_URL:true}
+
+quickdelivery:
+  frontend:
+    base-urls: ${QUICKDELIVERY_FRONTEND_BASE_URLS:}

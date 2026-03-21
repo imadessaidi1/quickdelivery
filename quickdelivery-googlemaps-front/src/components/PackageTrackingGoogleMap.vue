@@ -44,6 +44,7 @@
 <script>
 import PackageSummary from '../components/VerticalPackageDetails.vue';
 import http from '@/config/httpInterceptor';
+import { getGatewayBaseUrl } from '@/config/network';
 
 export default {
   components: {
@@ -51,7 +52,7 @@ export default {
   },
   data() {
     return {
-      googleMapPath: process.env.BASE_URL + 'google-maps-package-tracking.html',
+      googleMapPath: `${process.env.BASE_URL}google-maps-package-tracking.html?gatewayBaseUrl=${encodeURIComponent(getGatewayBaseUrl())}`,
     };
   },
   props: {
@@ -84,6 +85,9 @@ export default {
       deep: true,
       handler(newVal) {
         const newPosition = newVal[this.$parent.packageReference];
+        if (!newPosition || !this.$refs.map?.contentWindow) {
+          return;
+        }
         this.$refs.map.contentWindow.postMessage('PackageNewPosition;' + JSON.stringify(newPosition), '*');
       },
     },

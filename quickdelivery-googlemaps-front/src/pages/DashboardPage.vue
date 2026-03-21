@@ -81,6 +81,19 @@
           <div v-else class="empty-state">{{ $t('dashboardNoData') }}</div>
         </article>
       </section>
+
+      <section class="chart-grid">
+        <DashboardTrendChart
+          v-for="chart in chartCards"
+          :key="chart.key"
+          :title="chart.title"
+          :subtitle="chart.subtitle"
+          :points="chart.points"
+          :tone="chart.tone"
+          :formatter="chart.formatter"
+          :empty-label="$t('dashboardChartEmpty')"
+        />
+      </section>
     </template>
   </div>
 </template>
@@ -88,10 +101,19 @@
 <script>
 import http from '@/config/httpInterceptor';
 import { getCurrentUserRoles } from '@/config/auth';
+import DashboardTrendChart from '../components/DashboardTrendChart.vue';
 
 const PACKAGE_ACTIVITY_ORDER = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
+const CHART_STATUSES = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
+const MONTH_COUNT = 12;
+const MONTH_GRAPH_START_X = 32;
+const MONTH_GRAPH_STEP_X = 25;
+const MONTH_GRAPH_HEIGHT = 180;
 
 export default {
+  components: {
+    DashboardTrendChart,
+  },
   props: {
     dashboardType: {
       type: String,
@@ -104,6 +126,7 @@ export default {
       loadError: false,
       packagesByStatus: {},
       pendingUsers: [],
+      currentYear: new Date().getFullYear(),
     };
   },
   computed: {
@@ -149,6 +172,15 @@ export default {
     flattenedPackages() {
       return Object.values(this.packagesByStatus || {}).flatMap((group) => group || []);
     },
+    currentLocale() {
+      const locale = this.$i18n?.locale;
+      return typeof locale === 'string' ? locale : locale?.value || 'fr';
+    },
+    chartMonthLabels() {
+      return Array.from({ length: MONTH_COUNT }, (_, monthIndex) => new Intl.DateTimeFormat(this.currentLocale, {
+        month: 'short',
+      }).format(new Date(this.currentYear, monthIndex, 1)));
+    },
     packageCounts() {
       return this.flattenedPackages.reduce((acc, pkg) => {
         const status = pkg.status || 'UNKNOWN';
@@ -161,6 +193,61 @@ export default {
         const documents = user.document || {};
         return count + ['GRAY_CARD', 'INSURANCE'].filter((key) => !!documents[key]).length;
       }, 0);
+    },
+    courierEarningsChart() {
+      return this.createChartConfig({
+        key: 'courier-earnings',
+        title: this.$t('dashboardCourierChartTitle'),
+        subtitle: this.$t('dashboardCourierChartSubtitle', { year: this.currentYear }),
+        tone: '#ef7d32',
+        formatter: this.formatCurrency,
+        values: this.flattenedPackages
+          .filter((pkg) => pkg.status === 'DELIVERED')
+          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, Number(pkg.deliveryPrice || 0)), this.createMonthlyAccumulator()),
+      });
+    },
+    clientShipmentsChart() {
+      return this.createChartConfig({
+        key: 'client-shipments',
+        title: this.$t('dashboardClientChartTitle'),
+        subtitle: this.$t('dashboardClientChartSubtitle', { year: this.currentYear }),
+        tone: '#1f5fae',
+        formatter: this.formatInteger,
+        values: this.flattenedPackages
+          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, 1), this.createMonthlyAccumulator()),
+      });
+    },
+    adminEarningsChart() {
+      return this.createChartConfig({
+        key: 'admin-earnings',
+        title: this.$t('dashboardAdminEarningsChartTitle'),
+        subtitle: this.$t('dashboardAdminEarningsChartSubtitle', { year: this.currentYear }),
+        tone: '#ef7d32',
+        formatter: this.formatCurrency,
+        values: this.flattenedPackages
+          .filter((pkg) => pkg.status === 'DELIVERED')
+          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, Number(pkg.deliveryPrice || 0)), this.createMonthlyAccumulator()),
+      });
+    },
+    adminShipmentsChart() {
+      return this.createChartConfig({
+        key: 'admin-shipments',
+        title: this.$t('dashboardAdminShipmentsChartTitle'),
+        subtitle: this.$t('dashboardAdminShipmentsChartSubtitle', { year: this.currentYear }),
+        tone: '#1f5fae',
+        formatter: this.formatInteger,
+        values: this.flattenedPackages
+          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, 1), this.createMonthlyAccumulator()),
+      });
+    },
+    chartCards() {
+      if (this.dashboardType === 'admin') {
+        return [this.adminEarningsChart, this.adminShipmentsChart];
+      }
+      if (this.dashboardType === 'courier') {
+        return [this.courierEarningsChart];
+      }
+      return [this.clientShipmentsChart];
     },
     statsCards() {
       if (this.dashboardType === 'admin') {
@@ -289,9 +376,15 @@ export default {
       this.loadError = false;
       try {
         if (this.dashboardType === 'admin') {
-          const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}`);
-          this.pendingUsers = Array.isArray(response.data) ? response.data : [];
-          this.packagesByStatus = {};
+          const [usersResponse, packageResponses] = await Promise.all([
+            http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}`),
+            Promise.all(CHART_STATUSES.map((status) => http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesByStatusUrl')}${status}`))),
+          ]);
+          this.pendingUsers = Array.isArray(usersResponse.data) ? usersResponse.data : [];
+          this.packagesByStatus = CHART_STATUSES.reduce((acc, status, index) => {
+            acc[status] = Array.isArray(packageResponses[index].data) ? packageResponses[index].data : [];
+            return acc;
+          }, {});
           return;
         }
 
@@ -317,6 +410,56 @@ export default {
       const departure = this.formatAddress(this.getAddressByType(pkg, 'DEPARTURE'));
       const arrival = this.formatAddress(this.getAddressByType(pkg, 'ARRIVAL'));
       return `${departure} -> ${arrival}`;
+    },
+    createMonthlyAccumulator() {
+      return Array.from({ length: MONTH_COUNT }, () => 0);
+    },
+    getMonthDate(value) {
+      if (!value) {
+        return null;
+      }
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    },
+    accumulateByMonth(months, rawDate, value) {
+      const date = this.getMonthDate(rawDate);
+      if (!date || date.getFullYear() !== this.currentYear) {
+        return months;
+      }
+      months[date.getMonth()] += value;
+      return months;
+    },
+    createChartConfig({ key, title, subtitle, tone, formatter, values }) {
+      const maxValue = Math.max(...values, 0);
+      const points = values.map((value, index) => {
+        const ratio = maxValue > 0 ? value / maxValue : 0;
+        return {
+          label: this.chartMonthLabels[index],
+          value,
+          x: MONTH_GRAPH_START_X + (index * MONTH_GRAPH_STEP_X),
+          y: MONTH_GRAPH_HEIGHT - (ratio * (MONTH_GRAPH_HEIGHT - 28)),
+        };
+      });
+      return {
+        key,
+        title,
+        subtitle,
+        tone,
+        formatter,
+        points,
+      };
+    },
+    formatCurrency(value) {
+      return new Intl.NumberFormat(this.currentLocale, {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0,
+      }).format(Number(value || 0));
+    },
+    formatInteger(value) {
+      return new Intl.NumberFormat(this.currentLocale, {
+        maximumFractionDigits: 0,
+      }).format(Number(value || 0));
     },
     timelineLabelByStatus(status) {
       if (status === 'RESERVED') {
@@ -410,6 +553,7 @@ export default {
 }
 
 .stats-grid,
+.chart-grid,
 .dashboard-grid {
   display: grid;
   gap: 18px;
@@ -418,6 +562,16 @@ export default {
 .stats-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 18px;
+}
+
+.chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+  margin-bottom: 28px;
+}
+
+.chart-grid + .dashboard-grid {
+  margin-top: 6px;
 }
 
 .dashboard-grid {
@@ -554,6 +708,7 @@ export default {
 
 @media screen and (max-width: 1100px) {
   .stats-grid,
+  .chart-grid,
   .dashboard-grid,
   .action-grid {
     grid-template-columns: 1fr 1fr;
@@ -575,6 +730,7 @@ export default {
   }
 
   .stats-grid,
+  .chart-grid,
   .dashboard-grid,
   .action-grid {
     grid-template-columns: 1fr;

@@ -48,6 +48,7 @@ build/
 ### OS / Temp ###
 Thumbs.db
 Desktop.ini
+.DS_Store
 ~$*
 *.swp
 *.swo
@@ -60,3 +61,9 @@ dist/
 **/.cache/
 coverage/
 **/coverage/
+
+### Deploy artifacts / secrets ###
+artifacts/*.jar
+deploy/docker/.env.production
+deploy/docker/.env
+deploy/docker/.env.local

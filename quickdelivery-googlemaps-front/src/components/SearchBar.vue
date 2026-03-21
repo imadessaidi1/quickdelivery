@@ -126,6 +126,8 @@ export default {
 .search-bar {
   display: flex;
   min-height: 62px;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
@@ -134,6 +136,7 @@ export default {
   border-bottom: 1px solid #e7ebf2;
   position: relative;
   z-index: 6;
+  gap: 12px;
 }
 .material-symbols-outlined{
   cursor: pointer;
@@ -147,6 +150,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .infobull {
   position: relative;
@@ -192,6 +196,7 @@ export default {
 .account-trigger {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
 }
 .account-link {
   display: inline-flex;
@@ -199,11 +204,16 @@ export default {
   gap: 8px;
   color: inherit;
   text-decoration: none;
+  max-width: 100%;
+  min-width: 0;
 }
 .account-name {
   font-size: 14px;
   font-weight: 600;
   color: #0f172a;
+  max-width: min(32vw, 220px);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .horizontal-menu,
@@ -213,6 +223,7 @@ export default {
   border: 1px solid #dde3ec;
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  max-width: calc(100vw - 20px);
 }
 .horizontal-menu {
   top: 100%;
@@ -228,6 +239,7 @@ export default {
   display: inline-block;
   justify-content: space-around;
   list-style: none;
+  max-width: 100%;
 }
 
 .menu a {
@@ -260,6 +272,10 @@ export default {
   .search-bar {
     padding: 0 10px;
     gap: 6px;
+  }
+  .horizontal-menu,
+  .login-menu {
+    width: min(280px, calc(100vw - 20px));
   }
   .burger_menu{
     display: block;

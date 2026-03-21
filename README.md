@@ -718,3 +718,448 @@ Attention aux memes contraintes reseau :
   - verifier les URLs `localhost`
   - sur emulateur Android, tester avec `10.0.2.2`
   - sur device physique, utiliser l'IP locale de la machine de developpement
+
+## 12. Deploiement AWS MVP Pas Cher
+
+### 12.1 Option MVP Retenue
+
+Pour la procedure reellement validee, l'option retenue est:
+
+- front statique servi par `Nginx` sur la VM `Lightsail`
+- backend complet sur la meme VM `Lightsail`
+- DNS sur `Route 53` ou chez ton registrar actuel
+- TLS public via `Nginx` hote + `Let's Encrypt`
+- email transactionnel via `Amazon SES` plus tard, des que tu veux sortir de Gmail
+
+Le backend est deja valide publiquement sur:
+
+- `https://api.quickdelivery.fr`
+- `https://auth.quickdelivery.fr/auth`
+
+Le front est egalement valide publiquement sur:
+
+- `https://app.quickdelivery.fr`
+
+Cette option evite de payer tout de suite:
+
+- `RDS`
+- `ECS Fargate`
+- `ALB`
+- `S3` de documents
+- observabilite AWS plus poussee
+
+### 12.2 Ressources AWS A Creer
+
+#### 1. Une instance Amazon Lightsail Linux
+
+Usage:
+
+- `quickdemivery-config-server`
+- `quickdelivery-registy-server`
+- `oauth-authorization-server`
+- `quickdelivery-users`
+- `quickdelivery-packages`
+- `quickdelivery-api-gateway`
+- `MySQL`
+- `Nginx`
+
+Taille conseillee pour commencer:
+
+- `2 GB RAM / 2 vCPU / 60 GB SSD`
+
+Pourquoi:
+
+- la stack actuelle lance plusieurs services Java
+- `Keycloak` et `MySQL` sur la meme machine rendent le bundle `1 GB` trop serre pour demarrer proprement
+
+Estimation:
+
+- environ `12 USD / mois`
+
+Option plus agressive mais risquee:
+
+- `1 GB RAM / 1 vCPU / 40 GB SSD`
+- environ `7 USD / mois`
+
+Cette option n'est pas recommandee pour cette stack en prod, meme MVP.
+
+#### 2. Un bucket Amazon S3 pour le front
+
+Usage:
+
+- heberger le build statique de `quickdelivery-googlemaps-front`
+
+Contenu:
+
+- `dist/`
+- assets JS/CSS/images
+
+Estimation:
+
+- quelques centimes par mois pour un petit MVP
+- ordre de grandeur: `0.03 USD` a `0.20 USD / mois`
+
+#### 3. Une distribution CloudFront
+
+Usage:
+
+- exposer le front sur un vrai domaine
+- servir le contenu du bucket S3
+- terminer le TLS public du front
+
+Exemple:
+
+- `https://app.quickdelivery.tld`
+
+Estimation MVP:
+
+- souvent `0 USD / mois` tant que le trafic reste tres faible et dans le free tier
+- sinon faible cout variable selon la bande passante
+
+#### 4. Un certificat ACM
+
+Usage:
+
+- TLS public pour `CloudFront`
+
+Exemple:
+
+- `app.quickdelivery.tld`
+
+Estimation:
+
+- `0 USD / mois`
+
+#### 5. Une hosted zone Route 53
+
+Usage:
+
+- gerer les entrees DNS
+
+Exemples:
+
+- `app.quickdelivery.tld`
+- `api.quickdelivery.tld`
+- `auth.quickdelivery.tld`
+
+Estimation:
+
+- `0.50 USD / mois` par hosted zone
+
+#### 6. Un nom de domaine
+
+Usage:
+
+- fournir des URLs stables a l'application
+- eliminer tous les problemes d'IP locale dans:
+  - OAuth
+  - emails
+  - QR codes
+  - app mobile
+
+Estimation:
+
+- souvent `10` a `20 USD / an`
+- soit environ `1 USD / mois` en ordre de grandeur
+
+#### 7. Amazon SES plus tard
+
+Usage:
+
+- remplacement de Gmail pour les mails transactionnels
+
+Estimation de base:
+
+- `0.10 USD / 1000 emails`
+
+Exemple:
+
+- `2000 emails / mois` ~= `0.20 USD / mois`
+
+Pour le MVP, tu peux garder Gmail temporairement si tu veux sortir plus vite.
+
+### 12.3 Estimation Mensuelle MVP
+
+Estimation realiste recommandee:
+
+- Lightsail `2 GB`: `12.00 USD`
+- Route 53: `0.50 USD`
+- domaine amorti: `~1.00 USD`
+- SES: `0.00` a `0.50 USD`
+
+Total cible:
+
+- sans SES: `~13.50 USD / mois`
+- avec un peu d'email: `~14.00 USD / mois`
+
+Version ultra-minimale mais plus fragile:
+
+- Lightsail `1 GB`: `~8.50` a `10.00 USD / mois` total selon domaine et trafic
+
+Alternative plus tard, non retenue pour la procedure actuelle:
+
+- `S3 + CloudFront` pour le front
+
+### 12.4 Architecture Cible Validee
+
+#### Front sur la VM Lightsail
+
+- build Vue genere localement
+- copie du dossier `dist/` sur la VM
+- service statique par `Nginx` hote sur `https://app.quickdelivery.tld`
+
+#### Backend sur la VM Lightsail
+
+- `Nginx`
+- `MySQL`
+- `quickdemivery-config-server`
+- `quickdelivery-registy-server`
+- `oauth-authorization-server`
+- `quickdelivery-users`
+- `quickdelivery-packages`
+- `quickdelivery-api-gateway`
+
+URLs publiques:
+
+- `https://app.quickdelivery.tld` -> `Nginx` sur Lightsail puis build statique front
+- `https://api.quickdelivery.tld` -> `Nginx` sur Lightsail puis `quickdelivery-api-gateway`
+- `https://auth.quickdelivery.tld` -> `Nginx` sur Lightsail puis `oauth-authorization-server`
+
+### 12.5 Ce Qu'il Faut Garder Hors AWS Au Debut
+
+Pour tenir le budget MVP, ne pas introduire tout de suite:
+
+- `Amazon RDS`
+- `Amazon ECS Fargate`
+- `Application Load Balancer`
+- `S3` pour les documents des livreurs
+- `CloudWatch` avance / tracing
+- environnement `staging` separe
+
+### 12.6 Ordre De Mise En Place
+
+1. Acheter le domaine.
+2. Creer l'instance `Lightsail`.
+3. Installer `Docker`, `Docker Compose`, `Nginx` et `MySQL` sur la VM.
+4. Dockeriser les services Java si ce n'est pas deja fait.
+5. Deployer:
+   - gateway
+   - users
+   - packages
+   - config-server
+   - registry
+   - auth server
+6. Configurer les DNS `app`, `api` et `auth` dans `Route 53`.
+7. Copier le build front sur la VM.
+8. Emmettre les certificats `Let's Encrypt` sur la VM.
+9. Remplacer partout les URLs locales backend par:
+   - `api.quickdelivery.tld`
+   - `auth.quickdelivery.tld`
+- `app.quickdelivery.tld`
+10. Mettre a jour les redirect URIs Keycloak avec les domaines publics.
+11. Tester:
+   - front
+   - login
+   - creation de compte
+   - validation email
+   - creation colis
+   - dashboard
+   - QR code
+
+### 12.7 Variables A Stabiliser En Production
+
+Les variables et proprietes suivantes devront pointer vers les domaines publics:
+
+- `VUE_APP_GATEWAY_BASE_URL`
+- `VUE_APP_AUTH_BASE_URL`
+- `VUE_APP_WS_BASE_URL`
+- `QUICKDELIVERY_FRONTEND_BASE_URL`
+- `QUICKDELIVERY_GATEWAY_BASE_URL`
+- `QUICKDELIVERY_FRONTEND_BASE_URLS`
+- `QUICKDELIVERY_AUTH_ISSUER_URIS`
+
+Les liens emails, QR codes et redirections OAuth ne doivent plus jamais utiliser:
+
+- `localhost`
+- une IP LAN dynamique
+
+### 12.8 Limites Acceptees Pour Ce MVP
+
+Cette option est economique, mais il faut assumer:
+
+- un seul point de panne sur la VM Lightsail
+- MySQL sur la meme machine que les services
+- pas de haute dispo
+- sauvegardes et supervision encore simples
+
+Quand le produit commencera a tourner vraiment, la migration naturelle sera:
+
+- `RDS` pour MySQL
+- `SES` pour les mails
+- `S3` pour les documents et etiquettes
+- `ECS Fargate` pour les services
+
+### 12.9 Base Docker Pour Lightsail
+
+Une base Docker backend pour cette option MVP est disponible ici:
+
+- [deploy/docker/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/README.md)
+- [deploy/docker/docker-compose.lightsail.yml](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/docker-compose.lightsail.yml)
+- [deploy/docker/docker-compose.production.yml](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/docker-compose.production.yml)
+- [deploy/docker/.env.production.template](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/.env.production.template)
+- [deploy/docker/.env.production.sample](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/.env.production.sample)
+- [deploy/docker/prepare-artifacts.ps1](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/prepare-artifacts.ps1)
+- [artifacts/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/artifacts/README.md)
+
+Elle couvre:
+
+- `MySQL`
+- `config-server`
+- `discovery-server`
+- `oauth-authorization-server`
+- `quickdelivery-users`
+- `quickdelivery-packages`
+- `quickdelivery-api-gateway`
+
+Le front reste hors de cette stack backend.
+
+### 12.10 Exposition Publique Nginx
+
+La base `Nginx` pour publier le front, la gateway et l'auth server sur la VM Lightsail est disponible ici:
+
+- [deploy/nginx/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/nginx/README.md)
+- [deploy/nginx/quickdelivery.conf.template](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/nginx/quickdelivery.conf.template)
+
+Cette couche couvre:
+
+- front statique `app.quickdelivery.tld`
+- reverse proxy `api.quickdelivery.tld` -> gateway
+- reverse proxy `auth.quickdelivery.tld` -> auth server
+- `Let's Encrypt`
+- redirection `HTTP -> HTTPS`
+- support `WebSocket` sur `/ws/`
+
+### 12.11 Runbook Lightsail
+
+Le runbook VM et DNS pour cette option MVP est disponible ici:
+
+- [deploy/lightsail/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/README.md)
+- [deploy/lightsail/install-ubuntu.sh](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/install-ubuntu.sh)
+- [deploy/lightsail/ROUTE53.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/ROUTE53.md)
+
+Cette partie couvre:
+
+- installation des prerequis Ubuntu sur Lightsail
+- IP statique
+- ports a ouvrir
+- ordre de demarrage Docker
+- plan DNS `Route 53`
+
+### 12.12 Backend AWS Reel Valide
+
+Le backend AWS reel valide au cours du deploiement est:
+
+- `jar` construits localement
+- copie minimale vers la VM:
+  - `artifacts/`
+  - `config/`
+  - `deploy/`
+- services Java + MySQL en Docker
+- `Nginx` sur l'hote Ubuntu
+- DNS publics:
+  - `api.quickdelivery.fr`
+  - `auth.quickdelivery.fr`
+- certificats `Let's Encrypt` sur la VM
+
+Les points importants constates pendant le deploiement:
+
+- une VM `2 GB` sans swap est trop juste pour cette stack
+- il faut ajouter du swap avant stabilisation
+- `oauth-authorization-server` doit avoir `SPRING_APPLICATION_NAME=oauth-authorization-server`
+- `quickdelivery-users`, `quickdelivery-packages`, `quickdelivery-registy-server` et `quickdelivery-api-gateway` doivent aussi avoir leur `SPRING_APPLICATION_NAME` explicite dans la stack Docker
+- `config-server` doit etre accessible sur `127.0.0.1:8889`
+- `api-gateway` doit etre accessible sur `127.0.0.1:8443`
+- `oauth-authorization-server` doit etre accessible sur `127.0.0.1:18443`
+- `Nginx` en conteneur n'a pas ete retenu pour cette variante
+
+Sequence backend effectivement validee:
+
+1. generer les `jar` localement avec `prepare-artifacts.ps1`
+2. copier `artifacts/`, `config/` et `deploy/` sur la VM
+3. installer Docker, Compose, Nginx et Certbot sur Ubuntu
+4. ajouter du swap sur la VM
+5. renseigner `deploy/docker/.env.production`
+6. lancer [docker-compose.production.yml](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/docker-compose.production.yml)
+7. verifier localement:
+   - `http://127.0.0.1:8889/actuator/health`
+   - `http://127.0.0.1:8443/actuator/health`
+   - `http://127.0.0.1:18443/auth`
+8. publier `api` et `auth` avec `Nginx` hote
+9. emettre `Let's Encrypt`
+10. verifier publiquement:
+   - `https://app.quickdelivery.fr`
+   - `https://api.quickdelivery.fr/actuator/health`
+   - `https://auth.quickdelivery.fr/auth`
+
+### 12.13 Front AWS Reel Valide
+
+Le front AWS reel valide au cours du deploiement est:
+
+- build local avec [quickdelivery-googlemaps-front/.env.production](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/quickdelivery-googlemaps-front/.env.production)
+- copie du dossier `quickdelivery-googlemaps-front/dist/` sur la VM
+- service statique par `Nginx` hote dans `/var/www/quickdelivery-front`
+- certificat `Let's Encrypt` sur `app.quickdelivery.fr`
+
+Sequence front effectivement validee:
+
+1. definir:
+   - `VUE_APP_GATEWAY_BASE_URL=https://api.quickdelivery.fr`
+   - `VUE_APP_AUTH_BASE_URL=https://auth.quickdelivery.fr/auth`
+   - `VUE_APP_WS_BASE_URL=wss://api.quickdelivery.fr/ws`
+2. lancer `npm run build`
+3. copier `dist/` sur la VM
+4. copier la conf `Nginx`
+5. installer d'abord une conf HTTP de bootstrap
+6. emettre le certificat `app.quickdelivery.fr`
+7. activer la conf finale TLS/front statique
+8. verifier publiquement `https://app.quickdelivery.fr`
+
+### 12.14 Automatisation Du Redeploiement
+
+Une base d'automatisation du redeploiement est disponible dans:
+
+- [deploy/release/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/release/README.md)
+- [deploy/release/package-and-upload.ps1](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/release/package-and-upload.ps1)
+- [deploy/release/update-deploy.ps1](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/release/update-deploy.ps1)
+- [deploy/release/release-on-vm.sh](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/release/release-on-vm.sh)
+- [deploy/release/verify-release.sh](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/release/verify-release.sh)
+
+Le flux vise a reduire le redeploiement a:
+
+1. build + upload depuis le PC
+2. release sur la VM
+3. verification locale/public vhost
+
+### 12.15 Mise A Jour De Deploiement Apres Evolution Des Artefacts
+
+Le cas de mise a jour est maintenant documente et automatise.
+
+Commandes cibles:
+
+- mise a jour complete:
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode full`
+- mise a jour backend seulement:
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode backend`
+- mise a jour backend par module:
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode module -Modules users`
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode module -Modules packages`
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode module -Modules api-gateway`
+- mise a jour front seulement:
+  - `powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy.ps1 -Mode frontend`
+
+Usage recommande:
+
+- `backend` apres evolution des `jar`, de `config/` ou de `docker-compose.production.yml`
+- `module` apres evolution isolee d'un service backend
+- `frontend` apres evolution du code Vue uniquement
+- `full` apres evolution mixte front + back ou apres doute sur l'etat de la VM

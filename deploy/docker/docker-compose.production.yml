@@ -1,0 +1,240 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: quickdelivery-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      QUICKDELIVERY_DB_USERNAME: ${QUICKDELIVERY_DB_USERNAME}
+      QUICKDELIVERY_DB_PASSWORD: ${QUICKDELIVERY_DB_PASSWORD}
+      KEYCLOAK_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  config-server:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-config-server.jar
+    container_name: quickdelivery-config-server
+    environment:
+      SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS: file:/workspace/config
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+    volumes:
+      - ../../config:/workspace/config:ro
+    ports:
+      - "127.0.0.1:8889:8889"
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  discovery-server:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-registry-server.jar
+    container_name: quickdelivery-discovery-server
+    environment:
+      SPRING_APPLICATION_NAME: DISCOVERY-SERVER
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/
+    depends_on:
+      - config-server
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  oauth-authorization-server:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/oauth-authorization-server.jar
+    container_name: quickdelivery-oauth-server
+    environment:
+      SPRING_APPLICATION_NAME: oauth-authorization-server
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      SERVER_SSL_ENABLED: "false"
+      OAUTH_DB_URL: jdbc:mysql://mysql:3306/KeycloakDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      OAUTH_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
+      OAUTH_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_FRONTEND_URL: https://${AUTH_DOMAIN}/auth
+      KEYCLOAK_ADMIN_URL: https://${AUTH_DOMAIN}/auth
+      KEYCLOAK_FORCE_BACKEND_TO_FRONTEND_URL: "true"
+      QUICKDELIVERY_FRONTEND_BASE_URLS: https://${APP_DOMAIN}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    ports:
+      - "127.0.0.1:18443:18443"
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  users-service:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-users.jar
+    container_name: quickdelivery-users-service
+    environment:
+      SPRING_APPLICATION_NAME: Users_Service
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      SERVER_PORT: 8081
+      USERS_DB_URL: jdbc:mysql://mysql:3306/QuickDeliveryDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      USERS_DB_USERNAME: ${QUICKDELIVERY_DB_USERNAME}
+      USERS_DB_PASSWORD: ${QUICKDELIVERY_DB_PASSWORD}
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8080/eureka/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/
+      QUICKDELIVERY_FRONTEND_BASE_URL: https://${APP_DOMAIN}
+      QUICKDELIVERY_GATEWAY_BASE_URL: https://${API_DOMAIN}
+      QUICKDELIVERY_AUTH_BASE_URL: https://${AUTH_DOMAIN}/auth
+      USERS_EMAIL_VALIDATION_LINK: https://${API_DOMAIN}/users/v1/validateEmail
+      USER_DOCS_DIRECTORY: /data/users-docs/
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+      QUICKDELIVERY_GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      QUICKDELIVERY_MAIL_HOST: ${MAIL_HOST}
+      QUICKDELIVERY_MAIL_PORT: ${MAIL_PORT}
+      QUICKDELIVERY_MAIL_USERNAME: ${MAIL_USERNAME}
+      QUICKDELIVERY_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      QUICKDELIVERY_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
+      QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE}
+      QUICKDELIVERY_MAIL_DEBUG: ${MAIL_DEBUG}
+      GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY}
+      MAPQUEST_KEY: ${MAPQUEST_KEY}
+    volumes:
+      - users-docs:/data/users-docs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      oauth-authorization-server:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  packages-service:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-packages.jar
+    container_name: quickdelivery-packages-service
+    environment:
+      SPRING_APPLICATION_NAME: Package_Service
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      SERVER_PORT: 8082
+      PACKAGES_DB_URL: jdbc:mysql://mysql:3306/QuickDeliveryDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      PACKAGES_DB_USERNAME: ${QUICKDELIVERY_DB_USERNAME}
+      PACKAGES_DB_PASSWORD: ${QUICKDELIVERY_DB_PASSWORD}
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8080/eureka/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/
+      QUICKDELIVERY_FRONTEND_BASE_URL: https://${APP_DOMAIN}
+      PACKAGES_DOCS_DIRECTORY: /data/packages-docs/
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+      QUICKDELIVERY_GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+      QUICKDELIVERY_MAIL_HOST: ${MAIL_HOST}
+      QUICKDELIVERY_MAIL_PORT: ${MAIL_PORT}
+      QUICKDELIVERY_MAIL_USERNAME: ${MAIL_USERNAME}
+      QUICKDELIVERY_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      QUICKDELIVERY_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
+      QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE}
+      QUICKDELIVERY_MAIL_DEBUG: ${MAIL_DEBUG}
+      GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY}
+      MAPQUEST_KEY: ${MAPQUEST_KEY}
+    volumes:
+      - packages-docs:/data/packages-docs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-api-gateway.jar
+    container_name: quickdelivery-api-gateway
+    environment:
+      SPRING_APPLICATION_NAME: APIGatewayApplication
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      SERVER_PORT: 8443
+      SERVER_SSL_ENABLED: "false"
+      USERS_SERVICE_URI: http://users-service:8081
+      PACKAGES_SERVICE_URI: http://packages-service:8082
+      PACKAGES_WS_URI: ws://packages-service:8082
+      EUREKA_DEFAULT_ZONE: http://discovery-server:8080/eureka/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/
+      OAUTH_ISSUER_URI: https://${AUTH_DOMAIN}/auth/realms/quickdelivery
+      QUICKDELIVERY_FRONTEND_BASE_URLS: https://${APP_DOMAIN}
+      QUICKDELIVERY_AUTH_ISSUER_URIS: https://${AUTH_DOMAIN}/auth/realms/quickdelivery,https://${AUTH_DOMAIN}/realms/quickdelivery,http://${AUTH_DOMAIN}/auth/realms/quickdelivery,http://${AUTH_DOMAIN}/realms/quickdelivery
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+    depends_on:
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      users-service:
+        condition: service_started
+      packages-service:
+        condition: service_started
+      oauth-authorization-server:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8443:8443"
+    restart: unless-stopped
+    networks:
+      - quickdelivery
+
+volumes:
+  mysql-data:
+  users-docs:
+  packages-docs:
+
+networks:
+  quickdelivery:
+    driver: bridge

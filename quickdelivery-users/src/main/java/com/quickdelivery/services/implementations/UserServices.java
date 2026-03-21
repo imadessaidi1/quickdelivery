@@ -88,90 +88,88 @@ public class UserServices implements IUserServices {
     private UserUpdateTokenService userUpdateTokenService;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
-        String rawPassword = user.getPassword();
-        sanitizeAddresses(user, deliveryPerson);
-        User userEntity = modelMapper.map(user,User.class);
-        if (deliveryPerson) {
-            user.getPersonalAddress().forEach(address -> {
-                try {
-                    GeoHelper.AddressGeoCoding(geoApiContext, address);
-                } catch (IOException | InterruptedException | ApiException e) {
-                    throw new RuntimeException(e);
-                }
+        try {
+            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+            String rawPassword = user.getPassword();
+            sanitizeAddresses(user, deliveryPerson);
+            User userEntity = modelMapper.map(user,User.class);
+            if (deliveryPerson) {
+                geocodeAddressesIfPossible(user);
+                userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
+                Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
+                vehicle.setUser(userEntity);
+                userEntity.getVehicles().add(vehicle);
+            } else {
+                userEntity.setPersonalAddress(new HashSet<>());
+                userEntity.setVehicles(new HashSet<>());
+            }
+            String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
+            filesMap.entrySet().stream()
+                    .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
+                    .forEach(entry -> {
+                        String fileName = entry.getKey();
+                        MultipartFile file = entry.getValue().get(0);
+                        String currentFileName = file.getOriginalFilename();
+                        if (currentFileName == null || !currentFileName.contains(".")) {
+                            return;
+                        }
+                        String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
+                        Document document = new Document();
+                        document.setType(DOCUMENT_TYPE.valueOf(fileName));
+                        document.setDocURL(filesPath+"\\"+newFileName);
+                        document.setUser(userEntity);
+                        userEntity.getDocument().add(document);
+                    });
+            users.save(userEntity);
+            keycloakProvisioningService.provisionUser(userEntity, rawPassword);
+            if (!filesMap.isEmpty()) {
+                FileHelper.saveFilesInParallel(filesMap, filesPath, false);
+            }
+            userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
+            user.setId(userEntity.getId());
+            user.setVersion(userEntity.getVersion());
+            user.setPassword(null);
+            user.setPasswordConfirmation(null);
+            ExecutorService executorService = Executors.newFixedThreadPool(10);
+            executorService.submit(() -> {
+                sendUserAccountCreationEmail(user, userEntity, locale);
             });
-            userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
-            Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
-            vehicle.setUser(userEntity);
-            userEntity.getVehicles().add(vehicle);
-        } else {
-            userEntity.setPersonalAddress(new HashSet<>());
-            userEntity.setVehicles(new HashSet<>());
+            return user;
+        } catch (Exception exception) {
+            logger.error("Unable to create user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+            throw exception;
         }
-        String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
-        filesMap.entrySet().stream()
-                .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
-                .forEach(entry -> {
-                    String fileName = entry.getKey();
-                    MultipartFile file = entry.getValue().get(0);
-                    String currentFileName = file.getOriginalFilename();
-                    if (currentFileName == null || !currentFileName.contains(".")) {
-                        return;
-                    }
-                    String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
-                    Document document = new Document();
-                    document.setType(DOCUMENT_TYPE.valueOf(fileName));
-                    document.setDocURL(filesPath+"\\"+newFileName);
-                    document.setUser(userEntity);
-                    userEntity.getDocument().add(document);
-                });
-        users.save(userEntity);
-        keycloakProvisioningService.provisionUser(userEntity, rawPassword);
-        if (!filesMap.isEmpty()) {
-            FileHelper.saveFilesInParallel(filesMap, filesPath, false);
-        }
-        userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
-        user.setId(userEntity.getId());
-        user.setVersion(userEntity.getVersion());
-        user.setPassword(null);
-        user.setPasswordConfirmation(null);
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        executorService.submit(() -> {
-            sendUserAccountCreationEmail(user, userEntity, locale);
-        });
-        return user;
     }
 
     @Override
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
-        sanitizeAddresses(user, deliveryPerson);
-        User userEntity = modelMapper.map(user,User.class);
-        userEntity.setPassword(null);
-        if (deliveryPerson) {
-            user.getPersonalAddress().forEach(address -> {
-                try {
-                    GeoHelper.AddressGeoCoding(geoApiContext, address);
-                } catch (IOException | InterruptedException | ApiException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
-            userEntity.getVehicles().forEach(vehicle -> vehicle.setUser(userEntity));
-        } else {
-            userEntity.setPersonalAddress(new HashSet<>());
-            userEntity.setVehicles(new HashSet<>());
+        try {
+            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+            sanitizeAddresses(user, deliveryPerson);
+            User userEntity = modelMapper.map(user,User.class);
+            userEntity.setPassword(null);
+            if (deliveryPerson) {
+                geocodeAddressesIfPossible(user);
+                userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
+                userEntity.getVehicles().forEach(vehicle -> vehicle.setUser(userEntity));
+            } else {
+                userEntity.setPersonalAddress(new HashSet<>());
+                userEntity.setVehicles(new HashSet<>());
+            }
+            user.getDocument().entrySet().stream()
+                    .forEach(entry -> {
+                        Document document = modelMapper.map(entry.getValue(),Document.class);
+                        document.setUser(userEntity);
+                        userEntity.getDocument().add(document);
+                    });
+            users.save(userEntity);
+            String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
+            FileHelper.saveFilesInParallel(filesMap, filesPath, true);
+            return user;
+        } catch (Exception exception) {
+            logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+            throw exception;
         }
-        user.getDocument().entrySet().stream()
-                .forEach(entry -> {
-                    Document document = modelMapper.map(entry.getValue(),Document.class);
-                    document.setUser(userEntity);
-                    userEntity.getDocument().add(document);
-                });
-        users.save(userEntity);
-        String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
-        FileHelper.saveFilesInParallel(filesMap, filesPath, true);
-        return user;
     }
 
     @Override
@@ -324,6 +322,17 @@ public class UserServices implements IUserServices {
                 .filter(Objects::nonNull)
                 .filter(address -> deliveryPerson || hasAddressContent(address))
                 .collect(Collectors.toList()));
+    }
+
+    private void geocodeAddressesIfPossible(UserDTO user) {
+        user.getPersonalAddress().forEach(address -> {
+            try {
+                GeoHelper.AddressGeoCoding(geoApiContext, address);
+            } catch (IOException | InterruptedException | ApiException e) {
+                logger.warn("Unable to geocode address for {}: {}. Continuing without coordinates.",
+                        user.getEmailAddress(), e.getMessage());
+            }
+        });
     }
 
     private boolean hasAddressContent(com.quickdelivery.abstarct.dto.AddressDTO address) {

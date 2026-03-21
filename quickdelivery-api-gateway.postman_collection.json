@@ -83,14 +83,14 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "{{gateway_url}}/users/v1/user{{user_id}}?id={{user_id}}",
+                                                                  "raw":  "{{gateway_url}}/users/v1/user?id={{user_id}}",
                                                                   "host":  [
                                                                                "{{gateway_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "users",
                                                                                "v1",
-                                                                               "user{{user_id}}"
+                                                                               "user"
                                                                            ],
                                                                   "query":  [
                                                                                 {
@@ -112,14 +112,14 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "{{gateway_url}}/users/v1/userByEmail{{user_email}}?email={{user_email}}",
+                                                                  "raw":  "{{gateway_url}}/users/v1/userByEmail?email={{user_email}}",
                                                                   "host":  [
                                                                                "{{gateway_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "users",
                                                                                "v1",
-                                                                               "userByEmail{{user_email}}"
+                                                                               "userByEmail"
                                                                            ],
                                                                   "query":  [
                                                                                 {
@@ -1147,11 +1147,11 @@
     "variable":  [
                      {
                          "key":  "gateway_url",
-                         "value":  "https://localhost:8443"
+                         "value":  "https://api.quickdelivery.fr"
                      },
                      {
                          "key":  "iam_token_url",
-                         "value":  "https://localhost:18443/auth/realms/quickdelivery/protocol/openid-connect/token"
+                         "value":  "https://auth.quickdelivery.fr/auth/realms/quickdelivery/protocol/openid-connect/token"
                      },
                      {
                          "key":  "iam_client_id",

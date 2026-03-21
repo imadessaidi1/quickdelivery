@@ -476,6 +476,11 @@ export default {
 
 .page-header {
   margin-bottom: 18px;
+  padding: 24px 28px;
+  border: 1px solid #dde5f0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
 }
 
 .guest-entry-card {
@@ -743,6 +748,10 @@ export default {
 
   .guest-entry-card {
     padding: 22px 18px;
+  }
+
+  .page-header {
+    padding: 20px 18px;
   }
 
   .card-header,

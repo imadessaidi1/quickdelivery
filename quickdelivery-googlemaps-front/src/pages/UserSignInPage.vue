@@ -398,8 +398,12 @@ export default {
             : 'CARD';
           this.currentStep = 1;
         })
-        .catch(() => {
-          console.error('Unable to process your request this time. Please try again later.');
+        .catch((error) => {
+          console.error('Unable to process your request this time. Please try again later.', {
+            status: error?.response?.status,
+            data: error?.response?.data,
+            message: error?.message,
+          });
         });
     },
     previousStep() {
@@ -667,6 +671,11 @@ export default {
 
 .page-header {
   margin-bottom: 18px;
+  padding: 24px 28px;
+  border: 1px solid #dde5f0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
 }
 
 .page-chip,
@@ -842,6 +851,10 @@ export default {
 @media screen and (max-width: 720px) {
   .user-registration-page {
     padding: 16px;
+  }
+
+  .page-header {
+    padding: 20px 18px;
   }
 
   .wizard-card {

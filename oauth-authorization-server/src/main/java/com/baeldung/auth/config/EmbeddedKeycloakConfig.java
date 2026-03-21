@@ -43,6 +43,15 @@ public class EmbeddedKeycloakConfig {
 	@Value("${quickdelivery.frontend.base-urls:}")
 	private String frontendBaseUrls;
 
+	@Value("${keycloak.frontendUrl:}")
+	private String keycloakFrontendUrl;
+
+	@Value("${keycloak.adminUrl:}")
+	private String keycloakAdminUrl;
+
+	@Value("${keycloak.hostname.default.forceBackendUrlToFrontendUrl:}")
+	private String forceBackendUrlToFrontendUrl;
+
 	@Bean
 	ServletRegistrationBean<HttpServlet30Dispatcher> keycloakJaxRsApplication(
 			KeycloakServerProperties keycloakServerProperties, DataSource dataSource) throws Exception {
@@ -130,6 +139,9 @@ public class EmbeddedKeycloakConfig {
 		setIfPresent("keycloak.connectionsJpa.password", springDatasourcePassword);
 		setIfPresent("keycloak.connectionsJpa.driver", springDatasourceDriverClassName);
 		setIfPresent("quickdelivery.frontend.base-urls", frontendBaseUrls);
+		setIfPresent("keycloak.frontendUrl", keycloakFrontendUrl);
+		setIfPresent("keycloak.adminUrl", keycloakAdminUrl);
+		setIfPresent("keycloak.hostname.default.forceBackendUrlToFrontendUrl", forceBackendUrlToFrontendUrl);
 
 		if ("com.mysql.cj.jdbc.Driver".equals(springDatasourceDriverClassName)) {
 			System.setProperty("keycloak.connectionsJpa.driverDialect", "org.hibernate.dialect.MySQLDialect");
@@ -142,6 +154,10 @@ public class EmbeddedKeycloakConfig {
 				System.getProperty("keycloak.connectionsJpa.driver"),
 				System.getProperty("keycloak.connectionsJpa.driverDialect"));
 		LOG.info("Keycloak frontend base URLs: {}", System.getProperty("quickdelivery.frontend.base-urls", "<auto-discovery>"));
+		LOG.info("Keycloak public URLs: frontendUrl={}, adminUrl={}, forceBackendUrlToFrontendUrl={}",
+				System.getProperty("keycloak.frontendUrl", "<unset>"),
+				System.getProperty("keycloak.adminUrl", "<unset>"),
+				System.getProperty("keycloak.hostname.default.forceBackendUrlToFrontendUrl", "<unset>"));
 	}
 
 	private void setIfPresent(String key, String value) {

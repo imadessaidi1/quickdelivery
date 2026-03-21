@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.git
+.idea
+.run
+logs
+**/target
+**/dist
+data_dump
+*.iml
+*.log
+tmp-keycloak-login.html
+revenus_consolides.xlsx
+data_dump.7z
+

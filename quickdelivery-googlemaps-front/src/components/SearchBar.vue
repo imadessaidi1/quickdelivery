@@ -25,6 +25,12 @@
             <router-link v-if="isAdmin" @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
+            <router-link @click="loginMenu" to="/notifications">
+              <li class="menu-item-with-badge">
+                <span>{{$t('menuNotifications')}}</span>
+                <span v-if="unreadNotificationsCount" class="menu-badge">{{ unreadNotificationsCount }}</span>
+              </li>
+            </router-link>
             <router-link @click="loginMenu" to="/userAccount"><li>{{$t('menuUuserAccount')}}</li></router-link>
             <li @click="logoutUser">{{$t('menuUserLogout')}}</li>
         </ul>
@@ -35,6 +41,7 @@
       <a class="account-link" @click="loginMenu">
         <span class="material-symbols-outlined">person</span>
         <span v-if="connectedUserFullName" class="account-name">{{ connectedUserFullName }}</span>
+        <span v-if="unreadNotificationsCount" class="account-badge">{{ unreadNotificationsCount }}</span>
       </a>
     </span>
   </div>
@@ -82,6 +89,9 @@ export default {
       const firstName = this.$store.state.connectedUser?.firstName || '';
       const lastName = this.$store.state.connectedUser?.lastName || '';
       return `${firstName} ${lastName}`.trim();
+    },
+    unreadNotificationsCount() {
+      return this.$store.getters.unreadNotificationsCount || 0;
     },
     homeRoute() {
       return resolveLandingPathForCurrentUser();
@@ -199,6 +209,7 @@ export default {
   min-width: 0;
 }
 .account-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -215,6 +226,26 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.account-badge,
+.menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  padding: 0 6px;
+  background: #f97316;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.menu-item-with-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 .horizontal-menu,
 .login-menu{

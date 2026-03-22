@@ -103,6 +103,9 @@
             </div>
 
             <div class="card-actions">
+              <button v-if="canTrackPackage(package_)" class="track-btn" @click="openTracking(package_)">
+                {{ $t('myPackagesTrackAction') }}
+              </button>
               <button class="details-btn" @click="openDetails(package_)">
                 {{ $t('packagesArroundMArkerDetailActionsDetails') }}
               </button>
@@ -122,7 +125,7 @@
             <th>{{ $t('packagePrice') }}</th>
             <th>{{ $t('myPackagesStatusColumn') }}</th>
             <th>{{ $t('myPackagesCreatedAt') }}</th>
-            <th>{{ $t('packagesArroundMArkerDetailActionsDetails') }}</th>
+            <th>{{ $t('packageAddressListActions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -136,6 +139,9 @@
             </td>
             <td>{{ formatCreatedDate(package_) }}</td>
             <td>
+              <button v-if="canTrackPackage(package_)" class="track-btn table-btn" @click="openTracking(package_)">
+                {{ $t('myPackagesTrackAction') }}
+              </button>
               <button class="details-btn table-btn" @click="openDetails(package_)">
                 {{ $t('packagesArroundMArkerDetailActionsDetails') }}
               </button>
@@ -171,6 +177,13 @@ export default {
     canCreatePackage() {
       const roles = getCurrentUserRoles();
       return roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO') || roles.includes('ROLE_ADMIN');
+    },
+    isClientRole() {
+      const roles = getCurrentUserRoles();
+      return roles.includes('ROLE_CLIENT') || roles.includes('ROLE_CLIENT_PRO');
+    },
+    isAdminRole() {
+      return getCurrentUserRoles().includes('ROLE_ADMIN');
     },
     flattenedPackages() {
       return this.packagesByStatus.flatMap((entry) => entry.groupedPackagesList || []);
@@ -273,6 +286,20 @@ export default {
           returnTo: this.$route.fullPath,
         },
       });
+    },
+    openTracking(package_) {
+      this.$router.push({
+        path: '/packageTracking',
+        query: {
+          packageReference: package_.reference,
+          returnTo: this.$route.fullPath,
+        },
+      });
+    },
+    canTrackPackage(package_) {
+      return (this.isClientRole || this.isAdminRole)
+        && ['RESERVED', 'PICKEDUP', 'INDELIVERY'].includes(package_?.status)
+        && Boolean(package_?.reference);
     },
     getAddressByType(package_, type) {
       return (package_.addresses || []).find((address) => address.type === type) || {};
@@ -672,9 +699,12 @@ export default {
 
 .card-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
+  gap: 10px;
 }
 
+.track-btn,
 .details-btn {
   display: inline-flex;
   align-items: center;
@@ -687,6 +717,11 @@ export default {
   background: #020617;
   color: #ffffff;
   font-weight: 600;
+}
+
+.track-btn {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .packages-table-shell {
@@ -720,6 +755,11 @@ export default {
 .table-btn {
   min-width: 108px;
   height: 36px;
+  margin-right: 8px;
+}
+
+.table-btn:last-child {
+  margin-right: 0;
 }
 
 @media screen and (max-width: 1100px) {

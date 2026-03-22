@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import http from '@/config/httpInterceptor';
 import VerticalPackageDetails from '../components/VerticalPackageDetails.vue';
+import { fetchTrackingPackage } from '../config/tracking';
 
 export default {
   components: {
@@ -33,18 +33,21 @@ export default {
       type: String,
       default: '',
     },
+    guestAccessToken: {
+      type: String,
+      default: '',
+    },
   },
-  mounted() {
+  async mounted() {
     if (!this.packageReference) {
       return;
     }
-    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage') + this.packageReference)
-      .then((response) => {
-        this.$store.commit('updatePackage', response.data);
-      })
-      .catch((error) => {
-        console.error('Unable to load tracking summary.', error);
-      });
+    try {
+      const response = await fetchTrackingPackage(this.packageReference, this.guestAccessToken, this.$i18n);
+      this.$store.commit('updatePackage', response.data);
+    } catch (error) {
+      console.error('Unable to load tracking summary.', error);
+    }
   },
   methods: {
     goBack() {

@@ -54,7 +54,9 @@ public class PackageController {
             throw new RuntimeException(e);
         }
         PackageDTO aPackage = packagesService.createNewPackage(packageDTO1, files, locale);
-        notifyPackageCreation(aPackage.getReference());
+        if (PACKAGE_STATUS.NEW.equals(aPackage.getStatus())) {
+            notifyPackageCreation(aPackage.getReference());
+        }
         return  aPackage;
     }
 
@@ -100,7 +102,12 @@ public class PackageController {
     @PutMapping("/update-packages-status")
     public void updatePackageStatus(@RequestParam Map<String, String> requestMap){
         requestMap.forEach((packageId, packageStatus) -> {
-            packagesService.updatePackageStatus(PACKAGE_STATUS.valueOf(packageStatus),Long.valueOf(packageId));
+            PACKAGE_STATUS targetStatus = PACKAGE_STATUS.valueOf(packageStatus);
+            Long resolvedPackageId = Long.valueOf(packageId);
+            packagesService.updatePackageStatus(targetStatus, resolvedPackageId);
+            if (PACKAGE_STATUS.NEW.equals(targetStatus)) {
+                notifyPackageCreation(packagesService.findPackageByID(resolvedPackageId).getReference());
+            }
         });
     }
 
@@ -108,6 +115,7 @@ public class PackageController {
     public void confirmGuestPayment(@RequestParam("packageID") Long packageID,
                                     @RequestParam("guestAccessToken") String guestAccessToken) {
         packagesService.confirmGuestPackagePayment(packageID, guestAccessToken);
+        notifyPackageCreation(packagesService.findPackageByID(packageID).getReference());
     }
 
     @PutMapping("/reserve{packageID}{deliveryPersonID}{locale}")

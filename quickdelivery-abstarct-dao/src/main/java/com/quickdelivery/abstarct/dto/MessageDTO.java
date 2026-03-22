@@ -6,6 +6,8 @@ public class MessageDTO {
     private String to;
     private String message;
     private String url;
+    private String packageReference;
+    private String guestAccessToken;
 
     private PositionDTO positionDTO;
 
@@ -47,6 +49,22 @@ public class MessageDTO {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPackageReference() {
+        return packageReference;
+    }
+
+    public void setPackageReference(String packageReference) {
+        this.packageReference = packageReference;
+    }
+
+    public String getGuestAccessToken() {
+        return guestAccessToken;
+    }
+
+    public void setGuestAccessToken(String guestAccessToken) {
+        this.guestAccessToken = guestAccessToken;
     }
 
     public PositionDTO getPositionDTO() {

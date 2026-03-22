@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <!--
  @license
@@ -7,187 +6,203 @@
 -->
 <html>
   <head>
-    <title>🌏 Packages Map</title>
-	  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-	  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous" async defer></script>
-	  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous" async defer></script>
+    <title>Packages Map</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default" async defer></script>
     <script>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
-	   let map
-	   let directionsRenderer;
-       let directionsService;
-	   let infowindow;
-	   let url_string = window.location.href;
-       let url = new URL(url_string);
-	   let packageRef = url.searchParams.get("packageReference");
-	   let arrivalAddress;
-	   let departureAddress;
-	   let package_;
-	   let markers = [];
-	   let carIcon;
-	   let arrivalIcon;
-	   let routeInfo;
-	   const gatewayBaseUrl = url.searchParams.get("gatewayBaseUrl") || 'http://localhost:8087';
-	   function initMap() {
-          window.top.postMessage('StartLoading', '*');
-          directionsRenderer = new google.maps.DirectionsRenderer({
-              suppressMarkers: true,
-              polylineOptions:{strokeColor: '#525CEB'}
-          });
-          carIcon = {
-            url: './car.png',
-            scaledSize: new google.maps.Size(25, 25),
-           };
-           arrivalIcon = {
-            url: './arrival.png',
-            scaledSize: new google.maps.Size(25, 25),
-           };
-          directionsService = new google.maps.DirectionsService();
-          infowindow = new google.maps.InfoWindow(
-              {
-                  size: new google.maps.Size(150,50)
-              });
-          map = new google.maps.Map(document.getElementById("map"), {
-              zoom: 13,
-              disableDefaultUI: true,
-              zoomControl: true,
-              scaleControl: true,
-              mapId: "PACKAGE_TRACKING",
-          });
+      let map;
+      let directionsRenderer;
+      let directionsService;
+      let arrivalAddress;
+      let departureAddress;
+      let package_;
+      let markers = [];
+      let carIcon;
+      let arrivalIcon;
+      let routeInfo;
+      let mapReady = false;
+      let pendingPackageData = null;
+      let pendingPosition = null;
+
+      function initMap() {
+        directionsRenderer = new google.maps.DirectionsRenderer({
+          suppressMarkers: true,
+          polylineOptions: { strokeColor: '#525CEB' },
+        });
+        carIcon = {
+          url: './car.png',
+          scaledSize: new google.maps.Size(25, 25),
+        };
+        arrivalIcon = {
+          url: './arrival.png',
+          scaledSize: new google.maps.Size(25, 25),
+        };
+        directionsService = new google.maps.DirectionsService();
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          disableDefaultUI: true,
+          zoomControl: true,
+          scaleControl: true,
+          mapId: 'PACKAGE_TRACKING',
+        });
 
         const transitLayer = new google.maps.TransitLayer();
         transitLayer.setMap(map);
-		const packagePromise = new Promise((resolve, reject) => {
-			try{
-			if(packageRef != undefined){
-				var xhr = new XMLHttpRequest();
-				var url = `${gatewayBaseUrl}/packages/v1/getPackage?reference=${packageRef}`;
-				xhr.open("GET", url, true);
-				xhr.onload = function() {
-					if (xhr.status >= 200 && xhr.status < 300) {
-						package_ = JSON.parse(xhr.responseText);
-						package_.addresses.forEach(function(adresse) {
-							if(adresse.type === "ARRIVAL"){
-								arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
-							}else{
-								departureAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: Number(adresse.latitude), lng: Number(adresse.longitude)};
-							}
-						});
-						let initialLocation;
-						
-						if(package_.lastPositionLatitude && package_.lastPositionLongitude){
-							departureAddress = {lat: Number(package_.lastPositionLatitude), lng: Number(package_.lastPositionLongitude)};
-							initialLocation = new google.maps.LatLng(Number(package_.lastPositionLatitude), Number(package_.lastPositionLongitude));
-						}else{
-							initialLocation = new google.maps.LatLng(departureAddress.lat, departureAddress.lng);
-						}
-						map.setCenter(initialLocation);
-						resolve();
-					} else if (xhr.status === 404) {
-						window.top.postMessage('PackageNotFound', '*');
-						reject(new Error('PackageNotFound'));
-					} else {
-						console.error("Erreur de l'API :", xhr.statusText);
-						window.top.postMessage('TrackingError', '*');
-						reject(new Error(xhr.statusText || 'TrackingError'));
-					}
-				};
-				xhr.onerror = function() {
-					console.error("Erreur de réseau lors de la requête vers l'API.");
-					window.top.postMessage('TrackingError', '*');
-					reject(new Error('TrackingError'));
-				};
-				xhr.send();
-				window.top.postMessage('EndLoading', '*');
-				}
-			} catch (error) {
-				console.error(error);
-				window.top.postMessage('TrackingError', '*');
-				reject(error);
-			}
-		});
-		Promise.all([packagePromise]).then(() => {
-			directionsRenderer.setMap(map);
-			addMarker(departureAddress, carIcon, map);
-			addMarker(arrivalAddress, arrivalIcon, map);
-			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
-		}).catch(() => {});
-		
-      }
-	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
-	        window.top.postMessage('StartLoading', '*');
-	        const packagePromise = new Promise((resolve, reject) => {
-                const start = packageStart;
-                const end = packageEnd;
-                const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
-                directionsService.route({
-                    origin: start,
-                    destination: end,
-                    travelMode: google.maps.TravelMode[selectedMode],
-                }, (response, status) => {
-                    if (status === 'OK') {
-                        directionsRenderer.setDirections(response);
-                        routeInfo = {distance: response.routes[0].legs[0].distance, duration: response.routes[0].legs[0].duration};
-                        resolve(response);
-                    } else {
-                        reject('Directions request failed due to ' + status);
-                    }
-                });
-            });
-            Promise.all([packagePromise]).then(() => {
-                window.top.postMessage('RouteInfo;'+JSON.stringify(routeInfo), '*');
-		    });
-	  }
-      window.initMap = initMap;
-      window.onmessage = (e) => {
-        if (typeof e.data === 'string' && e.data.includes('PackageReference:')) {
-			packageRef = e.data.split(':')[1];
-			initMap();
-        }else if(typeof e.data === 'string' && e.data.includes('PackageNewPosition;') && map && arrivalAddress){
-            removeAllMarkers();
-            newPosition = JSON.parse(e.data.split(';')[1]);
-            departureAddress = {lat: Number(newPosition.latitude), lng: Number(newPosition.longitude)};
-            addMarker(departureAddress, carIcon, map);
-            addMarker(arrivalAddress, arrivalIcon, map);
-            calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
+        directionsRenderer.setMap(map);
+        mapReady = true;
+        if (pendingPackageData) {
+          const queuedPackage = pendingPackageData;
+          pendingPackageData = null;
+          renderTrackingPackage(queuedPackage);
+        }
+        if (pendingPosition && arrivalAddress) {
+          const queuedPosition = pendingPosition;
+          pendingPosition = null;
+          updateTrackedPosition(queuedPosition);
         }
       }
+
+      function buildAddress(address) {
+        return {
+          packageID: package_.id,
+          line1: address.line1,
+          line2: address.line2,
+          zipCode: address.zipCode,
+          town: address.town,
+          lat: Number(address.latitude),
+          lng: Number(address.longitude),
+        };
+      }
+
+      function resolveInitialLocation() {
+        if (package_.lastPositionLatitude && package_.lastPositionLongitude) {
+          departureAddress = {
+            lat: Number(package_.lastPositionLatitude),
+            lng: Number(package_.lastPositionLongitude),
+          };
+          return new google.maps.LatLng(departureAddress.lat, departureAddress.lng);
+        }
+
+        return new google.maps.LatLng(departureAddress.lat, departureAddress.lng);
+      }
+
+      function renderTrackingPackage(packageData) {
+        if (!packageData || !Array.isArray(packageData.addresses)) {
+          return;
+        }
+
+        if (!mapReady) {
+          pendingPackageData = packageData;
+          window.top.postMessage('StartLoading', '*');
+          return;
+        }
+
+        try {
+          window.top.postMessage('StartLoading', '*');
+          package_ = packageData;
+          arrivalAddress = null;
+          departureAddress = null;
+
+          package_.addresses.forEach((address) => {
+            if (address.type === 'ARRIVAL') {
+              arrivalAddress = buildAddress(address);
+            } else if (address.type === 'DEPARTURE') {
+              departureAddress = buildAddress(address);
+            }
+          });
+
+          if (!arrivalAddress || !departureAddress) {
+            throw new Error('Missing tracking addresses');
+          }
+
+          map.setCenter(resolveInitialLocation());
+          removeAllMarkers();
+          addMarker(departureAddress, carIcon, map);
+          addMarker(arrivalAddress, arrivalIcon, map);
+          calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
+        } catch (error) {
+          console.error(error);
+          window.top.postMessage('TrackingError', '*');
+          window.top.postMessage('EndLoading', '*');
+        }
+      }
+
+      function updateTrackedPosition(newPosition) {
+        if (!map || !arrivalAddress) {
+          pendingPosition = newPosition;
+          return;
+        }
+
+        departureAddress = { lat: Number(newPosition.latitude), lng: Number(newPosition.longitude) };
+        removeAllMarkers();
+        addMarker(departureAddress, carIcon, map);
+        addMarker(arrivalAddress, arrivalIcon, map);
+        calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departureAddress, arrivalAddress);
+      }
+
+      function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
+        directionsService.route(
+          {
+            origin: packageStart,
+            destination: packageEnd,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status === 'OK') {
+              directionsRenderer.setDirections(response);
+              routeInfo = {
+                distance: response.routes[0].legs[0].distance,
+                duration: response.routes[0].legs[0].duration,
+              };
+              window.top.postMessage('RouteInfo;' + JSON.stringify(routeInfo), '*');
+            } else {
+              console.error('Directions request failed due to ' + status);
+              window.top.postMessage('TrackingError', '*');
+            }
+            window.top.postMessage('EndLoading', '*');
+          }
+        );
+      }
+
       function addMarker(position, icon, map) {
-		  if(position != undefined){
-					var marker = new google.maps.Marker({
-					  position: position,
-					  title: arrivalAddress?.packageID+"",
-					  icon: icon,
-					  map:map,
-					  zIndex: Math.round(position.lat*-100000)<<5
-				  });
-				  marker.myname = arrivalAddress?.packageID;
-				  markers.push(marker);
-				  /*google.maps.event.addListener(marker, 'click', function() {
-					infowindow.setContent(markerInfo);
-					infowindow.open(map,marker);
-				  });*/
-			}
-		}
-	  function removeAllMarkers() {
-		for (let i = 0; i < markers.length; i++) {
-			markers[i].setMap(null);
-		}
-		markers.splice(0, markers.length);
-	  }
+        if (!position) {
+          return;
+        }
+
+        const marker = new google.maps.Marker({
+          position: position,
+          title: String(arrivalAddress?.packageID || ''),
+          icon: icon,
+          map: map,
+          zIndex: Math.round(position.lat * -100000) << 5,
+        });
+        markers.push(marker);
+      }
+
+      function removeAllMarkers() {
+        for (let i = 0; i < markers.length; i += 1) {
+          markers[i].setMap(null);
+        }
+        markers.splice(0, markers.length);
+      }
+
+      window.initMap = initMap;
+      window.onmessage = (e) => {
+        if (typeof e.data !== 'string') {
+          return;
+        }
+
+        if (e.data.startsWith('TrackingPackage;')) {
+          renderTrackingPackage(JSON.parse(e.data.substring('TrackingPackage;'.length)));
+          return;
+        }
+
+        if (e.data.startsWith('PackageNewPosition;')) {
+          updateTrackedPosition(JSON.parse(e.data.substring('PackageNewPosition;'.length)));
+        }
+      };
     </script>
     <style>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
-      /* Optional: Makes the sample page fill the window. */
       html,
       body {
         height: 100vh;
@@ -198,65 +213,12 @@
       #container {
         height: 100%;
         display: flex;
-		padding: 0;
-      }
-
-      #sidebar {
-        flex-basis: 15rem;
-        flex-grow: 1;
-        padding: 1rem;
-        max-width: 30rem;
-        height: 100%;
-        box-sizing: border-box;
-        overflow: auto;
-      }
-
-      #map {
-        flex-basis: 0;
-        flex-grow: 4;
-        height: 100%;
-      }
-
-      #floating-panel {
-        position: absolute;
-        top: 10px;
-        left: 25%;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-        text-align: center;
-        font-family: "Roboto", "sans-serif";
-        line-height: 30px;
-        padding-left: 10px;
-      }
-
-      #floating-panel {
-        background-color: #fff;
-        border: 0;
-        border-radius: 2px;
-        box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
-        margin: 10px;
-        padding: 0 0.5em;
-        font: 400 18px Roboto, Arial, sans-serif;
-        overflow: hidden;
-        padding: 5px;
-        font-size: 14px;
-        text-align: center;
-        line-height: 30px;
-        height: auto;
+        padding: 0;
       }
 
       #map {
         flex: auto;
-      }
-
-      #sidebar {
-        flex: 0 1 auto;
-        padding: 0;
-      }
-      #sidebar > div {
-        padding: 0.5rem;
+        height: 100%;
       }
     </style>
   </head>
@@ -266,9 +228,7 @@
     </div>
     <script async
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U&callback=initMap&v=weekly"
-            loading="async"
-    >
-    </script>
+      loading="async"
+    ></script>
   </body>
 </html>
-    

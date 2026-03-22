@@ -43,7 +43,6 @@
 
 <script>
 import PackageSummary from '../components/VerticalPackageDetails.vue';
-import http from '@/config/httpInterceptor';
 import { getGatewayBaseUrl } from '@/config/network';
 
 export default {
@@ -57,26 +56,66 @@ export default {
   },
   props: {
     routeInfo: Object,
+    packageData: {
+      type: Object,
+      default: null,
+    },
+    packageReference: {
+      type: String,
+      default: '',
+    },
   },
   mounted() {
-    http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage') + this.$parent.packageReference)
-      .then((response) => {
-        this.$store.commit('updatePackage', response.data);
-      }).catch(() => {
-        console.error('Unable to process your request this time. Please try again later.');
-      });
+    this.subscribeToTracking();
+  },
+  beforeUnmount() {
+    this.unsubscribeFromTracking();
   },
   methods: {
     onLoadIframe() {
-      this.$refs.map.contentWindow.postMessage('PackageReference:' + this.$parent.packageReference, '*');
+      this.sendPackageToIframe();
+    },
+    sendPackageToIframe() {
+      if (!this.packageData || !this.$refs.map?.contentWindow) {
+        return;
+      }
+      this.$refs.map.contentWindow.postMessage(`TrackingPackage;${JSON.stringify(this.packageData)}`, '*');
+    },
+    subscribeToTracking() {
+      const guestAccessToken = this.packageData?.guestAccessToken || this.$route.query.guestAccessToken;
+      if (!this.packageReference || !guestAccessToken) {
+        return;
+      }
+
+      window.dispatchEvent(new CustomEvent('qd-track-package-subscribe', {
+        detail: {
+          packageReference: this.packageReference,
+          guestAccessToken,
+        },
+      }));
+    },
+    unsubscribeFromTracking() {
+      if (!this.packageReference) {
+        return;
+      }
+
+      window.dispatchEvent(new CustomEvent('qd-track-package-unsubscribe', {
+        detail: {
+          packageReference: this.packageReference,
+        },
+      }));
     },
     details() {
+      const query = {
+        packageReference: this.packageReference,
+        returnTo: this.$route.fullPath,
+      };
+      if (this.$route.query.guestAccessToken) {
+        query.guestAccessToken = this.$route.query.guestAccessToken;
+      }
       this.$router.push({
         path: '/packageTrackingSummary',
-        query: {
-          packageReference: this.$parent.packageReference,
-          returnTo: this.$route.fullPath,
-        },
+        query,
       });
     },
   },
@@ -84,11 +123,18 @@ export default {
     '$store.state.packagesLastPosition': {
       deep: true,
       handler(newVal) {
-        const newPosition = newVal[this.$parent.packageReference];
+        const newPosition = newVal[this.packageReference];
         if (!newPosition || !this.$refs.map?.contentWindow) {
           return;
         }
         this.$refs.map.contentWindow.postMessage('PackageNewPosition;' + JSON.stringify(newPosition), '*');
+      },
+    },
+    packageData: {
+      deep: true,
+      handler() {
+        this.sendPackageToIframe();
+        this.subscribeToTracking();
       },
     },
   },
@@ -222,6 +268,8 @@ export default {
 @media screen and (max-width: 1100px) {
   .tracking-layout {
     grid-template-columns: 1fr;
+    gap: 14px;
+    align-content: start;
   }
 
   .tracking-summary {
@@ -243,20 +291,46 @@ export default {
     height: auto;
   }
 
-  .route-metrics {
+  .tracking-map-shell {
+    display: flex;
     flex-direction: column;
-    left: 10px;
-    right: 10px;
-    top: 10px;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    overflow: visible;
+  }
+
+  .route-metrics {
+    position: static;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .metric-card {
     min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 14px;
   }
 
-  .tracking-map-shell,
   .map-frame {
-    min-height: 320px;
+    min-height: 360px;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .floating-action {
+    position: static;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 4px;
+  }
+
+  .details-btn {
+    min-width: 140px;
+    height: 40px;
+    border-radius: 12px;
   }
 }
 </style>

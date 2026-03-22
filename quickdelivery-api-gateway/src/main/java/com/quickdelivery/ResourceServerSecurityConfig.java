@@ -94,7 +94,6 @@ public class ResourceServerSecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/users/v1/public-update-profile**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/users/v1/public-update**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/users/v1/validateEmail**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/packages/v1/getPackage**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/packages/v1/getGuestPackage**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/packages/v1/packages-around-address**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/packages/v1/checkGuestOTPForPickup**").permitAll()

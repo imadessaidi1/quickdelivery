@@ -653,7 +653,7 @@ public class PackagesService implements IPackagesService {
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(sender);
         aPackage.setGuestMode(guestMode);
-        aPackage.setGuestAccessToken(guestMode ? UUID.randomUUID().toString() : null);
+        aPackage.setGuestAccessToken(UUID.randomUUID().toString());
         aPackage.setCreationDate(Timestamp.valueOf(LocalDateTime.now()));
         reference.append(packageReferenceStart)
                 .append(resolveCountryCodePrefix(packageDTO))
@@ -747,7 +747,7 @@ public class PackagesService implements IPackagesService {
     }
 
     private String buildFollowupLink(Package aPackage) {
-        if (Boolean.TRUE.equals(aPackage.getGuestMode()) && aPackage.getGuestAccessToken() != null) {
+        if (aPackage.getGuestAccessToken() != null) {
             return buildPackageTrackingLink(aPackage.getReference()) + "&guestAccessToken=" + aPackage.getGuestAccessToken();
         }
         return buildPackageTrackingLink(aPackage.getReference());
@@ -837,12 +837,40 @@ public class PackagesService implements IPackagesService {
                 attachement = null;
             }
         }
+        String recipientEmail = resolveRecipientEmail(aPackage, departureAddress, arrivalAddress, type);
+        if (isBlank(recipientEmail)) {
+            logger.warn("Skipping package email {} for package {} because recipient email is missing", type, aPackage.getReference());
+            return;
+        }
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(messageSource,templateResolver,departureAddress.getEmail(),
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource,templateResolver,recipientEmail,
                     subject,templateModel, locale, template,attachement);
         } catch (Exception e) {
             logger.warn("Unable to send package email {} for package {}: {}", type, aPackage.getReference(), e.getMessage(), e);
         }
+    }
+
+    private String resolveRecipientEmail(Package aPackage, Address departureAddress, Address arrivalAddress, EMAIL_TYPE type) {
+        return switch (type) {
+            case PACKAGE_PICKUP_RECEIVER, PACKAGE_DELIVERY_RECEIVER -> arrivalAddress == null ? null : arrivalAddress.getEmail();
+            case PACKAGE_PICKUP_DELIVERY, PACKAGE_RESERVATION_DELIVERY -> resolveDeliveryPersonEmail(aPackage);
+            default -> departureAddress == null ? null : departureAddress.getEmail();
+        };
+    }
+
+    private String resolveDeliveryPersonEmail(Package aPackage) {
+        if (aPackage.getPackageReservations() == null) {
+            return null;
+        }
+
+        return aPackage.getPackageReservations().stream()
+                .filter(packageReservation -> packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING))
+                .map(PackageReservation::getDeliveryPerson)
+                .filter(Objects::nonNull)
+                .map(User::getEmailAddress)
+                .filter(email -> email != null && !email.isBlank())
+                .findFirst()
+                .orElse(null);
     }
 
     public List<Address> findUsersAroundPosition(String aPackage){
@@ -881,7 +909,7 @@ public class PackagesService implements IPackagesService {
     @Override
     public PackageDTO findGuestPackageByReference(String reference, String guestAccessToken) {
         PackageDTO packageDTO = findPackageByReference(reference);
-        if (!Boolean.TRUE.equals(packageDTO.getGuestMode()) || !Objects.equals(packageDTO.getGuestAccessToken(), guestAccessToken)) {
+        if (!Objects.equals(packageDTO.getGuestAccessToken(), guestAccessToken)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid guest access token");
         }
         return packageDTO;

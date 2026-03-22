@@ -16,6 +16,7 @@ import UserAccountPage from '../pages/UserAccountPage.vue';
 import UserValidationDetailsPage from '../pages/UserValidationDetailsPage.vue';
 import DocumentPage from '../pages/DocumentPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
+import NotificationsPage from '../pages/NotificationsPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -112,15 +113,23 @@ const routes = [
         path: '/packageTracking',
         name: 'PackageTrackingPage',
         component: PackageTrackingPage,
-        props: (route) => ({ packageReference: route.query.packageReference }),
-        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        props: (route) => ({
+          packageReference: route.query.packageReference,
+          guestAccessToken: route.query.guestAccessToken,
+          returnTo: route.query.returnTo,
+        }),
+        meta: { public: true }
         },
         {
         path: '/packageTrackingSummary',
         name: 'PackageTrackingSummaryPage',
         component: PackageTrackingSummaryPage,
-        props: (route) => ({ packageReference: route.query.packageReference, returnTo: route.query.returnTo }),
-        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        props: (route) => ({
+          packageReference: route.query.packageReference,
+          guestAccessToken: route.query.guestAccessToken,
+          returnTo: route.query.returnTo,
+        }),
+        meta: { public: true }
         },
         {
         path: '/usersAccountValidation',
@@ -139,6 +148,12 @@ const routes = [
         path: '/userAccount',
         name: 'UserAccountPage',
         component: UserAccountPage,
+        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
+        },
+        {
+        path: '/notifications',
+        name: 'NotificationsPage',
+        component: NotificationsPage,
         meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {

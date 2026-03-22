@@ -1,63 +1,97 @@
 // store.js
 import { createStore } from 'vuex';
 
+const MAX_NOTIFICATIONS = 100;
+
+function notificationStorageKey(userId) {
+  return `quickdelivery.notifications.${userId}`;
+}
+
+function loadNotificationsForUser(userId) {
+  if (!userId || typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(notificationStorageKey(userId));
+    const parsedValue = rawValue ? JSON.parse(rawValue) : [];
+    return Array.isArray(parsedValue) ? parsedValue : [];
+  } catch (error) {
+    console.warn('Unable to load notifications from storage:', error);
+    return [];
+  }
+}
+
+function saveNotificationsForUser(userId, notifications) {
+  if (!userId || typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(notificationStorageKey(userId), JSON.stringify(notifications));
+  } catch (error) {
+    console.warn('Unable to save notifications to storage:', error);
+  }
+}
+
 export default createStore({
   state: {
       isLoading: false,
       showMessage: false,
       requestSuccess: false,
       requestMessage: '',
+      notifications: [],
       package_: {
         id: null,
         version: null,
         creationDate: null,
-        reference: "",
+        reference: '',
         height: 0,
         width: 0,
         depth: 0,
         weight: 0,
-        pictureURL: "",
-        status: "",
+        pictureURL: '',
+        status: '',
         deliveryPrice: null,
         senderID: null,
         packageReservations: [],
         addresses: [{
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        floor:0,
+        firstName: '',
+        lastName: '',
+        line1: '',
+        line2: '',
+        town: '',
+        zipCode: '',
+        country: '',
+        floor: 0,
         dateTime: null,
-        email: "",
-        phone: "",
-        type: "DEPARTURE",
-        addressAuto: "",
+        email: '',
+        phone: '',
+        type: 'DEPARTURE',
+        addressAuto: '',
         latitude: 0,
         longitude: 0,
       },
       {
-        firstName: "",
-        lastName: "",
-        line1: "",
-        line2: "",
-        town: "",
-        zipCode: "",
-        country: "",
-        floor:0,
+        firstName: '',
+        lastName: '',
+        line1: '',
+        line2: '',
+        town: '',
+        zipCode: '',
+        country: '',
+        floor: 0,
         dateTime: null,
-        email: "",
-        phone: "",
-        type: "ARRIVAL",
-        addressAuto: "",
+        email: '',
+        phone: '',
+        type: 'ARRIVAL',
+        addressAuto: '',
         latitude: 0,
         longitude: 0,
       }],
       documentS: null,
       lastPositionLatitude: null,
-      lastPositionLongitude: null
+      lastPositionLongitude: null,
     },
     documentS: [],
     connectedUser: {
@@ -86,7 +120,7 @@ export default createStore({
                 password: '',
                 passwordConfirmation: '',
                 emailAddressConfirmation: '',
-                phoneConfirmation:'',
+                phoneConfirmation: '',
                 addressAuto: '',
                 personalAddress: [
                   {
@@ -105,18 +139,18 @@ export default createStore({
                     latitude: 0,
                     longitude: 0,
                     email: '',
-                    phone: ''
-                  }
+                    phone: '',
+                  },
                 ],
                 documents: [],
                 paymentModes: {
-                    "CREDIT_CARD": {
+                    CREDIT_CARD: {
                                      holderNam: '',
                                      cardNumber: '',
                                      expiryDate: '',
                                      cvv: '',
                                     },
-                    "IBAN": {
+                    IBAN: {
                              iban: '',
                              bic: '',
                             },
@@ -127,12 +161,12 @@ export default createStore({
                   brand: '',
                   model: '',
                   energyType: '',
-                  vehicleDocuments: null
+                  vehicleDocuments: null,
               },
               userDocuments: [],
               vehicleDocuments: [],
               userRIB: {},
-              packagesLastPosition: [],
+              packagesLastPosition: {},
               location: 'mapPage',
               mapSearchRadius: 10000,
   },
@@ -140,8 +174,20 @@ export default createStore({
       updatePackage(state, updatedPackage) {
         state.package_ = updatedPackage;
       },
-      updatePackageLastPosition(state, updatedPackageLastPosition) {
-        state.packagesLastPosition = updatedPackageLastPosition;
+      updatePackageLastPosition(state, payload) {
+        if (!payload) {
+          return;
+        }
+
+        if (payload.packageReference) {
+          state.packagesLastPosition = {
+            ...state.packagesLastPosition,
+            [payload.packageReference]: payload.position,
+          };
+          return;
+        }
+
+        state.packagesLastPosition = payload;
       },
       updateDocuments(state, updatedDocuments) {
         state.documentS = updatedDocuments;
@@ -178,6 +224,7 @@ export default createStore({
       },
       updateConnectedUser(state, connectedUser) {
         state.connectedUser = connectedUser;
+        state.notifications = loadNotificationsForUser(connectedUser?.id);
       },
       resetConnectedUser(state) {
         state.connectedUser = {
@@ -189,6 +236,7 @@ export default createStore({
           roles: [],
           loaded: false,
         };
+        state.notifications = [];
       },
       updateLocation(state, updateLocation) {
         state.location = updateLocation;
@@ -196,11 +244,43 @@ export default createStore({
       updateMapSearchRadius(state, radius) {
         state.mapSearchRadius = radius;
       },
+      pushNotification(state, notification) {
+        const formattedNotification = {
+          id: notification.id || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+          type: notification.type || 'GENERIC_NOTIFICATION',
+          from: notification.from ?? null,
+          to: notification.to ?? null,
+          message: notification.message || '',
+          url: notification.url || '',
+          receivedAt: notification.receivedAt || new Date().toISOString(),
+          read: false,
+        };
+
+        state.notifications = [formattedNotification, ...state.notifications].slice(0, MAX_NOTIFICATIONS);
+        saveNotificationsForUser(state.connectedUser?.id, state.notifications);
+      },
+      markNotificationRead(state, notificationId) {
+        state.notifications = state.notifications.map((notification) => (
+          notification.id === notificationId ? { ...notification, read: true } : notification
+        ));
+        saveNotificationsForUser(state.connectedUser?.id, state.notifications);
+      },
+      markAllNotificationsRead(state) {
+        state.notifications = state.notifications.map((notification) => ({
+          ...notification,
+          read: true,
+        }));
+        saveNotificationsForUser(state.connectedUser?.id, state.notifications);
+      },
+      clearNotifications(state) {
+        state.notifications = [];
+        saveNotificationsForUser(state.connectedUser?.id, state.notifications);
+      },
     },
-  actions: {
-    // Vous pouvez définir des actions si vous avez besoin d'effectuer des opérations asynchrones
-  },
+  actions: {},
   getters: {
-    // Vous pouvez définir des getters pour récupérer des données calculées à partir de l'état
+    unreadNotificationsCount(state) {
+      return state.notifications.filter((notification) => !notification.read).length;
+    },
   },
 });

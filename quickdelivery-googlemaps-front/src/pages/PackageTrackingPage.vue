@@ -1,6 +1,9 @@
 <template>
   <div class="package-tracking-page">
     <div class="page-header">
+      <button v-if="showBackButton" class="back-btn" type="button" @click="goBack">
+        {{ $t('actionBack') }}
+      </button>
       <div>
         <h1>{{ $t('trackingPageTitle') }}</h1>
         <p>{{ $t('trackingPageSubtitle') }}</p>
@@ -8,16 +11,29 @@
       <div class="reference-chip">{{ packageReference }}</div>
     </div>
 
-    <PackageTrackingGoogleMap v-if="trackingState === 'ready'" ref="mapTrackingVue" :routeInfo="routeInfo"/>
+    <PackageTrackingGoogleMap
+      v-if="trackingState === 'ready' && packageData"
+      ref="mapTrackingVue"
+      :routeInfo="routeInfo"
+      :packageData="packageData"
+      :packageReference="packageReference"
+    />
     <div v-else class="tracking-state-card">
+      <template v-if="trackingState === 'loading'">
+        <h2>{{ $t('stateLoading') }}</h2>
+        <p>{{ $t('trackingPageSubtitle') }}</p>
+      </template>
+      <template v-else>
       <h2>{{ $t(trackingTitleKey) }}</h2>
       <p>{{ $t(trackingMessageKey, { reference: packageReference }) }}</p>
+      </template>
     </div>
   </div>
 </template>
 
 <script>
 import PackageTrackingGoogleMap from '../components/PackageTrackingGoogleMap.vue';
+import { fetchTrackingPackage } from '../config/tracking';
 
 export default {
   components: {
@@ -25,10 +41,19 @@ export default {
   },
   props: {
     packageReference: String,
+    guestAccessToken: {
+      type: String,
+      default: '',
+    },
+    returnTo: {
+      type: String,
+      default: '',
+    },
   },
   data() {
     return {
-      trackingState: 'ready',
+      trackingState: 'loading',
+      packageData: null,
       routeInfo: {
         distance: {
           text: '',
@@ -41,9 +66,18 @@ export default {
       },
     };
   },
-  mounted() {
+  async mounted() {
+    this.$store.commit('updateLoaderStatus', true);
+    if (!this.packageReference) {
+      this.trackingState = 'not_found';
+      this.$store.commit('updateLoaderStatus', false);
+      return;
+    }
+
     window.onmessage = (e) => {
-      if (typeof e.data === 'string' && e.data === 'EndLoading') {
+      if (typeof e.data === 'string' && e.data === 'StartLoading') {
+        this.$store.commit('updateLoaderStatus', true);
+      } else if (typeof e.data === 'string' && e.data === 'EndLoading') {
         this.$store.commit('updateLoaderStatus', false);
       } else if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
         this.routeInfo = JSON.parse(e.data.split(';')[1]);
@@ -55,13 +89,36 @@ export default {
         this.$store.commit('updateLoaderStatus', false);
       }
     };
+
+    try {
+      const response = await fetchTrackingPackage(this.packageReference, this.guestAccessToken, this.$i18n);
+      this.packageData = response.data;
+      this.$store.commit('updatePackage', response.data);
+      this.trackingState = 'ready';
+    } catch (error) {
+      const status = error?.response?.status;
+      this.trackingState = status === 404 || status === 403 ? 'not_found' : 'error';
+      this.$store.commit('updateLoaderStatus', false);
+    }
   },
   computed: {
+    showBackButton() {
+      return Boolean(this.returnTo) && !this.guestAccessToken;
+    },
     trackingTitleKey() {
       return this.trackingState === 'not_found' ? 'trackingNotFoundTitle' : 'trackingErrorTitle';
     },
     trackingMessageKey() {
       return this.trackingState === 'not_found' ? 'trackingNotFoundMessage' : 'trackingErrorMessage';
+    },
+  },
+  methods: {
+    goBack() {
+      if (this.returnTo) {
+        this.$router.push(this.returnTo);
+        return;
+      }
+      this.$router.push('/myPackages');
     },
   },
 };
@@ -85,6 +142,21 @@ export default {
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: #020617;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .page-header h1 {
@@ -155,6 +227,10 @@ export default {
   .page-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .back-btn {
+    width: 100%;
   }
 
   .page-header h1 {

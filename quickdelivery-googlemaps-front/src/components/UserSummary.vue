@@ -42,11 +42,15 @@
           </div>
           <div v-if="selectedPaymentType === 'CARD' && user.paymentModes?.CREDIT_CARD?.cardNumber">
             <small>{{ $t('CREDIT_CARD') }}</small>
-            <strong>{{ user.paymentModes.CREDIT_CARD.cardNumber }}</strong>
+            <strong>{{ maskedCardNumber }}</strong>
           </div>
           <div v-if="selectedPaymentType === 'IBAN' && user.paymentModes?.IBAN?.iban">
             <small>{{ $t('IBAN') }}</small>
-            <strong>{{ user.paymentModes.IBAN.iban }}</strong>
+            <strong>{{ maskedIban }}</strong>
+          </div>
+          <div v-if="selectedPaymentType === 'IBAN' && user.paymentModes?.IBAN?.bic">
+            <small>{{ $t('userIBANBIC') }}</small>
+            <strong>{{ maskedBic }}</strong>
           </div>
         </div>
       </section>
@@ -80,6 +84,8 @@
 </template>
 
 <script>
+import { maskBic, maskCardNumber, maskIban } from '@/config/paymentMask';
+
 export default {
   props: {
     selectedPaymentType: {
@@ -110,10 +116,16 @@ export default {
       if (this.selectedPaymentType === 'IBAN') {
         return this.$t('userIBAN');
       }
-      if (this.selectedPaymentType === 'PAYPAL') {
-        return this.$t('userPayPal');
-      }
       return this.$t('userPaymentCreditCard');
+    },
+    maskedCardNumber() {
+      return maskCardNumber(this.user.paymentModes?.CREDIT_CARD?.cardNumber);
+    },
+    maskedIban() {
+      return maskIban(this.user.paymentModes?.IBAN?.iban);
+    },
+    maskedBic() {
+      return maskBic(this.user.paymentModes?.IBAN?.bic);
     },
   },
 };

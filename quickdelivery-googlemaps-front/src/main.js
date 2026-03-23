@@ -7,9 +7,11 @@ import './styles/design-system.css';
 import { handleAuthCallback, initializeMobileAuthCallbackListener } from './config/auth';
 import { ensureMobileBackendHostConfigured } from './config/network';
 import { hydrateConnectedUser } from './config/session';
+import { registerServiceWorker } from './config/pwa';
 
 async function bootstrap() {
   ensureMobileBackendHostConfigured();
+  await registerServiceWorker();
   await initializeMobileAuthCallbackListener();
 
   try {

@@ -17,6 +17,10 @@
         >
         <strong>{{ fileName(document.key) }}</strong>
         <small v-if="documentStatus(document.key)">{{ documentStatus(document.key) }}</small>
+        <div v-if="documentReview(document.key)" class="review-note">
+          <span class="review-label">{{ $t('userDocumentReviewCommentLabel') }}</span>
+          <p>{{ documentReview(document.key) }}</p>
+        </div>
         <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
       </label>
     </div>
@@ -37,9 +41,6 @@
       <div class="payment-pane">
         <CreditCard v-if="internalSelectedPaymentType === 'CARD'" />
         <IBAN v-if="internalSelectedPaymentType === 'IBAN'" :files-error-messages="filesErrorMessages" :is-for-update="isForUpdate" />
-        <div v-if="internalSelectedPaymentType === 'PAYPAL'" class="paypal-panel">
-          {{ $t('userRegistrationPaypalHint') }}
-        </div>
       </div>
     </section>
   </div>
@@ -48,6 +49,7 @@
 <script>
 import CreditCard from './CreditCard.vue';
 import IBAN from './IbanBank.vue';
+import { getRequiredUserDocuments } from '@/config/deliveryMode';
 
 export default {
   emits: ['update:selectedPaymentType'],
@@ -76,16 +78,17 @@ export default {
       return this.isForUpdate && this.user?.activeAccount !== true;
     },
     visibleDocuments() {
-      const isDeliveryPerson = this.user.type === 'DELIVERY_PERSON';
-      const documents = [
-        { key: 'ID', label: 'userDocumentID', ref: 'fileInputID', accept: 'image/*, application/pdf' },
-        { key: 'PICTURE', label: 'PICTURE', ref: 'fileInputPICTURE', accept: 'image/*' },
-        ...(isDeliveryPerson ? [
-          { key: 'DRIVER_LICENCE', label: 'userDocumentDriverLicence', ref: 'fileInputDRIVER_LICENCE', accept: 'image/*, application/pdf' },
-          { key: 'USER_COMPANY_EXTRACT', label: 'userDocumentCompanyExtract', ref: 'fileInputUSER_COMPANY_EXTRACT', accept: 'image/*, application/pdf' },
-          { key: 'USER_COMPANY_INSURANCE', label: 'userDocumentCompanyInsurance', ref: 'fileInputUSER_COMPANY_INSURANCE', accept: 'image/*, application/pdf' },
-        ] : []),
-      ];
+      const definitionByKey = {
+        ID: { key: 'ID', label: 'userDocumentID', ref: 'fileInputID', accept: 'image/*, application/pdf' },
+        PICTURE: { key: 'PICTURE', label: 'PICTURE', ref: 'fileInputPICTURE', accept: 'image/*' },
+        DRIVER_LICENCE: { key: 'DRIVER_LICENCE', label: 'userDocumentDriverLicence', ref: 'fileInputDRIVER_LICENCE', accept: 'image/*, application/pdf' },
+        USER_COMPANY_EXTRACT: { key: 'USER_COMPANY_EXTRACT', label: 'userDocumentCompanyExtract', ref: 'fileInputUSER_COMPANY_EXTRACT', accept: 'image/*, application/pdf' },
+        USER_COMPANY_INSURANCE: { key: 'USER_COMPANY_INSURANCE', label: 'userDocumentCompanyInsurance', ref: 'fileInputUSER_COMPANY_INSURANCE', accept: 'image/*, application/pdf' },
+      };
+      const documentKeys = this.user.type === 'DELIVERY_PERSON'
+        ? getRequiredUserDocuments(this.user)
+        : ['ID', 'PICTURE'];
+      const documents = documentKeys.map((key) => definitionByKey[key]).filter(Boolean);
       if (!this.canUpdateRejectedOnly) {
         return documents;
       }
@@ -99,7 +102,6 @@ export default {
       paymentOptions: [
         { value: 'CARD', label: 'userPaymentCreditCard' },
         { value: 'IBAN', label: 'userIBAN' },
-        { value: 'PAYPAL', label: 'userPayPal' },
       ],
     };
   },
@@ -137,11 +139,15 @@ export default {
       if (!file) {
         return;
       }
-      this.userDocuments[type] = {
-        file,
-        name: file.name,
-        documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
-      };
+      this.$store.commit('updateUserDocuments', {
+        ...this.userDocuments,
+        [type]: {
+          ...this.userDocuments?.[type],
+          file,
+          name: file.name,
+          documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
+        },
+      });
       delete this.filesErrorMessages[type];
     },
     fileName(type) {
@@ -160,6 +166,13 @@ export default {
         return '';
       }
       return this.$t(status);
+    },
+    documentReview(type) {
+      const document = this.userDocuments?.[type];
+      if (!document?.reviewComment) {
+        return '';
+      }
+      return document.reviewComment;
     },
   },
 };
@@ -239,6 +252,29 @@ export default {
   color: #617086;
 }
 
+.review-note {
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.review-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #9f1239;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.review-note p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .payment-toggle {
   display: flex;
   gap: 12px;
@@ -266,14 +302,6 @@ export default {
   margin: 0;
   flex: 0 0 auto;
 }
-
-.paypal-panel {
-  padding: 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  color: #617086;
-}
-
 .upload-card .errorMessage,
 .payment-card .errorMessage,
 .errorMessage {

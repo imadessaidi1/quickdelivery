@@ -38,6 +38,7 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -103,7 +104,7 @@ public class UserServices implements IUserServices {
                 userEntity.setPersonalAddress(new HashSet<>());
                 userEntity.setVehicles(new HashSet<>());
             }
-            String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
+            String filesPath = buildUserFilesPath(user.getEmailAddress());
             filesMap.entrySet().stream()
                     .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
                     .forEach(entry -> {
@@ -116,7 +117,8 @@ public class UserServices implements IUserServices {
                         String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
                         Document document = new Document();
                         document.setType(DOCUMENT_TYPE.valueOf(fileName));
-                        document.setDocURL(filesPath+"\\"+newFileName);
+                        document.setDocURL(resolveDocumentPath(filesPath, newFileName));
+                        document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
                         document.setUser(userEntity);
                         userEntity.getDocument().add(document);
                     });
@@ -146,26 +148,25 @@ public class UserServices implements IUserServices {
         try {
             boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
             sanitizeAddresses(user, deliveryPerson);
-            User userEntity = modelMapper.map(user,User.class);
-            userEntity.setPassword(null);
+            User userEntity = users.findById(user.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            String filesPath = buildUserFilesPath(user.getEmailAddress());
+
+            mergeUserProfile(userEntity, user);
             if (deliveryPerson) {
                 geocodeAddressesIfPossible(user);
-                userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
-                userEntity.getVehicles().forEach(vehicle -> vehicle.setUser(userEntity));
+                mergeVehicle(userEntity, vehicleDTO);
             } else {
                 userEntity.setPersonalAddress(new HashSet<>());
                 userEntity.setVehicles(new HashSet<>());
             }
-            user.getDocument().entrySet().stream()
-                    .forEach(entry -> {
-                        Document document = modelMapper.map(entry.getValue(),Document.class);
-                        document.setUser(userEntity);
-                        userEntity.getDocument().add(document);
-                    });
+
+            applyUpdatedDocuments(userEntity, filesMap, filesPath);
             users.save(userEntity);
-            String filesPath = userDocPath+(user.getEmailAddress().replace('.','_'));
-            FileHelper.saveFilesInParallel(filesMap, filesPath, true);
-            return user;
+            if (!filesMap.isEmpty()) {
+                FileHelper.saveFilesInParallel(filesMap, filesPath, true);
+            }
+            return modelMapper.map(userEntity, UserDTO.class);
         } catch (Exception exception) {
             logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
             throw exception;
@@ -201,13 +202,22 @@ public class UserServices implements IUserServices {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         userFromDB.setActiveAccount(user.getActiveAccount());
         userFromDB.setEmailAddressValidation(user.getEmailAddressValidation());
-        Set<Document> documentListFromFront = new HashSet<>();
-        user.getDocument().keySet().stream().forEach(documentType -> {
-            Document document = modelMapper.map(user.getDocument().get(documentType), Document.class);
-            document.setUser(userFromDB);
-            documentListFromFront.add(document);
+        Map<DOCUMENT_TYPE, Document> existingDocuments = userFromDB.getDocument().stream()
+                .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
+        user.getDocument().forEach((documentType, documentDTO) -> {
+            Document document = existingDocuments.get(documentType);
+            if (document == null) {
+                document = new Document();
+                document.setType(documentType);
+                document.setUser(userFromDB);
+                existingDocuments.put(documentType, document);
+            }
+            document.setDocumentStatus(documentDTO.getDocumentStatus());
+            document.setReviewComment(normalizeReviewComment(documentDTO.getReviewComment(), documentDTO.getDocumentStatus()));
+            document.setReviewedAt(new java.util.Date());
+            document.setReviewedBy("ADMIN");
         });
-        userFromDB.setDocument(documentListFromFront);
+        userFromDB.setDocument(new HashSet<>(existingDocuments.values()));
         users.save(userFromDB);
         keycloakProvisioningService.syncUserState(userFromDB);
         List<Document> rejectedDocuments = userFromDB.getDocument().stream()
@@ -365,7 +375,7 @@ public class UserServices implements IUserServices {
             DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
             if (document.getDocURL() != null && !document.getDocURL().isBlank()) {
                 try {
-                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
+                    documentDTO.setData(readDocumentBytes(document, user.getEmailAddress()));
                 } catch (IOException e) {
                     logger.warn("Document file missing or unreadable for user {} and type {} at {}",
                             user.getEmailAddress(), document.getType(), document.getDocURL(), e);
@@ -373,6 +383,129 @@ public class UserServices implements IUserServices {
             }
             userDTO.getDocument().put(document.getType(), documentDTO);
         });
+    }
+
+    private void mergeUserProfile(User userEntity, UserDTO user) {
+        userEntity.setVersion(user.getVersion());
+        userEntity.setType(user.getType());
+        userEntity.setFirstName(user.getFirstName());
+        userEntity.setLastName(user.getLastName());
+        userEntity.setAge(user.getAge());
+        userEntity.setBirthDate(user.getBirthDate());
+        userEntity.setSex(user.getSex());
+        userEntity.setEmailAddress(user.getEmailAddress());
+        userEntity.setPhone(user.getPhone());
+        userEntity.setPhoneValidation(user.getPhoneValidation());
+        userEntity.setEmailAddressValidation(user.getEmailAddressValidation());
+        userEntity.setActiveAccount(user.getActiveAccount());
+        userEntity.setDeliveryMode(DELIVERY_PERSON.equalsIgnoreCase(user.getType()) ? user.getDeliveryMode() : null);
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            userEntity.setPassword(user.getPassword());
+        }
+        Set<com.quickdelivery.abstarct.entities.Address> addresses = user.getPersonalAddress().stream()
+                .map(addressDTO -> {
+                    com.quickdelivery.abstarct.entities.Address address = modelMapper.map(addressDTO, com.quickdelivery.abstarct.entities.Address.class);
+                    address.setResidents(userEntity);
+                    return address;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        userEntity.setPersonalAddress(addresses);
+        Set<com.quickdelivery.abstarct.entities.Payment> payments = (user.getPaymentModes() == null ? Collections.<com.quickdelivery.abstarct.entities.Payment>emptySet() : user.getPaymentModes().values().stream()
+                .map(paymentDTO -> modelMapper.map(paymentDTO, com.quickdelivery.abstarct.entities.Payment.class))
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
+        userEntity.setPayments(payments);
+        userEntity.getPayments().forEach(payment -> payment.setHolderInApp(userEntity));
+    }
+
+    private void mergeVehicle(User userEntity, VehicleDTO vehicleDTO) {
+        Vehicle vehicle = userEntity.getVehicles().stream().findFirst().orElseGet(() -> {
+            Vehicle newVehicle = new Vehicle();
+            newVehicle.setUser(userEntity);
+            userEntity.getVehicles().add(newVehicle);
+            return newVehicle;
+        });
+        vehicle.setVersion(vehicleDTO.getVersion());
+        vehicle.setRegistrationNumber(vehicleDTO.getRegistrationNumber());
+        vehicle.setBrand(vehicleDTO.getBrand());
+        vehicle.setModel(vehicleDTO.getModel());
+        vehicle.setEnergyType(vehicleDTO.getEnergyType());
+    }
+
+    private void applyUpdatedDocuments(User userEntity, MultiValueMap<String, MultipartFile> filesMap, String filesPath) {
+        if (filesMap == null || filesMap.isEmpty()) {
+            return;
+        }
+
+        Map<DOCUMENT_TYPE, Document> documentsByType = userEntity.getDocument().stream()
+                .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
+
+        filesMap.forEach((fileName, multipartFiles) -> {
+            if (multipartFiles == null || multipartFiles.isEmpty() || multipartFiles.get(0) == null) {
+                return;
+            }
+            MultipartFile file = multipartFiles.get(0);
+            String currentFileName = file.getOriginalFilename();
+            if (currentFileName == null || !currentFileName.contains(".")) {
+                return;
+            }
+
+            DOCUMENT_TYPE documentType = DOCUMENT_TYPE.valueOf(fileName);
+            String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
+            Document document = documentsByType.get(documentType);
+            if (document == null) {
+                document = new Document();
+                document.setType(documentType);
+                document.setUser(userEntity);
+                documentsByType.put(documentType, document);
+            }
+            document.setDocURL(resolveDocumentPath(filesPath, newFileName));
+            document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
+            document.setReviewComment(null);
+            document.setReviewedAt(null);
+            document.setReviewedBy(null);
+        });
+
+        userEntity.setDocument(new HashSet<>(documentsByType.values()));
+    }
+
+    private String normalizeReviewComment(String reviewComment, DOCUMENT_STATUS documentStatus) {
+        if (documentStatus != DOCUMENT_STATUS.REJECTED) {
+            return null;
+        }
+        if (reviewComment == null) {
+            return null;
+        }
+        String trimmedComment = reviewComment.trim();
+        return trimmedComment.isEmpty() ? null : trimmedComment;
+    }
+
+    private String buildUserFilesPath(String emailAddress) {
+        String safeDirectoryName = emailAddress == null ? "unknown" : emailAddress.replace('.', '_');
+        return Paths.get(userDocPath, safeDirectoryName).toString();
+    }
+
+    private String resolveDocumentPath(String directoryPath, String fileName) {
+        Path resolvedPath = Paths.get(directoryPath).resolve(fileName);
+        return resolvedPath.toString();
+    }
+
+    private byte[] readDocumentBytes(Document document, String emailAddress) throws IOException {
+        Path primaryPath = Paths.get(document.getDocURL());
+        if (Files.exists(primaryPath)) {
+            return Files.readAllBytes(primaryPath);
+        }
+
+        String normalizedPathValue = document.getDocURL().replace("\\", java.io.File.separator);
+        Path normalizedPath = Paths.get(normalizedPathValue);
+        if (Files.exists(normalizedPath)) {
+            logger.info("Normalized legacy document path for user {} and type {} from {} to {}",
+                    emailAddress, document.getType(), document.getDocURL(), normalizedPath);
+            document.setDocURL(normalizedPath.toString());
+            documents.save(document);
+            return Files.readAllBytes(normalizedPath);
+        }
+
+        throw new IOException("Document file not found at " + document.getDocURL());
     }
 
     private String buildUserUpdateLink(User user) {

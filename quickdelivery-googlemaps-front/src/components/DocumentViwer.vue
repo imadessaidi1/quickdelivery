@@ -13,10 +13,19 @@
                 {{$t('userDocumentRejected')}}
             </label>
         </div>
+        <div v-if="currentDocument" class="document_review_panel">
+            <label class="review_label" for="review-comment">{{ $t('userDocumentReviewCommentLabel') }}</label>
+            <textarea
+              id="review-comment"
+              v-model="currentDocument.reviewComment"
+              class="review_input"
+              :placeholder="$t('userDocumentReviewCommentPlaceholder')"
+            />
+        </div>
         <div class="navigation-info">
             <div class="navigation-buttons">
                 <button class="nav_btn" @click="previousDocument" :disabled="currentDocIndex === 0"><span class="material-symbols-outlined">chevron_left</span></button>
-                <button class="nav_btn" @click="nextDocument" :disabled="currentDocIndex === documents.length - 1"><span class="material-symbols-outlined">chevron_right</span></button>
+                <button class="nav_btn" @click="nextDocument" :disabled="currentDocIndex === documentKeys.length - 1"><span class="material-symbols-outlined">chevron_right</span></button>
             </div>
         </div>
     </div>
@@ -57,6 +66,11 @@ export default {
         },
     },
     watch: {
+        'currentDocument.documentStatus'(status) {
+            if (status === 'ACCEPTED' && this.currentDocument) {
+                this.currentDocument.reviewComment = '';
+            }
+        },
         documents: {
             deep: true,
             handler() {
@@ -164,6 +178,36 @@ export default {
   margin-right: 5px;
   display: block;
 }
+.document_review_panel{
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 58px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #fff;
+}
+.review_label{
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.review_input{
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  box-sizing: border-box;
+}
+.review_input::placeholder{
+  color: rgba(255,255,255,0.66);
+}
 .navigation-buttons {
   width: 90%;
   display: flex;
@@ -192,5 +236,19 @@ export default {
 .nav_btn span{
     font-size: 26px;
     color: #fff;
+}
+@media screen and (max-width: 767px) {
+  .document_state{
+    width: calc(100% - 24px);
+    left: 12px;
+    right: 12px;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+  .document_review_panel{
+    left: 12px;
+    right: 12px;
+    bottom: 70px;
+  }
 }
 </style>

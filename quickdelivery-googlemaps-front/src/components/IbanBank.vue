@@ -62,11 +62,14 @@ export default {
       if (!file) {
         return;
       }
-      this.userDocuments[type] = {
-        file,
-        name: file.name,
-        documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
-      };
+      this.$store.commit('updateUserDocuments', {
+        ...this.userDocuments,
+        [type]: {
+          file,
+          name: file.name,
+          documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
+        },
+      });
       if (this.filesErrorMessages[type]) {
         delete this.filesErrorMessages[type];
       }

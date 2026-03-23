@@ -9,10 +9,21 @@
     <div class="profile-grid">
       <div class="field-wrap">
         <label for="accountType">{{ $t('userRegistrationAccountType') }}</label>
-        <select id="accountType" v-model="user.type">
+        <select id="accountType" v-model="user.type" @change="handleAccountTypeChange">
           <option value="DELIVERY_PERSON">{{ $t('DELIVERY_PERSON') }}</option>
           <option value="CUSTOMER">{{ $t('CUSTOMER') }}</option>
         </select>
+      </div>
+
+      <div v-if="user.type === 'DELIVERY_PERSON'" class="field-wrap">
+        <label for="deliveryMode">{{ $t('userDeliveryMode') }}</label>
+        <select id="deliveryMode" v-model="user.deliveryMode">
+          <option value="CAR">{{ $t('deliveryModeCar') }}</option>
+          <option value="SCOOTER">{{ $t('deliveryModeScooter') }}</option>
+          <option value="BIKE">{{ $t('deliveryModeBike') }}</option>
+          <option value="ON_FOOT">{{ $t('deliveryModeOnFoot') }}</option>
+        </select>
+        <small class="field-hint">{{ $t('userDeliveryModeHint') }}</small>
       </div>
 
       <div class="field-wrap">
@@ -26,13 +37,13 @@
 
       <div class="field-wrap">
         <label for="firstName">{{ $t('packageAddressFirstName') }}</label>
-        <Field id="firstName" v-model="user.firstName" name="firstName" :rules="validateString" />
+        <Field id="firstName" v-model="user.firstName" name="firstName" autocomplete="given-name" :rules="validateString" />
         <ErrorMessage class="errorMessage" name="firstName" />
       </div>
 
       <div class="field-wrap">
         <label for="lastName">{{ $t('packageAddressLastName') }}</label>
-        <Field id="lastName" v-model="user.lastName" name="lastName" :rules="validateString" />
+        <Field id="lastName" v-model="user.lastName" name="lastName" autocomplete="family-name" :rules="validateString" />
         <ErrorMessage class="errorMessage" name="lastName" />
       </div>
 
@@ -49,14 +60,14 @@
 
       <div class="field-wrap">
         <label for="email">{{ $t('packageAddressEmail') }}</label>
-        <Field id="email" v-model="user.emailAddress" type="email" name="email" :rules="validateEmail" />
+        <Field id="email" v-model="user.emailAddress" type="email" name="email" autocomplete="username email" :rules="validateEmail" />
         <ErrorMessage class="errorMessage" name="email" />
         <span v-if="isExistingEmail" class="errorMessage">{{ existingEmailErrorMessage }}</span>
       </div>
 
       <div class="field-wrap">
         <label for="emailAddressConfirmation">{{ $t('userEmailConfirmation') }}</label>
-        <Field id="emailAddressConfirmation" v-model="user.emailAddressConfirmation" type="email" name="emailAddressConfirmation" :rules="validateEmail" />
+        <Field id="emailAddressConfirmation" v-model="user.emailAddressConfirmation" type="email" name="emailAddressConfirmation" autocomplete="off" :rules="validateEmail" />
         <ErrorMessage class="errorMessage" name="emailAddressConfirmation" />
         <span v-if="isEmailConfirmationError" class="errorMessage">{{ emailConfirmationErrorMessage }}</span>
       </div>
@@ -74,13 +85,13 @@
 
       <div v-if="!isForUpdate" class="field-wrap">
         <label for="password">{{ $t('userPassword') }}</label>
-        <Field id="password" v-model="user.password" type="password" name="password" :rules="validatePassword" />
+        <Field id="password" v-model="user.password" type="password" name="password" autocomplete="new-password" :rules="validatePassword" />
         <ErrorMessage class="errorMessage" name="password" />
       </div>
 
       <div v-if="!isForUpdate" class="field-wrap">
         <label for="passwordConfirmation">{{ $t('userPasswordConfirmation') }}</label>
-        <input id="passwordConfirmation" v-model="user.passwordConfirmation" type="password">
+        <input id="passwordConfirmation" v-model="user.passwordConfirmation" type="password" autocomplete="new-password">
         <span v-if="isPasswordConfirmationError" class="errorMessage">{{ passwordConfirmationErrorMessage }}</span>
       </div>
     </div>
@@ -93,6 +104,7 @@ import { ErrorMessage, Field } from 'vee-validate';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import { validateEmail, validatePassword, validateString } from '@/config/comonFunction';
 import PhoneNumberField from './PhoneNumberField.vue';
+import { DEFAULT_DELIVERY_MODE } from '@/config/deliveryMode';
 
 export default {
   components: {
@@ -137,6 +149,15 @@ export default {
     validateEmail,
     validateString,
     validatePassword,
+    handleAccountTypeChange() {
+      if (this.user.type === 'DELIVERY_PERSON' && !this.user.deliveryMode) {
+        this.user.deliveryMode = DEFAULT_DELIVERY_MODE;
+        return;
+      }
+      if (this.user.type !== 'DELIVERY_PERSON') {
+        this.user.deliveryMode = '';
+      }
+    },
   },
 };
 </script>
@@ -195,6 +216,12 @@ export default {
   font-weight: 600;
   color: #24364f;
   line-height: 1.25;
+}
+
+.field-hint {
+  margin-top: 6px;
+  color: #617086;
+  font-size: 0.82rem;
 }
 
 .field-wrap :deep(input),

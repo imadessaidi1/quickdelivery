@@ -38,6 +38,8 @@ public class User {
     private Boolean activeAccount;
     @Column
     private String password;
+    @Column
+    private String deliveryMode;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "residents", cascade = CascadeType.ALL)
     private Set<Address> personalAddress = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "holderInApp", cascade = CascadeType.ALL)
@@ -209,5 +211,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getDeliveryMode() {
+        return deliveryMode;
+    }
+
+    public void setDeliveryMode(String deliveryMode) {
+        this.deliveryMode = deliveryMode;
     }
 }

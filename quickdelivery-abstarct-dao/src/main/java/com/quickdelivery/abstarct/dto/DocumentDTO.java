@@ -4,6 +4,8 @@ package com.quickdelivery.abstarct.dto;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 
+import java.util.Date;
+
 public class DocumentDTO {
     private Long id;
     private Integer version;
@@ -13,6 +15,9 @@ public class DocumentDTO {
     private byte[] data;
 
     private DOCUMENT_STATUS documentStatus;
+    private String reviewComment;
+    private Date reviewedAt;
+    private String reviewedBy;
 
     public DocumentDTO(){}
 
@@ -70,5 +75,29 @@ public class DocumentDTO {
 
     public void setDocumentStatus(DOCUMENT_STATUS documentStatus) {
         this.documentStatus = documentStatus;
+    }
+
+    public String getReviewComment() {
+        return reviewComment;
+    }
+
+    public void setReviewComment(String reviewComment) {
+        this.reviewComment = reviewComment;
+    }
+
+    public Date getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(Date reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
+    public String getReviewedBy() {
+        return reviewedBy;
+    }
+
+    public void setReviewedBy(String reviewedBy) {
+        this.reviewedBy = reviewedBy;
     }
 }

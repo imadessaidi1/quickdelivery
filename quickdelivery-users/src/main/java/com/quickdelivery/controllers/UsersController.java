@@ -8,6 +8,8 @@ import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.services.interfaces.IUserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -26,6 +28,7 @@ import java.util.Locale;
 @EnableAspectJAutoProxy
 @RequestMapping("/users/v1")
 public class UsersController {
+    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
     @Autowired
     private IUserServices userServices;
     @Value("${quickdelivery.frontend.base-url:}")
@@ -44,7 +47,9 @@ public class UsersController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return userServices.createNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
+        StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
+        logger.info("createUser multipart file keys: {}", multipartRequest.getMultiFileMap().keySet());
+        return userServices.createNewUser(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
     }
     @PostMapping("/update")
     public UserDTO updateUser(MultipartHttpServletRequest request, @RequestParam("user") String user,
@@ -59,7 +64,9 @@ public class UsersController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return userServices.updateNewUser(userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
+        StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
+        logger.info("updateUser multipart file keys: {}", multipartRequest.getMultiFileMap().keySet());
+        return userServices.updateNewUser(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
     }
     @PostMapping("/public-update")
     public UserDTO publicUpdateUser(MultipartHttpServletRequest request, @RequestParam("updateToken") String updateToken,
@@ -75,7 +82,9 @@ public class UsersController {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return userServices.updateUserByToken(updateToken, userDTO, vehicleDTO, ((StandardMultipartHttpServletRequest) request).getMultiFileMap(), locale);
+        StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
+        logger.info("publicUpdateUser multipart file keys: {}", multipartRequest.getMultiFileMap().keySet());
+        return userServices.updateUserByToken(updateToken, userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
     }
     @PutMapping("/validateUser")
     public UserDTO validateUser(@RequestParam("user") String user,

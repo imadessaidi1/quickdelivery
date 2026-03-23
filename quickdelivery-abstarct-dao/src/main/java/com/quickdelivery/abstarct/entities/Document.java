@@ -4,6 +4,8 @@ import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import jakarta.persistence.*;
 
+import java.util.Date;
+
 @Entity
 public class Document {
     @Id
@@ -18,6 +20,12 @@ public class Document {
     private DOCUMENT_TYPE type;
     @Column
     private DOCUMENT_STATUS documentStatus;
+    @Column(length = 1000)
+    private String reviewComment;
+    @Column
+    private Date reviewedAt;
+    @Column
+    private String reviewedBy;
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -92,5 +100,29 @@ public class Document {
 
     public void setDocumentStatus(DOCUMENT_STATUS documentStatus) {
         this.documentStatus = documentStatus;
+    }
+
+    public String getReviewComment() {
+        return reviewComment;
+    }
+
+    public void setReviewComment(String reviewComment) {
+        this.reviewComment = reviewComment;
+    }
+
+    public Date getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(Date reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
+    public String getReviewedBy() {
+        return reviewedBy;
+    }
+
+    public void setReviewedBy(String reviewedBy) {
+        this.reviewedBy = reviewedBy;
     }
 }

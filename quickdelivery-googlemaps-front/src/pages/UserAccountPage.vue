@@ -10,17 +10,23 @@
 
     <div class="page-state" v-if="isLoadingPage">{{ $t('stateLoading') }}</div>
     <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-    <UserAccount v-else-if="selectedUser" :selectedUser="selectedUser"/>
+    <template v-else-if="selectedUser">
+      <CourierReadinessCard :readiness="courierReadiness" variant="compact" />
+      <UserAccount :selectedUser="selectedUser"/>
+    </template>
   </div>
 </template>
 
 <script>
 import UserAccount from '../components/UserAccount.vue';
 import http from '@/config/httpInterceptor';
+import CourierReadinessCard from '../components/CourierReadinessCard.vue';
+import { buildCourierReadiness } from '../config/courierReadiness';
 
 export default {
   components: {
     UserAccount,
+    CourierReadinessCard,
   },
   data() {
     return {
@@ -40,6 +46,11 @@ export default {
     } finally {
       this.isLoadingPage = false;
     }
+  },
+  computed: {
+    courierReadiness() {
+      return buildCourierReadiness(this.selectedUser);
+    },
   },
   methods: {
     async loadUser() {

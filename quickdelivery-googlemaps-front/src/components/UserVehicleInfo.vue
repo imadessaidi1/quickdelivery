@@ -6,7 +6,7 @@
       <p>{{ $t('userRegistrationVehicleSubtitle') }}</p>
     </section>
 
-    <div v-if="user.type !== 'DELIVERY_PERSON'" class="empty-panel">
+    <div v-if="!requiresVehicleSection" class="empty-panel">
       {{ $t('userRegistrationVehicleOptional') }}
     </div>
 
@@ -48,6 +48,11 @@
           <span>{{ $t(document.label) }}</span>
           <input :ref="document.ref" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange(document.ref, document.key)">
           <strong>{{ fileName(document.key) }}</strong>
+          <small v-if="documentStatus(document.key)">{{ documentStatus(document.key) }}</small>
+          <div v-if="documentReview(document.key)" class="review-note">
+            <span class="review-label">{{ $t('userDocumentReviewCommentLabel') }}</span>
+            <p>{{ documentReview(document.key) }}</p>
+          </div>
           <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
         </label>
       </div>
@@ -58,6 +63,7 @@
 <script>
 import { ErrorMessage, Field } from 'vee-validate';
 import { validateCarRegistrationNumber, validateRequired } from '@/config/comonFunction';
+import { getRequiredVehicleDocuments, requiresVehicleDetails } from '@/config/deliveryMode';
 
 export default {
   components: {
@@ -83,11 +89,15 @@ export default {
     canUpdateRejectedOnly() {
       return this.isForUpdate && this.user?.activeAccount !== true;
     },
+    requiresVehicleSection() {
+      return requiresVehicleDetails(this.user);
+    },
     visibleVehicleDocuments() {
-      const documents = [
-        { key: 'GRAY_CARD', label: 'userVehicleGryCard', ref: 'fileInputGRAY_CARD' },
-        { key: 'INSURANCE', label: 'userVehicleInsurance', ref: 'fileInputINSURANCE' },
-      ];
+      const definitionByKey = {
+        GRAY_CARD: { key: 'GRAY_CARD', label: 'userVehicleGryCard', ref: 'fileInputGRAY_CARD' },
+        INSURANCE: { key: 'INSURANCE', label: 'userVehicleInsurance', ref: 'fileInputINSURANCE' },
+      };
+      const documents = getRequiredVehicleDocuments(this.user).map((key) => definitionByKey[key]).filter(Boolean);
       if (!this.canUpdateRejectedOnly) {
         return documents;
       }
@@ -107,11 +117,15 @@ export default {
       if (!file) {
         return;
       }
-      this.vehicleDocuments[type] = {
-        file,
-        name: file.name,
-        documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
-      };
+      this.$store.commit('updateVehicleDocuments', {
+        ...this.vehicleDocuments,
+        [type]: {
+          ...this.vehicleDocuments?.[type],
+          file,
+          name: file.name,
+          documentStatus: this.isForUpdate ? 'UPDATED' : 'ACCEPTED',
+        },
+      });
       delete this.filesErrorMessages[type];
     },
     normalizeRegistrationNumber(event) {
@@ -127,6 +141,20 @@ export default {
         return this.$t(type);
       }
       return this.$t('packageDocumentMissing');
+    },
+    documentStatus(type) {
+      const status = this.vehicleDocuments?.[type]?.documentStatus;
+      if (!status || status === 'UPDATED') {
+        return '';
+      }
+      return this.$t(status);
+    },
+    documentReview(type) {
+      const document = this.vehicleDocuments?.[type];
+      if (!document?.reviewComment) {
+        return '';
+      }
+      return document.reviewComment;
     },
   },
   watch: {
@@ -229,6 +257,33 @@ export default {
 .upload-card strong {
   color: #2b5a96;
   word-break: break-word;
+}
+
+.upload-card small {
+  color: #617086;
+}
+
+.review-note {
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.review-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #9f1239;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.review-note p {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .empty-panel {

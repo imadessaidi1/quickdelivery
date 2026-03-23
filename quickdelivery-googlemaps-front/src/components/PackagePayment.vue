@@ -7,23 +7,15 @@
               <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
               <label for="payByCard">{{ $t('paymentPayByCard') }}</label>
             </div>
-            <div>
-              <input type="radio" id="payByPayPal" value="paypal" v-model="paymentMethod"/>
-              <label for="payByPayPal">{{ $t('paymentPayWithPaypal') }}</label>
-            </div>
         </div>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
             <CreditCard />
             <button class="btn primary_btn" type="submit">{{ $t('paymentPayByCard') }}</button>
         </form>
-        <div class="paypal" v-if="paymentMethod === 'paypal'" @click="redirectToPayPal">
-          <button class="btn primary_btn">{{ $t('paymentPayWithPaypal') }}</button>
-        </div>
         <div class="payment-icons">
           <img src="/visa-ico.png" class="payment-icon"/>
           <img src="/master-card-ico.png" class="payment-icon"/>
           <img src="/amex-ico.png" class="payment-icon"/>
-          <img src="/paypal-ico.png" class="payment-icon"/>
       </div>
     </div>
   </div>
@@ -149,10 +141,6 @@ export default {
           .catch(error => {
             console.error('Error updating package status:', error);
           });
-    },
-    redirectToPayPal() {
-      // Redirection vers PayPal pour finaliser le paiement
-      window.location.href = `https://www.paypal.com/paypalme/votreentreprise/${this.amount}`;
     }
   }
 };
@@ -210,10 +198,6 @@ export default {
 .payment-method label{
   font-size: 12px;
   margin: 0;
-}
-.paypal{
-  width: max-content;
-  margin: 25px auto 90px auto;
 }
 </style>
 

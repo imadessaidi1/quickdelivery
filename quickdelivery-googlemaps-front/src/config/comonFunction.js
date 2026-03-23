@@ -311,7 +311,7 @@ export function validateFileInput(selectedFilesKeys, documentsList){
     let results = [];
     if(selectedFilesKeys){
         selectedFilesKeys.forEach(key => {
-              if(!documentsList[key]){
+              if(!documentsList[key]?.file){
                 results.push({status : false, missingKey: key});
               }
         });

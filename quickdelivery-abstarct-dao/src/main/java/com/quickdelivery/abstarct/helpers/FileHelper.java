@@ -17,7 +17,7 @@ public class FileHelper {
         if (filesMap != null) {
             ExecutorService executorService = Executors.newFixedThreadPool(10);
             File userDirectory = new File(path);
-            boolean dirCreation = userDirectory.mkdir();
+            boolean dirCreation = userDirectory.mkdirs();
             if(dirCreation || isForUpdate){
                 filesMap.entrySet().stream()
                         .forEach(entry -> {

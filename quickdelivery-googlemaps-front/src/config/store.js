@@ -40,6 +40,7 @@ export default createStore({
       showMessage: false,
       requestSuccess: false,
       requestMessage: '',
+      canInstallPwa: false,
       notifications: [],
       package_: {
         id: null,
@@ -122,6 +123,7 @@ export default createStore({
                 emailAddressConfirmation: '',
                 phoneConfirmation: '',
                 addressAuto: '',
+                deliveryMode: 'CAR',
                 personalAddress: [
                   {
                     id: null,
@@ -209,6 +211,9 @@ export default createStore({
       },
       updateRequestMessage(state, requestMessage_) {
         state.requestMessage = requestMessage_;
+      },
+      updateCanInstallPwa(state, canInstallPwa) {
+        state.canInstallPwa = !!canInstallPwa;
       },
       updateUser(state, updatedUser) {
         state.user = updatedUser;

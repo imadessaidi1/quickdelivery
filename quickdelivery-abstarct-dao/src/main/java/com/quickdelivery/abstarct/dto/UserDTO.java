@@ -32,6 +32,7 @@ public class UserDTO {
     private String password;
 
     private String addressAuto;
+    private String deliveryMode;
 
     private String passwordConfirmation;
     private List<AddressDTO> personalAddress;
@@ -185,6 +186,14 @@ public class UserDTO {
 
     public void setAddressAuto(String addressAuto) {
         this.addressAuto = addressAuto;
+    }
+
+    public String getDeliveryMode() {
+        return deliveryMode;
+    }
+
+    public void setDeliveryMode(String deliveryMode) {
+        this.deliveryMode = deliveryMode;
     }
 
     public Integer getAge() {

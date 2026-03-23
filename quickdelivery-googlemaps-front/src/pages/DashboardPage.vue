@@ -657,26 +657,35 @@ export default {
 }
 
 .todo-list li,
+.timeline-item,
 .upcoming-item {
   padding: 14px 16px;
   border-radius: 16px;
   background: #f8fafc;
   color: #334155;
+  border: 1px solid #e7edf6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .timeline-item {
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   gap: 12px;
-  align-items: start;
+  align-items: center;
+  min-width: 0;
 }
 
 .timeline-dot {
-  width: 14px;
-  height: 14px;
-  margin-top: 4px;
+  width: 40px;
+  height: 40px;
+  margin-top: 0;
   border-radius: 50%;
   background: linear-gradient(180deg, #24558f 0%, #38bdf8 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 8px 18px rgba(36, 85, 143, 0.18);
+}
+
+.timeline-item > div:last-child {
+  min-width: 0;
 }
 
 .timeline-item strong,

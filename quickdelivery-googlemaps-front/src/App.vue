@@ -11,15 +11,24 @@
         </keep-alive>
         <component v-if="!route.meta?.keepAlive" :is="Component" :key="route.fullPath" />
       </router-view>
-      <ScrollUp/>
     </div>
+    <teleport to="body">
+      <button
+        v-show="showScrollTopButton"
+        class="global-scroll-top"
+        type="button"
+        aria-label="Scroll to top"
+        @click="scrollPageToTop"
+      >
+        <span class="material-symbols-outlined">arrow_upward</span>
+      </button>
+    </teleport>
     <AppMessages />
   </div>
 </template>
 
 <script>
 import SearchBar from './components/SearchBar.vue';
-import ScrollUp from './components/ScrollUp.vue';
 import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
@@ -61,6 +70,9 @@ export default {
       lastSentPosition: null,
       lastPositionSentAt: 0,
       trackingSubscriptions: {},
+      showScrollTopButton: false,
+      scrollWatcherTimer: null,
+      deferredInstallPrompt: null,
     };
   },
   watch: {
@@ -81,13 +93,89 @@ export default {
   mounted() {
     window.addEventListener('qd-track-package-subscribe', this.handleTrackingSubscriptionEvent);
     window.addEventListener('qd-track-package-unsubscribe', this.handleTrackingUnsubscriptionEvent);
+    window.addEventListener('beforeinstallprompt', this.handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', this.handleAppInstalled);
+    window.addEventListener('qd-install-pwa', this.handleInstallRequest);
+    this.bindGlobalScrollWatchers();
+    this.refreshPwaInstallState();
   },
   beforeUnmount() {
     window.removeEventListener('qd-track-package-subscribe', this.handleTrackingSubscriptionEvent);
     window.removeEventListener('qd-track-package-unsubscribe', this.handleTrackingUnsubscriptionEvent);
+    window.removeEventListener('beforeinstallprompt', this.handleBeforeInstallPrompt);
+    window.removeEventListener('appinstalled', this.handleAppInstalled);
+    window.removeEventListener('qd-install-pwa', this.handleInstallRequest);
+    this.unbindGlobalScrollWatchers();
     this.destroyRealtime();
   },
   methods: {
+    isStandaloneMode() {
+      return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    },
+    refreshPwaInstallState() {
+      this.$store.commit('updateCanInstallPwa', !!this.deferredInstallPrompt && !this.isStandaloneMode());
+    },
+    handleBeforeInstallPrompt(event) {
+      event.preventDefault();
+      this.deferredInstallPrompt = event;
+      this.refreshPwaInstallState();
+    },
+    handleAppInstalled() {
+      this.deferredInstallPrompt = null;
+      this.refreshPwaInstallState();
+    },
+    async handleInstallRequest() {
+      if (!this.deferredInstallPrompt) {
+        return;
+      }
+
+      try {
+        await this.deferredInstallPrompt.prompt();
+        await this.deferredInstallPrompt.userChoice;
+      } catch (error) {
+        console.warn('PWA installation prompt failed:', error);
+      } finally {
+        this.deferredInstallPrompt = null;
+        this.refreshPwaInstallState();
+      }
+    },
+    bindGlobalScrollWatchers() {
+      window.addEventListener('scroll', this.updateScrollTopButton, true);
+      document.addEventListener('scroll', this.updateScrollTopButton, true);
+      this.scrollWatcherTimer = window.setInterval(this.updateScrollTopButton, 300);
+      this.updateScrollTopButton();
+    },
+    unbindGlobalScrollWatchers() {
+      window.removeEventListener('scroll', this.updateScrollTopButton, true);
+      document.removeEventListener('scroll', this.updateScrollTopButton, true);
+      if (this.scrollWatcherTimer) {
+        window.clearInterval(this.scrollWatcherTimer);
+        this.scrollWatcherTimer = null;
+      }
+    },
+    currentScrollOffset() {
+      const elementOffsets = Array.from(document.querySelectorAll('*'))
+        .map((element) => element.scrollTop || 0);
+      return Math.max(
+        window.pageYOffset || 0,
+        document.documentElement.scrollTop || 0,
+        document.body.scrollTop || 0,
+        ...elementOffsets
+      );
+    },
+    updateScrollTopButton() {
+      this.showScrollTopButton = this.currentScrollOffset() > 120;
+    },
+    scrollPageToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo?.({ top: 0, behavior: 'smooth' });
+      document.body.scrollTo?.({ top: 0, behavior: 'smooth' });
+      Array.from(document.querySelectorAll('*')).forEach((element) => {
+        if ((element.scrollTop || 0) > 0) {
+          element.scrollTo?.({ top: 0, behavior: 'smooth' });
+        }
+      });
+    },
     destroyRealtime() {
       this.stopLocationTracking();
       this.socketReady = false;
@@ -408,7 +496,6 @@ export default {
     SearchBar,
     Loading,
     AppMessages,
-    ScrollUp,
   },
 };
 </script>
@@ -431,5 +518,48 @@ export default {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+}
+.global-scroll-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px) + 12px);
+  bottom: max(20px, env(safe-area-inset-bottom, 0px) + 16px);
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef7d32, #cf6320);
+  color: #fff;
+  font-size: 0;
+  box-shadow: 0 14px 28px rgba(239, 125, 50, 0.28);
+  z-index: 10000;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+.global-scroll-top:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(239, 125, 50, 0.34);
+}
+.global-scroll-top .material-symbols-outlined {
+  font-size: 24px;
+  line-height: 1;
+  color: #fff;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+}
+@media screen and (max-width: 767px) {
+  .global-scroll-top {
+    width: 46px;
+    height: 46px;
+  }
+  .global-scroll-top .material-symbols-outlined {
+    font-size: 22px;
+  }
 }
 </style>

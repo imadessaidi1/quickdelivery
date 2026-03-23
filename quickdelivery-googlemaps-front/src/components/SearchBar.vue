@@ -31,6 +31,7 @@
                 <span v-if="unreadNotificationsCount" class="menu-badge">{{ unreadNotificationsCount }}</span>
               </li>
             </router-link>
+            <li v-if="canInstallPwa" @click="installPwa">{{$t('menuInstallApp')}}</li>
             <router-link @click="loginMenu" to="/userAccount"><li>{{$t('menuUuserAccount')}}</li></router-link>
             <li @click="logoutUser">{{$t('menuUserLogout')}}</li>
         </ul>
@@ -93,6 +94,9 @@ export default {
     unreadNotificationsCount() {
       return this.$store.getters.unreadNotificationsCount || 0;
     },
+    canInstallPwa() {
+      return this.$store.state.canInstallPwa;
+    },
     homeRoute() {
       return resolveLandingPathForCurrentUser();
     },
@@ -127,6 +131,10 @@ export default {
     logoutUser() {
       this.isActiveLoginMenu = false;
       logout();
+    },
+    installPwa() {
+      this.isActiveLoginMenu = false;
+      window.dispatchEvent(new CustomEvent('qd-install-pwa'));
     },
   },
 };

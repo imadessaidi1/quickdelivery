@@ -30,10 +30,66 @@ body,
     radial-gradient(circle at top right, rgba(239, 125, 50, 0.16), transparent 18%),
     linear-gradient(180deg, #fff7f0 0%, #f8efe4 100%);
   color: var(--qd-text);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   font-family: "Open Sans", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+canvas,
+video,
+iframe {
+  max-width: 100%;
+}
+
+.page-header > *,
+.page-head > *,
+.page-shell,
+.summary-shell,
+.panel-card,
+.wizard-card,
+.wizard-sidebar,
+.packages-shell,
+.map-shell,
+.filters-panel,
+.documents-card,
+.details-card,
+.accounts-grid,
+.page-grid,
+.information-viewer,
+.documents-step,
+.vehicle-step,
+.user-profile-step,
+.user-profile-layout,
+.card-content,
+.payment-pane {
+  min-width: 0 !important;
+}
+
+.page-header h1,
+.page-header p,
+.page-head h1,
+.page-head p,
+.panel-card,
+.card,
+.package-card,
+.summary-card,
+.field-wrap,
+.meta-row,
+.card-meta,
+.rejected-chip,
+.status-chip {
+  overflow-wrap: anywhere;
 }
 
 .page-header,
@@ -411,4 +467,24 @@ body {
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+@media screen and (max-width: 767px) {
+  .page-header,
+  .page-head {
+    padding: 18px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .page-header h1,
+  .page-head h1 {
+    font-size: clamp(1.65rem, 6vw, 2.2rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  .header-chip,
+  .reference-chip,
+  .page-chip {
+    max-width: 100% !important;
+  }
 }

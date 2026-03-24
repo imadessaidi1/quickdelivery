@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.Ordered;
 
 @Configuration
 public class AdminUserBootstrap {
@@ -15,6 +17,7 @@ public class AdminUserBootstrap {
     private static final Logger logger = LoggerFactory.getLogger(AdminUserBootstrap.class);
 
     @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
     public ApplicationRunner adminUserInitializer(
             Users users,
             @Value("${quickdelivery.bootstrap.admin.enabled:true}") boolean enabled,

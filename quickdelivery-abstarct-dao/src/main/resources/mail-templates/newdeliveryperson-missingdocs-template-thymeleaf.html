@@ -22,6 +22,15 @@
 <p style="margin:0 0 24px;font-size:15px;line-height:1.7;" th:text="#{email.missingDocs.message}">
     Your delivery profile cannot be approved yet. Please update the requested information or documents.
 </p>
+<div th:if="${rejectedDocuments != null and !#lists.isEmpty(rejectedDocuments)}" style="margin:0 0 24px;padding:18px 20px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;">
+    <div style="margin:0 0 12px;font-size:15px;font-weight:700;color:#0f2d52;" th:text="#{email.missingDocs.rejectedListTitle}">
+        Documents to update
+    </div>
+    <div th:each="document : ${rejectedDocuments}" style="margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;color:#172033;" th:text="${document.label}">Identity document</div>
+        <div style="font-size:14px;line-height:1.6;color:#475569;" th:text="${document.reason}">Please upload a clearer and compliant document.</div>
+    </div>
+</div>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
     <tr>
         <td style="border-radius:10px;background:#ff7a00;">

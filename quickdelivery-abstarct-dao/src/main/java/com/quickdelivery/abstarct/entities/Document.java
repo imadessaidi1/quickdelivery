@@ -2,6 +2,9 @@ package com.quickdelivery.abstarct.entities;
 
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_MATCH_STATUS;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_OCR_STATUS;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_VALIDATION_STATUS;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -26,6 +29,36 @@ public class Document {
     private Date reviewedAt;
     @Column
     private String reviewedBy;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DOCUMENT_VALIDATION_STATUS validationStatus;
+    @Column
+    private String validationCode;
+    @Column(length = 1000)
+    private String validationDetails;
+    @Column
+    private Boolean validatedAutomatically;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DOCUMENT_OCR_STATUS ocrStatus;
+    @Column
+    private String ocrProvider;
+    @Column
+    private Double ocrConfidenceScore;
+    @Column(length = 8000)
+    private String ocrExtractedData;
+    @Column
+    private Date ocrProcessedAt;
+    @Column
+    private String ocrErrorCode;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private DOCUMENT_MATCH_STATUS matchStatus;
+    @Column
+    private Double matchScore;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String matchDetails;
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -124,5 +157,109 @@ public class Document {
 
     public void setReviewedBy(String reviewedBy) {
         this.reviewedBy = reviewedBy;
+    }
+
+    public DOCUMENT_VALIDATION_STATUS getValidationStatus() {
+        return validationStatus;
+    }
+
+    public void setValidationStatus(DOCUMENT_VALIDATION_STATUS validationStatus) {
+        this.validationStatus = validationStatus;
+    }
+
+    public String getValidationCode() {
+        return validationCode;
+    }
+
+    public void setValidationCode(String validationCode) {
+        this.validationCode = validationCode;
+    }
+
+    public String getValidationDetails() {
+        return validationDetails;
+    }
+
+    public void setValidationDetails(String validationDetails) {
+        this.validationDetails = validationDetails;
+    }
+
+    public Boolean getValidatedAutomatically() {
+        return validatedAutomatically;
+    }
+
+    public void setValidatedAutomatically(Boolean validatedAutomatically) {
+        this.validatedAutomatically = validatedAutomatically;
+    }
+
+    public DOCUMENT_OCR_STATUS getOcrStatus() {
+        return ocrStatus;
+    }
+
+    public void setOcrStatus(DOCUMENT_OCR_STATUS ocrStatus) {
+        this.ocrStatus = ocrStatus;
+    }
+
+    public String getOcrProvider() {
+        return ocrProvider;
+    }
+
+    public void setOcrProvider(String ocrProvider) {
+        this.ocrProvider = ocrProvider;
+    }
+
+    public Double getOcrConfidenceScore() {
+        return ocrConfidenceScore;
+    }
+
+    public void setOcrConfidenceScore(Double ocrConfidenceScore) {
+        this.ocrConfidenceScore = ocrConfidenceScore;
+    }
+
+    public String getOcrExtractedData() {
+        return ocrExtractedData;
+    }
+
+    public void setOcrExtractedData(String ocrExtractedData) {
+        this.ocrExtractedData = ocrExtractedData;
+    }
+
+    public Date getOcrProcessedAt() {
+        return ocrProcessedAt;
+    }
+
+    public void setOcrProcessedAt(Date ocrProcessedAt) {
+        this.ocrProcessedAt = ocrProcessedAt;
+    }
+
+    public String getOcrErrorCode() {
+        return ocrErrorCode;
+    }
+
+    public void setOcrErrorCode(String ocrErrorCode) {
+        this.ocrErrorCode = ocrErrorCode;
+    }
+
+    public DOCUMENT_MATCH_STATUS getMatchStatus() {
+        return matchStatus;
+    }
+
+    public void setMatchStatus(DOCUMENT_MATCH_STATUS matchStatus) {
+        this.matchStatus = matchStatus;
+    }
+
+    public Double getMatchScore() {
+        return matchScore;
+    }
+
+    public void setMatchScore(Double matchScore) {
+        this.matchScore = matchScore;
+    }
+
+    public String getMatchDetails() {
+        return matchDetails;
+    }
+
+    public void setMatchDetails(String matchDetails) {
+        this.matchDetails = matchDetails;
     }
 }

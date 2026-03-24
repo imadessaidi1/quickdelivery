@@ -40,8 +40,6 @@ import http from '@/config/httpInterceptor';
 import DocumentViewer from '../components/DocumentViwer.vue';
 import UserDetails from '../components/UserDetails.vue';
 
-const STORAGE_KEY = 'qd_validation_user';
-
 export default {
   components: {
     UserDetails,
@@ -67,18 +65,22 @@ export default {
     },
   },
   mounted() {
-    const rawUser = sessionStorage.getItem(STORAGE_KEY);
-    if (!rawUser) {
-      this.goBack();
-      return;
-    }
-    try {
-      this.selectedUser = JSON.parse(rawUser);
-    } catch (_error) {
-      this.goBack();
-    }
+    this.loadUser();
   },
   methods: {
+    async loadUser() {
+      const userId = this.$route.query.id;
+      if (!userId) {
+        this.goBack();
+        return;
+      }
+      try {
+        const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserById')}${encodeURIComponent(userId)}`);
+        this.selectedUser = response.data;
+      } catch (_error) {
+        this.goBack();
+      }
+    },
     goBack() {
       if (this.returnTo) {
         this.$router.push(this.returnTo);
@@ -100,7 +102,6 @@ export default {
       formData.append('user', JSON.stringify(userCopy));
       try {
         await http.put(url, formData);
-        sessionStorage.removeItem(STORAGE_KEY);
         this.$router.push(this.returnTo || '/usersAccountValidation');
       } catch (error) {
         console.error('Unable to process your request at this time. Please try again later.', error);
@@ -112,10 +113,12 @@ export default {
 
 <style scoped>
 .validation-details-page {
-  min-height: 100%;
+  min-height: 100vh;
   padding: 24px;
   background: #f6f7f9;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-head {
@@ -154,6 +157,9 @@ export default {
   display: grid;
   grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.2fr);
   gap: 18px;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .details-card,
@@ -164,6 +170,15 @@ export default {
   background: #ffffff;
   overflow: hidden;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.details-card,
+.documents-card {
+  min-height: clamp(560px, calc(100vh - 250px), 860px);
+}
+
+.documents-card {
+  min-width: 0;
 }
 
 .decision-panel {
@@ -210,6 +225,11 @@ export default {
   .page-grid {
     grid-template-columns: 1fr;
   }
+
+  .details-card,
+  .documents-card {
+    min-height: 520px;
+  }
 }
 
 @media screen and (max-width: 767px) {
@@ -225,6 +245,11 @@ export default {
 
   .save-btn {
     width: 100%;
+  }
+
+  .details-card,
+  .documents-card {
+    min-height: 460px;
   }
 }
 </style>

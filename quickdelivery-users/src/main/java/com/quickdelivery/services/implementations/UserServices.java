@@ -13,14 +13,19 @@ import com.quickdelivery.abstarct.helpers.FileHelper;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.MailHelper;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_MATCH_STATUS;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_OCR_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
+import com.quickdelivery.abstarct.parameters.DOCUMENT_VALIDATION_STATUS;
 import com.quickdelivery.abstarct.parameters.EMAIL_TEMPLATE_TYPE;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.services.interfaces.IKeycloakProvisioningService;
 import com.quickdelivery.services.interfaces.IUserServices;
 import com.quickdelivery.security.UserUpdateTokenService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -31,6 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,6 +57,16 @@ import org.springframework.http.HttpStatus;
 @Transactional
 public class UserServices implements IUserServices {
     private static final String DELIVERY_PERSON = "DELIVERY_PERSON";
+    private static final long MAX_DOCUMENT_SIZE_BYTES = 10L * 1024L * 1024L;
+    private static final Set<String> ALLOWED_DOCUMENT_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".pdf", ".webp");
+    private static final Set<String> ALLOWED_DOCUMENT_CONTENT_TYPES = Set.of(
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp",
+            "application/pdf"
+    );
+    private static final String SYSTEM_REVIEWER = "SYSTEM";
     private static final Logger logger = LoggerFactory.getLogger(UserServices.class);
 
     @Value("${mapquest.geocode.url.part1}")
@@ -87,12 +104,19 @@ public class UserServices implements IUserServices {
     private IKeycloakProvisioningService keycloakProvisioningService;
     @Autowired
     private UserUpdateTokenService userUpdateTokenService;
+    @Autowired
+    private UserOnboardingValidationService userOnboardingValidationService;
+    @Autowired
+    private DocumentOcrOrchestrator documentOcrOrchestrator;
+    @Autowired
+    private ObjectMapper objectMapper;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         try {
             boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
             String rawPassword = user.getPassword();
             sanitizeAddresses(user, deliveryPerson);
+            validateOnboardingRequest(userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
             User userEntity = modelMapper.map(user,User.class);
             if (deliveryPerson) {
                 geocodeAddressesIfPossible(user);
@@ -105,27 +129,35 @@ public class UserServices implements IUserServices {
                 userEntity.setVehicles(new HashSet<>());
             }
             String filesPath = buildUserFilesPath(user.getEmailAddress());
+            MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
             filesMap.entrySet().stream()
                     .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
                     .forEach(entry -> {
                         String fileName = entry.getKey();
                         MultipartFile file = entry.getValue().get(0);
+                        DocumentValidationResult validationResult = validateDocumentFile(file, locale);
+                        Document document = new Document();
+                        document.setType(DOCUMENT_TYPE.valueOf(fileName));
+                        document.setUser(userEntity);
+                        applyValidationOutcome(document, validationResult);
+                        if (!validationResult.valid()) {
+                            userEntity.getDocument().add(document);
+                            return;
+                        }
                         String currentFileName = file.getOriginalFilename();
                         if (currentFileName == null || !currentFileName.contains(".")) {
                             return;
                         }
                         String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
-                        Document document = new Document();
-                        document.setType(DOCUMENT_TYPE.valueOf(fileName));
                         document.setDocURL(resolveDocumentPath(filesPath, newFileName));
-                        document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
-                        document.setUser(userEntity);
                         userEntity.getDocument().add(document);
+                        validFilesMap.add(fileName, file);
                     });
             users.save(userEntity);
             keycloakProvisioningService.provisionUser(userEntity, rawPassword);
-            if (!filesMap.isEmpty()) {
-                FileHelper.saveFilesInParallel(filesMap, filesPath, false);
+            if (!validFilesMap.isEmpty()) {
+                FileHelper.saveFilesInParallel(validFilesMap, filesPath, false);
+                triggerOcrForUploadedDocuments(userEntity, validFilesMap);
             }
             userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
             user.setId(userEntity.getId());
@@ -150,6 +182,7 @@ public class UserServices implements IUserServices {
             sanitizeAddresses(user, deliveryPerson);
             User userEntity = users.findById(user.getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
             String filesPath = buildUserFilesPath(user.getEmailAddress());
 
             mergeUserProfile(userEntity, user);
@@ -161,10 +194,11 @@ public class UserServices implements IUserServices {
                 userEntity.setVehicles(new HashSet<>());
             }
 
-            applyUpdatedDocuments(userEntity, filesMap, filesPath);
+            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
             users.save(userEntity);
-            if (!filesMap.isEmpty()) {
-                FileHelper.saveFilesInParallel(filesMap, filesPath, true);
+            if (!validFilesMap.isEmpty()) {
+                FileHelper.saveFilesInParallel(validFilesMap, filesPath, true);
+                triggerOcrForUploadedDocuments(userEntity, validFilesMap);
             }
             return modelMapper.map(userEntity, UserDTO.class);
         } catch (Exception exception) {
@@ -187,7 +221,16 @@ public class UserServices implements IUserServices {
     public UserDTO findByID(Long id) {
         User user = users.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return modelMapper.map(user,UserDTO.class);
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
+            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+        }
+        userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
+        userDTO.setPhoneConfirmation(userDTO.getPhone());
+        userDTO.setPassword(null);
+        userDTO.setPasswordConfirmation(null);
+        attachDocumentsSafely(user, userDTO);
+        return userDTO;
     }
 
     @Override
@@ -213,7 +256,7 @@ public class UserServices implements IUserServices {
                 existingDocuments.put(documentType, document);
             }
             document.setDocumentStatus(documentDTO.getDocumentStatus());
-            document.setReviewComment(normalizeReviewComment(documentDTO.getReviewComment(), documentDTO.getDocumentStatus()));
+            document.setReviewComment(resolveReviewComment(documentDTO, locale));
             document.setReviewedAt(new java.util.Date());
             document.setReviewedBy("ADMIN");
         });
@@ -302,6 +345,14 @@ public class UserServices implements IUserServices {
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("updateLink", buildUserUpdateLink(userEntity));
+        templateModel.put("rejectedDocuments", rejectedDocuments.stream()
+                .map(document -> Map.of(
+                        "label", formatDocumentType(document.getType(), locale),
+                        "reason", Optional.ofNullable(document.getReviewComment())
+                                .filter(comment -> !comment.isBlank())
+                                .orElse(localizedMissingReviewReason(locale))
+                ))
+                .toList());
         try {
             MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.userUpdateDocsRequest", null, locale),templateModel,
                     locale, EMAIL_TEMPLATE_TYPE.DELIVERYPERSON_DOCUPDATE_REQUEST.getType(), null);
@@ -431,9 +482,10 @@ public class UserServices implements IUserServices {
         vehicle.setEnergyType(vehicleDTO.getEnergyType());
     }
 
-    private void applyUpdatedDocuments(User userEntity, MultiValueMap<String, MultipartFile> filesMap, String filesPath) {
+    private MultiValueMap<String, MultipartFile> applyUpdatedDocuments(User userEntity, MultiValueMap<String, MultipartFile> filesMap, String filesPath, Locale locale) {
+        MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
         if (filesMap == null || filesMap.isEmpty()) {
-            return;
+            return validFilesMap;
         }
 
         Map<DOCUMENT_TYPE, Document> documentsByType = userEntity.getDocument().stream()
@@ -450,6 +502,7 @@ public class UserServices implements IUserServices {
             }
 
             DOCUMENT_TYPE documentType = DOCUMENT_TYPE.valueOf(fileName);
+            DocumentValidationResult validationResult = validateDocumentFile(file, locale);
             String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
             Document document = documentsByType.get(documentType);
             if (document == null) {
@@ -458,25 +511,123 @@ public class UserServices implements IUserServices {
                 document.setUser(userEntity);
                 documentsByType.put(documentType, document);
             }
+            applyValidationOutcome(document, validationResult);
+            if (!validationResult.valid()) {
+                return;
+            }
             document.setDocURL(resolveDocumentPath(filesPath, newFileName));
-            document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
-            document.setReviewComment(null);
-            document.setReviewedAt(null);
-            document.setReviewedBy(null);
+            validFilesMap.add(fileName, file);
         });
 
         userEntity.setDocument(new HashSet<>(documentsByType.values()));
+        return validFilesMap;
     }
 
-    private String normalizeReviewComment(String reviewComment, DOCUMENT_STATUS documentStatus) {
-        if (documentStatus != DOCUMENT_STATUS.REJECTED) {
+    private String resolveReviewComment(DocumentDTO documentDTO, Locale locale) {
+        if (documentDTO == null || documentDTO.getDocumentStatus() != DOCUMENT_STATUS.REJECTED) {
             return null;
         }
+        String reviewComment = documentDTO.getReviewComment();
         if (reviewComment == null) {
-            return null;
+            return buildSuggestedReviewComment(documentDTO, locale);
         }
         String trimmedComment = reviewComment.trim();
-        return trimmedComment.isEmpty() ? null : trimmedComment;
+        return trimmedComment.isEmpty() ? buildSuggestedReviewComment(documentDTO, locale) : trimmedComment;
+    }
+
+    private String buildSuggestedReviewComment(DocumentDTO documentDTO, Locale locale) {
+        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
+        List<String> reasons = new ArrayList<>();
+
+        if (documentDTO.getOcrErrorCode() != null && !documentDTO.getOcrErrorCode().isBlank()) {
+            reasons.add(french
+                    ? "Le document n'a pas pu etre analyse automatiquement : " + documentDTO.getOcrErrorCode() + "."
+                    : "The document could not be analyzed automatically: " + documentDTO.getOcrErrorCode() + ".");
+        }
+
+        if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.MISMATCH) {
+            List<String> mismatchedFields = extractMismatchedFields(documentDTO.getMatchDetails());
+            if (mismatchedFields.isEmpty()) {
+                reasons.add(french
+                        ? "Les informations detectees ne correspondent pas au profil declare."
+                        : "The detected information does not match the declared profile.");
+            } else {
+                reasons.add((french
+                        ? "Les informations suivantes ne correspondent pas au profil declare : "
+                        : "The following fields do not match the declared profile: ")
+                        + String.join(", ", mismatchedFields) + ".");
+            }
+        } else if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.REVIEW_REQUIRED
+                || documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.UNAVAILABLE) {
+            reasons.add(french
+                    ? "La correspondance automatique est insuffisante pour valider ce document."
+                    : "Automatic matching is insufficient to validate this document.");
+        }
+
+        if (documentDTO.getOcrConfidenceScore() != null && documentDTO.getOcrConfidenceScore() < 1d) {
+            reasons.add((french
+                    ? "La confiance OCR est inferieure a 100% ("
+                    : "OCR confidence is below 100% (")
+                    + Math.round(documentDTO.getOcrConfidenceScore() * 100d)
+                    + "%).");
+        }
+
+        if (reasons.isEmpty()) {
+            reasons.add(localizedMissingReviewReason(locale));
+        }
+
+        return String.join(" ", reasons);
+    }
+
+    private List<String> extractMismatchedFields(String matchDetails) {
+        if (matchDetails == null || matchDetails.isBlank()) {
+            return List.of();
+        }
+        try {
+            JsonNode root = objectMapper.readTree(matchDetails);
+            JsonNode checks = root.path("checks");
+            if (!checks.isArray()) {
+                return List.of();
+            }
+            List<String> fields = new ArrayList<>();
+            for (JsonNode check : checks) {
+                if ("mismatch".equalsIgnoreCase(check.path("status").asText())) {
+                    String field = check.path("field").asText();
+                    if (!field.isBlank()) {
+                        fields.add(field);
+                    }
+                }
+            }
+            return fields;
+        } catch (Exception exception) {
+            logger.debug("Unable to parse match details for rejection suggestion: {}", exception.getMessage());
+            return List.of();
+        }
+    }
+
+    private String formatDocumentType(DOCUMENT_TYPE documentType, Locale locale) {
+        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
+        if (documentType == null) {
+            return french ? "Document" : "Document";
+        }
+        return switch (documentType) {
+            case ID -> french ? "Piece d'identite" : "Identity document";
+            case DRIVER_LICENCE -> french ? "Permis de conduire" : "Driver licence";
+            case GRAY_CARD -> french ? "Carte grise" : "Vehicle registration";
+            case INSURANCE -> french ? "Assurance" : "Insurance";
+            case USER_COMPANY_INSURANCE -> french ? "Assurance d'entreprise" : "Company insurance";
+            case USER_COMPANY_EXTRACT -> french ? "Extrait d'entreprise" : "Company extract";
+            case PICTURE -> french ? "Photo" : "Picture";
+            case RIB -> "RIB";
+            default -> documentType.name();
+        };
+    }
+
+    private String localizedMissingReviewReason(Locale locale) {
+        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
+        return french
+                ? "Merci de renvoyer un document plus lisible et conforme."
+                : "Please upload a clearer and compliant document.";
     }
 
     private String buildUserFilesPath(String emailAddress) {
@@ -548,5 +699,128 @@ public class UserServices implements IUserServices {
             configuredBaseUrl = configuredBaseUrl.substring(0, configuredBaseUrl.indexOf("/users/v1/validateEmail"));
         }
         return PublicUrlResolver.resolvePreferredGatewayBaseUrl(configuredBaseUrl);
+    }
+
+    private void validateOnboardingRequest(UserOnboardingValidationService.ValidationResult validationResult) {
+        if (validationResult.valid()) {
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(" ", validationResult.messages()));
+    }
+
+    private void triggerOcrForUploadedDocuments(User userEntity, MultiValueMap<String, MultipartFile> validFilesMap) {
+        List<Long> documentIds = userEntity.getDocument().stream()
+                .filter(document -> document.getId() != null)
+                .filter(document -> document.getDocURL() != null && !document.getDocURL().isBlank())
+                .filter(document -> validFilesMap.containsKey(document.getType().name()))
+                .map(Document::getId)
+                .toList();
+
+        if (documentIds.isEmpty()) {
+            logger.info("No uploaded documents eligible for OCR for user {}", userEntity.getEmailAddress());
+            return;
+        }
+
+        Runnable trigger = () -> documentIds.forEach(documentOcrOrchestrator::processDocumentAsync);
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    logger.info("Triggering OCR after commit for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
+                    trigger.run();
+                }
+            });
+            return;
+        }
+
+        logger.info("Triggering OCR immediately for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
+        trigger.run();
+    }
+
+    private DocumentValidationResult validateDocumentFile(MultipartFile file, Locale locale) {
+        if (file == null || file.isEmpty() || file.getSize() <= 0) {
+            return invalidValidation("EMPTY_FILE", localizedValidationMessage("EMPTY_FILE", locale));
+        }
+
+        if (file.getSize() > MAX_DOCUMENT_SIZE_BYTES) {
+            return invalidValidation("FILE_TOO_LARGE", localizedValidationMessage("FILE_TOO_LARGE", locale));
+        }
+
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
+        int extensionIndex = originalFilename.lastIndexOf('.');
+        if (extensionIndex < 0) {
+            return invalidValidation("MISSING_EXTENSION", localizedValidationMessage("MISSING_EXTENSION", locale));
+        }
+
+        String extension = originalFilename.substring(extensionIndex).toLowerCase(Locale.ROOT);
+        if (!ALLOWED_DOCUMENT_EXTENSIONS.contains(extension)) {
+            return invalidValidation("INVALID_EXTENSION", localizedValidationMessage("INVALID_EXTENSION", locale));
+        }
+
+        String contentType = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase(Locale.ROOT);
+        if (!contentType.isBlank() && !ALLOWED_DOCUMENT_CONTENT_TYPES.contains(contentType)) {
+            return invalidValidation("INVALID_CONTENT_TYPE", localizedValidationMessage("INVALID_CONTENT_TYPE", locale));
+        }
+
+        return new DocumentValidationResult(true, DOCUMENT_VALIDATION_STATUS.PENDING_MANUAL_REVIEW, "PENDING_MANUAL_REVIEW",
+                localizedValidationMessage("PENDING_MANUAL_REVIEW", locale));
+    }
+
+    private void applyValidationOutcome(Document document, DocumentValidationResult validationResult) {
+        document.setValidatedAutomatically(Boolean.TRUE);
+        document.setValidationStatus(validationResult.status());
+        document.setValidationCode(validationResult.code());
+        document.setValidationDetails(validationResult.details());
+        if (validationResult.valid()) {
+            document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
+            document.setReviewComment(null);
+            document.setReviewedAt(null);
+            document.setReviewedBy(null);
+            document.setOcrStatus(DOCUMENT_OCR_STATUS.PENDING);
+            document.setOcrProvider(null);
+            document.setOcrConfidenceScore(null);
+            document.setOcrExtractedData(null);
+            document.setOcrProcessedAt(null);
+            document.setOcrErrorCode(null);
+            document.setMatchStatus(null);
+            document.setMatchScore(null);
+            document.setMatchDetails(null);
+            return;
+        }
+        document.setDocumentStatus(DOCUMENT_STATUS.REJECTED);
+        document.setReviewComment(validationResult.details());
+        document.setReviewedAt(new Date());
+        document.setReviewedBy(SYSTEM_REVIEWER);
+        document.setOcrStatus(DOCUMENT_OCR_STATUS.DISABLED);
+        document.setOcrProvider(null);
+        document.setOcrConfidenceScore(null);
+        document.setOcrExtractedData(null);
+        document.setOcrProcessedAt(new Date());
+        document.setOcrErrorCode(validationResult.code());
+        document.setMatchStatus(DOCUMENT_MATCH_STATUS.NOT_APPLICABLE);
+        document.setMatchScore(null);
+        document.setMatchDetails(null);
+    }
+
+    private DocumentValidationResult invalidValidation(String code, String details) {
+        return new DocumentValidationResult(false, DOCUMENT_VALIDATION_STATUS.INVALID_FILE, code, details);
+    }
+
+    private String localizedValidationMessage(String code, Locale locale) {
+        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
+        return switch (code) {
+            case "EMPTY_FILE" -> french ? "Fichier vide ou illisible." : "Empty or unreadable file.";
+            case "FILE_TOO_LARGE" -> french ? "Fichier trop volumineux. Taille maximale autorisée : 10 Mo." : "File too large. Maximum allowed size: 10 MB.";
+            case "MISSING_EXTENSION" -> french ? "Extension de fichier absente ou invalide." : "Missing or invalid file extension.";
+            case "INVALID_EXTENSION" -> french ? "Format de fichier non autorisé. Formats acceptés : PNG, JPG, JPEG, WEBP, PDF." : "Unsupported file format. Allowed formats: PNG, JPG, JPEG, WEBP, PDF.";
+            case "INVALID_CONTENT_TYPE" -> french ? "Type de fichier non autorisé." : "Unsupported file content type.";
+            default -> french ? "Document contrôlé automatiquement. En attente de revue manuelle." : "Document checked automatically. Pending manual review.";
+        };
+    }
+
+    private record DocumentValidationResult(boolean valid,
+                                            DOCUMENT_VALIDATION_STATUS status,
+                                            String code,
+                                            String details) {
     }
 }

@@ -35,8 +35,6 @@
 </template>
 
 <script>
-const STORAGE_KEY = 'qd_validation_user';
-
 export default {
   props: {
     users: {
@@ -49,7 +47,6 @@ export default {
   },
   methods: {
     showDetails(user) {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
       this.$router.push({
         path: '/userValidationDetails',
         query: {

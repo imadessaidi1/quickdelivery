@@ -1,8 +1,30 @@
 <template>
     <div class="document-viewer">
-        <strong><span class="document_title">{{ currentDocInfo }}</span></strong>
-        <iframe v-if="currentDocData" :src="currentDocData"></iframe>
-        <div v-else class="document-empty">{{ $t('packageDocumentMissing') }}</div>
+        <div class="document_topbar">
+            <strong><span class="document_title">{{ currentDocInfo }}</span></strong>
+        </div>
+        <div v-if="currentDocument" class="document_match_panel">
+            <div class="match_head">
+                <strong>{{ $t('documentMatchTitle') }}</strong>
+                <span class="match_status">{{ matchingStatusLabel }}</span>
+            </div>
+            <div v-if="autoReviewSuggestion" class="match_recommendation">
+                <strong>{{ autoReviewSuggestion.title }}</strong>
+                <span>{{ autoReviewSuggestion.message }}</span>
+            </div>
+            <div v-if="currentDocument.matchScore != null" class="match_score">
+                {{ $t('documentMatchScore') }}: {{ Math.round(currentDocument.matchScore * 100) }}%
+            </div>
+            <div v-if="matchIssues.length" class="match_issues">
+                <div v-for="issue in matchIssues" :key="issue.field" class="match_issue">
+                    <strong>{{ issue.field }}</strong>: {{ issue.actual || '-' }}
+                </div>
+            </div>
+        </div>
+        <div class="document_preview">
+            <iframe v-if="currentDocData" :src="currentDocData"></iframe>
+            <div v-else class="document-empty">{{ $t('packageDocumentMissing') }}</div>
+        </div>
         <div v-if="currentDocument" class="document_state">
             <label for="accept-option">
                 <input type="radio" id="accept-option" name="accept-option" v-model="currentDocument.documentStatus" value="ACCEPTED"/>
@@ -13,7 +35,7 @@
                 {{$t('userDocumentRejected')}}
             </label>
         </div>
-        <div v-if="currentDocument" class="document_review_panel">
+        <div v-if="currentDocument && currentDocument.documentStatus === 'REJECTED'" class="document_review_panel">
             <label class="review_label" for="review-comment">{{ $t('userDocumentReviewCommentLabel') }}</label>
             <textarea
               id="review-comment"
@@ -50,7 +72,85 @@ export default {
     },
     computed: {
         documentKeys() {
-            return Object.keys(this.documents || {});
+            return Object.keys(this.documents || {}).filter(key => key !== 'PICTURE');
+        },
+        parsedMatchDetails() {
+            if (!this.currentDocument?.matchDetails) {
+                return null;
+            }
+            try {
+                return JSON.parse(this.currentDocument.matchDetails);
+            } catch (_error) {
+                return null;
+            }
+        },
+        matchIssues() {
+            const checks = this.parsedMatchDetails?.checks;
+            if (!Array.isArray(checks)) {
+                return [];
+            }
+            return checks.filter(check => check.status === 'mismatch');
+        },
+        matchingStatusLabel() {
+            const status = this.currentDocument?.matchStatus;
+            if (!status) {
+                return this.$t('documentMatchStatusUnknown');
+            }
+            return this.$t(`documentMatchStatus${status}`);
+        },
+        autoReviewSuggestion() {
+            const document = this.currentDocument;
+            if (!document) {
+                return null;
+            }
+            if (document.ocrErrorCode) {
+                return {
+                    title: this.$t('documentRejectSuggestionReject'),
+                    message: `${this.$t('documentRejectSuggestionOcrError')} ${document.ocrErrorCode}`,
+                };
+            }
+            if (document.matchStatus === 'MISMATCH') {
+                return {
+                    title: this.$t('documentRejectSuggestionReject'),
+                    message: this.$t('documentRejectSuggestionMismatch'),
+                };
+            }
+            if (document.ocrConfidenceScore != null && document.ocrConfidenceScore < 1) {
+                return {
+                    title: this.$t('documentRejectSuggestionReview'),
+                    message: this.$t('documentRejectSuggestionConfidence', {
+                        score: Math.round(document.ocrConfidenceScore * 100),
+                    }),
+                };
+            }
+            if (document.matchStatus === 'REVIEW_REQUIRED' || document.matchStatus === 'UNAVAILABLE') {
+                return {
+                    title: this.$t('documentRejectSuggestionReview'),
+                    message: this.$t('documentRejectSuggestionManual'),
+                };
+            }
+            return null;
+        },
+        suggestedReviewComment() {
+            const document = this.currentDocument;
+            if (!document) {
+                return '';
+            }
+            const reasons = [];
+            if (document.ocrErrorCode) {
+                reasons.push(`${this.$t('documentRejectSuggestionOcrError')} ${document.ocrErrorCode}`);
+            }
+            if (document.matchStatus === 'MISMATCH') {
+                reasons.push(this.$t('documentRejectSuggestionMismatch'));
+            } else if (document.matchStatus === 'REVIEW_REQUIRED' || document.matchStatus === 'UNAVAILABLE') {
+                reasons.push(this.$t('documentRejectSuggestionManual'));
+            }
+            if (document.ocrConfidenceScore != null && document.ocrConfidenceScore < 1) {
+                reasons.push(this.$t('documentRejectSuggestionConfidence', {
+                    score: Math.round(document.ocrConfidenceScore * 100),
+                }));
+            }
+            return reasons.join(' ');
         },
         currentDocInfo() {
             const documentType = this.documentKeys[this.currentDocIndex];
@@ -69,6 +169,10 @@ export default {
         'currentDocument.documentStatus'(status) {
             if (status === 'ACCEPTED' && this.currentDocument) {
                 this.currentDocument.reviewComment = '';
+                return;
+            }
+            if (status === 'REJECTED' && this.currentDocument && !this.currentDocument.reviewComment?.trim() && this.suggestedReviewComment) {
+                this.currentDocument.reviewComment = this.suggestedReviewComment;
             }
         },
         documents: {
@@ -128,8 +232,16 @@ export default {
   position: relative;
   overflow: hidden;
 }
+.document_topbar{
+  flex: 0 0 auto;
+  padding: 8px 16px 2px;
+}
+.document_preview{
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
 .document-viewer iframe {
-  flex: 1;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -144,7 +256,7 @@ export default {
   color: #fff;
 }
 .document_title{
-    margin: 8px 0;
+    margin: 0;
     color: #fff;
     display: block;
     width: 100%;
@@ -182,11 +294,53 @@ export default {
   position: absolute;
   left: 16px;
   right: 16px;
-  bottom: 58px;
+  bottom: 74px;
   padding: 12px;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.82);
   color: #fff;
+}
+.document_match_panel{
+  flex: 0 0 auto;
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.86);
+  color: #fff;
+}
+.match_head{
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.match_status{
+  color: #cbd5e1;
+  font-weight: 700;
+}
+.match_score,
+.match_issue{
+  font-size: 12px;
+  line-height: 1.35;
+}
+.match_recommendation{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, 0.14);
+  color: #fed7aa;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.match_issues{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
 }
 .review_label{
   display: block;
@@ -215,7 +369,7 @@ export default {
   align-items: center;
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: calc(50% + 18px);
   transform: translate(-50%, -50%);
 }
 .nav_btn{
@@ -248,7 +402,10 @@ export default {
   .document_review_panel{
     left: 12px;
     right: 12px;
-    bottom: 70px;
+    bottom: 88px;
+  }
+  .document_match_panel{
+    margin: 0 12px 8px;
   }
 }
 </style>

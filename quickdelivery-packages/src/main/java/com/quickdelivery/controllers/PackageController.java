@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
+import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.entities.Address;
@@ -20,6 +21,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -209,6 +213,21 @@ public class PackageController {
     public PackageDTO getGuestPackage(@RequestParam("reference") String reference,
                                       @RequestParam("guestAccessToken") String guestAccessToken){
         return packagesService.findGuestPackageByReference(reference, guestAccessToken);
+    }
+
+    @GetMapping("/document-content")
+    public ResponseEntity<byte[]> loadDocumentContent(@RequestParam("documentId") Long documentId) {
+        DocumentContentDTO documentContent = packagesService.loadPackageDocumentContent(documentId);
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        if (documentContent.getContentType() != null && !documentContent.getContentType().isBlank()) {
+            mediaType = MediaType.parseMediaType(documentContent.getContentType());
+        }
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok().contentType(mediaType);
+        if (documentContent.getFileName() != null && !documentContent.getFileName().isBlank()) {
+            responseBuilder.header(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + documentContent.getFileName() + "\"");
+        }
+        return responseBuilder.body(documentContent.getData());
     }
 
     @GetMapping("/notify")

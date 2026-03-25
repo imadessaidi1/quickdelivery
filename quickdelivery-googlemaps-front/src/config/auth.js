@@ -226,7 +226,7 @@ async function processAuthCallback(sourceUrl) {
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
   if (!code) {
-    return;
+    return { handled: false, redirected: false };
   }
 
   const expectedState = localStorage.getItem(OIDC_STATE_KEY);
@@ -242,7 +242,7 @@ async function processAuthCallback(sourceUrl) {
       window.history.replaceState({}, document.title, `${url.pathname}${url.search}${url.hash}`);
     }
     await redirectToLogin();
-    return;
+    return { handled: true, redirected: true };
   }
 
   const tokenUrl = `${getAuthBaseUrl()}/realms/${REALM}/protocol/openid-connect/token`;
@@ -285,18 +285,21 @@ async function processAuthCallback(sourceUrl) {
   if (isMobileRuntime()) {
     window.history.replaceState({}, document.title, finalPath);
     window.dispatchEvent(new PopStateEvent('popstate'));
+    return { handled: true, redirected: false };
   } else {
     const destinationUrl = `${window.location.origin}${finalPath}`;
     if (window.location.pathname !== finalPath) {
       window.location.replace(destinationUrl);
+      return { handled: true, redirected: true };
     } else {
       window.history.replaceState({}, document.title, finalPath);
+      return { handled: true, redirected: false };
     }
   }
 }
 
 export async function handleAuthCallback(sourceUrl = window.location.href) {
-  await processAuthCallback(sourceUrl);
+  return processAuthCallback(sourceUrl);
 }
 
 export async function initializeMobileAuthCallbackListener() {

@@ -11,9 +11,9 @@
                 <div><strong>{{$t('packageAddressLastName')}}:</strong> {{ user.lastName }}</div>
                 <div><strong>{{$t('userGender')}}:</strong> {{ user.sex }}</div>
                 <div><strong>{{$t('userBirthDate')}}:</strong> {{ formatDate(user.birthDate) }}</div>
-                <div class="long_text"><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress }}</div>
+                <div class="long_text"><strong>{{$t('packageAddressEmail')}}:</strong> {{ user.emailAddress || user.email }}</div>
                 <div class="long_text"><strong>{{$t('packageAddressPhone')}}:</strong> {{ user.phone }}</div>
-                <div class="long_text" v-if="user.addressAuto"><strong>{{$t('packageAddressAddress')}}:</strong> {{ user.addressAuto }}</div>
+                <div class="long_text" v-if="displayAddress"><strong>{{$t('packageAddressAddress')}}:</strong> {{ displayAddress }}</div>
             </div>
         </div>
         <div v-if="hasVehicleInfo" class="user_details">
@@ -29,6 +29,8 @@
     </div>
 </template>
 <script>
+import http from '@/config/httpInterceptor';
+
 export default {
     props: {
         user: null,
@@ -39,14 +41,14 @@ export default {
             default: true,
         },
       },
+    data() {
+        return {
+            pictureSrc: '',
+            pictureUrl: '',
+            pictureRequestToken: 0,
+        };
+    },
     computed: {
-        pictureSrc() {
-            const pictureData = this.user?.document?.PICTURE?.data;
-            if (!pictureData) {
-                return '';
-            }
-            return 'data:image/png;base64,' + pictureData;
-        },
         initials() {
             const firstName = (this.user?.firstName || '').trim();
             const lastName = (this.user?.lastName || '').trim();
@@ -60,8 +62,61 @@ export default {
                 || this.vehicle?.energyType
             );
         },
+        displayAddress() {
+            if (this.user?.addressAuto) {
+                return this.user.addressAuto;
+            }
+            const residence = Array.isArray(this.user?.personalAddress) ? this.user.personalAddress[0] : null;
+            if (!residence) {
+                return '';
+            }
+            return [residence.line1, residence.zipCode ? `${residence.zipCode} ${residence.town || ''}`.trim() : residence.town, residence.country]
+                .filter((value) => !!value)
+                .join(', ');
+        },
+    },
+    watch: {
+        'user.document.PICTURE.id': {
+            immediate: true,
+            handler() {
+                this.loadPicture();
+            },
+        },
+    },
+    beforeUnmount() {
+        this.revokePictureUrl();
     },
     methods: {
+        async loadPicture() {
+            this.pictureRequestToken += 1;
+            const requestToken = this.pictureRequestToken;
+            this.revokePictureUrl();
+            const pictureId = this.user?.document?.PICTURE?.id;
+            if (!pictureId) {
+                this.pictureSrc = '';
+                return;
+            }
+            try {
+                const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(pictureId)}`, {
+                    responseType: 'blob',
+                });
+                if (requestToken !== this.pictureRequestToken) {
+                    return;
+                }
+                this.pictureUrl = URL.createObjectURL(response.data);
+                this.pictureSrc = this.pictureUrl;
+            } catch (_error) {
+                if (requestToken === this.pictureRequestToken) {
+                    this.pictureSrc = '';
+                }
+            }
+        },
+        revokePictureUrl() {
+            if (this.pictureUrl) {
+                URL.revokeObjectURL(this.pictureUrl);
+                this.pictureUrl = '';
+            }
+        },
         formatDate(dateTime) {
             if (!dateTime) {
                 return '';
@@ -76,10 +131,11 @@ export default {
             return date.toLocaleDateString(userLanguage, options);
         },
         toUpdate() {
-            if (!this.user?.emailAddress) {
+            const userEmail = this.user?.emailAddress || this.user?.email;
+            if (!userEmail) {
                 return;
             }
-            this.$router.push('/userSignInPage?id=' + encodeURIComponent(this.user.emailAddress));
+            this.$router.push('/userSignInPage?id=' + encodeURIComponent(userEmail));
         }
     },
 }

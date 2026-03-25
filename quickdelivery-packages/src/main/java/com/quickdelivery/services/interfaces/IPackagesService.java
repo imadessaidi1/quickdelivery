@@ -2,6 +2,7 @@ package com.quickdelivery.services.interfaces;
 
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
+import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.PositionDTO;
@@ -51,6 +52,7 @@ public interface IPackagesService {
 
     PackageDTO findPackageByReference(String reference);
     PackageDTO findGuestPackageByReference(String reference, String guestAccessToken);
+    DocumentContentDTO loadPackageDocumentContent(Long documentId);
 
     boolean isUserWithOngoingDelivery(Long usedId);
 

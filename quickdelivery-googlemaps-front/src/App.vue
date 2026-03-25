@@ -355,7 +355,7 @@ export default {
       return this.connectedUserRoles.includes('ROLE_LIVREUR') || this.connectedUserRoles.includes('ROLE_ADMIN');
     },
     async recoverNearbyPackageNotifications() {
-      if (!this.canRecoverNearbyPackageNotifications() || !navigator.geolocation) {
+      if (this.$route?.name !== 'homePage' || !this.canRecoverNearbyPackageNotifications() || !navigator.geolocation) {
         return;
       }
 

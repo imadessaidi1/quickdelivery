@@ -44,6 +44,7 @@ export default {
       isLoading: false,
       loadError: false,
       documentSrc: '',
+      currentDocumentUrl: '',
       packageReference: this.reference || '',
     };
   },
@@ -54,6 +55,9 @@ export default {
   },
   mounted() {
     this.loadDocument();
+  },
+  beforeUnmount() {
+    this.revokeDocumentUrl();
   },
   methods: {
     async loadDocument() {
@@ -67,19 +71,28 @@ export default {
         const response = await http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage') + this.reference);
         const docs = response.data?.documentS || {};
         const currentDocument = docs[this.documentType];
-        if (!currentDocument?.data) {
+        if (!currentDocument?.id) {
           this.documentSrc = '';
           return;
         }
         this.packageReference = response.data?.reference || this.reference;
-        this.documentSrc = this.documentType === 'PACKAGE_INVOICE'
-          ? `data:application/pdf;base64,${currentDocument.data}`
-          : `data:image/png;base64,${currentDocument.data}`;
+        const contentResponse = await http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(currentDocument.id)}`, {
+          responseType: 'blob',
+        });
+        this.revokeDocumentUrl();
+        this.currentDocumentUrl = URL.createObjectURL(contentResponse.data);
+        this.documentSrc = this.currentDocumentUrl;
       } catch (error) {
         this.loadError = true;
         console.error('Unable to load document.', error);
       } finally {
         this.isLoading = false;
+      }
+    },
+    revokeDocumentUrl() {
+      if (this.currentDocumentUrl) {
+        URL.revokeObjectURL(this.currentDocumentUrl);
+        this.currentDocumentUrl = '';
       }
     },
     goBack() {

@@ -38,6 +38,7 @@ public class UserDTO {
     private List<AddressDTO> personalAddress;
     private Map<PAYMENT_TYPE, PaymentDTO> paymentModes = new HashMap<>();
     private Map<DOCUMENT_TYPE, DocumentDTO> document = new HashMap<>();
+    private Integer documentCount;
     private List<PackageReservationDTO> packagesDELIVERED;
     private List<PackageDTO> packagesSent;
 
@@ -162,6 +163,14 @@ public class UserDTO {
 
     public void setDocument(Map<DOCUMENT_TYPE, DocumentDTO> document) {
         this.document = document;
+    }
+
+    public Integer getDocumentCount() {
+        return documentCount;
+    }
+
+    public void setDocumentCount(Integer documentCount) {
+        this.documentCount = documentCount;
     }
 
     public String getPassword() {

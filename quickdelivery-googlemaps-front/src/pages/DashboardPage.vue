@@ -126,6 +126,10 @@ export default {
       loadError: false,
       packagesByStatus: {},
       pendingUsers: [],
+      pendingUsersTotal: 0,
+      pendingVehiclesTotal: 0,
+      pendingDocumentsTotal: 0,
+      pendingVehicleDocumentsTotal: 0,
       currentYear: new Date().getFullYear(),
     };
   },
@@ -189,10 +193,7 @@ export default {
       }, {});
     },
     totalVehicleDocumentsToReview() {
-      return this.pendingUsers.reduce((count, user) => {
-        const documents = user.document || {};
-        return count + ['GRAY_CARD', 'INSURANCE'].filter((key) => !!documents[key]).length;
-      }, 0);
+      return this.pendingVehicleDocumentsTotal;
     },
     courierEarningsChart() {
       return this.createChartConfig({
@@ -252,9 +253,9 @@ export default {
     statsCards() {
       if (this.dashboardType === 'admin') {
         return [
-          { label: this.$t('dashboardStatValidationQueue'), value: this.pendingUsers.length, tone: 'tone-warn' },
-          { label: this.$t('validationVehiclesCount'), value: this.pendingUsers.reduce((count, user) => count + (user.vehicles?.length || 0), 0), tone: 'tone-neutral' },
-          { label: this.$t('validationDocumentsCount'), value: this.pendingUsers.reduce((count, user) => count + Object.keys(user.document || {}).length, 0), tone: 'tone-dark' },
+          { label: this.$t('dashboardStatValidationQueue'), value: this.pendingUsersTotal, tone: 'tone-warn' },
+          { label: this.$t('validationVehiclesCount'), value: this.pendingVehiclesTotal, tone: 'tone-neutral' },
+          { label: this.$t('validationDocumentsCount'), value: this.pendingDocumentsTotal, tone: 'tone-dark' },
           { label: this.$t('dashboardStatVehicleDocs'), value: this.totalVehicleDocumentsToReview, tone: 'tone-success' },
         ];
       }
@@ -328,7 +329,7 @@ export default {
           .map((user) => ({
             key: `user-${user.id}`,
             title: `${this.$t('dashboardTimelinePendingUser')} - ${[user.firstName, user.lastName].filter(Boolean).join(' ') || user.emailAddress}`,
-            subtitle: `${Object.keys(user.document || {}).length} ${this.$t('validationDocumentsLabel')}`,
+            subtitle: `${user.documentCount || 0} ${this.$t('validationDocumentsLabel')}`,
           }));
       }
 
@@ -349,7 +350,7 @@ export default {
           .map((user) => ({
             key: `review-${user.id}`,
             title: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.emailAddress,
-            subtitle: `${Object.keys(user.document || {}).length} ${this.$t('validationDocumentsLabel')}`,
+            subtitle: `${user.documentCount || 0} ${this.$t('validationDocumentsLabel')}`,
           }));
       }
 
@@ -377,10 +378,14 @@ export default {
       try {
         if (this.dashboardType === 'admin') {
           const [usersResponse, packageResponses] = await Promise.all([
-            http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}`),
+            http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=0&size=5`),
             Promise.all(CHART_STATUSES.map((status) => http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesByStatusUrl')}${status}`))),
           ]);
-          this.pendingUsers = Array.isArray(usersResponse.data) ? usersResponse.data : [];
+          this.pendingUsers = Array.isArray(usersResponse.data?.items) ? usersResponse.data.items : [];
+          this.pendingUsersTotal = usersResponse.data?.totalItems || 0;
+          this.pendingVehiclesTotal = usersResponse.data?.totalVehicles || 0;
+          this.pendingDocumentsTotal = usersResponse.data?.totalDocuments || 0;
+          this.pendingVehicleDocumentsTotal = usersResponse.data?.totalVehicleDocuments || 0;
           this.packagesByStatus = CHART_STATUSES.reduce((acc, status, index) => {
             acc[status] = Array.isArray(packageResponses[index].data) ? packageResponses[index].data : [];
             return acc;

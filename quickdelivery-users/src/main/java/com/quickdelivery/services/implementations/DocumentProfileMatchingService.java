@@ -1,7 +1,5 @@
 package com.quickdelivery.services.implementations;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.entities.Vehicle;
@@ -20,16 +18,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class DocumentProfileMatchingService {
-    private final ObjectMapper objectMapper;
-
-    public DocumentProfileMatchingService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
     public MatchingResult match(Document document, Map<String, Object> structuredData) {
         if (document == null || structuredData == null) {
             return new MatchingResult(DOCUMENT_MATCH_STATUS.UNAVAILABLE, null, Map.of("reason", "missing_document_or_ocr_data"));
@@ -277,23 +268,11 @@ public class DocumentProfileMatchingService {
         }
         return user.getDocument().stream()
                 .filter(document -> document.getType() == DOCUMENT_TYPE.USER_COMPANY_EXTRACT)
-                .map(this::extractCompanyNameFromDocument)
+                .map(Document::getOcrCompanyName)
+                .filter(value -> value != null && !value.isBlank())
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
-    }
-
-    private String extractCompanyNameFromDocument(Document document) {
-        if (document == null || document.getOcrExtractedData() == null || document.getOcrExtractedData().isBlank()) {
-            return null;
-        }
-        try {
-            JsonNode root = objectMapper.readTree(document.getOcrExtractedData());
-            JsonNode companyNameNode = root.path("fields").path("fields").path("companyName");
-            return companyNameNode.isMissingNode() || companyNameNode.isNull() ? null : companyNameNode.asText(null);
-        } catch (Exception ignored) {
-            return null;
-        }
     }
 
     private double stringSimilarity(String expected, String actual) {

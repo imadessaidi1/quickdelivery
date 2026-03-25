@@ -11,19 +11,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @EnableAsync
 public class AsyncConfig {
-    @Bean(name = "userAsyncTaskExecutor")
-    public ThreadPoolTaskExecutor userAsyncTaskExecutor() {
-        return buildExecutor(4, 8, 150, "user-async-");
+    @Bean(name = "packageAsyncTaskExecutor")
+    public ThreadPoolTaskExecutor packageAsyncTaskExecutor() {
+        return buildExecutor(2, 4, 100, "package-async-");
     }
 
-    @Bean(name = "mailTaskExecutor")
-    public ThreadPoolTaskExecutor mailTaskExecutor() {
-        return buildExecutor(2, 4, 100, "mail-");
-    }
-
-    @Bean(name = "ocrTaskExecutor")
-    public ThreadPoolTaskExecutor ocrTaskExecutor() {
-        return buildExecutor(2, 4, 100, "ocr-");
+    @Bean(name = "packageMailTaskExecutor")
+    public ThreadPoolTaskExecutor packageMailTaskExecutor() {
+        return buildExecutor(2, 4, 100, "package-mail-");
     }
 
     private ThreadPoolTaskExecutor buildExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, String threadNamePrefix) {

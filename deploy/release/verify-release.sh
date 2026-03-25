@@ -53,6 +53,13 @@ echo
 echo "== Public vhost checks =="
 wait_for_http "front vhost" "https://${APP_DOMAIN}/" "-k -fsSI --resolve ${APP_DOMAIN}:443:127.0.0.1" 24 5
 
+if curl -k -sSI --resolve "${APP_DOMAIN}:443:127.0.0.1" "https://${APP_DOMAIN}/js/asset-that-should-not-exist.js" | grep -q "404"; then
+  echo "front missing asset handling: OK"
+else
+  echo "front missing asset handling: FAILED" >&2
+  exit 1
+fi
+
 wait_for_http "api vhost" "https://${API_DOMAIN}/actuator/health" "-k -fsSI --resolve ${API_DOMAIN}:443:127.0.0.1" 24 5
 
 wait_for_http "auth vhost" "https://${AUTH_DOMAIN}/auth" "-k -fsSI --resolve ${AUTH_DOMAIN}:443:127.0.0.1" 24 5

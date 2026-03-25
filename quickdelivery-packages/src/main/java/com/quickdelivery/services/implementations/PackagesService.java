@@ -9,10 +9,14 @@ import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.*;
 import com.quickdelivery.abstarct.parameters.*;
+import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -21,7 +25,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.http.HttpStatus;
@@ -40,13 +43,12 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
-@Transactional
 public class PackagesService implements IPackagesService {
     @Value("${application.otp.secret}")
     private String OTPSecret;
@@ -81,68 +83,85 @@ public class PackagesService implements IPackagesService {
     @Autowired
     private Packages packages;
     @Autowired
+    private Documents documents;
+    @Autowired
     private Users users;
     @Autowired
     private GeoApiContext geoApiContext;
     @Autowired
     private Logger logger;
     @Autowired
+    private MeterRegistry meterRegistry;
+    @Autowired
     private ResourceBundleMessageSource messageSource;
     @Autowired()
     @Qualifier("myTemplateResolver")
     private ITemplateResolver templateResolver;
+    @Autowired
+    @Qualifier("packageAsyncTaskExecutor")
+    private Executor packageAsyncTaskExecutor;
+    @Autowired
+    @Qualifier("packageMailTaskExecutor")
+    private Executor packageMailTaskExecutor;
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
-        MultiValueMap<String, MultipartFile> filesMap = new LinkedMultiValueMap<>();
-        ExecutorService executorService;
-        Package aPackage;
-        try {
-            validatePackageCreationRequest(packageDTO);
-            executorService = Executors.newSingleThreadExecutor();
-            packageAddressGeocoding(packageDTO);
-            packageDistanceCalculation(packageDTO);
-            aPackage = preparPackage(packageDTO, locale);
-            if (files != null && files.length > 0) {
-                IntStream.range(0, files.length)
-                        .forEach(index -> {
-                            MultipartFile file = files[index];
-                            DOCUMENT_TYPE docType = index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE;
-                            String fileName = docType.toString();
-                            String currentFileName = file.getOriginalFilename();
-                            String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
-                            Document document = new Document();
-                            document.setaPackage(aPackage);
-                            document.setDocURL(packagesDirectory + aPackage.getReference() + "\\" + newFileName);
-                            document.setType(docType);
-                            filesMap.add(fileName, file);
-                            aPackage.getDocument().add(document);
-                        });
-            }
-            packages.save(aPackage);
-            packageDTO.setId(aPackage.getId());
-            packageDTO.setVersion(aPackage.getVersion());
-            packageDTO.setGuestMode(Boolean.TRUE.equals(aPackage.getGuestMode()));
-            packageDTO.setGuestAccessToken(aPackage.getGuestAccessToken());
-            FileHelper.saveFilesInParallel(filesMap, packagesDirectory+aPackage.getReference(), false);
-            executorService.submit(() -> {
-                try {
-                    generatePackageArtifacts(packageDTO, locale);
-                    sendPackageCreationEMail(
-                            aPackage,
-                            locale,
-                            EMAIL_TEMPLATE_TYPE.PACKAGE_CREATION.getType(),
-                            messageSource.getMessage("email.subject.newPackage", null, locale),
-                            EMAIL_TYPE.PACKAGE_CREATION
-                    );
-                } catch (Exception e) {
-                    logger.error("Unable to generate package artifacts and send creation email for {}", packageDTO.getReference(), e);
+        return recordPackageOperation("create", () -> {
+            MultiValueMap<String, MultipartFile> filesMap = new LinkedMultiValueMap<>();
+            Package aPackage;
+            try {
+                validatePackageCreationRequest(packageDTO);
+                packageAddressGeocoding(packageDTO);
+                packageDistanceCalculation(packageDTO);
+                aPackage = preparPackage(packageDTO, locale);
+                if (files != null && files.length > 0) {
+                    IntStream.range(0, files.length)
+                            .forEach(index -> {
+                                MultipartFile file = files[index];
+                                DOCUMENT_TYPE docType = index == 0 ? DOCUMENT_TYPE.PACKAGE_PICTURE : DOCUMENT_TYPE.PACKAGE_INVOICE;
+                                String fileName = docType.toString();
+                                String currentFileName = file.getOriginalFilename();
+                                String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
+                                Document document = new Document();
+                                document.setaPackage(aPackage);
+                                document.setDocURL(packagesDirectory + aPackage.getReference() + "\\" + newFileName);
+                                document.setType(docType);
+                                filesMap.add(fileName, file);
+                                aPackage.getDocument().add(document);
+                            });
                 }
-            });
-            executorService.shutdown();
-        } catch (MalformedURLException | FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        return packageDTO;
+                packages.saveAndFlush(aPackage);
+                packageDTO.setId(aPackage.getId());
+                packageDTO.setVersion(aPackage.getVersion());
+                packageDTO.setGuestMode(Boolean.TRUE.equals(aPackage.getGuestMode()));
+                packageDTO.setGuestAccessToken(aPackage.getGuestAccessToken());
+                String packageDirectory = packagesDirectory + aPackage.getReference();
+                try {
+                    if (!filesMap.isEmpty()) {
+                        FileHelper.saveFilesInParallel(filesMap, packageDirectory, false);
+                    }
+                } catch (Exception fileFailure) {
+                    rollbackFailedPackageCreation(aPackage, packageDirectory);
+                    throw fileFailure;
+                }
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        generatePackageArtifacts(packageDTO, locale);
+                        sendPackageCreationEMail(
+                                aPackage,
+                                locale,
+                                EMAIL_TEMPLATE_TYPE.PACKAGE_CREATION.getType(),
+                                messageSource.getMessage("email.subject.newPackage", null, locale),
+                                EMAIL_TYPE.PACKAGE_CREATION
+                        );
+                    } catch (Exception e) {
+                        logger.error("Unable to generate package artifacts and send creation email for {}", packageDTO.getReference(), e);
+                    }
+                }, packageAsyncTaskExecutor);
+                return packageDTO;
+            } catch (MalformedURLException | FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void generatePackageArtifacts(PackageDTO packageDTO, Locale locale) throws IOException {
@@ -204,21 +223,7 @@ public class PackagesService implements IPackagesService {
         List<PackageDTO> packageDTOS = addresses.stream()
                 .map(address -> {
                     Package aPackage = address.getPackaged();
-                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream().forEach(document -> {
-                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                            documentDTO.setFileName(document.getType().toString());
-                            try {
-                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
-                        }
-                    });
-                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
+                    PackageDTO packageDTO = toPackageDTO(aPackage);
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -246,26 +251,12 @@ public class PackagesService implements IPackagesService {
         List<PackageDTO> packageDTOS = addresses.stream()
                 .map(address -> {
                     Package aPackage = address.getPackaged();
-                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream().forEach(document -> {
-                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                            documentDTO.setFileName(document.getType().toString());
-                            try {
-                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
-                        }
-                    });
+                    PackageDTO packageDTO = toPackageDTO(aPackage);
                     AddressDTO departureAddress = getDepartureAddress(packageDTO.getAddresses());
                     DistanceMatrix distancePackageUser = GeoHelper.getDistanceByCoordinates(geoApiContext, departureAddress.getLatitude().doubleValue(),
                             departureAddress.getLongitude().doubleValue()
                             , Double.parseDouble(latitude), Double.parseDouble(longitude));
                     packageDTO.setFromYou(formatDistanceMatrixValue(distancePackageUser));
-                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
                     return packageDTO;
                 })
                 .collect(Collectors.toList());
@@ -363,112 +354,107 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException {
-        PackageReservation packageReservation = reservePackageInternal(packageID, deliveryPersonID);
-        Package aPackage = packageReservation.getaPackage();
-        /*ExecutorService executorService = Executors.newFixedThreadPool(2);
-        executorService.submit(() -> {*/
-            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(), messageSource.getMessage("email.subject.packageReserved", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
-        /*});
-        executorService.submit(() -> {*/
-            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(), messageSource.getMessage("email.subject.packageReservationCofirm", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
-        //});
-        return packageReservation;
+        return recordPackageOperationChecked("reserve", () -> {
+            PackageReservation packageReservation = reservePackageInternal(packageID, deliveryPersonID);
+            Package aPackage = packageReservation.getaPackage();
+            CompletableFuture.runAsync(() -> {
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(), messageSource.getMessage("email.subject.packageReserved", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
+                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(), messageSource.getMessage("email.subject.packageReservationCofirm", null, locale),EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
+            }, packageMailTaskExecutor);
+            return packageReservation;
+        });
     }
 
     @Override
     public ReserveBatchResultDTO reservePackagesBatch(List<Long> packageIds, Long deliveryPersonID, Locale locale) {
-        ReserveBatchResultDTO result = new ReserveBatchResultDTO();
-        result.setDeliveryPersonId(deliveryPersonID);
+        return recordPackageOperation("reserveBatch", () -> {
+            ReserveBatchResultDTO result = new ReserveBatchResultDTO();
+            result.setDeliveryPersonId(deliveryPersonID);
 
-        if (packageIds == null || packageIds.isEmpty()) {
-            result.setRequestedCount(0);
-            result.setReservedCount(0);
-            return result;
-        }
-
-        LinkedHashSet<Long> uniqueIds = packageIds.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        result.setRequestedCount(uniqueIds.size());
-
-        for (Long packageId : uniqueIds) {
-            try {
-                PackageReservation reservation = reservePackageInternal(packageId, deliveryPersonID);
-                Package aPackage = reservation.getaPackage();
-                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(),
-                        messageSource.getMessage("email.subject.packageReserved", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
-                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(),
-                        messageSource.getMessage("email.subject.packageReservationCofirm", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
-                result.getReservedPackageIds().add(packageId);
-            } catch (ResponseStatusException ex) {
-                result.getSkippedPackages().put(packageId, ex.getReason() == null ? ex.getStatusCode().toString() : ex.getReason());
-            } catch (Exception ex) {
-                result.getSkippedPackages().put(packageId, "Unexpected error while reserving package");
+            if (packageIds == null || packageIds.isEmpty()) {
+                result.setRequestedCount(0);
+                result.setReservedCount(0);
+                return result;
             }
-        }
 
-        result.setReservedCount(result.getReservedPackageIds().size());
-        return result;
+            LinkedHashSet<Long> uniqueIds = packageIds.stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            result.setRequestedCount(uniqueIds.size());
+
+            for (Long packageId : uniqueIds) {
+                try {
+                    PackageReservation reservation = reservePackageInternal(packageId, deliveryPersonID);
+                    Package aPackage = reservation.getaPackage();
+                    CompletableFuture.runAsync(() -> {
+                        sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_SENDER.getType(),
+                                messageSource.getMessage("email.subject.packageReserved", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_SENDER);
+                        sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_RESERVATION_DELIVERY.getType(),
+                                messageSource.getMessage("email.subject.packageReservationCofirm", null, locale), EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY);
+                    }, packageMailTaskExecutor);
+                    result.getReservedPackageIds().add(packageId);
+                } catch (ResponseStatusException ex) {
+                    result.getSkippedPackages().put(packageId, ex.getReason() == null ? ex.getStatusCode().toString() : ex.getReason());
+                } catch (Exception ex) {
+                    result.getSkippedPackages().put(packageId, "Unexpected error while reserving package");
+                }
+            }
+
+            result.setReservedCount(result.getReservedPackageIds().size());
+            return result;
+        });
     }
 
     @Override
     public void pickUpPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException {
-        Package aPackage = packages.findById(packageID)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
-        Optional<PackageReservation> packageReservation = aPackage.getPackageReservations().stream()
-                .filter(currentReservation -> currentReservation.getDeliveryPerson() != null
-                        && currentReservation.getDeliveryPerson().getId().equals(deliveryPersonID))
-                .findFirst();
-        if(packageReservation.isPresent() && Objects.equals(packageReservation.get().getPickUpOTP(), pickUpOTP)) {
-            aPackage.setStatus(PACKAGE_STATUS.PICKEDUP);
-            try {
+        recordPackageOperationChecked("pickup", () -> {
+            Package aPackage = packages.findById(packageID)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+            Optional<PackageReservation> packageReservation = aPackage.getPackageReservations().stream()
+                    .filter(currentReservation -> currentReservation.getDeliveryPerson() != null
+                            && currentReservation.getDeliveryPerson().getId().equals(deliveryPersonID))
+                    .findFirst();
+            if(packageReservation.isPresent() && Objects.equals(packageReservation.get().getPickUpOTP(), pickUpOTP)) {
+                aPackage.setStatus(PACKAGE_STATUS.PICKEDUP);
                 packageReservation.get().setDeliveryOTP(OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis()));
-                //To-Do Send OTP to delivery person & receiver
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
+                packages.saveAndFlush(aPackage);
+                CompletableFuture.runAsync(() -> {
+                    sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_SENDER.getType(),
+                            messageSource.getMessage("email.subject.packagePickup", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_SENDER);
+                    sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_RECEIVER.getType(),
+                            messageSource.getMessage("email.subject.packagePickupR", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER);
+                    sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_DELIVERY.getType(),
+                            messageSource.getMessage("email.subject.packagePickupCofirm", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY);
+                }, packageMailTaskExecutor);
+                return null;
             }
-            packages.save(aPackage);
-            /*ExecutorService executorService = Executors.newFixedThreadPool(3);
-            executorService.submit(() -> {*/
-                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_SENDER.getType(),
-                        messageSource.getMessage("email.subject.packagePickup", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_SENDER);
-            /*});
-            executorService.submit(() -> {*/
-                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_RECEIVER.getType(),
-                        messageSource.getMessage("email.subject.packagePickupR", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER);
-            /*});
-            executorService.submit(() -> {*/
-                sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_PICKUP_DELIVERY.getType(),
-                        messageSource.getMessage("email.subject.packagePickupCofirm", null, locale),EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY);
-            //});
-        }else{
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid pickup OTP");
-        }
+        });
     }
 
+    @Override
     public void deliverPackage(Long packageID, Long deliveryPersonID, String pickUpOTP, Locale locale) throws NoSuchAlgorithmException {
-        Package aPackage = packages.findById(packageID)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
-        Optional<PackageReservation> packageReservation = aPackage.getPackageReservations().stream()
-                .filter(currentReservation -> currentReservation.getDeliveryPerson() != null
-                        && currentReservation.getDeliveryPerson().getId().equals(deliveryPersonID))
-                .findFirst();
-        if(packageReservation.isPresent() && Objects.equals(packageReservation.get().getDeliveryOTP(), pickUpOTP)) {
-            aPackage.setStatus(PACKAGE_STATUS.DELIVERED);
-            packageReservation.get().setStatus(PACKAGE_RESERVATION_STATUS.FINISHED);
-            packages.save(aPackage);
-            /*ExecutorService executorService = Executors.newFixedThreadPool(3);
-            executorService.submit(() -> {*/
-            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_RECEIVER.getType(),
-                    messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER);
-            /*});
-            executorService.submit(() -> {*/
-            sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_SENDER.getType(),
-                    messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_SENDER);
-            //});
-        }else{
+        recordPackageOperationChecked("deliver", () -> {
+            Package aPackage = packages.findById(packageID)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+            Optional<PackageReservation> packageReservation = aPackage.getPackageReservations().stream()
+                    .filter(currentReservation -> currentReservation.getDeliveryPerson() != null
+                            && currentReservation.getDeliveryPerson().getId().equals(deliveryPersonID))
+                    .findFirst();
+            if(packageReservation.isPresent() && Objects.equals(packageReservation.get().getDeliveryOTP(), pickUpOTP)) {
+                aPackage.setStatus(PACKAGE_STATUS.DELIVERED);
+                packageReservation.get().setStatus(PACKAGE_RESERVATION_STATUS.FINISHED);
+                packages.saveAndFlush(aPackage);
+                CompletableFuture.runAsync(() -> {
+                    sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_RECEIVER.getType(),
+                            messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER);
+                    sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_SENDER.getType(),
+                            messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_SENDER);
+                }, packageMailTaskExecutor);
+                return null;
+            }
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid delivery OTP");
-        }
+        });
     }
 
     @Override
@@ -544,23 +530,7 @@ public class PackagesService implements IPackagesService {
     public PackageDTO findPackageByID(Long id) {
         Package aPackage = packages.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
-        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-        packageDTO.getDocumentS().clear();
-        aPackage.getDocument().stream().forEach(document -> {
-            if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                    document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                documentDTO.setFileName(document.getType().toString());
-                try {
-                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
-            }
-        });
-        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
-        return packageDTO;
+        return toPackageDTO(aPackage);
     }
 
     @Override
@@ -590,24 +560,7 @@ public class PackagesService implements IPackagesService {
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID) {
         List<Package> packageList = packages.findPackagesByDeliveryPerson(deliveryPersonID);
         List<PackageDTO> packageDTOS = packageList.stream()
-                .map(aPackage  -> {
-                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream().forEach(document -> {
-                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                            documentDTO.setFileName(document.getType().toString());
-                            try {
-                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
-                        }
-                    });
-                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
-                    return packageDTO;
-                })
+                .map(this::toPackageDTO)
                 .collect(Collectors.toList());
         Map<PACKAGE_STATUS, List<PackageDTO>> groupedPackages = packageDTOS.parallelStream()
                 .collect(Collectors.groupingByConcurrent(packaged -> {
@@ -620,24 +573,7 @@ public class PackagesService implements IPackagesService {
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(Long senderID) {
         List<Package> packageList = packages.findPackagesBySender(senderID);
         List<PackageDTO> packageDTOS = packageList.stream()
-                .map(aPackage  -> {
-                    PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-                    aPackage.getDocument().stream().forEach(document -> {
-                        if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                                document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                            documentDTO.setFileName(document.getType().toString());
-                            try {
-                                documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
-                        }
-                    });
-                    packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
-                    return packageDTO;
-                })
+                .map(this::toPackageDTO)
                 .collect(Collectors.toList());
         return packageDTOS.parallelStream()
                 .collect(Collectors.groupingByConcurrent(PackageDTO::getStatus));
@@ -880,30 +816,16 @@ public class PackagesService implements IPackagesService {
 
     @Override
     public PackageDTO findPackageByReference(String reference) {
-        if (reference == null || reference.isBlank() || "undefined".equalsIgnoreCase(reference)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Package reference is required");
-        }
-        Package aPackage = packages.findPackageByReference(reference);
-        if (aPackage == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found for reference: " + reference);
-        }
-        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-        packageDTO.getDocumentS().clear();
-        aPackage.getDocument().stream().forEach(document -> {
-            if(document.getType().equals(DOCUMENT_TYPE.PACKAGE_PICTURE) ||
-                    document.getType().equals(DOCUMENT_TYPE.PACKAGE_INVOICE)){
-                DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-                documentDTO.setFileName(document.getType().toString());
-                try {
-                    documentDTO.setData(Files.readAllBytes(Paths.get(document.getDocURL())));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                packageDTO.getDocumentS().put(documentDTO.getType(),documentDTO);
+        return recordPackageOperation("findByReference", () -> {
+            if (reference == null || reference.isBlank() || "undefined".equalsIgnoreCase(reference)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Package reference is required");
             }
+            Package aPackage = packages.findPackageByReference(reference);
+            if (aPackage == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found for reference: " + reference);
+            }
+            return toPackageDTO(aPackage);
         });
-        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
-        return packageDTO;
     }
 
     @Override
@@ -913,6 +835,28 @@ public class PackagesService implements IPackagesService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid guest access token");
         }
         return packageDTO;
+    }
+
+    @Override
+    public DocumentContentDTO loadPackageDocumentContent(Long documentId) {
+        return recordPackageOperation("documentContent", () -> {
+            Document document = documents.findById(documentId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+            if (!isPackageDocument(document)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported package document type");
+            }
+            DocumentContentDTO contentDTO = new DocumentContentDTO();
+            try {
+                byte[] data = Files.readAllBytes(Paths.get(document.getDocURL()));
+                recordPackageDocumentContentSize(data.length);
+                contentDTO.setData(data);
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
+            }
+            contentDTO.setFileName(resolveDocumentFileName(document));
+            contentDTO.setContentType(resolveDocumentContentType(document));
+            return contentDTO;
+        });
     }
 
     @Override
@@ -928,11 +872,55 @@ public class PackagesService implements IPackagesService {
             packageList.stream().forEach(aPackage -> {
                 aPackage.setLastPositionLatitude(messageDTO.getPositionDTO().getLatitude());
                 aPackage.setLastPositionLongitude(messageDTO.getPositionDTO().getLongitude());
-                packages.save(aPackage);
+                packages.saveAndFlush(aPackage);
                 map.put(aPackage.getReference(), messageDTO.getPositionDTO());
             });
         }
         return map;
+    }
+
+    private PackageDTO toPackageDTO(Package aPackage) {
+        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
+        packageDTO.getDocumentS().clear();
+        aPackage.getDocument().stream()
+                .filter(this::isPackageDocument)
+                .forEach(document -> packageDTO.getDocumentS().put(document.getType(), toPackageDocumentMetadata(document)));
+        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
+        return packageDTO;
+    }
+
+    private boolean isPackageDocument(Document document) {
+        return DOCUMENT_TYPE.PACKAGE_PICTURE.equals(document.getType())
+                || DOCUMENT_TYPE.PACKAGE_INVOICE.equals(document.getType());
+    }
+
+    private DocumentDTO toPackageDocumentMetadata(Document document) {
+        DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+        documentDTO.setFileName(resolveDocumentFileName(document));
+        documentDTO.setData(null);
+        return documentDTO;
+    }
+
+    private String resolveDocumentFileName(Document document) {
+        if (document.getDocURL() == null || document.getDocURL().isBlank()) {
+            return document.getType() != null ? document.getType().toString() : null;
+        }
+        return Paths.get(document.getDocURL()).getFileName().toString();
+    }
+
+    private String resolveDocumentContentType(Document document) {
+        String fileName = resolveDocumentFileName(document);
+        if (fileName == null || !fileName.contains(".")) {
+            return DOCUMENT_TYPE.PACKAGE_INVOICE.equals(document.getType()) ? "application/pdf" : "image/png";
+        }
+        String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        return switch (extension) {
+            case "pdf" -> "application/pdf";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "gif" -> "image/gif";
+            case "webp" -> "image/webp";
+            default -> "image/png";
+        };
     }
 
     private PackageReservation reservePackageInternal(Long packageID, Long deliveryPersonID) throws NoSuchAlgorithmException {
@@ -961,8 +949,41 @@ public class PackagesService implements IPackagesService {
         packageReservation.setReservationDate(Timestamp.valueOf(LocalDateTime.now()));
         packageReservation.setPickUpOTP(OTPHelper.generateOTP(OTPSecret, System.currentTimeMillis()));
         aPackage.getPackageReservations().add(packageReservation);
-        packages.save(aPackage);
+        packages.saveAndFlush(aPackage);
         return packageReservation;
+    }
+
+    private void rollbackFailedPackageCreation(Package aPackage, String packageDirectory) {
+        if (aPackage != null && aPackage.getId() != null) {
+            try {
+                packages.deleteById(aPackage.getId());
+                packages.flush();
+            } catch (Exception cleanupException) {
+                logger.error("Unable to rollback persisted package {} after file failure: {}",
+                        aPackage.getReference(), cleanupException.getMessage(), cleanupException);
+            }
+        }
+        if (packageDirectory == null || packageDirectory.isBlank()) {
+            return;
+        }
+        Path directoryPath = Paths.get(packageDirectory);
+        if (!Files.exists(directoryPath)) {
+            return;
+        }
+        try (java.util.stream.Stream<Path> pathStream = Files.walk(directoryPath)) {
+            pathStream.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException exception) {
+                            logger.warn("Unable to delete {} while rolling back package creation: {}",
+                                    path, exception.getMessage());
+                        }
+                    });
+        } catch (IOException exception) {
+            logger.warn("Unable to cleanup files at {} after package creation failure: {}",
+                    packageDirectory, exception.getMessage());
+        }
     }
 
     private static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
@@ -1074,5 +1095,70 @@ public class PackagesService implements IPackagesService {
             }
         }
         return null;
+    }
+
+    private <T> T recordPackageOperation(String operation, ThrowingSupplier<T> action) {
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            T result = action.get();
+            stopPackageOperationTimer(sample, operation, "success");
+            incrementPackageOperationCounter(operation, "success");
+            return result;
+        } catch (RuntimeException exception) {
+            stopPackageOperationTimer(sample, operation, "failure");
+            incrementPackageOperationCounter(operation, "failure");
+            throw exception;
+        } catch (Exception exception) {
+            stopPackageOperationTimer(sample, operation, "failure");
+            incrementPackageOperationCounter(operation, "failure");
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private <T> T recordPackageOperationChecked(String operation, ThrowingSupplier<T> action) throws NoSuchAlgorithmException {
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            T result = action.get();
+            stopPackageOperationTimer(sample, operation, "success");
+            incrementPackageOperationCounter(operation, "success");
+            return result;
+        } catch (NoSuchAlgorithmException exception) {
+            stopPackageOperationTimer(sample, operation, "failure");
+            incrementPackageOperationCounter(operation, "failure");
+            throw exception;
+        } catch (RuntimeException exception) {
+            stopPackageOperationTimer(sample, operation, "failure");
+            incrementPackageOperationCounter(operation, "failure");
+            throw exception;
+        } catch (Exception exception) {
+            stopPackageOperationTimer(sample, operation, "failure");
+            incrementPackageOperationCounter(operation, "failure");
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private void stopPackageOperationTimer(Timer.Sample sample, String operation, String result) {
+        sample.stop(Timer.builder("quickdelivery.packages.operation.duration")
+                .tag("operation", operation)
+                .tag("result", result)
+                .register(meterRegistry));
+    }
+
+    private void incrementPackageOperationCounter(String operation, String result) {
+        meterRegistry.counter("quickdelivery.packages.operation.calls",
+                "operation", operation,
+                "result", result).increment();
+    }
+
+    private void recordPackageDocumentContentSize(int sizeInBytes) {
+        DistributionSummary.builder("quickdelivery.packages.document.content.bytes")
+                .baseUnit("bytes")
+                .register(meterRegistry)
+                .record(sizeInBytes);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws Exception;
     }
 }

@@ -250,6 +250,14 @@ export default {
     },
     visibleSteps() {
       if (this.isClientRegistrationFlow) {
+        if (this.isForUpdate) {
+          return this.steps.filter((step) => {
+            if (step.id === 3) {
+              return this.hasEditableRejectedUserDocuments;
+            }
+            return step.id === 1 || step.id === 2;
+          });
+        }
         if (this.hasEditableRejectedUserDocuments) {
           return [this.steps[0], this.steps[2]];
         }
@@ -587,6 +595,10 @@ export default {
 
       if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && !existingEmail) {
         if (this.isClientRegistrationFlow) {
+          if (this.isForUpdate && this.visibleSteps.length > 1) {
+            this.goToNextVisibleStep();
+            return;
+          }
           if (!this.validateLegalConsent()) {
             return;
           }

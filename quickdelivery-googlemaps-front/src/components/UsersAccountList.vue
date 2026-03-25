@@ -63,9 +63,7 @@ export default {
       return [vehicle.brand, vehicle.model, vehicle.registrationNumber].filter(Boolean).join(' - ');
     },
     documentCount(user) {
-      const directDocs = Object.keys(user?.document || {}).length;
-      const userDocs = Object.keys(user?.documents || {}).length;
-      return directDocs || userDocs || 0;
+      return user?.documentCount || Object.keys(user?.documents || user?.document || {}).length || 0;
     },
   },
 };

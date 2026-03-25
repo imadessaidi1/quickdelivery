@@ -15,7 +15,10 @@ async function bootstrap() {
   await initializeMobileAuthCallbackListener();
 
   try {
-    await handleAuthCallback();
+    const callbackResult = await handleAuthCallback();
+    if (callbackResult?.redirected) {
+      return;
+    }
   } catch (e) {
     console.error('OIDC callback processing failed:', e);
   }

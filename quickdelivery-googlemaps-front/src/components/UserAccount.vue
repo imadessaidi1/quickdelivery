@@ -1,20 +1,20 @@
 <template>
   <div class="user-profile-layout">
-    <div class="information-viewer">
-      <div class="user-details-shell">
+    <div class="information-viewer" :class="{ 'single-column': !hasDisplayableDocuments }">
+        <div class="user-details-shell">
         <div class="panel-card">
           <div class="panel-head">
             <h2>{{ $t('userInfo') || 'Informations' }}</h2>
           </div>
-          <UserDetails :user="selectedUser" :vehicle="selectedUser.vehicles[0]" :userDocuments="selectedUser.documents" :show-update-button="true"/>
+          <UserDetails :user="selectedUser" :vehicle="primaryVehicle" :userDocuments="selectedUser.documents" :show-update-button="true"/>
         </div>
       </div>
-      <div class="document-viewer">
+      <div v-if="hasDisplayableDocuments" class="document-viewer">
         <div class="panel-card panel-card-fill">
           <div class="panel-head">
             <h2>{{ $t('userDocuments') }}</h2>
           </div>
-          <DocumentViewer :documents="selectedUser.document"/>
+          <DocumentViewer :documents="displayableDocuments"/>
         </div>
       </div>
     </div>
@@ -33,6 +33,20 @@ export default {
   props: {
     selectedUser: null,
   },
+  computed: {
+    primaryVehicle() {
+      return Array.isArray(this.selectedUser?.vehicles) ? this.selectedUser.vehicles[0] || null : null;
+    },
+    displayableDocuments() {
+      const documents = this.selectedUser?.document || {};
+      return Object.fromEntries(
+        Object.entries(documents).filter(([key, document]) => key !== 'PICTURE' && document?.id)
+      );
+    },
+    hasDisplayableDocuments() {
+      return Object.keys(this.displayableDocuments).length > 0;
+    },
+  },
 }
 </script>
 <style scoped>
@@ -45,6 +59,10 @@ export default {
   grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
+}
+
+.information-viewer.single-column {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .user-details-shell,

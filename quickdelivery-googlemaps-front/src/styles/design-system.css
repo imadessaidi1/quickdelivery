@@ -488,3 +488,71 @@ iframe {
     max-width: 100% !important;
   }
 }
+
+@media screen and (min-width: 768px) {
+  .create-package-page,
+  .dashboard-page,
+  .document-page,
+  .home-page,
+  .my-packages-page,
+  .notifications-page,
+  .package-details-page,
+  .package-tracking-page,
+  .tracking-summary-page,
+  .terms-page,
+  .user-account-page,
+  .user-registration-page,
+  .user-validation-page,
+  .validation-details-page {
+    min-height: calc(100dvh - 76px) !important;
+  }
+
+  .document-page .page-shell {
+    min-height: calc(100dvh - 124px) !important;
+  }
+
+  .document-page .document-frame {
+    min-height: 0 !important;
+    height: calc(100dvh - 250px) !important;
+  }
+
+  .home-page {
+    min-height: calc(100dvh - 92px) !important;
+  }
+
+  .home-page .map-shell,
+  .home-page .packages-shell {
+    min-height: 0 !important;
+  }
+
+  .create-package-page .wizard-card,
+  .user-registration-page .wizard-card,
+  .validation-details-page .details-card,
+  .validation-details-page .documents-card {
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  .create-package-page .card-content,
+  .user-registration-page .card-content {
+    overflow: visible !important;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .home-page {
+    min-height: calc(100dvh - 92px) !important;
+  }
+
+  .home-page .map-shell,
+  .home-page .packages-shell {
+    height: 100% !important;
+  }
+
+  .validation-details-page .details-card,
+  .validation-details-page .documents-card {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}

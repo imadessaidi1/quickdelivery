@@ -169,6 +169,11 @@ export default {
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .marker-details.selected {

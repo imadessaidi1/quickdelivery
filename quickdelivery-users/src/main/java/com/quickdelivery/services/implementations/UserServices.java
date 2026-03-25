@@ -3,8 +3,10 @@ package com.quickdelivery.services.implementations;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.PublicUrlResolver;
+import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.DocumentDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
+import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.entities.Document;
 import com.quickdelivery.abstarct.entities.User;
@@ -26,6 +28,9 @@ import com.quickdelivery.services.interfaces.IUserServices;
 import com.quickdelivery.security.UserUpdateTokenService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -34,8 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
@@ -48,13 +54,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 
 @Service
-@Transactional
 public class UserServices implements IUserServices {
     private static final String DELIVERY_PERSON = "DELIVERY_PERSON";
     private static final long MAX_DOCUMENT_SIZE_BYTES = 10L * 1024L * 1024L;
@@ -110,101 +115,117 @@ public class UserServices implements IUserServices {
     private DocumentOcrOrchestrator documentOcrOrchestrator;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private MeterRegistry meterRegistry;
+    @Autowired
+    @Qualifier("mailTaskExecutor")
+    private Executor mailTaskExecutor;
+    @Autowired
+    @Qualifier("userAsyncTaskExecutor")
+    private Executor userAsyncTaskExecutor;
     @Override
     public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        try {
-            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
-            String rawPassword = user.getPassword();
-            sanitizeAddresses(user, deliveryPerson);
-            validateOnboardingRequest(userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
-            User userEntity = modelMapper.map(user,User.class);
-            if (deliveryPerson) {
-                geocodeAddressesIfPossible(user);
-                userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
-                Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
-                vehicle.setUser(userEntity);
-                userEntity.getVehicles().add(vehicle);
-            } else {
-                userEntity.setPersonalAddress(new HashSet<>());
-                userEntity.setVehicles(new HashSet<>());
-            }
-            String filesPath = buildUserFilesPath(user.getEmailAddress());
-            MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
-            filesMap.entrySet().stream()
-                    .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
-                    .forEach(entry -> {
-                        String fileName = entry.getKey();
-                        MultipartFile file = entry.getValue().get(0);
-                        DocumentValidationResult validationResult = validateDocumentFile(file, locale);
-                        Document document = new Document();
-                        document.setType(DOCUMENT_TYPE.valueOf(fileName));
-                        document.setUser(userEntity);
-                        applyValidationOutcome(document, validationResult);
-                        if (!validationResult.valid()) {
+        return recordUserOperation("create", () -> {
+            try {
+                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+                String rawPassword = user.getPassword();
+                sanitizeAddresses(user, deliveryPerson);
+                validateOnboardingRequest(userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
+                User userEntity = modelMapper.map(user,User.class);
+                if (deliveryPerson) {
+                    geocodeAddressesIfPossible(user);
+                    userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
+                    Vehicle vehicle = modelMapper.map(vehicleDTO, Vehicle.class);
+                    vehicle.setUser(userEntity);
+                    userEntity.getVehicles().add(vehicle);
+                } else {
+                    userEntity.setPersonalAddress(new HashSet<>());
+                    userEntity.setVehicles(new HashSet<>());
+                }
+                String filesPath = buildUserFilesPath(user.getEmailAddress());
+                MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
+                filesMap.entrySet().stream()
+                        .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
+                        .forEach(entry -> {
+                            String fileName = entry.getKey();
+                            MultipartFile file = entry.getValue().get(0);
+                            DocumentValidationResult validationResult = validateDocumentFile(file, locale);
+                            Document document = new Document();
+                            document.setType(DOCUMENT_TYPE.valueOf(fileName));
+                            document.setUser(userEntity);
+                            applyValidationOutcome(document, validationResult);
+                            if (!validationResult.valid()) {
+                                userEntity.getDocument().add(document);
+                                return;
+                            }
+                            String currentFileName = file.getOriginalFilename();
+                            if (currentFileName == null || !currentFileName.contains(".")) {
+                                return;
+                            }
+                            String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
+                            document.setDocURL(resolveDocumentPath(filesPath, newFileName));
                             userEntity.getDocument().add(document);
-                            return;
-                        }
-                        String currentFileName = file.getOriginalFilename();
-                        if (currentFileName == null || !currentFileName.contains(".")) {
-                            return;
-                        }
-                        String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
-                        document.setDocURL(resolveDocumentPath(filesPath, newFileName));
-                        userEntity.getDocument().add(document);
-                        validFilesMap.add(fileName, file);
-                    });
-            users.save(userEntity);
-            keycloakProvisioningService.provisionUser(userEntity, rawPassword);
-            if (!validFilesMap.isEmpty()) {
-                FileHelper.saveFilesInParallel(validFilesMap, filesPath, false);
-                triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+                            validFilesMap.add(fileName, file);
+                        });
+                users.saveAndFlush(userEntity);
+                try {
+                    if (!validFilesMap.isEmpty()) {
+                        FileHelper.saveFilesInParallel(validFilesMap, filesPath, false);
+                    }
+                    keycloakProvisioningService.provisionUser(userEntity, rawPassword);
+                } catch (Exception externalFailure) {
+                    rollbackFailedUserCreation(userEntity, filesPath);
+                    throw externalFailure;
+                }
+                if (!validFilesMap.isEmpty()) {
+                    triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+                }
+                userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
+                user.setId(userEntity.getId());
+                user.setVersion(userEntity.getVersion());
+                user.setPassword(null);
+                user.setPasswordConfirmation(null);
+                CompletableFuture.runAsync(() -> sendUserAccountCreationEmail(user, userEntity, locale), mailTaskExecutor);
+                return user;
+            } catch (Exception exception) {
+                logger.error("Unable to create user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+                throw exception;
             }
-            userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
-            user.setId(userEntity.getId());
-            user.setVersion(userEntity.getVersion());
-            user.setPassword(null);
-            user.setPasswordConfirmation(null);
-            ExecutorService executorService = Executors.newFixedThreadPool(10);
-            executorService.submit(() -> {
-                sendUserAccountCreationEmail(user, userEntity, locale);
-            });
-            return user;
-        } catch (Exception exception) {
-            logger.error("Unable to create user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
-            throw exception;
-        }
+        });
     }
 
     @Override
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        try {
-            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
-            sanitizeAddresses(user, deliveryPerson);
-            User userEntity = users.findById(user.getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-            validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
-            String filesPath = buildUserFilesPath(user.getEmailAddress());
+        return recordUserOperation("update", () -> {
+            try {
+                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+                sanitizeAddresses(user, deliveryPerson);
+                User userEntity = users.findById(user.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
+                String filesPath = buildUserFilesPath(user.getEmailAddress());
 
-            mergeUserProfile(userEntity, user);
-            if (deliveryPerson) {
-                geocodeAddressesIfPossible(user);
-                mergeVehicle(userEntity, vehicleDTO);
-            } else {
-                userEntity.setPersonalAddress(new HashSet<>());
-                userEntity.setVehicles(new HashSet<>());
-            }
+                mergeUserProfile(userEntity, user);
+                if (deliveryPerson) {
+                    geocodeAddressesIfPossible(user);
+                    mergeVehicle(userEntity, vehicleDTO);
+                } else {
+                    userEntity.setPersonalAddress(new HashSet<>());
+                    userEntity.setVehicles(new HashSet<>());
+                }
 
-            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
-            users.save(userEntity);
-            if (!validFilesMap.isEmpty()) {
-                FileHelper.saveFilesInParallel(validFilesMap, filesPath, true);
-                triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+                MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
+                users.saveAndFlush(userEntity);
+                if (!validFilesMap.isEmpty()) {
+                    FileHelper.saveFilesInParallel(validFilesMap, filesPath, true);
+                    triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+                }
+                return modelMapper.map(userEntity, UserDTO.class);
+            } catch (Exception exception) {
+                logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+                throw exception;
             }
-            return modelMapper.map(userEntity, UserDTO.class);
-        } catch (Exception exception) {
-            logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
-            throw exception;
-        }
+        });
     }
 
     @Override
@@ -241,42 +262,39 @@ public class UserServices implements IUserServices {
 
     @Override
     public UserDTO userValidation(UserDTO user, Locale locale) {
-        User userFromDB = users.findById(user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        userFromDB.setActiveAccount(user.getActiveAccount());
-        userFromDB.setEmailAddressValidation(user.getEmailAddressValidation());
-        Map<DOCUMENT_TYPE, Document> existingDocuments = userFromDB.getDocument().stream()
-                .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
-        user.getDocument().forEach((documentType, documentDTO) -> {
-            Document document = existingDocuments.get(documentType);
-            if (document == null) {
-                document = new Document();
-                document.setType(documentType);
-                document.setUser(userFromDB);
-                existingDocuments.put(documentType, document);
+        return recordUserOperation("validate", () -> {
+            User userFromDB = users.findById(user.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            userFromDB.setActiveAccount(user.getActiveAccount());
+            userFromDB.setEmailAddressValidation(user.getEmailAddressValidation());
+            Map<DOCUMENT_TYPE, Document> existingDocuments = userFromDB.getDocument().stream()
+                    .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
+            user.getDocument().forEach((documentType, documentDTO) -> {
+                Document document = existingDocuments.get(documentType);
+                if (document == null) {
+                    document = new Document();
+                    document.setType(documentType);
+                    document.setUser(userFromDB);
+                    existingDocuments.put(documentType, document);
+                }
+                document.setDocumentStatus(documentDTO.getDocumentStatus());
+                document.setReviewComment(resolveReviewComment(documentDTO, locale));
+                document.setReviewedAt(new java.util.Date());
+                document.setReviewedBy("ADMIN");
+            });
+            userFromDB.setDocument(new HashSet<>(existingDocuments.values()));
+            users.saveAndFlush(userFromDB);
+            keycloakProvisioningService.syncUserState(userFromDB);
+            List<Document> rejectedDocuments = userFromDB.getDocument().stream()
+                    .filter(document -> document.getDocumentStatus() == DOCUMENT_STATUS.REJECTED)
+                    .collect(Collectors.toList());
+            if(!rejectedDocuments.isEmpty()) {
+                CompletableFuture.runAsync(() -> sendUserDocumentsUpdateRequest(user, userFromDB, rejectedDocuments, locale), mailTaskExecutor);
+            } else if (Boolean.TRUE.equals(userFromDB.getActiveAccount())) {
+                CompletableFuture.runAsync(() -> sendUserAccountApprovedEmail(user, userFromDB, locale), mailTaskExecutor);
             }
-            document.setDocumentStatus(documentDTO.getDocumentStatus());
-            document.setReviewComment(resolveReviewComment(documentDTO, locale));
-            document.setReviewedAt(new java.util.Date());
-            document.setReviewedBy("ADMIN");
+            return modelMapper.map(userFromDB,UserDTO.class);
         });
-        userFromDB.setDocument(new HashSet<>(existingDocuments.values()));
-        users.save(userFromDB);
-        keycloakProvisioningService.syncUserState(userFromDB);
-        List<Document> rejectedDocuments = userFromDB.getDocument().stream()
-                .filter(document -> document.getDocumentStatus() == DOCUMENT_STATUS.REJECTED)
-                .collect(Collectors.toList());
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        if(!rejectedDocuments.isEmpty()) {
-            executorService.submit(() -> {
-                sendUserDocumentsUpdateRequest(user, userFromDB, rejectedDocuments, locale);
-            });
-        } else if (Boolean.TRUE.equals(userFromDB.getActiveAccount())) {
-            executorService.submit(() -> {
-                sendUserAccountApprovedEmail(user, userFromDB, locale);
-            });
-        }
-        return modelMapper.map(userFromDB,UserDTO.class);
     }
 
     @Override
@@ -286,12 +304,14 @@ public class UserServices implements IUserServices {
 
     @Override
     public CHECK_STATUS validateUserEmail(Long id) {
-        User user = users.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        user.setEmailAddressValidation(true);
-        users.save(user);
-        keycloakProvisioningService.syncUserState(user);
-        return CHECK_STATUS.OK;
+        return recordUserOperation("validateEmail", () -> {
+            User user = users.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            user.setEmailAddressValidation(true);
+            users.saveAndFlush(user);
+            keycloakProvisioningService.syncUserState(user);
+            return CHECK_STATUS.OK;
+        });
     }
 
     @Override
@@ -313,20 +333,48 @@ public class UserServices implements IUserServices {
     }
 
     @Override
-    public List<UserDTO> findUsersForValidation() {
-        List<User> userList = users.findUsersForValidation();
-        List<UserDTO> userDTOList = new ArrayList<>();
-        userList.stream().forEach(user -> {
-            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
-                userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
-            }
-            attachDocumentsSafely(user, userDTO);
-            userDTO.setPassword(null);
-            userDTO.setPasswordConfirmation(null);
-            userDTOList.add(userDTO);
+    public UserValidationPageDTO findUsersForValidation(int page, int size) {
+        return recordUserOperation("validationPage", () -> {
+            int resolvedPage = Math.max(page, 0);
+            int resolvedSize = Math.min(Math.max(size, 1), 100);
+            Page<User> userPage = users.findUsersForValidation(PageRequest.of(resolvedPage, resolvedSize));
+            List<UserDTO> items = userPage.getContent().stream()
+                    .map(this::toUserValidationSummary)
+                    .toList();
+
+            UserValidationPageDTO response = new UserValidationPageDTO();
+            response.setItems(items);
+            response.setPage(userPage.getNumber());
+            response.setSize(userPage.getSize());
+            response.setTotalItems(userPage.getTotalElements());
+            response.setTotalPages(userPage.getTotalPages());
+            response.setTotalVehicles(users.countVehiclesForValidation());
+            response.setTotalDocuments(users.countDocumentsForValidation());
+            response.setTotalVehicleDocuments(users.countDocumentsForValidationByType(Set.of(DOCUMENT_TYPE.GRAY_CARD, DOCUMENT_TYPE.INSURANCE)));
+            return response;
         });
-        return userDTOList;
+    }
+
+    @Override
+    public DocumentContentDTO loadDocumentContent(Long documentId) {
+        return recordUserOperation("documentContent", () -> {
+            Document document = documents.findById(documentId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+            if (document.getDocURL() == null || document.getDocURL().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
+            }
+            try {
+                byte[] data = readDocumentBytes(document, document.getUser() == null ? null : document.getUser().getEmailAddress());
+                recordUserDocumentContentSize(data.length);
+                DocumentContentDTO response = new DocumentContentDTO();
+                response.setData(data);
+                response.setFileName(resolveDocumentFileName(document));
+                response.setContentType(resolveDocumentContentType(document));
+                return response;
+            } catch (IOException exception) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
+            }
+        });
     }
 
     private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){
@@ -423,17 +471,29 @@ public class UserServices implements IUserServices {
 
     private void attachDocumentsSafely(User user, UserDTO userDTO) {
         user.getDocument().forEach(document -> {
-            DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
-            if (document.getDocURL() != null && !document.getDocURL().isBlank()) {
-                try {
-                    documentDTO.setData(readDocumentBytes(document, user.getEmailAddress()));
-                } catch (IOException e) {
-                    logger.warn("Document file missing or unreadable for user {} and type {} at {}",
-                            user.getEmailAddress(), document.getType(), document.getDocURL(), e);
-                }
-            }
+            DocumentDTO documentDTO = toDocumentMetadata(document);
             userDTO.getDocument().put(document.getType(), documentDTO);
         });
+        userDTO.setDocumentCount(userDTO.getDocument().size());
+    }
+
+    private UserDTO toUserValidationSummary(User user) {
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
+            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
+        }
+        userDTO.setDocument(new LinkedHashMap<>());
+        userDTO.setDocumentCount(user.getDocument() == null ? 0 : user.getDocument().size());
+        userDTO.setPassword(null);
+        userDTO.setPasswordConfirmation(null);
+        return userDTO;
+    }
+
+    private DocumentDTO toDocumentMetadata(Document document) {
+        DocumentDTO documentDTO = modelMapper.map(document, DocumentDTO.class);
+        documentDTO.setData(null);
+        documentDTO.setFileName(resolveDocumentFileName(document));
+        return documentDTO;
     }
 
     private void mergeUserProfile(User userEntity, UserDTO user) {
@@ -635,6 +695,39 @@ public class UserServices implements IUserServices {
         return Paths.get(userDocPath, safeDirectoryName).toString();
     }
 
+    private void rollbackFailedUserCreation(User userEntity, String filesPath) {
+        if (userEntity != null && userEntity.getId() != null) {
+            try {
+                users.deleteById(userEntity.getId());
+                users.flush();
+            } catch (Exception cleanupException) {
+                logger.error("Unable to rollback persisted user {} after external failure: {}",
+                        userEntity.getEmailAddress(), cleanupException.getMessage(), cleanupException);
+            }
+        }
+        if (filesPath == null || filesPath.isBlank()) {
+            return;
+        }
+        Path userFilesDirectory = Paths.get(filesPath);
+        if (!Files.exists(userFilesDirectory)) {
+            return;
+        }
+        try (java.util.stream.Stream<Path> pathStream = Files.walk(userFilesDirectory)) {
+            pathStream.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException exception) {
+                            logger.warn("Unable to delete {} while rolling back user creation: {}",
+                                    path, exception.getMessage());
+                        }
+                    });
+        } catch (IOException exception) {
+            logger.warn("Unable to cleanup files at {} after user creation failure: {}",
+                    filesPath, exception.getMessage());
+        }
+    }
+
     private String resolveDocumentPath(String directoryPath, String fileName) {
         Path resolvedPath = Paths.get(directoryPath).resolve(fileName);
         return resolvedPath.toString();
@@ -657,6 +750,28 @@ public class UserServices implements IUserServices {
         }
 
         throw new IOException("Document file not found at " + document.getDocURL());
+    }
+
+    private String resolveDocumentFileName(Document document) {
+        if (document == null || document.getDocURL() == null || document.getDocURL().isBlank()) {
+            return null;
+        }
+        return Paths.get(document.getDocURL()).getFileName().toString();
+    }
+
+    private String resolveDocumentContentType(Document document) {
+        String fileName = resolveDocumentFileName(document);
+        if (fileName == null || !fileName.contains(".")) {
+            return "application/octet-stream";
+        }
+        String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        return switch (extension) {
+            case "pdf" -> "application/pdf";
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "webp" -> "image/webp";
+            default -> "application/octet-stream";
+        };
     }
 
     private String buildUserUpdateLink(User user) {
@@ -727,14 +842,14 @@ public class UserServices implements IUserServices {
                 @Override
                 public void afterCommit() {
                     logger.info("Triggering OCR after commit for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
-                    trigger.run();
+                    CompletableFuture.runAsync(trigger, userAsyncTaskExecutor);
                 }
             });
             return;
         }
 
         logger.info("Triggering OCR immediately for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
-        trigger.run();
+        CompletableFuture.runAsync(trigger, userAsyncTaskExecutor);
     }
 
     private DocumentValidationResult validateDocumentFile(MultipartFile file, Locale locale) {
@@ -771,6 +886,7 @@ public class UserServices implements IUserServices {
         document.setValidationStatus(validationResult.status());
         document.setValidationCode(validationResult.code());
         document.setValidationDetails(validationResult.details());
+        clearNormalizedOcrFields(document);
         if (validationResult.valid()) {
             document.setDocumentStatus(DOCUMENT_STATUS.PENDING_VALIDATION);
             document.setReviewComment(null);
@@ -822,5 +938,68 @@ public class UserServices implements IUserServices {
                                             DOCUMENT_VALIDATION_STATUS status,
                                             String code,
                                             String details) {
+    }
+
+    private void clearNormalizedOcrFields(Document document) {
+        document.setOcrDocumentType(null);
+        document.setOcrDetectedDocumentType(null);
+        document.setOcrTypeConsistent(null);
+        document.setOcrLastName(null);
+        document.setOcrFirstName(null);
+        document.setOcrBirthDate(null);
+        document.setOcrExpiryDate(null);
+        document.setOcrRegistrationNumber(null);
+        document.setOcrBrand(null);
+        document.setOcrModel(null);
+        document.setOcrEnergyType(null);
+        document.setOcrHolderName(null);
+        document.setOcrCompanyName(null);
+        document.setOcrSiren(null);
+        document.setOcrInsuranceKind(null);
+        document.setOcrIban(null);
+        document.setOcrBic(null);
+    }
+
+    private <T> T recordUserOperation(String operation, ThrowingSupplier<T> action) {
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            T result = action.get();
+            stopUserOperationTimer(sample, operation, "success");
+            incrementUserOperationCounter(operation, "success");
+            return result;
+        } catch (RuntimeException exception) {
+            stopUserOperationTimer(sample, operation, "failure");
+            incrementUserOperationCounter(operation, "failure");
+            throw exception;
+        } catch (Exception exception) {
+            stopUserOperationTimer(sample, operation, "failure");
+            incrementUserOperationCounter(operation, "failure");
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private void stopUserOperationTimer(Timer.Sample sample, String operation, String result) {
+        sample.stop(Timer.builder("quickdelivery.users.operation.duration")
+                .tag("operation", operation)
+                .tag("result", result)
+                .register(meterRegistry));
+    }
+
+    private void incrementUserOperationCounter(String operation, String result) {
+        meterRegistry.counter("quickdelivery.users.operation.calls",
+                "operation", operation,
+                "result", result).increment();
+    }
+
+    private void recordUserDocumentContentSize(int sizeInBytes) {
+        DistributionSummary.builder("quickdelivery.users.document.content.bytes")
+                .baseUnit("bytes")
+                .register(meterRegistry)
+                .record(sizeInBytes);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws Exception;
     }
 }

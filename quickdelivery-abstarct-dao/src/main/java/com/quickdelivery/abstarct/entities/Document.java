@@ -48,6 +48,40 @@ public class Document {
     @Column(length = 8000)
     private String ocrExtractedData;
     @Column
+    private String ocrDocumentType;
+    @Column
+    private String ocrDetectedDocumentType;
+    @Column
+    private Boolean ocrTypeConsistent;
+    @Column
+    private String ocrLastName;
+    @Column
+    private String ocrFirstName;
+    @Column
+    private String ocrBirthDate;
+    @Column
+    private String ocrExpiryDate;
+    @Column
+    private String ocrRegistrationNumber;
+    @Column
+    private String ocrBrand;
+    @Column
+    private String ocrModel;
+    @Column
+    private String ocrEnergyType;
+    @Column
+    private String ocrHolderName;
+    @Column
+    private String ocrCompanyName;
+    @Column
+    private String ocrSiren;
+    @Column
+    private String ocrInsuranceKind;
+    @Column
+    private String ocrIban;
+    @Column
+    private String ocrBic;
+    @Column
     private Date ocrProcessedAt;
     @Column
     private String ocrErrorCode;
@@ -221,6 +255,142 @@ public class Document {
 
     public void setOcrExtractedData(String ocrExtractedData) {
         this.ocrExtractedData = ocrExtractedData;
+    }
+
+    public String getOcrDocumentType() {
+        return ocrDocumentType;
+    }
+
+    public void setOcrDocumentType(String ocrDocumentType) {
+        this.ocrDocumentType = ocrDocumentType;
+    }
+
+    public String getOcrDetectedDocumentType() {
+        return ocrDetectedDocumentType;
+    }
+
+    public void setOcrDetectedDocumentType(String ocrDetectedDocumentType) {
+        this.ocrDetectedDocumentType = ocrDetectedDocumentType;
+    }
+
+    public Boolean getOcrTypeConsistent() {
+        return ocrTypeConsistent;
+    }
+
+    public void setOcrTypeConsistent(Boolean ocrTypeConsistent) {
+        this.ocrTypeConsistent = ocrTypeConsistent;
+    }
+
+    public String getOcrLastName() {
+        return ocrLastName;
+    }
+
+    public void setOcrLastName(String ocrLastName) {
+        this.ocrLastName = ocrLastName;
+    }
+
+    public String getOcrFirstName() {
+        return ocrFirstName;
+    }
+
+    public void setOcrFirstName(String ocrFirstName) {
+        this.ocrFirstName = ocrFirstName;
+    }
+
+    public String getOcrBirthDate() {
+        return ocrBirthDate;
+    }
+
+    public void setOcrBirthDate(String ocrBirthDate) {
+        this.ocrBirthDate = ocrBirthDate;
+    }
+
+    public String getOcrExpiryDate() {
+        return ocrExpiryDate;
+    }
+
+    public void setOcrExpiryDate(String ocrExpiryDate) {
+        this.ocrExpiryDate = ocrExpiryDate;
+    }
+
+    public String getOcrRegistrationNumber() {
+        return ocrRegistrationNumber;
+    }
+
+    public void setOcrRegistrationNumber(String ocrRegistrationNumber) {
+        this.ocrRegistrationNumber = ocrRegistrationNumber;
+    }
+
+    public String getOcrBrand() {
+        return ocrBrand;
+    }
+
+    public void setOcrBrand(String ocrBrand) {
+        this.ocrBrand = ocrBrand;
+    }
+
+    public String getOcrModel() {
+        return ocrModel;
+    }
+
+    public void setOcrModel(String ocrModel) {
+        this.ocrModel = ocrModel;
+    }
+
+    public String getOcrEnergyType() {
+        return ocrEnergyType;
+    }
+
+    public void setOcrEnergyType(String ocrEnergyType) {
+        this.ocrEnergyType = ocrEnergyType;
+    }
+
+    public String getOcrHolderName() {
+        return ocrHolderName;
+    }
+
+    public void setOcrHolderName(String ocrHolderName) {
+        this.ocrHolderName = ocrHolderName;
+    }
+
+    public String getOcrCompanyName() {
+        return ocrCompanyName;
+    }
+
+    public void setOcrCompanyName(String ocrCompanyName) {
+        this.ocrCompanyName = ocrCompanyName;
+    }
+
+    public String getOcrSiren() {
+        return ocrSiren;
+    }
+
+    public void setOcrSiren(String ocrSiren) {
+        this.ocrSiren = ocrSiren;
+    }
+
+    public String getOcrInsuranceKind() {
+        return ocrInsuranceKind;
+    }
+
+    public void setOcrInsuranceKind(String ocrInsuranceKind) {
+        this.ocrInsuranceKind = ocrInsuranceKind;
+    }
+
+    public String getOcrIban() {
+        return ocrIban;
+    }
+
+    public void setOcrIban(String ocrIban) {
+        this.ocrIban = ocrIban;
+    }
+
+    public String getOcrBic() {
+        return ocrBic;
+    }
+
+    public void setOcrBic(String ocrBic) {
+        this.ocrBic = ocrBic;
     }
 
     public Date getOcrProcessedAt() {

@@ -5,12 +5,12 @@
         <h1>{{ $t('validationPageTitle') }}</h1>
         <p>{{ $t('validationPageSubtitle') }}</p>
       </div>
-      <div class="header-chip">{{ usersList.length }}</div>
+      <div class="header-chip">{{ totalUsers }}</div>
     </div>
 
     <div class="summary-panel" v-if="!isLoadingPage && !loadError">
       <div class="summary-card">
-        <strong>{{ usersList.length }}</strong>
+        <strong>{{ totalUsers }}</strong>
         <span>{{ $t('validationPendingUsers') }}</span>
       </div>
       <div class="summary-card accent-neutral">
@@ -26,7 +26,18 @@
     <div class="page-state" v-if="isLoadingPage">{{ $t('stateLoading') }}</div>
     <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
     <div v-else-if="usersList.length === 0" class="page-state">{{ $t('stateEmptyUsersValidation') }}</div>
-    <UsersAccountList v-else :users="usersList"/>
+    <template v-else>
+      <UsersAccountList :users="usersList"/>
+      <div class="pagination-bar">
+        <button class="pagination-btn" type="button" :disabled="currentPage === 0 || isLoadingPage" @click="loadUsers(currentPage - 1)">
+          {{ $t('packagePreviousAction') }}
+        </button>
+        <span class="pagination-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
+        <button class="pagination-btn" type="button" :disabled="currentPage >= totalPages - 1 || isLoadingPage" @click="loadUsers(currentPage + 1)">
+          {{ $t('packageNextAction') }}
+        </button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -43,28 +54,38 @@ export default {
       usersList: [],
       isLoadingPage: false,
       loadError: false,
+      currentPage: 0,
+      pageSize: 12,
+      totalPages: 1,
+      totalUsers: 0,
+      totalVehiclesCount: 0,
+      totalDocumentsCount: 0,
     };
   },
   computed: {
     totalVehicles() {
-      return this.usersList.reduce((count, user) => count + (user.vehicles?.length || 0), 0);
+      return this.totalVehiclesCount;
     },
     totalDocuments() {
-      return this.usersList.reduce((count, user) => {
-        return count + Object.keys(user.documents || user.document || {}).length;
-      }, 0);
+      return this.totalDocumentsCount;
     },
   },
   mounted() {
     this.loadUsers();
   },
   methods: {
-    async loadUsers() {
+    async loadUsers(page = 0) {
       this.isLoadingPage = true;
       this.loadError = false;
       try {
-        const response = await http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUsersForValidation'));
-        this.usersList = Array.isArray(response.data) ? response.data : [];
+        const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=${page}&size=${this.pageSize}`);
+        const payload = response.data || {};
+        this.usersList = Array.isArray(payload.items) ? payload.items : [];
+        this.currentPage = payload.page || 0;
+        this.totalPages = Math.max(payload.totalPages || 1, 1);
+        this.totalUsers = payload.totalItems || 0;
+        this.totalVehiclesCount = payload.totalVehicles || 0;
+        this.totalDocumentsCount = payload.totalDocuments || 0;
       } catch (error) {
         this.loadError = true;
         console.error('Unable to process your request this time. Please try again later.', error);
@@ -164,6 +185,30 @@ export default {
 .page-state.error {
   background: #fef2f2;
   color: #b91c1c;
+}
+.pagination-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+.pagination-btn {
+  min-width: 110px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid #dbe1ea;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+}
+.pagination-btn:disabled {
+  opacity: .45;
+}
+.pagination-info {
+  color: #475569;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 900px) {

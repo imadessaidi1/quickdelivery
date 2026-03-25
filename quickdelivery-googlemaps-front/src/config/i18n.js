@@ -21,6 +21,7 @@ const messages = {
     updatePackageStatus: 'update-packages-status',
     confirmGuestPackagePayment: 'confirm-guest-payment',
     getPackage: 'getPackage?reference=',
+    getPackageDocumentContent: 'document-content?documentId=',
     getGuestPackage: 'getGuestPackage?reference=',
     notify: 'notify',
     pickup: 'pickup?',
@@ -31,6 +32,7 @@ const messages = {
     getUserById: 'user?id=',
     getUserByEmail: 'userByEmail?email=',
     getUsersForValidation: 'usersForValidation',
+    getUserDocumentContent: 'document-content?documentId=',
     validateUser: 'validateUser',
     //FOOTER LABELS
     applicationName: 'QuickDelivery',
@@ -595,6 +597,7 @@ const messages = {
     updatePackageStatus: 'update-packages-status',
     confirmGuestPackagePayment: 'confirm-guest-payment',
     getPackage: 'getPackage?reference=',
+    getPackageDocumentContent: 'document-content?documentId=',
     getGuestPackage: 'getGuestPackage?reference=',
     notify: 'notify',
     pickup: 'pickup?',
@@ -605,6 +608,7 @@ const messages = {
     getUserById: 'user?id=',
     getUserByEmail: 'userByEmail?email=',
     getUsersForValidation: 'usersForValidation',
+    getUserDocumentContent: 'document-content?documentId=',
     validateUser: 'validateUser',
 
   //FOOTER LABELS

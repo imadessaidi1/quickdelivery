@@ -224,6 +224,27 @@ export default {
     canAccessWizard() {
       return this.isAuthenticated || this.allowAnonymousCreation;
     },
+    connectedUser() {
+      return this.$store.state.connectedUser || {};
+    },
+  },
+  watch: {
+    'connectedUser.loaded': {
+      immediate: true,
+      handler(loaded) {
+        if (loaded) {
+          this.prefillDepartureAddressFromConnectedUser();
+        }
+      },
+    },
+    'connectedUser.personalAddress': {
+      deep: true,
+      handler(addresses) {
+        if (this.connectedUser?.loaded && Array.isArray(addresses) && addresses.length > 0) {
+          this.prefillDepartureAddressFromConnectedUser();
+        }
+      },
+    },
   },
   mounted() {
     if (!this.restoreDraftIfAvailable()) {
@@ -270,22 +291,18 @@ export default {
       }
 
       const departureAddress = this.$store.state.package_?.addresses?.[0];
-      if (!departureAddress || this.hasDepartureAddressData(departureAddress)) {
-        return;
-      }
-
-      const identity = getCurrentUserIdentity();
-      const email = identity?.email;
-      if (!email) {
+      if (!departureAddress || this.hasLockedDepartureAddressData(departureAddress)) {
         return;
       }
 
       try {
-        const response = await http.get(
-          `${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`
-        );
-        const user = response?.data;
+        const user = await hydrateConnectedUser();
         const residence = Array.isArray(user?.personalAddress) ? user.personalAddress[0] : null;
+        console.info('QuickDelivery connected user for package prefill:', user);
+        console.info('QuickDelivery residence used for package prefill:', residence);
+        if (!residence && !user?.firstName && !user?.lastName && !user?.email) {
+          return;
+        }
         const formattedAddress = residence
           ? [residence.line1, residence.zipCode ? `${residence.zipCode} ${residence.town || ''}`.trim() : residence.town, residence.country]
               .filter((value) => !!value)
@@ -296,7 +313,7 @@ export default {
           ...departureAddress,
           firstName: user?.firstName || this.$store.state.connectedUser?.firstName || '',
           lastName: user?.lastName || this.$store.state.connectedUser?.lastName || '',
-          email: user?.emailAddress || this.$store.state.connectedUser?.email || email,
+          email: user?.email || this.$store.state.connectedUser?.email || getCurrentUserIdentity()?.email || '',
           phone: user?.phone || '',
           floor: residence?.floor ?? departureAddress.floor,
           addressAuto: formattedAddress || departureAddress.addressAuto,
@@ -306,19 +323,20 @@ export default {
           zipCode: residence?.zipCode || departureAddress.zipCode,
           country: residence?.country || departureAddress.country,
           latitude: residence?.latitude ?? departureAddress.latitude,
-          longitude: residence?.longitude ?? departureAddress.longitude,
+            longitude: residence?.longitude ?? departureAddress.longitude,
         });
       } catch (error) {
+        console.error('QuickDelivery failed to hydrate connected user for package prefill:', error);
         // Keep the wizard usable even if profile hydration fails.
       }
     },
-    hasDepartureAddressData(address) {
+    hasLockedDepartureAddressData(address) {
       return Boolean(
-        address.firstName ||
-        address.lastName ||
-        address.email ||
-        address.phone ||
-        address.addressAuto
+        address.addressAuto ||
+        address.line1 ||
+        address.town ||
+        address.zipCode ||
+        address.country
       );
     },
     continueAsGuest() {

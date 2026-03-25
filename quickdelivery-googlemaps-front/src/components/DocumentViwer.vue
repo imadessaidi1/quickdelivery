@@ -53,6 +53,8 @@
     </div>
 </template>
 <script>
+import http from '@/config/httpInterceptor';
+
 export default {
     props: {
         documents: {
@@ -65,10 +67,16 @@ export default {
           currentDocIndex: 0,
           currentDocData: '',
           currentDocument: null,
+          currentDocumentUrl: '',
+          isDocumentLoading: false,
+          documentRequestToken: 0,
         };
     },
     mounted() {
         this.syncCurrentDocument();
+    },
+    beforeUnmount() {
+        this.revokeCurrentDocumentUrl();
     },
     computed: {
         documentKeys() {
@@ -201,19 +209,41 @@ export default {
         syncCurrentDocument() {
             const documentType = this.documentKeys[this.currentDocIndex];
             this.currentDocument = documentType ? this.documents[documentType] : null;
-            this.formatDocData(this.currentDocument);
+            this.loadCurrentDocumentContent();
         },
-        formatDocData(document){
-            if (!document?.docURL || !document?.data) {
+        async loadCurrentDocumentContent() {
+            this.documentRequestToken += 1;
+            const requestToken = this.documentRequestToken;
+            this.revokeCurrentDocumentUrl();
+            const document = this.currentDocument;
+            if (!document?.id || !document?.docURL) {
                 this.currentDocData = '';
                 return;
             }
-            const lastDotIndex = document.docURL.lastIndexOf('.');
-            const documentNameEndsWith = document.docURL.substring(lastDotIndex + 1);
-            if(documentNameEndsWith === 'pdf'){
-                this.currentDocData = 'data:application/pdf;base64,'+document.data;
-            }else{
-                this.currentDocData = 'data:image/png;base64,'+document.data;
+            this.isDocumentLoading = true;
+            try {
+                const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(document.id)}`, {
+                    responseType: 'blob',
+                });
+                if (requestToken !== this.documentRequestToken) {
+                    return;
+                }
+                this.currentDocumentUrl = URL.createObjectURL(response.data);
+                this.currentDocData = this.currentDocumentUrl;
+            } catch (_error) {
+                if (requestToken === this.documentRequestToken) {
+                    this.currentDocData = '';
+                }
+            } finally {
+                if (requestToken === this.documentRequestToken) {
+                    this.isDocumentLoading = false;
+                }
+            }
+        },
+        revokeCurrentDocumentUrl() {
+            if (this.currentDocumentUrl) {
+                URL.revokeObjectURL(this.currentDocumentUrl);
+                this.currentDocumentUrl = '';
             }
         },
     },

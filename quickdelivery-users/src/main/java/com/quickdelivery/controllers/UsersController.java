@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.PublicUrlResolver;
+import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
+import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.services.interfaces.IUserServices;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -125,7 +129,19 @@ public class UsersController {
         }
     }
     @GetMapping("/usersForValidation")
-    public List<UserDTO> usersForValidation(){
-        return userServices.findUsersForValidation();
+    public UserValidationPageDTO usersForValidation(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                    @RequestParam(name = "size", defaultValue = "12") int size){
+        return userServices.findUsersForValidation(page, size);
+    }
+
+    @GetMapping("/document-content")
+    public ResponseEntity<byte[]> documentContent(@RequestParam(name = "documentId") Long documentId) {
+        DocumentContentDTO documentContent = userServices.loadDocumentContent(documentId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(documentContent.getContentType()));
+        if (documentContent.getFileName() != null && !documentContent.getFileName().isBlank()) {
+            headers.setContentDispositionFormData("inline", documentContent.getFileName());
+        }
+        return new ResponseEntity<>(documentContent.getData(), headers, HttpStatus.OK);
     }
 }

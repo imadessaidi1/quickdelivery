@@ -16,6 +16,7 @@ public class DocumentDTO {
     private String docURL;
     private DOCUMENT_TYPE type;
     private String fileName;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private byte[] data;
 
     private DOCUMENT_STATUS documentStatus;

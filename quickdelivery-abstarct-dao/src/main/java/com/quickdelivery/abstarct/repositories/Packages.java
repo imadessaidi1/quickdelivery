@@ -3,16 +3,16 @@ package com.quickdelivery.abstarct.repositories;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface Packages extends CrudRepository<Package, Long> {
+public interface Packages extends JpaRepository<Package, Long> {
     @Query("SELECT a FROM Address a " +
             "WHERE st_distance_sphere(POINT(a.longitude, a.latitude), POINT(:longitude, :latitude)) <= :rayonEnMetres " +
             "AND a.packaged.status='NEW' " +

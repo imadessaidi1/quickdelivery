@@ -1,6 +1,8 @@
 package com.quickdelivery.services.interfaces;
 
+import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
+import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import org.springframework.util.MultiValueMap;
@@ -19,6 +21,6 @@ public interface IUserServices {
     void deleteUSer(UserDTO user);
     CHECK_STATUS validateUserEmail(Long id);
     UserDTO findByEmail(String email);
-
-    List<UserDTO> findUsersForValidation();
+    UserValidationPageDTO findUsersForValidation(int page, int size);
+    DocumentContentDTO loadDocumentContent(Long documentId);
 }

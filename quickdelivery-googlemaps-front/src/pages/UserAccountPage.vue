@@ -19,9 +19,9 @@
 
 <script>
 import UserAccount from '../components/UserAccount.vue';
-import http from '@/config/httpInterceptor';
 import CourierReadinessCard from '../components/CourierReadinessCard.vue';
 import { buildCourierReadiness } from '../config/courierReadiness';
+import { hydrateConnectedUser } from '@/config/session';
 
 export default {
   components: {
@@ -55,8 +55,8 @@ export default {
   methods: {
     async loadUser() {
       try {
-        const response = await http.get(this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + this.$store.state.connectedUser.email);
-        return response.data;
+        const connectedUser = await hydrateConnectedUser();
+        return connectedUser;
       } catch (error) {
         console.error("Unable to process your request at this time. Please try again later.", error);
         throw error;

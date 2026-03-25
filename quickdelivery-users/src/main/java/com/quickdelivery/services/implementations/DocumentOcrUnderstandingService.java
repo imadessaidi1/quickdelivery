@@ -56,6 +56,16 @@ public class DocumentOcrUnderstandingService {
                 || normalized.contains("contrat n")) {
             return DOCUMENT_TYPE.INSURANCE;
         }
+        if (normalized.contains("kbis")
+                || normalized.contains("extrait k")
+                || normalized.contains("registre du commerce")
+                || normalized.contains("raison sociale")
+                || normalized.contains("denomination")
+                || normalized.contains("siren")
+                || normalized.contains("greffe du tribunal de commerce")
+                || normalized.contains("gestion direction administration controle associes ou membres")) {
+            return DOCUMENT_TYPE.USER_COMPANY_EXTRACT;
+        }
         if (normalized.contains("certificat d immatriculation")
                 || normalized.contains("certificat dimmatriculation")
                 || normalized.contains("numero d immatriculation")
@@ -71,14 +81,6 @@ public class DocumentOcrUnderstandingService {
                 || normalized.contains("titre de sejour")
                 || normalized.contains("residence permit")) {
             return DOCUMENT_TYPE.ID;
-        }
-        if (normalized.contains("kbis")
-                || normalized.contains("extrait k")
-                || normalized.contains("registre du commerce")
-                || normalized.contains("raison sociale")
-                || normalized.contains("denomination")
-                || normalized.contains("siren")) {
-            return DOCUMENT_TYPE.USER_COMPANY_EXTRACT;
         }
         if (normalized.contains("iban") || normalized.contains("bic") || normalized.contains("releve d identite bancaire")) {
             return DOCUMENT_TYPE.RIB;
@@ -338,13 +340,13 @@ public class DocumentOcrUnderstandingService {
     }
 
     private String extractVehicleBrand(List<String> lines, String rawText) {
-        String d1Value = extractVehicleValueAfterCode(lines, "D.1");
-        if (looksLikeVehicleBrand(d1Value)) {
-            return d1Value;
-        }
         String repeatedBrand = findRepeatedVehicleBrand(lines);
         if (looksLikeVehicleBrand(repeatedBrand)) {
             return repeatedBrand;
+        }
+        String d1Value = extractVehicleValueAfterCode(lines, "D.1");
+        if (looksLikeVehicleBrand(d1Value)) {
+            return d1Value;
         }
         return null;
     }
@@ -404,24 +406,33 @@ public class DocumentOcrUnderstandingService {
             if (!normalized.contains("gerant associe")) {
                 continue;
             }
-            for (int cursor = Math.max(0, index - 20); cursor < Math.min(lines.size(), index + 40); cursor++) {
-                if (cursor == index) {
-                    continue;
-                }
-                String candidate = sanitizeName(lines.get(cursor));
-                String candidateNormalized = normalizeText(candidate);
-                if (candidateNormalized.contains("nom prenoms")) {
-                    for (int nameCursor = cursor + 1; nameCursor < Math.min(lines.size(), cursor + 6); nameCursor++) {
-                        String namedCandidate = sanitizeName(lines.get(nameCursor));
-                        if (looksLikeRepresentativeName(namedCandidate) && !looksLikeAdministrativeHeading(namedCandidate)) {
-                            return splitRepresentativeName(namedCandidate);
-                        }
+            String[] forwardMatch = findRepresentativeNamePartsInWindow(lines, index + 1, Math.min(lines.size(), index + 40));
+            if (forwardMatch != null) {
+                return forwardMatch;
+            }
+            String[] backwardMatch = findRepresentativeNamePartsInWindow(lines, Math.max(0, index - 20), index);
+            if (backwardMatch != null) {
+                return backwardMatch;
+            }
+        }
+        return null;
+    }
+
+    private String[] findRepresentativeNamePartsInWindow(List<String> lines, int startInclusive, int endExclusive) {
+        for (int cursor = startInclusive; cursor < endExclusive; cursor++) {
+            String candidate = sanitizeName(lines.get(cursor));
+            String candidateNormalized = normalizeText(candidate);
+            if (candidateNormalized.contains("nom prenoms")) {
+                for (int nameCursor = cursor + 1; nameCursor < Math.min(endExclusive, cursor + 8); nameCursor++) {
+                    String namedCandidate = sanitizeName(lines.get(nameCursor));
+                    if (looksLikeRepresentativeName(namedCandidate) && !looksLikeAdministrativeHeading(namedCandidate)) {
+                        return splitRepresentativeName(namedCandidate);
                     }
-                    continue;
                 }
-                if (looksLikeRepresentativeName(candidate) && !looksLikeAdministrativeHeading(candidate)) {
-                    return splitRepresentativeName(candidate);
-                }
+                continue;
+            }
+            if (looksLikeRepresentativeName(candidate) && !looksLikeAdministrativeHeading(candidate)) {
+                return splitRepresentativeName(candidate);
             }
         }
         return null;
@@ -876,14 +887,15 @@ public class DocumentOcrUnderstandingService {
                 || normalized.contains("gesellschaft")
                 || normalized.contains("beschrankter")
                 || normalized.contains("insured")
-                || normalized.contains("coupon")
-                || normalized.contains("detachable")
-                || normalized.contains("michael")
-                || normalized.contains("chevrier")
-                || normalized.contains("imad")
-                || normalized.contains("essaidi")) {
-            return false;
-        }
+               || normalized.contains("coupon")
+               || normalized.contains("detachable")
+               || normalized.contains("michael")
+               || normalized.contains("chevrin")
+               || normalized.contains("chevrier")
+               || normalized.contains("imad")
+               || normalized.contains("essaidi")) {
+           return false;
+       }
         return normalized.split("\\s+").length <= 3;
     }
 

@@ -569,12 +569,14 @@ export default {
   padding: 2px 0 4px;
   width: 100%;
   max-width: 100%;
+  overflow: visible;
 }
 .mobile-map-item {
   width: 100%;
   border-radius: 14px;
-  padding-right: 0;
+  padding: 0 2px 2px;
   min-width: 0;
+  box-sizing: border-box;
 }
 .mobile-map-item.selected {
   box-shadow: 0 0 0 2px #93a7cf inset;
@@ -606,7 +608,7 @@ export default {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
   }
   .mobile-map-carousel {
@@ -614,23 +616,25 @@ export default {
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
   }
   :deep(.mobile-map-carousel .carousel) {
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    overflow: visible;
   }
   :deep(.mobile-map-carousel .carousel__viewport) {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
   }
   :deep(.mobile-map-carousel .carousel__track) {
     min-width: 0;
     max-width: 100%;
+    align-items: stretch;
   }
   :deep(.mobile-map-carousel .carousel__slide) {
     width: 100% !important;
@@ -652,10 +656,10 @@ export default {
     border: none;
   }
   :deep(.mobile-map-carousel .carousel__prev) {
-    left: -2px;
+    left: 4px;
   }
   :deep(.mobile-map-carousel .carousel__next) {
-    right: -2px;
+    right: 4px;
   }
   .carousel-state {
     margin-bottom: 0;

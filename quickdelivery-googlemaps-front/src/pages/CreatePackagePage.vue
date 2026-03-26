@@ -68,6 +68,7 @@
 
           <PackageOptions
             v-else-if="currentStep === 4"
+            ref="packageOptions"
             v-model="wizardOptions"
           />
 
@@ -131,6 +132,9 @@ const EMPTY_PACKAGE = {
   pictureURL: '',
   status: '',
   deliveryPrice: null,
+  deliverySpeed: 'STANDARD',
+  insuranceSelected: false,
+  declaredValue: null,
   senderID: null,
   packageReservations: [],
   addresses: [
@@ -143,6 +147,7 @@ const EMPTY_PACKAGE = {
       zipCode: '',
       country: '',
       floor: 0,
+      hasElevator: null,
       dateTime: null,
       email: '',
       phone: '',
@@ -160,6 +165,7 @@ const EMPTY_PACKAGE = {
       zipCode: '',
       country: '',
       floor: 0,
+      hasElevator: null,
       dateTime: null,
       email: '',
       phone: '',
@@ -189,6 +195,7 @@ export default {
       wizardOptions: {
         deliverySpeed: 'STANDARD',
         insurance: false,
+        declaredValue: null,
       },
       steps: [
         { id: 1, label: 'wizardCreateStepPickup', title: 'createPackagePickupTitle', subtitle: 'createPackagePickupSubtitle' },
@@ -265,6 +272,7 @@ export default {
       this.wizardOptions = draft.wizardOptions || {
         deliverySpeed: 'STANDARD',
         insurance: false,
+        declaredValue: null,
       };
       this.allowAnonymousCreation = !!draft.allowAnonymousCreation;
       this.legalConsentAccepted = !!draft.legalConsentAccepted;
@@ -385,6 +393,16 @@ export default {
       }
 
       if (this.currentStep === 4) {
+        const optionsComponent = Array.isArray(this.$refs.packageOptions)
+          ? this.$refs.packageOptions[0]
+          : this.$refs.packageOptions;
+        if (optionsComponent && !optionsComponent.validateSelection()) {
+          return;
+        }
+        this.package_.deliverySpeed = this.wizardOptions.deliverySpeed || 'STANDARD';
+        this.package_.insuranceSelected = !!this.wizardOptions.insurance;
+        this.package_.declaredValue = this.wizardOptions.insurance ? Number(this.wizardOptions.declaredValue || 0) : null;
+        this.package_.deliveryPrice = null;
         this.currentStep += 1;
         return;
       }
@@ -411,8 +429,16 @@ export default {
         return;
       }
 
+      if (Number(address.floor || 0) > 0 && typeof address.hasElevator !== 'boolean') {
+        addressComponent.isElevatorError = true;
+        addressComponent.errorElevatorMessage = this.$i18n.t('packageAddressElevatorRequired');
+        return;
+      }
+
       addressComponent.isAddressError = false;
       addressComponent.isDateTimeError = false;
+      addressComponent.isElevatorError = false;
+      addressComponent.errorElevatorMessage = null;
 
       const chunks = address.addressAuto.split(',');
       address.line1 = chunks[0]?.trim() || '';
@@ -447,6 +473,9 @@ export default {
       }
       this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser.id : null;
       this.package_.status = 'PAYMENTPENDING';
+      this.package_.deliverySpeed = this.wizardOptions.deliverySpeed || 'STANDARD';
+      this.package_.insuranceSelected = !!this.wizardOptions.insurance;
+      this.package_.declaredValue = this.wizardOptions.insurance ? Number(this.wizardOptions.declaredValue || 0) : null;
       formData.append('packageDTO', JSON.stringify(this.package_));
 
       this.documentS.forEach((file) => {

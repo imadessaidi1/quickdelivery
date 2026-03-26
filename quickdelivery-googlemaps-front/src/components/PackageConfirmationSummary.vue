@@ -23,7 +23,7 @@
         </div>
         <div>
           <small>{{ $t('packageDimensionsLabel') }}</small>
-          <strong>{{ package_.height }} × {{ package_.width }} × {{ package_.depth }} cm</strong>
+          <strong>{{ package_.height }} x {{ package_.width }} x {{ package_.depth }} cm</strong>
         </div>
         <div>
           <small>{{ $t('packageWeight') }}</small>
@@ -41,7 +41,11 @@
         </div>
         <div>
           <small>{{ $t('packageOptionsProtection') }}</small>
-          <strong>{{ options.insurance ? '+10 €' : '0 €' }}</strong>
+          <strong>{{ options.insurance ? $t('packageOptionInsuranceEnabled') : $t('packageOptionInsuranceDisabled') }}</strong>
+        </div>
+        <div v-if="options.insurance">
+          <small>{{ $t('packageDeclaredValueLabel') }}</small>
+          <strong>{{ declaredValueLabel }}</strong>
         </div>
       </div>
     </section>
@@ -62,8 +66,8 @@
 
     <section class="estimate-card">
       <small>{{ $t('packageConfirmEstimateTitle') }}</small>
-      <strong>{{ estimatedPrice }}</strong>
-      <span>{{ $t('packageEstimatePending') }}</span>
+      <strong>{{ backendPriceLabel }}</strong>
+      <span>{{ backendPriceHint }}</span>
     </section>
   </div>
 </template>
@@ -112,11 +116,22 @@ export default {
       };
       return this.$t(map[this.options.deliverySpeed] || map.STANDARD);
     },
-    estimatedPrice() {
-      const base = Number(this.package_.deliveryPrice) || Math.max(12, Number(this.package_.weight || 0) * 1.6);
-      const speedFee = this.options.deliverySpeed === 'EXPRESS' ? 12 : this.options.deliverySpeed === 'SAMEDAY' ? 24 : 0;
-      const insuranceFee = this.options.insurance ? 10 : 0;
-      return `${(base + speedFee + insuranceFee).toFixed(2)} €`;
+    backendPriceLabel() {
+      if (this.package_.deliveryPrice == null) {
+        return '--';
+      }
+      return `${Number(this.package_.deliveryPrice).toFixed(2)} ${this.$t('currency')}`;
+    },
+    backendPriceHint() {
+      return this.package_.deliveryPrice == null
+        ? this.$t('packageEstimateCalculatedOnPayment')
+        : this.$t('packageEstimateBackendConfirmed');
+    },
+    declaredValueLabel() {
+      if (this.options.declaredValue == null || this.options.declaredValue === '') {
+        return '--';
+      }
+      return `${Number(this.options.declaredValue).toFixed(2)} ${this.$t('currency')}`;
     },
   },
 };

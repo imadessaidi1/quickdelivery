@@ -17,6 +17,7 @@ import UserValidationDetailsPage from '../pages/UserValidationDetailsPage.vue';
 import DocumentPage from '../pages/DocumentPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import NotificationsPage from '../pages/NotificationsPage.vue';
+import MetricsDashboardPage from '../pages/MetricsDashboardPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -49,6 +50,12 @@ const routes = [
         name: 'adminDashboardPage',
         component: DashboardPage,
         props: { dashboardType: 'admin' },
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
+        path: '/dashboard/metrics',
+        name: 'adminMetricsDashboardPage',
+        component: MetricsDashboardPage,
         meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
         },
         {

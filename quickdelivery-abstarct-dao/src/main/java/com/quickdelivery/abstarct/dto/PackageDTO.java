@@ -24,6 +24,9 @@ public class PackageDTO {
     private String pictureURL;
     private PACKAGE_STATUS status;
     private Double deliveryPrice;
+    private String deliverySpeed;
+    private Boolean insuranceSelected;
+    private Double declaredValue;
     private Long senderID;
     private Boolean guestMode;
     private String guestAccessToken;
@@ -94,6 +97,30 @@ public class PackageDTO {
 
     public void setDeliveryPrice(Double deliveryPrice) {
         this.deliveryPrice = deliveryPrice;
+    }
+
+    public String getDeliverySpeed() {
+        return deliverySpeed;
+    }
+
+    public void setDeliverySpeed(String deliverySpeed) {
+        this.deliverySpeed = deliverySpeed;
+    }
+
+    public Boolean getInsuranceSelected() {
+        return insuranceSelected;
+    }
+
+    public void setInsuranceSelected(Boolean insuranceSelected) {
+        this.insuranceSelected = insuranceSelected;
+    }
+
+    public Double getDeclaredValue() {
+        return declaredValue;
+    }
+
+    public void setDeclaredValue(Double declaredValue) {
+        this.declaredValue = declaredValue;
     }
 
 

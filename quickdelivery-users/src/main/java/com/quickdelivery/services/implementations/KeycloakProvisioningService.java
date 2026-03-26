@@ -15,9 +15,11 @@ import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class KeycloakProvisioningService implements IKeycloakProvisioningService {
@@ -26,6 +28,9 @@ public class KeycloakProvisioningService implements IKeycloakProvisioningService
     private static final String CUSTOMER = "CUSTOMER";
     private static final String ROLE_LIVREUR = "ROLE_LIVREUR";
     private static final String ROLE_CLIENT = "ROLE_CLIENT";
+    private static final String ROLE_CLIENT_PRO = "ROLE_CLIENT_PRO";
+    private static final int USER_SESSION_PAGE_SIZE = 200;
+    private static final int ROLE_USERS_PAGE_SIZE = 200;
 
     @Value("${quickdelivery.auth.base-url}")
     private String authBaseUrl;
@@ -92,6 +97,63 @@ public class KeycloakProvisioningService implements IKeycloakProvisioningService
         logger.info("Synchronized Keycloak user state for {}", user.getEmailAddress());
     }
 
+    @Override
+    public Set<String> loadActiveUserEmailsByClient(String clientId) {
+        if (isBlank(clientId)) {
+            return Set.of();
+        }
+
+        String accessToken = getAdminAccessToken();
+        String resolvedClientId = resolveClientUuid(accessToken, clientId);
+        if (resolvedClientId == null) {
+            logger.warn("Keycloak client not found for active session lookup: {}", clientId);
+            return Set.of();
+        }
+
+        Set<String> emails = new HashSet<>();
+        int first = 0;
+        while (true) {
+            List<Map<String, Object>> sessions = loadClientUserSessions(accessToken, resolvedClientId, first, USER_SESSION_PAGE_SIZE);
+            if (sessions.isEmpty()) {
+                break;
+            }
+            sessions.forEach(session -> {
+                String userId = asString(session.get("userId"));
+                String username = asString(session.get("username"));
+                if (!isBlank(username) && username.contains("@")) {
+                    emails.add(username.toLowerCase());
+                    return;
+                }
+                if (!isBlank(userId)) {
+                    String email = resolveUserEmail(accessToken, userId);
+                    if (!isBlank(email)) {
+                        emails.add(email.toLowerCase());
+                    }
+                }
+            });
+            if (sessions.size() < USER_SESSION_PAGE_SIZE) {
+                break;
+            }
+            first += USER_SESSION_PAGE_SIZE;
+        }
+        return emails;
+    }
+
+    @Override
+    public Set<String> loadUserEmailsByRealmRoles(java.util.Collection<String> roleNames) {
+        if (roleNames == null || roleNames.isEmpty()) {
+            return Set.of();
+        }
+        String accessToken = getAdminAccessToken();
+        Set<String> emails = new HashSet<>();
+        roleNames.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(roleName -> !roleName.isBlank())
+                .forEach(roleName -> emails.addAll(loadUserEmailsByRealmRole(accessToken, roleName)));
+        return emails;
+    }
+
     private void validateProvisioningInput(User user, String rawPassword) {
         if (user == null || isBlank(user.getEmailAddress())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User email is required for identity provisioning");
@@ -154,6 +216,104 @@ public class KeycloakProvisioningService implements IKeycloakProvisioningService
         }
 
         return null;
+    }
+
+    private String resolveClientUuid(String accessToken, String clientId) {
+        HttpEntity<Void> entity = new HttpEntity<>(bearerHeaders(accessToken));
+        ResponseEntity<List> response = restTemplate.exchange(
+                authBaseUrl + "/admin/realms/" + realm + "/clients?clientId=" + UriUtils.encodeQueryParam(clientId, StandardCharsets.UTF_8),
+                HttpMethod.GET,
+                entity,
+                List.class
+        );
+
+        List<?> clients = response.getBody();
+        if (clients == null) {
+            return null;
+        }
+        for (Object candidate : clients) {
+            if (candidate instanceof Map<?, ?> map) {
+                Object candidateClientId = map.get("clientId");
+                Object id = map.get("id");
+                if (candidateClientId instanceof String existingClientId
+                        && existingClientId.equalsIgnoreCase(clientId)
+                        && id instanceof String uuid
+                        && !uuid.isBlank()) {
+                    return uuid;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Set<String> loadUserEmailsByRealmRole(String accessToken, String roleName) {
+        Set<String> emails = new HashSet<>();
+        int first = 0;
+        while (true) {
+            HttpEntity<Void> entity = new HttpEntity<>(bearerHeaders(accessToken));
+            ResponseEntity<List> response = restTemplate.exchange(
+                    authBaseUrl + "/admin/realms/" + realm + "/roles/"
+                            + UriUtils.encodePathSegment(roleName, StandardCharsets.UTF_8)
+                            + "/users?first=" + first + "&max=" + ROLE_USERS_PAGE_SIZE,
+                    HttpMethod.GET,
+                    entity,
+                    List.class
+            );
+            List<?> users = response.getBody();
+            if (users == null || users.isEmpty()) {
+                break;
+            }
+            for (Object candidate : users) {
+                if (candidate instanceof Map<?, ?> map) {
+                    String email = asString(map.get("email"));
+                    String username = asString(map.get("username"));
+                    if (!isBlank(email)) {
+                        emails.add(email.toLowerCase());
+                    } else if (!isBlank(username) && username.contains("@")) {
+                        emails.add(username.toLowerCase());
+                    }
+                }
+            }
+            if (users.size() < ROLE_USERS_PAGE_SIZE) {
+                break;
+            }
+            first += ROLE_USERS_PAGE_SIZE;
+        }
+        return emails;
+    }
+
+    private List<Map<String, Object>> loadClientUserSessions(String accessToken, String clientUuid, int first, int max) {
+        HttpEntity<Void> entity = new HttpEntity<>(bearerHeaders(accessToken));
+        ResponseEntity<List> response = restTemplate.exchange(
+                authBaseUrl + "/admin/realms/" + realm + "/clients/" + clientUuid + "/user-sessions?first=" + first + "&max=" + max,
+                HttpMethod.GET,
+                entity,
+                List.class
+        );
+        List<?> sessions = response.getBody();
+        if (sessions == null) {
+            return List.of();
+        }
+        return sessions.stream()
+                .filter(Map.class::isInstance)
+                .map(session -> (Map<String, Object>) session)
+                .toList();
+    }
+
+    private String resolveUserEmail(String accessToken, String userId) {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(bearerHeaders(accessToken));
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    authBaseUrl + "/admin/realms/" + realm + "/users/" + userId,
+                    HttpMethod.GET,
+                    entity,
+                    Map.class
+            );
+            return asString(response.getBody() == null ? null : response.getBody().get("email"));
+        } catch (HttpClientErrorException ex) {
+            logger.warn("Unable to resolve Keycloak user email for {}: {}", userId, ex.getStatusCode());
+            return null;
+        }
     }
 
     private String createUser(String accessToken, User user) {
@@ -312,5 +472,9 @@ public class KeycloakProvisioningService implements IKeycloakProvisioningService
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private String asString(Object value) {
+        return value instanceof String stringValue && !stringValue.isBlank() ? stringValue : null;
     }
 }

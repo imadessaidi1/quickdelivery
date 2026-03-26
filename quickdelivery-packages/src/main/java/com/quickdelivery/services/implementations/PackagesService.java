@@ -13,9 +13,13 @@ import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
+import com.quickdelivery.helpers.PackageDeliveryPriceCalculator;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Measurement;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Statistic;
 import io.micrometer.core.instrument.Timer;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -47,6 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 @Service
 public class PackagesService implements IPackagesService {
@@ -647,6 +652,9 @@ public class PackagesService implements IPackagesService {
         if (departureAddress == null || arrivalAddress == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pickup and delivery addresses are required");
         }
+        validateInsuranceSelection(packageDTO);
+        validateFloorAccessibility(departureAddress, "pickup");
+        validateFloorAccessibility(arrivalAddress, "delivery");
 
         boolean guestMode = packageDTO.getSenderID() == null;
         packageDTO.setGuestMode(guestMode);
@@ -665,6 +673,23 @@ public class PackagesService implements IPackagesService {
         }
         if ("pickup".equals(label) && isBlank(address.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required for pickup");
+        }
+    }
+
+    private void validateInsuranceSelection(PackageDTO packageDTO) {
+        if (Boolean.TRUE.equals(packageDTO.getInsuranceSelected())
+                && (packageDTO.getDeclaredValue() == null || packageDTO.getDeclaredValue() <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Declared value is required when insurance is selected");
+        }
+    }
+
+    private void validateFloorAccessibility(AddressDTO address, String label) {
+        if (address == null) {
+            return;
+        }
+        int floor = address.getFloor() == null ? 0 : Math.max(address.getFloor(), 0);
+        if (floor > 0 && address.getHasElevator() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elevator selection is required for " + label);
         }
     }
 
@@ -862,6 +887,39 @@ public class PackagesService implements IPackagesService {
     @Override
     public boolean isUserWithOngoingDelivery(Long userId) {
         return packages.existsOngoingReservationsForUserWithPickedUpPackage(userId);
+    }
+
+    @Override
+    public ServiceMetricsDTO loadAdminMetrics() {
+        ServiceMetricsDTO metrics = new ServiceMetricsDTO();
+        metrics.setServiceName("packages-service");
+        metrics.setUptimeSeconds(readGauge("process.uptime"));
+        metrics.setHeapUsedMb(toMegabytes(readGauge("jvm.memory.used", "area", "heap")));
+        metrics.setHeapMaxMb(toMegabytes(readGauge("jvm.memory.max", "area", "heap")));
+        metrics.setCpuUsagePercent(toPercent(readGauge("system.cpu.usage")));
+        metrics.setHttpRequestCount(sumMetric("http.server.requests"));
+        metrics.setOperationCallCount(sumMetric("quickdelivery.packages.operation.calls"));
+        metrics.setAsyncQueueSize(sumMetric("quickdelivery.async.queue.size"));
+        metrics.setAsyncActiveCount(sumMetric("quickdelivery.async.active.count"));
+        metrics.setOcrProcessedCount(null);
+        return metrics;
+    }
+
+    @Override
+    public ServiceHttpBreakdownDTO loadAdminHttpBreakdown() {
+        ServiceHttpBreakdownDTO breakdown = new ServiceHttpBreakdownDTO();
+        breakdown.setServiceName("packages-service");
+
+        Map<String, HttpEndpointMetricDTO> aggregated = new LinkedHashMap<>();
+        meterRegistry.find("http.server.requests").meters().forEach(meter -> collectHttpEndpointMetric(aggregated, meter));
+
+        List<HttpEndpointMetricDTO> endpoints = aggregated.values().stream()
+                .sorted(Comparator.comparingDouble(HttpEndpointMetricDTO::getRequestCount).reversed())
+                .limit(12)
+                .toList();
+        breakdown.setEndpoints(endpoints);
+        breakdown.setTotalRequestCount(aggregated.values().stream().mapToDouble(HttpEndpointMetricDTO::getRequestCount).sum());
+        return breakdown;
     }
 
     @Override
@@ -1155,6 +1213,86 @@ public class PackagesService implements IPackagesService {
                 .baseUnit("bytes")
                 .register(meterRegistry)
                 .record(sizeInBytes);
+    }
+
+    private Double readGauge(String metricName, String... tags) {
+        try {
+            var search = meterRegistry.find(metricName);
+            for (int index = 0; index + 1 < tags.length; index += 2) {
+                search = search.tag(tags[index], tags[index + 1]);
+            }
+            if (search.gauge() != null) {
+                return search.gauge().value();
+            }
+        } catch (Exception ignored) {
+            // Ignore unavailable runtime metrics.
+        }
+        return null;
+    }
+
+    private Double sumMetric(String metricName) {
+        try {
+            return meterRegistry.find(metricName)
+                    .meters()
+                    .stream()
+                    .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))
+                    .mapToDouble(measurement -> ((Measurement) measurement).getValue())
+                    .sum();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private void collectHttpEndpointMetric(Map<String, HttpEndpointMetricDTO> aggregated, Meter meter) {
+        String uri = meter.getId().getTag("uri");
+        if (shouldIgnoreHttpUri(uri)) {
+            return;
+        }
+        String method = Optional.ofNullable(meter.getId().getTag("method")).orElse("GET");
+        double count = readStatistic(meter, Statistic.COUNT);
+        if (count <= 0d) {
+            return;
+        }
+        double maxResponseTimeMs = readStatistic(meter, Statistic.MAX) * 1000d;
+        String key = method + " " + uri;
+        HttpEndpointMetricDTO endpointMetric = aggregated.computeIfAbsent(key, ignored -> {
+            HttpEndpointMetricDTO metric = new HttpEndpointMetricDTO();
+            metric.setMethod(method);
+            metric.setEndpoint(uri);
+            return metric;
+        });
+        endpointMetric.setRequestCount(endpointMetric.getRequestCount() + count);
+        endpointMetric.setMaxResponseTimeMs(Math.max(endpointMetric.getMaxResponseTimeMs(), maxResponseTimeMs));
+    }
+
+    private double readStatistic(Meter meter, Statistic statistic) {
+        return StreamSupport.stream(meter.measure().spliterator(), false)
+                .filter(measurement -> measurement.getStatistic() == statistic)
+                .mapToDouble(Measurement::getValue)
+                .findFirst()
+                .orElse(0d);
+    }
+
+    private boolean shouldIgnoreHttpUri(String uri) {
+        if (uri == null || uri.isBlank()) {
+            return true;
+        }
+        String normalizedUri = uri.toLowerCase(Locale.ROOT);
+        return normalizedUri.startsWith("/actuator")
+                || normalizedUri.startsWith("/packages/v1/admin")
+                || normalizedUri.contains("/admin/http-breakdown")
+                || normalizedUri.contains("/admin/metrics")
+                || normalizedUri.contains("/admin/log-insights")
+                || "unknown".equals(normalizedUri)
+                || "/error".equals(normalizedUri);
+    }
+
+    private Double toMegabytes(Double valueInBytes) {
+        return valueInBytes == null ? null : valueInBytes / (1024d * 1024d);
+    }
+
+    private Double toPercent(Double ratio) {
+        return ratio == null ? null : ratio * 100d;
     }
 
     @FunctionalInterface

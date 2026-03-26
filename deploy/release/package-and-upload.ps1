@@ -28,6 +28,32 @@ $sshOptions = @(
     "-o", "ServerAliveInterval=15",
     "-o", "ServerAliveCountMax=3"
 )
+
+function Write-Step([string]$Message) {
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Write-Host "[$timestamp] $Message"
+}
+
+function Invoke-SshCommand([string]$Description, [string]$Command) {
+    Write-Step "$Description"
+    Write-Host "  ssh $remoteTarget `"$Command`""
+    & ssh @sshOptions -i $SshKeyPath $remoteTarget $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Description failed with exit code $LASTEXITCODE"
+    }
+    Write-Step "$Description completed."
+}
+
+function Invoke-ScpUpload([string]$Description, [string[]]$Arguments) {
+    Write-Step "$Description"
+    Write-Host "  scp $($Arguments -join ' ')"
+    & scp @sshOptions -i $SshKeyPath @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Description failed with exit code $LASTEXITCODE"
+    }
+    Write-Step "$Description completed."
+}
+
 $moduleMap = @{
     "config-server" = "quickdelivery-config-server.jar"
     "discovery-server" = "quickdelivery-registry-server.jar"
@@ -59,7 +85,7 @@ if (-not $SkipBackendBuild) {
 }
 
 if (-not $SkipFrontendBuild) {
-    Write-Host "Building frontend..."
+    Write-Step "Building frontend..."
     Push-Location $frontendRoot
     try {
         & npm run build
@@ -70,29 +96,20 @@ if (-not $SkipFrontendBuild) {
     finally {
         Pop-Location
     }
+    Write-Step "Frontend build completed."
 }
 
 if (-not $SkipFrontendUpload -and -not (Test-Path $distDir)) {
     throw "Frontend dist not found: $distDir"
 }
 
-Write-Host "Ensuring remote directories..."
-& ssh @sshOptions -i $SshKeyPath $remoteTarget "mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
-if ($LASTEXITCODE -ne 0) {
-    throw "Unable to prepare remote directories on $remoteTarget"
-}
-Write-Host "Remote directories ready."
+Invoke-SshCommand "Ensuring remote directories" "mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
 
 if (-not $SkipBackendUpload) {
-    Write-Host "Uploading backend payload..."
+    Write-Step "Uploading backend payload..."
 
     if ($BackendModules.Count -gt 0) {
-        Write-Host "Preparing remote artifacts directory..."
-        & ssh @sshOptions -i $SshKeyPath $remoteTarget "mkdir -p $RemoteRoot/artifacts"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Unable to prepare remote artifacts directory"
-        }
-        Write-Host "Remote artifacts directory ready."
+        Invoke-SshCommand "Preparing remote artifacts directory" "mkdir -p $RemoteRoot/artifacts"
         foreach ($module in $BackendModules) {
             if (-not $moduleMap.ContainsKey($module)) {
                 $valid = ($moduleMap.Keys | Sort-Object) -join ", "
@@ -104,34 +121,19 @@ if (-not $SkipBackendUpload) {
             if (-not (Test-Path $artifactPath)) {
                 throw "Artifact not found for module '$module': $artifactPath"
             }
-            Write-Host "Uploading artifact: $artifactName"
-            & scp @sshOptions -i $SshKeyPath $artifactPath "${remoteTarget}:${RemoteRoot}/artifacts/$artifactName"
-            if ($LASTEXITCODE -ne 0) {
-                throw "Upload failed for artifact $artifactName"
-            }
-            Write-Host "Uploaded artifact: $artifactName"
+            Invoke-ScpUpload "Uploading artifact $artifactName" @($artifactPath, "${remoteTarget}:${RemoteRoot}/artifacts/$artifactName")
         }
     }
     else {
-        Write-Host "Uploading full artifacts directory..."
-        & scp @sshOptions -i $SshKeyPath -r (Join-Path $projectRoot "artifacts") "${remoteTarget}:${RemoteRoot}/"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Artifacts upload failed"
-        }
-        Write-Host "Uploaded full artifacts directory."
+        Invoke-ScpUpload "Uploading full artifacts directory" @("-r", (Join-Path $projectRoot "artifacts"), "${remoteTarget}:${RemoteRoot}/")
     }
 }
 else {
-    Write-Host "Skipping backend upload."
+    Write-Step "Skipping backend upload."
 }
 
-Write-Host "Uploading deploy scripts and configuration..."
-Write-Host "Uploading deploy directory..."
-& scp @sshOptions -i $SshKeyPath -r (Join-Path $projectRoot "deploy") "${remoteTarget}:${RemoteRoot}/"
-if ($LASTEXITCODE -ne 0) {
-    throw "Deploy directory upload failed"
-}
-Write-Host "Uploaded deploy directory."
+Write-Step "Uploading deploy scripts and configuration..."
+Invoke-ScpUpload "Uploading deploy directory" @("-r", (Join-Path $projectRoot "deploy"), "${remoteTarget}:${RemoteRoot}/")
 
 if (-not $SkipBackendUpload) {
     $configStageDir = Join-Path ([System.IO.Path]::GetTempPath()) ("quickdelivery-config-upload-" + [System.Guid]::NewGuid().ToString("N"))
@@ -144,12 +146,7 @@ if (-not $SkipBackendUpload) {
             Copy-Item $_.FullName -Destination $configTargetDir -Recurse -Force
         }
 
-        Write-Host "Uploading config directory..."
-        & scp @sshOptions -i $SshKeyPath -r $configTargetDir "${remoteTarget}:${RemoteRoot}/"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Config upload failed"
-        }
-        Write-Host "Uploaded config directory."
+        Invoke-ScpUpload "Uploading config directory" @("-r", $configTargetDir, "${remoteTarget}:${RemoteRoot}/")
     }
     finally {
         if (Test-Path $configStageDir) {
@@ -158,12 +155,7 @@ if (-not $SkipBackendUpload) {
     }
 
     if (Test-Path $envProd) {
-        Write-Host "Uploading deploy/docker/.env.production..."
-        & scp @sshOptions -i $SshKeyPath $envProd "${remoteTarget}:${RemoteRoot}/deploy/docker/.env.production"
-        if ($LASTEXITCODE -ne 0) {
-            throw "deploy/docker/.env.production upload failed"
-        }
-        Write-Host "Uploaded deploy/docker/.env.production."
+        Invoke-ScpUpload "Uploading deploy/docker/.env.production" @($envProd, "${remoteTarget}:${RemoteRoot}/deploy/docker/.env.production")
     }
     else {
         Write-Warning "deploy/docker/.env.production not found locally. Remote file will be kept as-is."
@@ -171,28 +163,16 @@ if (-not $SkipBackendUpload) {
 }
 
 if (-not $SkipFrontendUpload) {
-    Write-Host "Uploading frontend build and nginx template..."
-    & ssh @sshOptions -i $SshKeyPath $remoteTarget "rm -rf /tmp/quickdelivery-front-dist && mkdir -p /tmp/quickdelivery-front-dist"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to reset remote frontend temp directory"
-    }
-    Write-Host "Remote frontend temp directory ready."
-    & scp @sshOptions -i $SshKeyPath -r "$distDir\*" "${remoteTarget}:/tmp/quickdelivery-front-dist/"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Frontend dist upload failed"
-    }
-    Write-Host "Uploaded frontend dist."
-    & scp @sshOptions -i $SshKeyPath (Join-Path $projectRoot "deploy\nginx\quickdelivery.conf.template") "${remoteTarget}:/tmp/quickdelivery.conf"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Nginx template upload failed"
-    }
-    Write-Host "Uploaded nginx template."
+    Write-Step "Uploading frontend build and nginx template..."
+    Invoke-SshCommand "Resetting remote frontend temp directory" "rm -rf /tmp/quickdelivery-front-dist && mkdir -p /tmp/quickdelivery-front-dist"
+    Invoke-ScpUpload "Uploading frontend dist" @("-r", "$distDir\*", "${remoteTarget}:/tmp/quickdelivery-front-dist/")
+    Invoke-ScpUpload "Uploading nginx template" @((Join-Path $projectRoot "deploy\nginx\quickdelivery.conf.template"), "${remoteTarget}:/tmp/quickdelivery.conf")
 }
 else {
-    Write-Host "Skipping frontend upload."
+    Write-Step "Skipping frontend upload."
 }
 
-Write-Host "Upload complete."
+Write-Step "Upload complete."
 Write-Host "Next:"
 Write-Host "  ssh -i $SshKeyPath $remoteTarget"
 Write-Host "  sudo bash $RemoteRoot/deploy/release/release-on-vm.sh"

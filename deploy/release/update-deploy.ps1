@@ -18,6 +18,11 @@ $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $remoteTarget = "$SshUser@$ServerIp"
 $packageScript = Join-Path $projectRoot "deploy\release\package-and-upload.ps1"
 
+function Write-Step([string]$Message) {
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Write-Host "[$timestamp] $Message"
+}
+
 $packageArgs = @(
     "-ExecutionPolicy", "Bypass",
     "-File", $packageScript,
@@ -47,19 +52,24 @@ switch ($Mode) {
     }
 }
 
+Write-Step "Starting local package/upload step in mode $Mode"
 & powershell @packageArgs
 if ($LASTEXITCODE -ne 0) {
     throw "Local package/upload step failed with exit code $LASTEXITCODE"
 }
+Write-Step "Local package/upload step completed."
 
 $remoteCommand = "sudo RELEASE_MODE=$Mode"
 if ($Mode -eq "module") {
     $remoteCommand += " RELEASE_MODULES=$($Modules -join ',')"
 }
 $remoteCommand += " bash $RemoteRoot/deploy/release/release-on-vm.sh"
+Write-Step "Starting remote release step"
+Write-Host "  ssh $remoteTarget `"$remoteCommand`""
 & ssh -i $SshKeyPath $remoteTarget $remoteCommand
 if ($LASTEXITCODE -ne 0) {
     throw "Remote release step failed with exit code $LASTEXITCODE"
 }
+Write-Step "Remote release step completed."
 
 Write-Host "Deployment update completed in mode: $Mode"

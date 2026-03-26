@@ -7,6 +7,16 @@
 
     <div v-if="points.length && maxValue > 0" class="chart-shell">
       <svg viewBox="0 0 340 220" class="trend-svg" aria-hidden="true">
+        <text
+          v-for="tick in ticks"
+          :key="`label-${tick.value}`"
+          x="26"
+          :y="tick.y + 4"
+          class="axis-label"
+          text-anchor="end"
+        >
+          {{ formatter(tick.displayValue) }}
+        </text>
         <line
           v-for="tick in ticks"
           :key="`grid-${tick.value}`"
@@ -26,10 +36,6 @@
           :fill="tone"
         />
       </svg>
-
-      <div class="tick-list">
-        <span v-for="tick in ticks" :key="tick.value">{{ formatter(tick.value) }}</span>
-      </div>
 
       <div class="point-list">
         <div v-for="point in points" :key="point.label" class="point-item">
@@ -82,11 +88,23 @@ export default {
       const tickValues = [1, 0.66, 0.33, 0].map((ratio) => Math.round(this.maxValue * ratio));
       return tickValues.map((value, index) => ({
         value,
+        displayValue: this.normalizeTickValue(value),
         y: CHART_TOP + ((CHART_HEIGHT / 3) * index),
       }));
     },
     polylinePoints() {
       return this.points.map((point) => `${point.x},${point.y}`).join(' ');
+    },
+    normalizeTickValue() {
+      return (value) => {
+        if (!Number.isFinite(value)) {
+          return 0;
+        }
+        if (Number.isInteger(value) || this.maxValue <= 10) {
+          return Number(value.toFixed(1));
+        }
+        return Math.round(value);
+      };
     },
   },
 };
@@ -114,19 +132,16 @@ export default {
   stroke-dasharray: 4 6;
 }
 
+.axis-label {
+  fill: #64748b;
+  font-size: 11px;
+}
+
 .trend-line {
   fill: none;
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.tick-list {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  color: #64748b;
-  font-size: 0.78rem;
 }
 
 .point-list {

@@ -6,6 +6,8 @@ import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.PositionDTO;
+import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
+import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.PackageReservation;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
@@ -55,6 +57,8 @@ public interface IPackagesService {
     DocumentContentDTO loadPackageDocumentContent(Long documentId);
 
     boolean isUserWithOngoingDelivery(Long usedId);
+    ServiceMetricsDTO loadAdminMetrics();
+    ServiceHttpBreakdownDTO loadAdminHttpBreakdown();
 
     Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO);
 }

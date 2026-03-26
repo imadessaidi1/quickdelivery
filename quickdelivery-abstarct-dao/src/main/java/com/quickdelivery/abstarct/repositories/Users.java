@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface Users extends JpaRepository<User, Long> {
@@ -46,4 +47,9 @@ public interface Users extends JpaRepository<User, Long> {
 
     @Query("SELECT COUNT(d) FROM Document d WHERE d.user.activeAccount = false AND d.type IN :types")
     long countDocumentsForValidationByType(@Param("types") Collection<DOCUMENT_TYPE> types);
+
+    long countByTypeIgnoreCase(String type);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE LOWER(u.type) = LOWER(:type) AND u.activeAccount = true AND LOWER(u.emailAddress) IN :emails")
+    long countConnectedUsersByType(@Param("type") String type, @Param("emails") Set<String> emails);
 }

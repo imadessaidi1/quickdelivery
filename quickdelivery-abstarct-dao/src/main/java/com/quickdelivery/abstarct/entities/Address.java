@@ -34,6 +34,8 @@ public class Address {
     @Column
     private Integer floor;
     @Column
+    private Boolean hasElevator;
+    @Column
     private Timestamp dateTime;
     @Column
     @Enumerated(EnumType.STRING)
@@ -183,6 +185,14 @@ public class Address {
 
     public void setFloor(Integer floor) {
         this.floor = floor;
+    }
+
+    public Boolean getHasElevator() {
+        return hasElevator;
+    }
+
+    public void setHasElevator(Boolean hasElevator) {
+        this.hasElevator = hasElevator;
     }
 
     public Timestamp getDateTime() {

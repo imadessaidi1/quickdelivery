@@ -9,6 +9,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
+
 @Configuration
 public class PerformanceIndexBootstrap {
 
@@ -26,11 +28,47 @@ public class PerformanceIndexBootstrap {
                     "CREATE INDEX idx_package_reference ON `package` (reference)");
             ensureIndex(jdbcTemplate, "package", "idx_package_guest_access_token",
                     "CREATE INDEX idx_package_guest_access_token ON `package` (guest_access_token)");
-            ensureIndex(jdbcTemplate, "package_reservation", "idx_package_reservation_delivery_status",
-                    "CREATE INDEX idx_package_reservation_delivery_status ON package_reservation (deliveryPerson_id, status)");
+            ensurePackageReservationDeliveryStatusIndex(jdbcTemplate);
             ensureIndex(jdbcTemplate, "package_reservation", "idx_package_reservation_package_status",
                     "CREATE INDEX idx_package_reservation_package_status ON package_reservation (package_id, status)");
         };
+    }
+
+    private void ensurePackageReservationDeliveryStatusIndex(JdbcTemplate jdbcTemplate) {
+        String deliveryPersonColumn = resolveExistingColumn(
+                jdbcTemplate,
+                "package_reservation",
+                "deliveryPerson_id",
+                "delivery_person_id"
+        );
+
+        if (deliveryPersonColumn == null) {
+            logger.warn("Skipping index idx_package_reservation_delivery_status: no delivery person column found on package_reservation");
+            return;
+        }
+
+        ensureIndex(
+                jdbcTemplate,
+                "package_reservation",
+                "idx_package_reservation_delivery_status",
+                "CREATE INDEX idx_package_reservation_delivery_status ON package_reservation (" + deliveryPersonColumn + ", status)"
+        );
+    }
+
+    private String resolveExistingColumn(JdbcTemplate jdbcTemplate, String tableName, String... candidates) {
+        List<String> existingColumns = jdbcTemplate.queryForList(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+                String.class,
+                tableName
+        );
+
+        for (String candidate : candidates) {
+            if (existingColumns.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     private void ensureIndex(JdbcTemplate jdbcTemplate, String tableName, String indexName, String sql) {
@@ -46,6 +84,10 @@ public class PerformanceIndexBootstrap {
         }
 
         logger.info("Adding missing index {} on {}", indexName, tableName);
-        jdbcTemplate.execute(sql);
+        try {
+            jdbcTemplate.execute(sql);
+        } catch (Exception exception) {
+            logger.warn("Skipping index {} on {} because creation failed: {}", indexName, tableName, exception.getMessage());
+        }
     }
 }

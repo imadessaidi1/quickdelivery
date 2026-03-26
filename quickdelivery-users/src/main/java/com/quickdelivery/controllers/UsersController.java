@@ -1,14 +1,19 @@
 package com.quickdelivery.controllers;
 
+import com.quickdelivery.abstarct.dto.AdminUserOverviewDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
+import com.quickdelivery.abstarct.dto.ServiceLogInsightsDTO;
+import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
+import com.quickdelivery.observability.RuntimeLogMonitor;
 import com.quickdelivery.services.interfaces.IUserServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +40,8 @@ public class UsersController {
     private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
     @Autowired
     private IUserServices userServices;
+    @Autowired
+    private RuntimeLogMonitor runtimeLogMonitor;
     @Value("${quickdelivery.frontend.base-url:}")
     private String frontendBaseUrl;
     @PostMapping("/create")
@@ -143,5 +150,25 @@ public class UsersController {
             headers.setContentDispositionFormData("inline", documentContent.getFileName());
         }
         return new ResponseEntity<>(documentContent.getData(), headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/admin/metrics")
+    public ServiceMetricsDTO adminMetrics() {
+        return userServices.loadAdminMetrics();
+    }
+
+    @GetMapping("/admin/user-overview")
+    public AdminUserOverviewDTO adminUserOverview() {
+        return userServices.loadAdminUserOverview();
+    }
+
+    @GetMapping("/admin/http-breakdown")
+    public ServiceHttpBreakdownDTO adminHttpBreakdown() {
+        return userServices.loadAdminHttpBreakdown();
+    }
+
+    @GetMapping("/admin/log-insights")
+    public ServiceLogInsightsDTO adminLogInsights() {
+        return runtimeLogMonitor.snapshot("users-service");
     }
 }

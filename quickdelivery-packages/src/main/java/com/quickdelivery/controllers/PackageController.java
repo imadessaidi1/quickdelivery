@@ -7,6 +7,9 @@ import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
+import com.quickdelivery.abstarct.dto.ServiceLogInsightsDTO;
+import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.entities.Address;
 import com.quickdelivery.abstarct.entities.PackageReservation;
 import com.quickdelivery.abstarct.helpers.PackegeCSVReader;
@@ -14,6 +17,7 @@ import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.config.WebSocketHandler;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
+import com.quickdelivery.observability.RuntimeLogMonitor;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,8 @@ public class PackageController {
 
     @Autowired
     WebSocketHandler webSocketHandler;
+    @Autowired
+    RuntimeLogMonitor runtimeLogMonitor;
 
 
     @PostMapping("/create")
@@ -250,6 +256,21 @@ public class PackageController {
     @GetMapping("/isUserWithOngoingDelivery{userId}")
     public Boolean isUserWithOngoingDelivery(@RequestParam("userId") Long userId){
         return packagesService.isUserWithOngoingDelivery(userId);
+    }
+
+    @GetMapping("/admin/metrics")
+    public ServiceMetricsDTO adminMetrics() {
+        return packagesService.loadAdminMetrics();
+    }
+
+    @GetMapping("/admin/http-breakdown")
+    public ServiceHttpBreakdownDTO adminHttpBreakdown() {
+        return packagesService.loadAdminHttpBreakdown();
+    }
+
+    @GetMapping("/admin/log-insights")
+    public ServiceLogInsightsDTO adminLogInsights() {
+        return runtimeLogMonitor.snapshot("packages-service");
     }
 
     @GetMapping("/packages-around-address")

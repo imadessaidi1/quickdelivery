@@ -56,13 +56,10 @@
           <div class="panel-head">
             <h2>{{ $t('dashboardActivity') }}</h2>
           </div>
-          <div v-if="timelineItems.length" class="timeline-list">
-            <div v-for="item in timelineItems" :key="item.key" class="timeline-item">
-              <div class="timeline-dot"></div>
-              <div>
-                <strong>{{ item.title }}</strong>
-                <p>{{ item.subtitle }}</p>
-              </div>
+          <div v-if="timelineItems.length" class="upcoming-list">
+            <div v-for="item in timelineItems" :key="item.key" class="upcoming-item recent-item">
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.subtitle }}</span>
             </div>
           </div>
           <div v-else class="empty-state">{{ emptyTimelineLabel }}</div>
@@ -280,6 +277,7 @@ export default {
       if (this.dashboardType === 'admin') {
         return [
           { to: '/usersAccountValidation', icon: 'fact_check', label: this.$t('dashboardActionValidation') },
+          { to: '/dashboard/metrics', icon: 'monitoring', label: this.$t('dashboardActionMetrics') },
           { to: '/userAccount', icon: 'person', label: this.$t('dashboardActionAccount') },
           { to: '/createPackage', icon: 'box_add', label: this.$t('dashboardActionCreatePackage') },
           { to: '/myPackages', icon: 'inventory_2', label: this.$t('dashboardActionMyPackages') },
@@ -466,6 +464,33 @@ export default {
         maximumFractionDigits: 0,
       }).format(Number(value || 0));
     },
+    formatPercent(value) {
+      if (value == null) {
+        return '-';
+      }
+      return `${Number(value).toFixed(1)}%`;
+    },
+    formatHeap(used, max) {
+      if (used == null && max == null) {
+        return '-';
+      }
+      if (max == null) {
+        return `${Number(used || 0).toFixed(1)} MB`;
+      }
+      return `${Number(used || 0).toFixed(1)} / ${Number(max).toFixed(1)} MB`;
+    },
+    formatDuration(seconds) {
+      if (seconds == null) {
+        return '-';
+      }
+      const totalSeconds = Math.max(0, Math.round(Number(seconds)));
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      }
+      return `${minutes}m ${totalSeconds % 60}s`;
+    },
     timelineLabelByStatus(status) {
       if (status === 'RESERVED') {
         return 'dashboardTimelineReserved';
@@ -558,6 +583,7 @@ export default {
 }
 
 .stats-grid,
+.metrics-grid,
 .chart-grid,
 .dashboard-grid {
   display: grid;
@@ -573,6 +599,11 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   align-items: start;
   margin-bottom: 28px;
+}
+
+.metrics-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
 }
 
 .chart-grid + .dashboard-grid {
@@ -653,12 +684,37 @@ export default {
 
 .todo-list,
 .timeline-list,
-.upcoming-list {
+.upcoming-list,
+.metrics-list {
   display: grid;
   gap: 12px;
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.metrics-panel {
+  padding: 22px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e7edf6;
+  color: #334155;
+}
+
+.metric-row strong {
+  color: #0f172a;
+}
+
+.metric-row span {
+  color: #475569;
+  text-align: right;
 }
 
 .todo-list li,
@@ -722,6 +778,7 @@ export default {
 
 @media screen and (max-width: 1100px) {
   .stats-grid,
+  .metrics-grid,
   .chart-grid,
   .dashboard-grid,
   .action-grid {
@@ -744,6 +801,7 @@ export default {
   }
 
   .stats-grid,
+  .metrics-grid,
   .chart-grid,
   .dashboard-grid,
   .action-grid {

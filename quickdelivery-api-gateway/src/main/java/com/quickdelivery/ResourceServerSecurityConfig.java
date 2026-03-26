@@ -103,6 +103,7 @@ public class ResourceServerSecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/packages/v1/create").permitAll()
                         .pathMatchers(HttpMethod.POST, "/packages/v1/bulk-create").hasAnyAuthority("ROLE_CLIENT_PRO", "ROLE_ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/packages/v1/update-packages-status").hasAnyAuthority("ROLE_CLIENT", "ROLE_CLIENT_PRO", "ROLE_ADMIN")
+                        .pathMatchers("/gateway/v1/admin/**", "/users/v1/admin/**", "/packages/v1/admin/**").hasAuthority("ROLE_ADMIN")
                         .pathMatchers("/users/v1/usersForValidation", "/users/v1/validateUser").hasAuthority("ROLE_ADMIN")
                         .pathMatchers("/packages/v1/reserve**", "/packages/v1/pickup**", "/packages/v1/deliver**").hasAnyAuthority("ROLE_LIVREUR", "ROLE_ADMIN")
                         .pathMatchers("/packages/v1/checkOTPForPickup**", "/packages/v1/checkOTPForDelivery**")

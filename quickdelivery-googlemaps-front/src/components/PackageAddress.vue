@@ -59,6 +59,22 @@
           <ErrorMessage class="errorMessage" name="address.floor" />
         </div>
 
+        <div v-if="Number(address.floor || 0) > 0" class="field-wrap">
+          <label>{{ $t('packageAddressHasElevatorLabel') }}</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input v-model="address.hasElevator" :value="true" type="radio">
+              <span>{{ $t('yes') }}</span>
+            </label>
+            <label class="radio-label">
+              <input v-model="address.hasElevator" :value="false" type="radio">
+              <span>{{ $t('no') }}</span>
+            </label>
+          </div>
+          <small class="field-hint">{{ $t('packageAddressHasElevatorHint') }}</small>
+          <span v-if="isElevatorError" class="errorMessage">{{ errorElevatorMessage }}</span>
+        </div>
+
         <div class="field-wrap">
           <label for="dateTime">
             {{ $t('packageAddressDateTimeLabel', { state: $t(addressType === 'DEPARTURE' ? 'packageAddressFloorStatePickup' : 'packageAddressFloorStateDelivery') }) }}
@@ -105,8 +121,10 @@ export default {
     return {
       isAddressError: false,
       isDateTimeError: false,
+      isElevatorError: false,
       errorAddressMessage: null,
       errorDeliveryDateTimeMessage: null,
+      errorElevatorMessage: null,
     };
   },
   computed: {
@@ -141,6 +159,21 @@ export default {
     validateEmail,
     validateString,
     validateNumericFieldAcceptZero,
+  },
+  watch: {
+    'address.floor'(value) {
+      if (Number(value || 0) <= 0) {
+        this.address.hasElevator = null;
+        this.isElevatorError = false;
+        this.errorElevatorMessage = null;
+      }
+    },
+    'address.hasElevator'(value) {
+      if (typeof value === 'boolean') {
+        this.isElevatorError = false;
+        this.errorElevatorMessage = null;
+      }
+    },
   },
 };
 </script>
@@ -232,6 +265,28 @@ export default {
   margin-bottom: 8px;
   font-weight: 600;
   color: #24364f;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+  min-height: 48px;
+  align-items: center;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.radio-label input {
+  width: 18px;
+  height: 18px;
+}
+
+.field-hint {
+  color: #617086;
 }
 
 .field-wrap :deep(input) {

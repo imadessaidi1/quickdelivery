@@ -25,6 +25,7 @@
             <router-link v-if="isAdmin" @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
+            <router-link v-if="isAdmin" @click="loginMenu" to="/dashboard/metrics"><li>{{$t('menuAdminMetrics')}}</li></router-link>
             <router-link @click="loginMenu" to="/notifications">
               <li class="menu-item-with-badge">
                 <span>{{$t('menuNotifications')}}</span>

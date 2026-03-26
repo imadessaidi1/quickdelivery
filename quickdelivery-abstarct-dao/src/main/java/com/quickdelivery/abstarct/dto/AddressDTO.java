@@ -24,6 +24,7 @@ public class AddressDTO {
     private String phone;
 
     private String addressAuto;
+    private Boolean hasElevator;
 
     public AddressDTO(){}
 
@@ -160,6 +161,14 @@ public class AddressDTO {
 
     public void setAddressAuto(String addressAuto) {
         this.addressAuto = addressAuto;
+    }
+
+    public Boolean getHasElevator() {
+        return hasElevator;
+    }
+
+    public void setHasElevator(Boolean hasElevator) {
+        this.hasElevator = hasElevator;
     }
 
     @Override

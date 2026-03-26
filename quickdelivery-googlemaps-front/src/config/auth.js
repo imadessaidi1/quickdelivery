@@ -16,6 +16,7 @@ const ALLOWED_REDIRECTS = new Set([
   '/app',
   '/usersAccountValidation',
   '/dashboard/admin',
+  '/dashboard/metrics',
   '/dashboard/courier',
   '/dashboard/client'
 ]);

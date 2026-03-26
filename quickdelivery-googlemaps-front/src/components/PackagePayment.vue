@@ -2,6 +2,10 @@
   <div class="payment-vue">
     <div class="payment-form">
         <h2>{{ $t('paymentInformationTitle') }}</h2>
+        <div class="payment-summary">
+          <small>{{ $t('packageConfirmEstimateTitle') }}</small>
+          <strong>{{ amountToPay }}</strong>
+        </div>
         <div class="payment-method">
             <div>
               <input type="radio" id="payByCard" value="card" v-model="paymentMethod"/>
@@ -37,6 +41,9 @@ const EMPTY_PACKAGE = {
   pictureURL: '',
   status: '',
   deliveryPrice: null,
+  deliverySpeed: 'STANDARD',
+  insuranceSelected: false,
+  declaredValue: null,
   senderID: null,
   packageReservations: [],
   addresses: [
@@ -49,6 +56,7 @@ const EMPTY_PACKAGE = {
       zipCode: '',
       country: '',
       floor: 0,
+      hasElevator: null,
       dateTime: null,
       email: '',
       phone: '',
@@ -65,6 +73,7 @@ const EMPTY_PACKAGE = {
       zipCode: '',
       country: '',
       floor: 0,
+      hasElevator: null,
       dateTime: null,
       email: '',
       phone: '',
@@ -81,6 +90,13 @@ export default {
   computed: {
     package_() {
       return this.$store.state.package_;
+    },
+    amountToPay() {
+      const currentPackage = this.resolveCurrentPackage();
+      if (currentPackage.deliveryPrice == null) {
+        return '--';
+      }
+      return `${Number(currentPackage.deliveryPrice).toFixed(2)} ${this.$t('currency')}`;
     },
   },
   components :{
@@ -164,6 +180,24 @@ export default {
 }
 .payment-form h2 {
   margin: 0;
+}
+.payment-summary {
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #eef4fb;
+}
+.payment-summary small,
+.payment-summary strong {
+  display: block;
+}
+.payment-summary small {
+  color: #516274;
+}
+.payment-summary strong {
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 1.35rem;
 }
 .payment-icons {
   display: flex;

@@ -2,9 +2,13 @@ package com.quickdelivery.services.implementations;
 
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
+import com.quickdelivery.abstarct.dto.AdminUserOverviewDTO;
 import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.DocumentDTO;
+import com.quickdelivery.abstarct.dto.HttpEndpointMetricDTO;
+import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
+import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
@@ -29,7 +33,10 @@ import com.quickdelivery.security.UserUpdateTokenService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Statistic;
 import io.micrometer.core.instrument.Timer;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -57,11 +64,17 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.springframework.http.HttpStatus;
 
 @Service
 public class UserServices implements IUserServices {
+    private static final String CUSTOMER = "CUSTOMER";
     private static final String DELIVERY_PERSON = "DELIVERY_PERSON";
+    private static final String ROLE_CLIENT = "ROLE_CLIENT";
+    private static final String ROLE_CLIENT_PRO = "ROLE_CLIENT_PRO";
+    private static final String ROLE_LIVREUR = "ROLE_LIVREUR";
+    private static final String FRONTEND_CLIENT_ID = "quickdelivery-front";
     private static final long MAX_DOCUMENT_SIZE_BYTES = 10L * 1024L * 1024L;
     private static final Set<String> ALLOWED_DOCUMENT_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".pdf", ".webp");
     private static final Set<String> ALLOWED_DOCUMENT_CONTENT_TYPES = Set.of(
@@ -375,6 +388,65 @@ public class UserServices implements IUserServices {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
             }
         });
+    }
+
+    @Override
+    public ServiceMetricsDTO loadAdminMetrics() {
+        ServiceMetricsDTO metrics = new ServiceMetricsDTO();
+        metrics.setServiceName("users-service");
+        metrics.setUptimeSeconds(readGauge("process.uptime"));
+        metrics.setHeapUsedMb(toMegabytes(readGauge("jvm.memory.used", "area", "heap")));
+        metrics.setHeapMaxMb(toMegabytes(readGauge("jvm.memory.max", "area", "heap")));
+        metrics.setCpuUsagePercent(toPercent(readGauge("system.cpu.usage")));
+        metrics.setHttpRequestCount(sumMetric("http.server.requests"));
+        metrics.setOperationCallCount(sumMetric("quickdelivery.users.operation.calls"));
+        metrics.setAsyncQueueSize(sumMetric("quickdelivery.async.queue.size"));
+        metrics.setAsyncActiveCount(sumMetric("quickdelivery.async.active.count"));
+        metrics.setOcrProcessedCount(sumMetric("quickdelivery.ocr.document.processed"));
+        return metrics;
+    }
+
+    @Override
+    public AdminUserOverviewDTO loadAdminUserOverview() {
+        AdminUserOverviewDTO overview = new AdminUserOverviewDTO();
+
+        try {
+            Set<String> registeredCustomerEmails = keycloakProvisioningService.loadUserEmailsByRealmRoles(Set.of(ROLE_CLIENT, ROLE_CLIENT_PRO)).stream()
+                    .map(email -> email.toLowerCase(Locale.ROOT))
+                    .collect(Collectors.toSet());
+            Set<String> registeredDeliveryEmails = keycloakProvisioningService.loadUserEmailsByRealmRoles(Set.of(ROLE_LIVREUR)).stream()
+                    .map(email -> email.toLowerCase(Locale.ROOT))
+                    .collect(Collectors.toSet());
+            Set<String> activeEmails = keycloakProvisioningService.loadActiveUserEmailsByClient(FRONTEND_CLIENT_ID).stream()
+                    .map(email -> email.toLowerCase(Locale.ROOT))
+                    .collect(Collectors.toSet());
+
+            overview.setRegisteredCustomers(registeredCustomerEmails.size());
+            overview.setRegisteredDeliveryPersons(registeredDeliveryEmails.size());
+            overview.setConnectedCustomers(activeEmails.stream().filter(registeredCustomerEmails::contains).count());
+            overview.setConnectedDeliveryPersons(activeEmails.stream().filter(registeredDeliveryEmails::contains).count());
+        } catch (Exception exception) {
+            logger.warn("Unable to load active Keycloak sessions for admin overview: {}", exception.getMessage());
+        }
+
+        return overview;
+    }
+
+    @Override
+    public ServiceHttpBreakdownDTO loadAdminHttpBreakdown() {
+        ServiceHttpBreakdownDTO breakdown = new ServiceHttpBreakdownDTO();
+        breakdown.setServiceName("users-service");
+
+        Map<String, HttpEndpointMetricDTO> aggregated = new LinkedHashMap<>();
+        meterRegistry.find("http.server.requests").meters().forEach(meter -> collectHttpEndpointMetric(aggregated, meter));
+
+        List<HttpEndpointMetricDTO> endpoints = aggregated.values().stream()
+                .sorted(Comparator.comparingDouble(HttpEndpointMetricDTO::getRequestCount).reversed())
+                .limit(12)
+                .toList();
+        breakdown.setEndpoints(endpoints);
+        breakdown.setTotalRequestCount(aggregated.values().stream().mapToDouble(HttpEndpointMetricDTO::getRequestCount).sum());
+        return breakdown;
     }
 
     private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){
@@ -996,6 +1068,87 @@ public class UserServices implements IUserServices {
                 .baseUnit("bytes")
                 .register(meterRegistry)
                 .record(sizeInBytes);
+    }
+
+    private Double readGauge(String metricName, String... tags) {
+        try {
+            var search = meterRegistry.find(metricName);
+            for (int index = 0; index + 1 < tags.length; index += 2) {
+                search = search.tag(tags[index], tags[index + 1]);
+            }
+            if (search.gauge() != null) {
+                return search.gauge().value();
+            }
+        } catch (Exception ignored) {
+            // Ignore unavailable runtime metrics.
+        }
+        return null;
+    }
+
+    private Double sumMetric(String metricName) {
+        try {
+            return meterRegistry.find(metricName)
+                    .meters()
+                    .stream()
+                    .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))
+                    .mapToDouble(measurement -> ((Measurement) measurement).getValue())
+                    .sum();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private void collectHttpEndpointMetric(Map<String, HttpEndpointMetricDTO> aggregated, Meter meter) {
+        String uri = meter.getId().getTag("uri");
+        if (shouldIgnoreHttpUri(uri)) {
+            return;
+        }
+        String method = Optional.ofNullable(meter.getId().getTag("method")).orElse("GET");
+        double count = readStatistic(meter, Statistic.COUNT);
+        if (count <= 0d) {
+            return;
+        }
+        double maxResponseTimeMs = readStatistic(meter, Statistic.MAX) * 1000d;
+        String key = method + " " + uri;
+        HttpEndpointMetricDTO endpointMetric = aggregated.computeIfAbsent(key, ignored -> {
+            HttpEndpointMetricDTO metric = new HttpEndpointMetricDTO();
+            metric.setMethod(method);
+            metric.setEndpoint(uri);
+            return metric;
+        });
+        endpointMetric.setRequestCount(endpointMetric.getRequestCount() + count);
+        endpointMetric.setMaxResponseTimeMs(Math.max(endpointMetric.getMaxResponseTimeMs(), maxResponseTimeMs));
+    }
+
+    private double readStatistic(Meter meter, Statistic statistic) {
+        return StreamSupport.stream(meter.measure().spliterator(), false)
+                .filter(measurement -> measurement.getStatistic() == statistic)
+                .mapToDouble(Measurement::getValue)
+                .findFirst()
+                .orElse(0d);
+    }
+
+    private boolean shouldIgnoreHttpUri(String uri) {
+        if (uri == null || uri.isBlank()) {
+            return true;
+        }
+        String normalizedUri = uri.toLowerCase(Locale.ROOT);
+        return normalizedUri.startsWith("/actuator")
+                || normalizedUri.startsWith("/users/v1/admin")
+                || normalizedUri.contains("/admin/http-breakdown")
+                || normalizedUri.contains("/admin/metrics")
+                || normalizedUri.contains("/admin/log-insights")
+                || normalizedUri.contains("/admin/user-overview")
+                || "unknown".equals(normalizedUri)
+                || "/error".equals(normalizedUri);
+    }
+
+    private Double toMegabytes(Double valueInBytes) {
+        return valueInBytes == null ? null : valueInBytes / (1024d * 1024d);
+    }
+
+    private Double toPercent(Double ratio) {
+        return ratio == null ? null : ratio * 100d;
     }
 
     @FunctionalInterface

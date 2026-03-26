@@ -1,6 +1,9 @@
 package com.quickdelivery.services.interfaces;
 
+import com.quickdelivery.abstarct.dto.AdminUserOverviewDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
+import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
@@ -23,4 +26,7 @@ public interface IUserServices {
     UserDTO findByEmail(String email);
     UserValidationPageDTO findUsersForValidation(int page, int size);
     DocumentContentDTO loadDocumentContent(Long documentId);
+    ServiceMetricsDTO loadAdminMetrics();
+    AdminUserOverviewDTO loadAdminUserOverview();
+    ServiceHttpBreakdownDTO loadAdminHttpBreakdown();
 }

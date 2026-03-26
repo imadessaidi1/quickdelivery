@@ -18,7 +18,7 @@
         >
           <strong>{{ $t(speed.label) }}</strong>
           <span>{{ $t(speed.hint) }}</span>
-          <small>{{ speed.price }}</small>
+          <small>{{ $t('packagePriceCalculatedByBackend') }}</small>
         </button>
       </div>
     </section>
@@ -33,8 +33,21 @@
       <label class="insurance-toggle">
         <input v-model="localValue.insurance" type="checkbox">
         <span>{{ $t('packageOptionInsurance') }}</span>
-        <strong>+10 €</strong>
+        <strong>{{ $t('packagePriceCalculatedByBackend') }}</strong>
       </label>
+
+      <div v-if="localValue.insurance" class="declared-value-field">
+        <label for="declaredValue">{{ $t('packageDeclaredValueLabel') }}</label>
+        <input
+          id="declaredValue"
+          v-model.number="localValue.declaredValue"
+          type="number"
+          min="0"
+          step="0.01"
+        >
+        <small>{{ $t('packageDeclaredValueHint') }}</small>
+        <span v-if="declaredValueError" class="errorMessage">{{ declaredValueError }}</span>
+      </div>
     </section>
 
     <section class="options-card">
@@ -76,11 +89,13 @@ export default {
       localValue: {
         deliverySpeed: this.modelValue.deliverySpeed || 'STANDARD',
         insurance: this.modelValue.insurance || false,
+        declaredValue: this.modelValue.declaredValue ?? null,
       },
+      declaredValueError: null,
       speedChoices: [
-        { key: 'STANDARD', label: 'packageOptionStandard', hint: 'packageOptionStandardHint', price: '+0 €' },
-        { key: 'EXPRESS', label: 'packageOptionExpress', hint: 'packageOptionExpressHint', price: '+12 €' },
-        { key: 'SAMEDAY', label: 'packageOptionSameDay', hint: 'packageOptionSameDayHint', price: '+24 €' },
+        { key: 'STANDARD', label: 'packageOptionStandard', hint: 'packageOptionStandardHint' },
+        { key: 'EXPRESS', label: 'packageOptionExpress', hint: 'packageOptionExpressHint' },
+        { key: 'SAMEDAY', label: 'packageOptionSameDay', hint: 'packageOptionSameDayHint' },
       ],
     };
   },
@@ -90,6 +105,17 @@ export default {
     },
   },
   watch: {
+    'localValue.insurance'(value) {
+      if (!value) {
+        this.localValue.declaredValue = null;
+        this.declaredValueError = null;
+      }
+    },
+    'localValue.declaredValue'() {
+      if (this.declaredValueError && Number(this.localValue.declaredValue) > 0) {
+        this.declaredValueError = null;
+      }
+    },
     localValue: {
       deep: true,
       handler(value) {
@@ -108,6 +134,14 @@ export default {
     },
     documentLabel(index) {
       return this.documentS?.[index]?.name || this.$t('packageDocumentMissing');
+    },
+    validateSelection() {
+      if (this.localValue.insurance && !(Number(this.localValue.declaredValue) > 0)) {
+        this.declaredValueError = this.$t('packageDeclaredValueRequired');
+        return false;
+      }
+      this.declaredValueError = null;
+      return true;
     },
   },
 };
@@ -235,6 +269,28 @@ export default {
 .insurance-toggle strong {
   margin-left: auto;
   color: #1f4f89;
+}
+
+.declared-value-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.declared-value-field input {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid #ced7e4;
+  border-radius: 14px;
+}
+
+.declared-value-field small {
+  color: #617086;
+}
+
+.errorMessage {
+  font-size: 0.78rem;
+  color: #b42318;
 }
 
 @media screen and (max-width: 980px) {

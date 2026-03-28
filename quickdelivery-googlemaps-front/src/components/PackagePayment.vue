@@ -233,5 +233,9 @@ export default {
   font-size: 12px;
   margin: 0;
 }
+
+.payment-form form .primary_btn {
+  margin-top: 24px;
+}
 </style>
 

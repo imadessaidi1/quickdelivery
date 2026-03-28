@@ -52,6 +52,8 @@ public class Package {
     private Set<Document> document = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "aPackage", cascade = CascadeType.ALL)
     private Set<PackageReservation> packageReservations = new HashSet<>();
+    @OneToOne(mappedBy = "aPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private PackageSettlement packageSettlement;
     public Long getId() {
         return id;
     }
@@ -230,6 +232,14 @@ public class Package {
 
     public void setPackageReservations(Set<PackageReservation> packageReservations) {
         this.packageReservations = packageReservations;
+    }
+
+    public PackageSettlement getPackageSettlement() {
+        return packageSettlement;
+    }
+
+    public void setPackageSettlement(PackageSettlement packageSettlement) {
+        this.packageSettlement = packageSettlement;
     }
 
     public Float getDepth() {

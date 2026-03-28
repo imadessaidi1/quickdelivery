@@ -2,6 +2,9 @@
   "appId": "com.quickdelivery.app",
   "appName": "QuickDelivery",
   "webDir": "dist",
+  "android": {
+    "useLegacyBridge": true
+  },
   "server": {
     "androidScheme": "https"
   }

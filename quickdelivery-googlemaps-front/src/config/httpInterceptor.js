@@ -20,7 +20,9 @@ const instance = axios.create();
 
 instance.interceptors.request.use(
   function(config) {
-    store.commit('updateLoaderStatus', true);
+    if (!config.silent) {
+      store.commit('updateLoaderStatus', true);
+    }
     if (!config.skipAuth && hasValidAccessToken()) {
       const token = getAccessToken();
       config.headers = config.headers || {};
@@ -29,10 +31,13 @@ instance.interceptors.request.use(
     return config;
   },
   function(error) {
-    store.commit('updateLoaderStatus', false);
+    if (!error?.config?.silent) {
+      store.commit('updateLoaderStatus', false);
+    }
     const status = error?.response?.status;
     const requestUrl = error?.config?.url || '';
     const skipAuth = !!error?.config?.skipAuth;
+    const silent = !!error?.config?.silent;
     const isTokenRequest = requestUrl.includes('/protocol/openid-connect/token');
     const isGatewayBusinessCall = requestUrl.includes('/users/v1/') || requestUrl.includes('/packages/v1/');
     if (!skipAuth && !isTokenRequest && (status === 401 || status === 403)) {
@@ -41,12 +46,14 @@ instance.interceptors.request.use(
       // Browser-side CORS/network failures on protected calls should also force auth flow.
       triggerLoginRedirect();
     }
-    store.commit('updateShowMessage', true);
-    store.commit('updateRequestSuccess', false);
-    store.commit('updateRequestMessage', 'error');
-    setTimeout(() => {
-        store.commit('updateShowMessage', false);
-    }, 9000);
+    if (!silent) {
+      store.commit('updateShowMessage', true);
+      store.commit('updateRequestSuccess', false);
+      store.commit('updateRequestMessage', 'error');
+      setTimeout(() => {
+          store.commit('updateShowMessage', false);
+      }, 9000);
+    }
     return Promise.reject(error);
   }
 );
@@ -54,8 +61,10 @@ instance.interceptors.request.use(
 // Ajouter un intercepteur pour les réponses
 instance.interceptors.response.use(
   function(response) {
-    store.commit('updateLoaderStatus', false);
-    if (response.config.method === 'post' || response.config.method === 'put') {
+    if (!response.config.silent) {
+      store.commit('updateLoaderStatus', false);
+    }
+    if (!response.config.silent && (response.config.method === 'post' || response.config.method === 'put')) {
         store.commit('updateShowMessage', true);
         store.commit('updateRequestSuccess', true);
         store.commit('updateRequestMessage', 'success');
@@ -66,13 +75,15 @@ instance.interceptors.response.use(
     return response;
   },
   function(error) {
-    store.commit('updateLoaderStatus', false);
-    store.commit('updateShowMessage', true);
-    store.commit('updateRequestSuccess', false);
-    store.commit('updateRequestMessage', 'error');
-    setTimeout(() => {
-        store.commit('updateShowMessage', false);
-    }, 9000);
+    if (!error?.config?.silent) {
+      store.commit('updateLoaderStatus', false);
+      store.commit('updateShowMessage', true);
+      store.commit('updateRequestSuccess', false);
+      store.commit('updateRequestMessage', 'error');
+      setTimeout(() => {
+          store.commit('updateShowMessage', false);
+      }, 9000);
+    }
     return Promise.reject(error);
   }
 );

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 @ComponentScan("com.quickdelivery")
@@ -27,6 +28,14 @@ import java.security.cert.Certificate;
 public class PackageMain {
     @Value("${googlemapsapi.key}")
     private String googleMapsApiKey;
+    @Value("${quickdelivery.google-maps.connect-timeout-seconds:3}")
+    private long googleMapsConnectTimeoutSeconds;
+    @Value("${quickdelivery.google-maps.read-timeout-seconds:5}")
+    private long googleMapsReadTimeoutSeconds;
+    @Value("${quickdelivery.google-maps.write-timeout-seconds:5}")
+    private long googleMapsWriteTimeoutSeconds;
+    @Value("${quickdelivery.google-maps.query-rate-limit:20}")
+    private int googleMapsQueryRateLimit;
         @Bean
         @Scope("prototype")
         public ModelMapper modelMapper() {
@@ -38,6 +47,10 @@ public class PackageMain {
     public GeoApiContext iniiateGoogleGeoCoder(){
         GeoApiContext context = new GeoApiContext.Builder()
             .apiKey(googleMapsApiKey)
+            .queryRateLimit(googleMapsQueryRateLimit)
+            .connectTimeout(googleMapsConnectTimeoutSeconds, TimeUnit.SECONDS)
+            .readTimeout(googleMapsReadTimeoutSeconds, TimeUnit.SECONDS)
+            .writeTimeout(googleMapsWriteTimeoutSeconds, TimeUnit.SECONDS)
             .build();
         return context;
     }

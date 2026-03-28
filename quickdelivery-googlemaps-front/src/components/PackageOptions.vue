@@ -18,7 +18,6 @@
         >
           <strong>{{ $t(speed.label) }}</strong>
           <span>{{ $t(speed.hint) }}</span>
-          <small>{{ $t('packagePriceCalculatedByBackend') }}</small>
         </button>
       </div>
     </section>
@@ -33,7 +32,6 @@
       <label class="insurance-toggle">
         <input v-model="localValue.insurance" type="checkbox">
         <span>{{ $t('packageOptionInsurance') }}</span>
-        <strong>{{ $t('packagePriceCalculatedByBackend') }}</strong>
       </label>
 
       <div v-if="localValue.insurance" class="declared-value-field">
@@ -45,7 +43,6 @@
           min="0"
           step="0.01"
         >
-        <small>{{ $t('packageDeclaredValueHint') }}</small>
         <span v-if="declaredValueError" class="errorMessage">{{ declaredValueError }}</span>
       </div>
     </section>

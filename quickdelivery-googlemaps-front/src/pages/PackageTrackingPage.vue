@@ -187,6 +187,32 @@ export default {
   overflow-wrap: anywhere;
 }
 
+@media screen and (max-width: 1180px) and (min-width: 768px) {
+  .package-tracking-page {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    padding: 14px;
+  }
+
+  .page-header {
+    align-items: center;
+    gap: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .page-header p {
+    font-size: 0.86rem;
+  }
+
+  .reference-chip {
+    max-width: 280px;
+  }
+}
+
 .package-tracking-page :deep(.tracking-layout) {
   flex: 1;
   min-height: 0;

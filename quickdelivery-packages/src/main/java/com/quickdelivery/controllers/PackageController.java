@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.FinancialDashboardDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
+import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.ServiceLogInsightsDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
@@ -73,6 +75,11 @@ public class PackageController {
     @PostMapping("/bulk-create")
     public void createNewPackages(@RequestBody List<PackageDTO> packageDTOS, Locale locale){
         packagesService.createNewPackages(packageDTOS, locale);
+    }
+
+    @PostMapping("/estimate-price")
+    public PackageDTO estimateDeliveryPrice(@RequestBody PackageDTO packageDTO) {
+        return packagesService.estimateDeliveryPrice(packageDTO);
     }
 
     @GetMapping("/packages-around")
@@ -221,6 +228,15 @@ public class PackageController {
         return packagesService.findGuestPackageByReference(reference, guestAccessToken);
     }
 
+    @PostMapping("/tracking/position")
+    public void updateTrackingPosition(@RequestParam("deliveryPersonId") Long deliveryPersonId,
+                                       @RequestBody PositionDTO positionDTO) {
+        webSocketHandler.broadcastTrackingPositions(
+                "PACKAGE_SERVICE",
+                packagesService.updateTrackingPosition(deliveryPersonId, positionDTO)
+        );
+    }
+
     @GetMapping("/document-content")
     public ResponseEntity<byte[]> loadDocumentContent(@RequestParam("documentId") Long documentId) {
         DocumentContentDTO documentContent = packagesService.loadPackageDocumentContent(documentId);
@@ -271,6 +287,11 @@ public class PackageController {
     @GetMapping("/admin/log-insights")
     public ServiceLogInsightsDTO adminLogInsights() {
         return runtimeLogMonitor.snapshot("packages-service");
+    }
+
+    @GetMapping("/admin/financial-dashboard")
+    public FinancialDashboardDTO adminFinancialDashboard() {
+        return packagesService.loadAdminFinancialDashboard();
     }
 
     @GetMapping("/packages-around-address")

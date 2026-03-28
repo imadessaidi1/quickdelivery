@@ -74,6 +74,8 @@
 
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
+import http from '@/config/httpInterceptor';
+import { hasValidAccessToken } from '@/config/auth';
 
 export default {
   props: {
@@ -85,6 +87,13 @@ export default {
       type: String,
       default: 'MEDIUM',
     },
+  },
+  data() {
+    return {
+      estimateLoading: false,
+      estimateUnavailable: false,
+      estimateRequestId: 0,
+    };
   },
   computed: {
     package_() {
@@ -123,6 +132,12 @@ export default {
       return `${Number(this.package_.deliveryPrice).toFixed(2)} ${this.$t('currency')}`;
     },
     backendPriceHint() {
+      if (this.estimateLoading) {
+        return this.$t('packageEstimateBackendLoading');
+      }
+      if (this.estimateUnavailable) {
+        return this.$t('packageEstimateBackendUnavailable');
+      }
       return this.package_.deliveryPrice == null
         ? this.$t('packageEstimateCalculatedOnPayment')
         : this.$t('packageEstimateBackendConfirmed');
@@ -132,6 +147,78 @@ export default {
         return '--';
       }
       return `${Number(this.options.declaredValue).toFixed(2)} ${this.$t('currency')}`;
+    },
+    estimateSignature() {
+      return JSON.stringify({
+        deliverySpeed: this.options.deliverySpeed || 'STANDARD',
+        insurance: !!this.options.insurance,
+        declaredValue: this.options.insurance ? Number(this.options.declaredValue || 0) : null,
+        height: this.package_.height,
+        width: this.package_.width,
+        depth: this.package_.depth,
+        weight: this.package_.weight,
+        addresses: (this.package_.addresses || []).map((address) => ({
+          type: address.type,
+          addressAuto: address.addressAuto,
+          line1: address.line1,
+          zipCode: address.zipCode,
+          town: address.town,
+          country: address.country,
+          floor: address.floor,
+          hasElevator: address.hasElevator,
+        })),
+      });
+    },
+  },
+  mounted() {
+    this.fetchBackendEstimate();
+  },
+  methods: {
+    buildEstimatePayload() {
+      return {
+        ...this.package_,
+        deliverySpeed: this.options.deliverySpeed || 'STANDARD',
+        insuranceSelected: !!this.options.insurance,
+        declaredValue: this.options.insurance ? Number(this.options.declaredValue || 0) : null,
+      };
+    },
+    async fetchBackendEstimate() {
+      if (!this.departureAddress?.addressAuto || !this.arrivalAddress?.addressAuto) {
+        return;
+      }
+
+      const requestId = ++this.estimateRequestId;
+      this.estimateLoading = true;
+      this.estimateUnavailable = false;
+
+      try {
+        const response = await http.post(
+          `${this.$i18n.t('rootURL')}${this.$i18n.t('estimatePackagePriceUrl')}`,
+          this.buildEstimatePayload(),
+          { silent: true, skipAuth: !hasValidAccessToken() }
+        );
+        if (requestId !== this.estimateRequestId) {
+          return;
+        }
+        this.$store.commit('updatePackage', {
+          ...this.package_,
+          ...response.data,
+          deliveryPrice: response.data?.deliveryPrice ?? null,
+        });
+      } catch (_) {
+        if (requestId === this.estimateRequestId) {
+          this.estimateUnavailable = true;
+        }
+      } finally {
+        if (requestId === this.estimateRequestId) {
+          this.estimateLoading = false;
+        }
+      }
+    },
+  },
+  watch: {
+    estimateSignature() {
+      this.fetchBackendEstimate();
     },
   },
 };

@@ -18,6 +18,7 @@ import DocumentPage from '../pages/DocumentPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import NotificationsPage from '../pages/NotificationsPage.vue';
 import MetricsDashboardPage from '../pages/MetricsDashboardPage.vue';
+import FinanceDashboardPage from '../pages/FinanceDashboardPage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -56,6 +57,12 @@ const routes = [
         path: '/dashboard/metrics',
         name: 'adminMetricsDashboardPage',
         component: MetricsDashboardPage,
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
+        path: '/dashboard/finance',
+        name: 'adminFinanceDashboardPage',
+        component: FinanceDashboardPage,
         meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
         },
         {

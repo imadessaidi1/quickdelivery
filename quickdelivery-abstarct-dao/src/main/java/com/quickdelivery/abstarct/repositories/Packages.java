@@ -94,4 +94,23 @@ public interface Packages extends JpaRepository<Package, Long> {
             "WHERE r.deliveryPerson.id = :deliveryPersonID " +
             "AND p.status = 'PICKEDUP'")
     List<Package> findPackagesInDeliveryByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
+
+    @Query("SELECT p.reference " +
+            "FROM Package p JOIN p.packageReservations r " +
+            "WHERE r.deliveryPerson.id = :deliveryPersonID " +
+            "AND p.status = 'PICKEDUP'")
+    List<String> findPackageReferencesInDeliveryByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
+
+    @Modifying
+    @Query("UPDATE Package p " +
+            "SET p.lastPositionLatitude = :latitude, p.lastPositionLongitude = :longitude " +
+            "WHERE p.status = 'PICKEDUP' " +
+            "AND EXISTS (" +
+            "   SELECT 1 FROM PackageReservation pr " +
+            "   WHERE pr.aPackage = p " +
+            "   AND pr.deliveryPerson.id = :deliveryPersonID" +
+            ")")
+    int updateTrackingPositionByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID,
+                                               @Param("latitude") java.math.BigDecimal latitude,
+                                               @Param("longitude") java.math.BigDecimal longitude);
 }

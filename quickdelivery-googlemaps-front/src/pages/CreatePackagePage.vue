@@ -435,6 +435,12 @@ export default {
         return;
       }
 
+      if (type === 'ARRIVAL' && this.areAddressesEquivalent(this.resolveDepartureAddressForValidation(), address)) {
+        addressComponent.isAddressError = true;
+        addressComponent.errorAddressMessage = this.$i18n.t('packageAddressMustDiffer');
+        return;
+      }
+
       addressComponent.isAddressError = false;
       addressComponent.isDateTimeError = false;
       addressComponent.isElevatorError = false;
@@ -454,6 +460,26 @@ export default {
       }
 
       this.currentStep += 1;
+    },
+    resolveDepartureAddressForValidation() {
+      const departureComponent = Array.isArray(this.$refs.departureAddress)
+        ? this.$refs.departureAddress[0]
+        : this.$refs.departureAddress;
+      return departureComponent?.address || this.package_.addresses?.[0] || null;
+    },
+    areAddressesEquivalent(departureAddress, arrivalAddress) {
+      const normalize = (value) => `${value || ''}`.trim().toLowerCase();
+      const buildSignature = (address) => [
+        normalize(address?.line1),
+        normalize(address?.zipCode),
+        normalize(address?.town),
+        normalize(address?.country),
+        normalize(address?.addressAuto),
+      ].join('|');
+
+      const departureSignature = buildSignature(departureAddress);
+      const arrivalSignature = buildSignature(arrivalAddress);
+      return departureSignature !== '||||' && departureSignature === arrivalSignature;
     },
     async submitPackage() {
       const hasConsulted = hasLegalPageBeenConsulted(this.legalFlow);

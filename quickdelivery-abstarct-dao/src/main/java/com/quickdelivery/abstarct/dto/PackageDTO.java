@@ -24,6 +24,18 @@ public class PackageDTO {
     private String pictureURL;
     private PACKAGE_STATUS status;
     private Double deliveryPrice;
+    private Double customerTotalPrice;
+    private Double deliveryBaseAmount;
+    private Double insuranceFee;
+    private Double platformServiceFee;
+    private Double deliveryRevenueExcludingServiceFee;
+    private Double platformCommissionRate;
+    private Double platformCommissionAmount;
+    private Double courierShareRate;
+    private Double courierPayoutAmount;
+    private String currency;
+    private String pricingVersion;
+    private Timestamp calculatedAt;
     private String deliverySpeed;
     private Boolean insuranceSelected;
     private Double declaredValue;
@@ -97,6 +109,102 @@ public class PackageDTO {
 
     public void setDeliveryPrice(Double deliveryPrice) {
         this.deliveryPrice = deliveryPrice;
+    }
+
+    public Double getPlatformServiceFee() {
+        return platformServiceFee;
+    }
+
+    public void setPlatformServiceFee(Double platformServiceFee) {
+        this.platformServiceFee = platformServiceFee;
+    }
+
+    public Double getDeliveryRevenueExcludingServiceFee() {
+        return deliveryRevenueExcludingServiceFee;
+    }
+
+    public void setDeliveryRevenueExcludingServiceFee(Double deliveryRevenueExcludingServiceFee) {
+        this.deliveryRevenueExcludingServiceFee = deliveryRevenueExcludingServiceFee;
+    }
+
+    public Double getPlatformCommissionAmount() {
+        return platformCommissionAmount;
+    }
+
+    public void setPlatformCommissionAmount(Double platformCommissionAmount) {
+        this.platformCommissionAmount = platformCommissionAmount;
+    }
+
+    public Double getCourierPayoutAmount() {
+        return courierPayoutAmount;
+    }
+
+    public void setCourierPayoutAmount(Double courierPayoutAmount) {
+        this.courierPayoutAmount = courierPayoutAmount;
+    }
+
+    public Double getCustomerTotalPrice() {
+        return customerTotalPrice;
+    }
+
+    public void setCustomerTotalPrice(Double customerTotalPrice) {
+        this.customerTotalPrice = customerTotalPrice;
+    }
+
+    public Double getDeliveryBaseAmount() {
+        return deliveryBaseAmount;
+    }
+
+    public void setDeliveryBaseAmount(Double deliveryBaseAmount) {
+        this.deliveryBaseAmount = deliveryBaseAmount;
+    }
+
+    public Double getInsuranceFee() {
+        return insuranceFee;
+    }
+
+    public void setInsuranceFee(Double insuranceFee) {
+        this.insuranceFee = insuranceFee;
+    }
+
+    public Double getPlatformCommissionRate() {
+        return platformCommissionRate;
+    }
+
+    public void setPlatformCommissionRate(Double platformCommissionRate) {
+        this.platformCommissionRate = platformCommissionRate;
+    }
+
+    public Double getCourierShareRate() {
+        return courierShareRate;
+    }
+
+    public void setCourierShareRate(Double courierShareRate) {
+        this.courierShareRate = courierShareRate;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getPricingVersion() {
+        return pricingVersion;
+    }
+
+    public void setPricingVersion(String pricingVersion) {
+        this.pricingVersion = pricingVersion;
+    }
+
+    public Timestamp getCalculatedAt() {
+        return calculatedAt;
+    }
+
+    public void setCalculatedAt(Timestamp calculatedAt) {
+        this.calculatedAt = calculatedAt;
     }
 
     public String getDeliverySpeed() {

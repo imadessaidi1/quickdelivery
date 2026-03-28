@@ -9,11 +9,14 @@ import com.quickdelivery.abstarct.entities.*;
 import com.quickdelivery.abstarct.entities.Package;
 import com.quickdelivery.abstarct.helpers.*;
 import com.quickdelivery.abstarct.parameters.*;
+import com.quickdelivery.abstarct.repositories.CourierPayouts;
 import com.quickdelivery.abstarct.repositories.Documents;
+import com.quickdelivery.abstarct.repositories.PackageSettlements;
 import com.quickdelivery.abstarct.repositories.Packages;
 import com.quickdelivery.abstarct.repositories.Users;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.helpers.PackageDeliveryPriceCalculator;
+import com.quickdelivery.helpers.PackagePricingBreakdown;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Measurement;
@@ -29,6 +32,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.http.HttpStatus;
@@ -45,12 +49,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -90,6 +98,10 @@ public class PackagesService implements IPackagesService {
     @Autowired
     private Documents documents;
     @Autowired
+    private CourierPayouts courierPayouts;
+    @Autowired
+    private PackageSettlements packageSettlements;
+    @Autowired
     private Users users;
     @Autowired
     private GeoApiContext geoApiContext;
@@ -108,6 +120,14 @@ public class PackagesService implements IPackagesService {
     @Autowired
     @Qualifier("packageMailTaskExecutor")
     private Executor packageMailTaskExecutor;
+    private static final int FINANCIAL_TREND_MONTHS = 6;
+    private static final int FINANCIAL_RECENT_SETTLEMENT_LIMIT = 8;
+    private static final int FINANCIAL_PENDING_PAYOUT_LIMIT = 8;
+    private static final Set<COURIER_PAYOUT_STATUS> OPEN_PAYOUT_STATUSES = EnumSet.of(
+            COURIER_PAYOUT_STATUS.PENDING,
+            COURIER_PAYOUT_STATUS.APPROVED,
+            COURIER_PAYOUT_STATUS.FAILED
+    );
     @Override
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale) {
         return recordPackageOperation("create", () -> {
@@ -116,8 +136,9 @@ public class PackagesService implements IPackagesService {
             try {
                 validatePackageCreationRequest(packageDTO);
                 packageAddressGeocoding(packageDTO);
-                packageDistanceCalculation(packageDTO);
-                aPackage = preparPackage(packageDTO, locale);
+                DistanceMatrix distanceMatrix = packageDistanceCalculation(packageDTO);
+                PackagePricingBreakdown pricingBreakdown = calculatePricingBreakdown(packageDTO, distanceMatrix);
+                aPackage = preparPackage(packageDTO, locale, pricingBreakdown);
                 if (files != null && files.length > 0) {
                     IntStream.range(0, files.length)
                             .forEach(index -> {
@@ -169,6 +190,17 @@ public class PackagesService implements IPackagesService {
         });
     }
 
+    @Override
+    public PackageDTO estimateDeliveryPrice(PackageDTO packageDTO) {
+        return recordPackageOperation("estimatePrice", () -> {
+            validatePackageCreationRequest(packageDTO);
+            packageAddressGeocoding(packageDTO);
+            DistanceMatrix distanceMatrix = packageDistanceCalculation(packageDTO);
+            applyPricing(packageDTO, calculatePricingBreakdown(packageDTO, distanceMatrix));
+            return packageDTO;
+        });
+    }
+
     private void generatePackageArtifacts(PackageDTO packageDTO, Locale locale) throws IOException {
         String packageBasePath = packagesDirectory + packageDTO.getReference();
         String qrPath = packageBasePath + packageQrEnds;
@@ -215,7 +247,9 @@ public class PackagesService implements IPackagesService {
     public void createNewPackages(List<PackageDTO> packageDTOS, Locale locale) {
         packageDTOS.stream().forEach(packageDTO -> {
             try {
-                preparPackage(packageDTO, locale);
+                packageAddressGeocoding(packageDTO);
+                DistanceMatrix distanceMatrix = packageDistanceCalculation(packageDTO);
+                preparPackage(packageDTO, locale, calculatePricingBreakdown(packageDTO, distanceMatrix));
             } catch (MalformedURLException | FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -223,6 +257,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
         List<PackageDTO> packageDTOS = addresses.stream()
@@ -245,12 +280,14 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, List<PackageDTO>> getPAckagesAroundPosition(AddressDTO address, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
         GeoHelper.AddressGeoCoding(geoApiContext,address);
         return getPAckagesAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), rayonEnMetres);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres) {
         List<Address> addresses = packages.findAddressAroundPosition(latitude,longitude,rayonEnMetres);
         List<PackageDTO> packageDTOS = addresses.stream()
@@ -269,6 +306,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
         GeoHelper.AddressGeoCoding(geoApiContext, destinationAddress);
         if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
@@ -292,6 +330,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude) {
         double startLat = Double.parseDouble(departureLatitude);
         double startLng = Double.parseDouble(departureLongitude);
@@ -348,8 +387,7 @@ public class PackagesService implements IPackagesService {
                         return null;
                     }
 
-                    PackageDTO dto = modelMapper.map(pkg, PackageDTO.class);
-                    dto.getAddresses().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
+                    PackageDTO dto = toPackageDTO(pkg);
                     return dto;
                 })
                 .filter(Objects::nonNull)
@@ -450,6 +488,7 @@ public class PackagesService implements IPackagesService {
                 aPackage.setStatus(PACKAGE_STATUS.DELIVERED);
                 packageReservation.get().setStatus(PACKAGE_RESERVATION_STATUS.FINISHED);
                 packages.saveAndFlush(aPackage);
+                createCourierPayoutIfNeeded(aPackage, packageReservation.get().getDeliveryPerson());
                 CompletableFuture.runAsync(() -> {
                     sendPackageCreationEMail(aPackage, locale, EMAIL_TEMPLATE_TYPE.PACKAGE_DELIVERY_RECEIVER.getType(),
                             messageSource.getMessage("email.subject.packageDelivered", null, locale),EMAIL_TYPE.PACKAGE_DELIVERY_RECEIVER);
@@ -463,6 +502,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP) {
         Package aPackage = packages.findById(packageID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -478,6 +518,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CHECK_STATUS checkOTPForDeliverPackage(Long packageID, Long deliveryPersonID, String deliveryOTP) {
         Package aPackage = packages.findById(packageID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -493,6 +534,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CHECK_STATUS checkGuestOTPForPickUpPackage(Long packageID, String guestAccessToken, String pickUpOTP) {
         Package aPackage = packages.findById(packageID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -506,6 +548,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CHECK_STATUS checkGuestOTPForDeliverPackage(Long packageID, String guestAccessToken, String deliveryOTP) {
         Package aPackage = packages.findById(packageID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -519,6 +562,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional
     public void confirmGuestPackagePayment(Long packageID, String guestAccessToken) {
         Package aPackage = packages.findById(packageID)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -532,6 +576,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PackageDTO findPackageByID(Long id) {
         Package aPackage = packages.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
@@ -549,19 +594,22 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PackageDTO> findPackagesByStatus(PACKAGE_STATUS status) {
         List<PackageDTO> packageDTOS = new ArrayList<>();
         List<Package> packages = this.packages.findPackagesByStatus(status);
-        packages.stream().forEach(aPackage -> packageDTOS.add(modelMapper.map(aPackage, PackageDTO.class)));
+        packages.stream().forEach(aPackage -> packageDTOS.add(toPackageDTO(aPackage)));
         return packageDTOS;
     }
 
     @Override
+    @Transactional
     public void updatePackageStatus(PACKAGE_STATUS status, Long id) {
         packages.updatePackagesStatus(status,id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID) {
         List<Package> packageList = packages.findPackagesByDeliveryPerson(deliveryPersonID);
         List<PackageDTO> packageDTOS = packageList.stream()
@@ -575,6 +623,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(Long senderID) {
         List<Package> packageList = packages.findPackagesBySender(senderID);
         List<PackageDTO> packageDTOS = packageList.stream()
@@ -584,13 +633,13 @@ public class PackagesService implements IPackagesService {
                 .collect(Collectors.groupingByConcurrent(PackageDTO::getStatus));
     }
 
-    private Package preparPackage(PackageDTO packageDTO, Locale locale) throws MalformedURLException, FileNotFoundException {
+    private Package preparPackage(PackageDTO packageDTO, Locale locale, PackagePricingBreakdown pricingBreakdown) throws MalformedURLException, FileNotFoundException {
+        applyPricing(packageDTO, pricingBreakdown);
         Package aPackage = modelMapper.map(packageDTO, Package.class);
         User sender = resolveSender(packageDTO);
         boolean guestMode = sender == null;
         StringBuffer reference = new StringBuffer();
-        aPackage.setDeliveryPrice(PackageDeliveryPriceCalculator.calculateDeliveryPrice(geoApiContext, packageDTO));
-        packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
+        attachPackageSettlement(aPackage, pricingBreakdown);
         aPackage.getAddresses().stream().forEach(address -> address.setPackaged(aPackage));
         aPackage.setSender(sender);
         aPackage.setGuestMode(guestMode);
@@ -620,8 +669,49 @@ public class PackagesService implements IPackagesService {
         return aPackage;
     }
 
+    private void applyPricing(PackageDTO packageDTO, PackagePricingBreakdown pricingBreakdown) {
+        packageDTO.setDeliveryPrice(pricingBreakdown.customerTotalPrice());
+        packageDTO.setCustomerTotalPrice(pricingBreakdown.customerTotalPrice());
+        packageDTO.setDeliveryBaseAmount(pricingBreakdown.deliveryBaseAmount());
+        packageDTO.setInsuranceFee(pricingBreakdown.insuranceFee());
+        packageDTO.setPlatformServiceFee(pricingBreakdown.platformServiceFee());
+        packageDTO.setDeliveryRevenueExcludingServiceFee(pricingBreakdown.deliveryRevenueExcludingServiceFee());
+        packageDTO.setPlatformCommissionRate(pricingBreakdown.platformCommissionRate());
+        packageDTO.setPlatformCommissionAmount(pricingBreakdown.platformCommissionAmount());
+        packageDTO.setCourierShareRate(pricingBreakdown.courierShareRate());
+        packageDTO.setCourierPayoutAmount(pricingBreakdown.courierPayoutAmount());
+        packageDTO.setCurrency(pricingBreakdown.currency());
+        packageDTO.setPricingVersion(pricingBreakdown.pricingVersion());
+        packageDTO.setCalculatedAt(Timestamp.valueOf(LocalDateTime.now()));
+    }
+
+    private void attachPackageSettlement(Package aPackage, PackagePricingBreakdown pricingBreakdown) {
+        aPackage.setDeliveryPrice(pricingBreakdown.customerTotalPrice());
+        PackageSettlement settlement = aPackage.getPackageSettlement();
+        if (settlement == null) {
+            settlement = new PackageSettlement();
+            settlement.setaPackage(aPackage);
+        }
+        settlement.setCustomerTotalPrice(pricingBreakdown.customerTotalPrice());
+        settlement.setDeliveryBaseAmount(pricingBreakdown.deliveryBaseAmount());
+        settlement.setInsuranceFee(pricingBreakdown.insuranceFee());
+        settlement.setPlatformServiceFee(pricingBreakdown.platformServiceFee());
+        settlement.setDeliveryRevenueExcludingServiceFee(pricingBreakdown.deliveryRevenueExcludingServiceFee());
+        settlement.setPlatformCommissionRate(pricingBreakdown.platformCommissionRate());
+        settlement.setPlatformCommissionAmount(pricingBreakdown.platformCommissionAmount());
+        settlement.setCourierShareRate(pricingBreakdown.courierShareRate());
+        settlement.setCourierPayoutAmount(pricingBreakdown.courierPayoutAmount());
+        settlement.setCurrency(pricingBreakdown.currency());
+        settlement.setPricingVersion(pricingBreakdown.pricingVersion());
+        settlement.setCalculatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        aPackage.setPackageSettlement(settlement);
+    }
+
     private void packageAddressGeocoding(PackageDTO aPackage){
         aPackage.getAddresses().stream().forEach(addressDTO -> {
+            if (addressDTO.getLatitude() != null && addressDTO.getLongitude() != null) {
+                return;
+            }
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, addressDTO);
             } catch (IOException e) {
@@ -634,10 +724,29 @@ public class PackagesService implements IPackagesService {
         });
     }
 
-    private void packageDistanceCalculation(PackageDTO aPackage){
+    private DistanceMatrix packageDistanceCalculation(PackageDTO aPackage){
         DistanceMatrix distancePackageDestination = GeoHelper.getDistanceByAddress(geoApiContext, getDepartureAddress(aPackage.getAddresses()).toString(),
                 getArrivalAddress(aPackage.getAddresses()).toString());
         aPackage.setDistanceToDestination(formatDistanceMatrixValue(distancePackageDestination));
+        return distancePackageDestination;
+    }
+
+    private PackagePricingBreakdown calculatePricingBreakdown(PackageDTO packageDTO, DistanceMatrix distanceMatrix) {
+        return PackageDeliveryPriceCalculator.calculatePricingBreakdown(extractDistanceInKilometers(distanceMatrix), packageDTO);
+    }
+
+    private double extractDistanceInKilometers(DistanceMatrix distanceMatrix) {
+        if (distanceMatrix == null
+                || distanceMatrix.rows == null
+                || distanceMatrix.rows.length == 0
+                || distanceMatrix.rows[0] == null
+                || distanceMatrix.rows[0].elements == null
+                || distanceMatrix.rows[0].elements.length == 0
+                || distanceMatrix.rows[0].elements[0] == null
+                || distanceMatrix.rows[0].elements[0].distance == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unable to resolve route distance");
+        }
+        return distanceMatrix.rows[0].elements[0].distance.inMeters / 1000.0;
     }
 
     private void validatePackageCreationRequest(PackageDTO packageDTO) {
@@ -655,6 +764,7 @@ public class PackagesService implements IPackagesService {
         validateInsuranceSelection(packageDTO);
         validateFloorAccessibility(departureAddress, "pickup");
         validateFloorAccessibility(arrivalAddress, "delivery");
+        validateDistinctAddresses(departureAddress, arrivalAddress);
 
         boolean guestMode = packageDTO.getSenderID() == null;
         packageDTO.setGuestMode(guestMode);
@@ -691,6 +801,34 @@ public class PackagesService implements IPackagesService {
         if (floor > 0 && address.getHasElevator() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elevator selection is required for " + label);
         }
+    }
+
+    private void validateDistinctAddresses(AddressDTO departureAddress, AddressDTO arrivalAddress) {
+        if (departureAddress == null || arrivalAddress == null) {
+            return;
+        }
+
+        String normalizedDeparture = normalizeAddressSignature(departureAddress);
+        String normalizedArrival = normalizeAddressSignature(arrivalAddress);
+        if (!normalizedDeparture.isBlank() && normalizedDeparture.equals(normalizedArrival)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Delivery address must be different from pickup address");
+        }
+    }
+
+    private String normalizeAddressSignature(AddressDTO address) {
+        return String.join("|",
+                        normalizeAddressPart(address.getLine1()),
+                        normalizeAddressPart(address.getZipCode()),
+                        normalizeAddressPart(address.getTown()),
+                        normalizeAddressPart(address.getCountry()),
+                        normalizeAddressPart(address.getAddressAuto()))
+                .replaceAll("\\s+", " ")
+                .trim()
+                .toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeAddressPart(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private User resolveSender(PackageDTO packageDTO) {
@@ -834,12 +972,14 @@ public class PackagesService implements IPackagesService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public List<Address> findUsersAroundPosition(String aPackage){
         Address address = getDepartureAddress(packages.findPackageByReference(aPackage).getAddresses());
         return users.findUsersAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), 20000);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PackageDTO findPackageByReference(String reference) {
         return recordPackageOperation("findByReference", () -> {
             if (reference == null || reference.isBlank() || "undefined".equalsIgnoreCase(reference)) {
@@ -854,6 +994,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PackageDTO findGuestPackageByReference(String reference, String guestAccessToken) {
         PackageDTO packageDTO = findPackageByReference(reference);
         if (!Objects.equals(packageDTO.getGuestAccessToken(), guestAccessToken)) {
@@ -863,6 +1004,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DocumentContentDTO loadPackageDocumentContent(Long documentId) {
         return recordPackageOperation("documentContent", () -> {
             Document document = documents.findById(documentId)
@@ -885,11 +1027,13 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isUserWithOngoingDelivery(Long userId) {
         return packages.existsOngoingReservationsForUserWithPickedUpPackage(userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServiceMetricsDTO loadAdminMetrics() {
         ServiceMetricsDTO metrics = new ServiceMetricsDTO();
         metrics.setServiceName("packages-service");
@@ -906,6 +1050,7 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServiceHttpBreakdownDTO loadAdminHttpBreakdown() {
         ServiceHttpBreakdownDTO breakdown = new ServiceHttpBreakdownDTO();
         breakdown.setServiceName("packages-service");
@@ -923,28 +1068,323 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public FinancialDashboardDTO loadAdminFinancialDashboard() {
+        List<PackageSettlement> settlements = packageSettlements.findAllWithPackageOrderByCalculatedAtDesc();
+        List<CourierPayout> payouts = courierPayouts.findAllWithRelationsOrderByCreatedAtDesc();
+
+        FinancialDashboardDTO dashboard = new FinancialDashboardDTO();
+        dashboard.setGeneratedAt(Timestamp.valueOf(LocalDateTime.now()));
+        dashboard.setCurrency(resolveDashboardCurrency(settlements, payouts));
+        dashboard.setSettlementCount(settlements.size());
+        dashboard.setDeliveredPackageCount(settlements.stream()
+                .filter(settlement -> settlement.getaPackage() != null && PACKAGE_STATUS.DELIVERED.equals(settlement.getaPackage().getStatus()))
+                .count());
+
+        double customerRevenue = settlements.stream().mapToDouble(settlement -> safeDouble(settlement.getCustomerTotalPrice())).sum();
+        double serviceFees = settlements.stream().mapToDouble(settlement -> safeDouble(settlement.getPlatformServiceFee())).sum();
+        double platformCommission = settlements.stream().mapToDouble(settlement -> safeDouble(settlement.getPlatformCommissionAmount())).sum();
+        double platformMargin = serviceFees + platformCommission;
+        double averageOrderValue = settlements.isEmpty() ? 0d : customerRevenue / settlements.size();
+        double averageCourierPayout = settlements.isEmpty()
+                ? 0d
+                : settlements.stream().mapToDouble(settlement -> safeDouble(settlement.getCourierPayoutAmount())).sum() / settlements.size();
+        double takeRate = customerRevenue <= 0d ? 0d : platformMargin / customerRevenue;
+
+        List<CourierPayout> pendingPayouts = payouts.stream()
+                .filter(payout -> payout.getStatus() != null && OPEN_PAYOUT_STATUSES.contains(payout.getStatus()))
+                .toList();
+        List<CourierPayout> paidPayouts = payouts.stream()
+                .filter(payout -> COURIER_PAYOUT_STATUS.PAID.equals(payout.getStatus()))
+                .toList();
+
+        dashboard.setCustomerRevenue(customerRevenue);
+        dashboard.setPlatformServiceFees(serviceFees);
+        dashboard.setPlatformCommissionAmount(platformCommission);
+        dashboard.setPlatformMargin(platformMargin);
+        dashboard.setAverageOrderValue(averageOrderValue);
+        dashboard.setAverageCourierPayout(averageCourierPayout);
+        dashboard.setPlatformTakeRate(takeRate);
+        dashboard.setPendingPayoutCount(pendingPayouts.size());
+        dashboard.setPaidPayoutCount(paidPayouts.size());
+        dashboard.setCourierPayoutPendingAmount(pendingPayouts.stream().mapToDouble(payout -> safeDouble(payout.getAmount())).sum());
+        dashboard.setCourierPayoutPaidAmount(paidPayouts.stream().mapToDouble(payout -> safeDouble(payout.getAmount())).sum());
+        dashboard.setCustomerRevenueTrend(buildSettlementTrend(settlements, PackageSettlement::getCustomerTotalPrice));
+        dashboard.setPlatformMarginTrend(buildSettlementTrend(settlements,
+                settlement -> safeDouble(settlement.getPlatformServiceFee()) + safeDouble(settlement.getPlatformCommissionAmount())));
+        dashboard.setCourierPayoutTrend(buildSettlementTrend(settlements, PackageSettlement::getCourierPayoutAmount));
+        dashboard.setRecentSettlements(buildRecentSettlements(settlements));
+        dashboard.setPendingPayouts(buildPendingPayoutSummaries(pendingPayouts, dashboard.getCurrency()));
+        return dashboard;
+    }
+
+    @Override
     public Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO) {
-        Map<String, PositionDTO> map = new HashMap<>();
-        if(messageDTO.getType().equals("PACKAGE_POSITION_UPDATE")){
-            List<Package> packageList = packages.findPackagesInDeliveryByDeliveryPerson(Long.parseLong(messageDTO.getFrom()));
-            packageList.stream().forEach(aPackage -> {
-                aPackage.setLastPositionLatitude(messageDTO.getPositionDTO().getLatitude());
-                aPackage.setLastPositionLongitude(messageDTO.getPositionDTO().getLongitude());
-                packages.saveAndFlush(aPackage);
-                map.put(aPackage.getReference(), messageDTO.getPositionDTO());
-            });
+        if ("PACKAGE_POSITION_UPDATE".equals(messageDTO.getType())
+                && messageDTO.getFrom() != null
+                && messageDTO.getPositionDTO() != null) {
+            return updateTrackingPosition(Long.parseLong(messageDTO.getFrom()), messageDTO.getPositionDTO());
         }
-        return map;
+        return Collections.emptyMap();
+    }
+
+    @Override
+    @Transactional
+    public Map<String, PositionDTO> updateTrackingPosition(Long deliveryPersonId, PositionDTO positionDTO) {
+        if (deliveryPersonId == null || positionDTO == null
+                || positionDTO.getLatitude() == null || positionDTO.getLongitude() == null) {
+            return Collections.emptyMap();
+        }
+
+        List<String> packageReferences = packages.findPackageReferencesInDeliveryByDeliveryPerson(deliveryPersonId);
+        if (packageReferences.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        packages.updateTrackingPositionByDeliveryPerson(
+                deliveryPersonId,
+                positionDTO.getLatitude(),
+                positionDTO.getLongitude()
+        );
+
+        Map<String, PositionDTO> updatedPositions = new HashMap<>();
+        packageReferences.forEach(packageReference -> updatedPositions.put(packageReference, positionDTO));
+        return updatedPositions;
+    }
+
+    private List<FinancialTrendPointDTO> buildSettlementTrend(List<PackageSettlement> settlements,
+                                                              java.util.function.Function<PackageSettlement, Double> valueExtractor) {
+        LinkedHashMap<YearMonth, Double> monthlyValues = new LinkedHashMap<>();
+        YearMonth currentMonth = YearMonth.now();
+        for (int monthOffset = FINANCIAL_TREND_MONTHS - 1; monthOffset >= 0; monthOffset--) {
+            monthlyValues.put(currentMonth.minusMonths(monthOffset), 0d);
+        }
+
+        settlements.stream()
+                .filter(settlement -> settlement.getCalculatedAt() != null)
+                .forEach(settlement -> {
+                    YearMonth period = YearMonth.from(settlement.getCalculatedAt().toLocalDateTime());
+                    if (monthlyValues.containsKey(period)) {
+                        monthlyValues.computeIfPresent(period, (key, value) -> value + safeDouble(valueExtractor.apply(settlement)));
+                    }
+                });
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        return monthlyValues.entrySet().stream()
+                .map(entry -> {
+                    FinancialTrendPointDTO point = new FinancialTrendPointDTO();
+                    point.setPeriodKey(entry.getKey().format(formatter));
+                    point.setValue(roundMoney(entry.getValue()));
+                    return point;
+                })
+                .toList();
+    }
+
+    private List<FinancialRecentSettlementDTO> buildRecentSettlements(List<PackageSettlement> settlements) {
+        return settlements.stream()
+                .limit(FINANCIAL_RECENT_SETTLEMENT_LIMIT)
+                .map(settlement -> {
+                    FinancialRecentSettlementDTO item = new FinancialRecentSettlementDTO();
+                    item.setPackageReference(settlement.getaPackage() == null ? null : settlement.getaPackage().getReference());
+                    item.setPackageStatus(settlement.getaPackage() == null || settlement.getaPackage().getStatus() == null
+                            ? null
+                            : settlement.getaPackage().getStatus().name());
+                    item.setCalculatedAt(settlement.getCalculatedAt());
+                    item.setCustomerTotalPrice(roundMoney(settlement.getCustomerTotalPrice()));
+                    item.setPlatformServiceFee(roundMoney(settlement.getPlatformServiceFee()));
+                    item.setPlatformCommissionAmount(roundMoney(settlement.getPlatformCommissionAmount()));
+                    item.setCourierPayoutAmount(roundMoney(settlement.getCourierPayoutAmount()));
+                    item.setCurrency(settlement.getCurrency());
+                    return item;
+                })
+                .toList();
+    }
+
+    private List<CourierPayoutSummaryDTO> buildPendingPayoutSummaries(List<CourierPayout> pendingPayouts, String fallbackCurrency) {
+        record CourierAccumulator(String deliveryPersonName, long packageCount, double amount, Timestamp oldestCreatedAt) {}
+
+        Map<Long, CourierAccumulator> grouped = new LinkedHashMap<>();
+        pendingPayouts.forEach(payout -> {
+            Long courierId = payout.getDeliveryPerson() == null ? -1L : payout.getDeliveryPerson().getId();
+            CourierAccumulator current = grouped.get(courierId);
+            String courierName = resolveDeliveryPersonName(payout.getDeliveryPerson());
+            Timestamp createdAt = payout.getCreatedAt();
+            if (current == null) {
+                grouped.put(courierId, new CourierAccumulator(courierName, 1L, safeDouble(payout.getAmount()), createdAt));
+                return;
+            }
+            Timestamp oldestCreatedAt = current.oldestCreatedAt();
+            if (oldestCreatedAt == null || (createdAt != null && createdAt.before(oldestCreatedAt))) {
+                oldestCreatedAt = createdAt;
+            }
+            grouped.put(courierId, new CourierAccumulator(
+                    current.deliveryPersonName(),
+                    current.packageCount() + 1,
+                    current.amount() + safeDouble(payout.getAmount()),
+                    oldestCreatedAt
+            ));
+        });
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    CourierPayoutSummaryDTO item = new CourierPayoutSummaryDTO();
+                    item.setDeliveryPersonId(entry.getKey() < 0 ? null : entry.getKey());
+                    item.setDeliveryPersonName(entry.getValue().deliveryPersonName());
+                    item.setPackageCount(entry.getValue().packageCount());
+                    item.setAmount(roundMoney(entry.getValue().amount()));
+                    item.setOldestCreatedAt(entry.getValue().oldestCreatedAt());
+                    item.setCurrency(fallbackCurrency);
+                    return item;
+                })
+                .sorted(Comparator.comparingDouble((CourierPayoutSummaryDTO item) -> safeDouble(item.getAmount())).reversed())
+                .limit(FINANCIAL_PENDING_PAYOUT_LIMIT)
+                .toList();
+    }
+
+    private String resolveDashboardCurrency(List<PackageSettlement> settlements, List<CourierPayout> payouts) {
+        return settlements.stream()
+                .map(PackageSettlement::getCurrency)
+                .filter(Objects::nonNull)
+                .filter(currency -> !currency.isBlank())
+                .findFirst()
+                .orElseGet(() -> payouts.stream()
+                        .map(payout -> payout.getaPackage() == null || payout.getaPackage().getPackageSettlement() == null
+                                ? null
+                                : payout.getaPackage().getPackageSettlement().getCurrency())
+                        .filter(Objects::nonNull)
+                        .filter(currency -> !currency.isBlank())
+                        .findFirst()
+                        .orElse("EUR"));
+    }
+
+    private String resolveDeliveryPersonName(User deliveryPerson) {
+        if (deliveryPerson == null) {
+            return "Livreur non assigne";
+        }
+        String fullName = Stream.of(deliveryPerson.getFirstName(), deliveryPerson.getLastName())
+                .filter(Objects::nonNull)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.joining(" "));
+        if (!fullName.isBlank()) {
+            return fullName;
+        }
+        return deliveryPerson.getEmailAddress() == null || deliveryPerson.getEmailAddress().isBlank()
+                ? "Livreur #" + deliveryPerson.getId()
+                : deliveryPerson.getEmailAddress();
+    }
+
+    private double safeDouble(Double value) {
+        return value == null ? 0d : value;
+    }
+
+    private double roundMoney(Double value) {
+        return roundMoney(safeDouble(value));
+    }
+
+    private double roundMoney(double value) {
+        return Math.round(value * 100d) / 100d;
+    }
+
+    private void createCourierPayoutIfNeeded(Package aPackage, User deliveryPerson) {
+        if (aPackage == null || aPackage.getId() == null || deliveryPerson == null || courierPayouts.existsByaPackageId(aPackage.getId())) {
+            return;
+        }
+        PackageSettlement settlement = aPackage.getPackageSettlement();
+        if (settlement == null) {
+            return;
+        }
+
+        CourierPayout courierPayout = new CourierPayout();
+        courierPayout.setaPackage(aPackage);
+        courierPayout.setDeliveryPerson(deliveryPerson);
+        courierPayout.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        courierPayout.setAmount(settlement.getCourierPayoutAmount());
+        courierPayout.setStatus(COURIER_PAYOUT_STATUS.PENDING);
+        courierPayouts.save(courierPayout);
     }
 
     private PackageDTO toPackageDTO(Package aPackage) {
-        PackageDTO packageDTO = modelMapper.map(aPackage, PackageDTO.class);
-        packageDTO.getDocumentS().clear();
+        PackageDTO packageDTO = new PackageDTO();
+        packageDTO.setId(aPackage.getId());
+        packageDTO.setVersion(aPackage.getVersion());
+        packageDTO.setReference(aPackage.getReference());
+        packageDTO.setCreationDate(aPackage.getCreationDate());
+        packageDTO.setHeight(aPackage.getHeight());
+        packageDTO.setWidth(aPackage.getWidth());
+        packageDTO.setDepth(aPackage.getDepth());
+        packageDTO.setWeight(aPackage.getWeight());
+        packageDTO.setPictureURL(aPackage.getPictureURL());
+        packageDTO.setStatus(aPackage.getStatus());
+        packageDTO.setDeliveryPrice(aPackage.getDeliveryPrice());
+        PackageSettlement settlement = aPackage.getPackageSettlement();
+        if (settlement != null) {
+            packageDTO.setCustomerTotalPrice(settlement.getCustomerTotalPrice());
+            packageDTO.setDeliveryBaseAmount(settlement.getDeliveryBaseAmount());
+            packageDTO.setInsuranceFee(settlement.getInsuranceFee());
+            packageDTO.setPlatformServiceFee(settlement.getPlatformServiceFee());
+            packageDTO.setDeliveryRevenueExcludingServiceFee(settlement.getDeliveryRevenueExcludingServiceFee());
+            packageDTO.setPlatformCommissionRate(settlement.getPlatformCommissionRate());
+            packageDTO.setPlatformCommissionAmount(settlement.getPlatformCommissionAmount());
+            packageDTO.setCourierShareRate(settlement.getCourierShareRate());
+            packageDTO.setCourierPayoutAmount(settlement.getCourierPayoutAmount());
+            packageDTO.setCurrency(settlement.getCurrency());
+            packageDTO.setPricingVersion(settlement.getPricingVersion());
+            packageDTO.setCalculatedAt(settlement.getCalculatedAt());
+        }
+        packageDTO.setDeliverySpeed(aPackage.getDeliverySpeed());
+        packageDTO.setInsuranceSelected(aPackage.getInsuranceSelected());
+        packageDTO.setDeclaredValue(aPackage.getDeclaredValue());
+        packageDTO.setDistanceToDestination(aPackage.getDistanceToDestination());
+        packageDTO.setGuestMode(aPackage.getGuestMode());
+        packageDTO.setGuestAccessToken(aPackage.getGuestAccessToken());
+        packageDTO.setLastPositionLatitude(aPackage.getLastPositionLatitude());
+        packageDTO.setLastPositionLongitude(aPackage.getLastPositionLongitude());
+        packageDTO.setSenderID(aPackage.getSender() == null ? null : aPackage.getSender().getId());
+        packageDTO.setAddresses(aPackage.getAddresses() == null ? new ArrayList<>() : aPackage.getAddresses().stream()
+                .map(this::toAddressDTO)
+                .toList());
+        packageDTO.setPackageReservations(aPackage.getPackageReservations() == null ? new ArrayList<>() : aPackage.getPackageReservations().stream()
+                .map(this::toPackageReservationDTO)
+                .toList());
+        packageDTO.setDocumentS(new LinkedHashMap<>());
         aPackage.getDocument().stream()
                 .filter(this::isPackageDocument)
                 .forEach(document -> packageDTO.getDocumentS().put(document.getType(), toPackageDocumentMetadata(document)));
-        packageDTO.getAddresses().stream().forEach(addressDTO -> addressDTO.setAddressAuto(addressDTO.toString()));
         return packageDTO;
+    }
+
+    private AddressDTO toAddressDTO(Address address) {
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setId(address.getId());
+        addressDTO.setVersion(address.getVersion());
+        addressDTO.setFirstName(address.getFirstName());
+        addressDTO.setLastName(address.getLastName());
+        addressDTO.setLine1(address.getLine1());
+        addressDTO.setLine2(address.getLine2());
+        addressDTO.setTown(address.getTown());
+        addressDTO.setZipCode(address.getZipCode());
+        addressDTO.setCountry(address.getCountry());
+        addressDTO.setFloor(address.getFloor());
+        addressDTO.setHasElevator(address.getHasElevator());
+        addressDTO.setDateTime(address.getDateTime());
+        addressDTO.setType(address.getType());
+        addressDTO.setLatitude(address.getLatitude());
+        addressDTO.setLongitude(address.getLongitude());
+        addressDTO.setEmail(address.getEmail());
+        addressDTO.setPhone(address.getPhone());
+        addressDTO.setAddressAuto(addressDTO.toString());
+        return addressDTO;
+    }
+
+    private PackageReservationDTO toPackageReservationDTO(PackageReservation reservation) {
+        PackageReservationDTO reservationDTO = new PackageReservationDTO();
+        reservationDTO.setId(reservation.getId());
+        reservationDTO.setVersion(reservation.getVersion());
+        reservationDTO.setReservationDate(reservation.getReservationDate());
+        reservationDTO.setPickUpOTP(reservation.getPickUpOTP());
+        reservationDTO.setDeliveryOTP(reservation.getDeliveryOTP());
+        reservationDTO.setStatus(reservation.getStatus());
+        return reservationDTO;
     }
 
     private boolean isPackageDocument(Document document) {

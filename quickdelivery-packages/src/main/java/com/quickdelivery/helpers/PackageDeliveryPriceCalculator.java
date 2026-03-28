@@ -21,6 +21,12 @@ public class PackageDeliveryPriceCalculator {
     private static final double SAME_DAY_DISTANCE_FACTOR = 1.30;
     private static final double INSURANCE_MINIMUM_FEE = 1.50;
     private static final double INSURANCE_RATE = 0.02;
+    private static final double PLATFORM_SERVICE_MINIMUM_FEE = 0.90;
+    private static final double PLATFORM_SERVICE_RATE = 0.08;
+    private static final double PLATFORM_COMMISSION_RATE = 0.25;
+    private static final double COURIER_PAYOUT_RATE = 0.75;
+    private static final String DEFAULT_CURRENCY = "EUR";
+    private static final String PRICING_VERSION = "v1";
 
     public static double calculateDeliveryPrice(GeoApiContext context, PackageDTO packageDTO) {
         double distance = calculateDistance(context, packageDTO.getAddresses());
@@ -28,6 +34,15 @@ public class PackageDeliveryPriceCalculator {
     }
 
     public static double calculateDeliveryPrice(double distance, PackageDTO packageDTO) {
+        return calculatePricingBreakdown(distance, packageDTO).customerTotalPrice();
+    }
+
+    public static PackagePricingBreakdown calculatePricingBreakdown(GeoApiContext context, PackageDTO packageDTO) {
+        double distance = calculateDistance(context, packageDTO.getAddresses());
+        return calculatePricingBreakdown(distance, packageDTO);
+    }
+
+    public static PackagePricingBreakdown calculatePricingBreakdown(double distance, PackageDTO packageDTO) {
         double chargeableWeight = calculateChargeableWeight(packageDTO.getDepth(), packageDTO.getWidth(), packageDTO.getHeight(), packageDTO.getWeight());
         double basePrice = resolveBasePrice(packageDTO.getDeliverySpeed());
         double distanceFees = calculateDistanceFees(distance, packageDTO.getDeliverySpeed());
@@ -40,8 +55,26 @@ public class PackageDeliveryPriceCalculator {
                 packageDTO.getAddresses().get(1).getHasElevator()
         );
         double insuranceFees = calculateInsuranceFees(packageDTO.getInsuranceSelected(), packageDTO.getDeclaredValue());
-        double totalPrice = basePrice + distanceFees + weightFees + floorFees + insuranceFees;
-        return roundUpToNearestTenth(Math.max(MINIMUM_PRICE, totalPrice));
+        double deliveryBaseAmount = basePrice + distanceFees + weightFees + floorFees;
+        double deliveryPrice = deliveryBaseAmount + insuranceFees;
+        double serviceFees = roundToCents(calculatePlatformServiceFees(deliveryPrice));
+        double customerTotalPrice = roundUpToNearestTenth(Math.max(MINIMUM_PRICE, deliveryPrice + serviceFees));
+        double deliveryRevenueExcludingServiceFee = roundToCents(Math.max(0, customerTotalPrice - serviceFees));
+        double platformCommissionAmount = roundToCents(deliveryRevenueExcludingServiceFee * PLATFORM_COMMISSION_RATE);
+        double courierPayoutAmount = roundToCents(deliveryRevenueExcludingServiceFee * COURIER_PAYOUT_RATE);
+        return new PackagePricingBreakdown(
+                customerTotalPrice,
+                roundToCents(deliveryBaseAmount),
+                roundToCents(insuranceFees),
+                serviceFees,
+                deliveryRevenueExcludingServiceFee,
+                PLATFORM_COMMISSION_RATE,
+                platformCommissionAmount,
+                COURIER_PAYOUT_RATE,
+                courierPayoutAmount,
+                DEFAULT_CURRENCY,
+                PRICING_VERSION
+        );
     }
 
     private static double calculateDistance(GeoApiContext context, List<AddressDTO> addresses) {
@@ -125,6 +158,10 @@ public class PackageDeliveryPriceCalculator {
         return Math.max(INSURANCE_MINIMUM_FEE, insuredValue * INSURANCE_RATE);
     }
 
+    private static double calculatePlatformServiceFees(double deliveryPrice) {
+        return Math.max(PLATFORM_SERVICE_MINIMUM_FEE, deliveryPrice * PLATFORM_SERVICE_RATE);
+    }
+
     private static double resolveBasePrice(String deliverySpeed) {
         String speed = deliverySpeed == null ? "STANDARD" : deliverySpeed.trim().toUpperCase();
         return switch (speed) {
@@ -145,5 +182,9 @@ public class PackageDeliveryPriceCalculator {
 
     private static double roundUpToNearestTenth(double value) {
         return Math.ceil(value * 10.0) / 10.0;
+    }
+
+    private static double roundToCents(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

@@ -53,14 +53,24 @@ self.addEventListener('fetch', (event) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(event.request).then((networkResponse) => {
-        if (!isSameOrigin) {
+      return fetch(event.request)
+        .then((networkResponse) => {
+          if (!isSameOrigin) {
+            return networkResponse;
+          }
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => Promise.resolve());
           return networkResponse;
-        }
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => Promise.resolve());
-        return networkResponse;
-      });
+        })
+        .catch(() => {
+          if (!isSameOrigin) {
+            return new Response('', {
+              status: 504,
+              statusText: 'Network request failed',
+            });
+          }
+          throw new TypeError(`Failed to fetch ${event.request.url}`);
+        });
     })
   );
 });

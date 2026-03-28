@@ -12,93 +12,93 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PackageDeliveryPriceCalculatorTest {
 
     @Test
-    void standardDistance1kmReturns690() {
+    void standardDistance1kmReturns710() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(1.0, packageDTO);
 
-        assertEquals(6.9, price, 0.0001);
+        assertEquals(7.1, price, 0.0001);
     }
 
     @Test
-    void standardDistance22kmReturns760() {
+    void standardDistance22kmReturns850() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(2.2, packageDTO);
 
-        assertEquals(7.6, price, 0.0001);
+        assertEquals(8.5, price, 0.0001);
     }
 
     @Test
-    void standardDistance3kmReturns850() {
+    void standardDistance3kmReturns940() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(3.0, packageDTO);
 
-        assertEquals(8.5, price, 0.0001);
+        assertEquals(9.4, price, 0.0001);
     }
 
     @Test
-    void standardDistance31kmReturns860() {
+    void standardDistance31kmReturns950() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(3.1, packageDTO);
 
-        assertEquals(8.6, price, 0.0001);
+        assertEquals(9.5, price, 0.0001);
     }
 
     @Test
-    void standardDistance6kmReturns1140() {
+    void standardDistance6kmReturns1230() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6.0, packageDTO);
 
-        assertEquals(11.4, price, 0.0001);
+        assertEquals(12.3, price, 0.0001);
     }
 
     @Test
-    void standardDistance8kmReturns1330() {
+    void standardDistance8kmReturns1440() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(8.0, packageDTO);
 
-        assertEquals(13.3, price, 0.0001);
+        assertEquals(14.4, price, 0.0001);
     }
 
     @Test
-    void standardDistance10kmReturns1520() {
+    void standardDistance10kmReturns1640() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(10.0, packageDTO);
 
-        assertEquals(15.2, price, 0.0001);
+        assertEquals(16.4, price, 0.0001);
     }
 
     @Test
-    void standardDistance101kmReturns1530() {
+    void standardDistance101kmReturns1650() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(10.1, packageDTO);
 
-        assertEquals(15.3, price, 0.0001);
+        assertEquals(16.5, price, 0.0001);
     }
 
     @Test
-    void standardDistance15kmReturns1920() {
+    void standardDistance15kmReturns2070() {
         PackageDTO packageDTO = buildPackage(20, 20, 20, 1, "STANDARD", false, 0, 0,
                 false, false, 0);
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(15.0, packageDTO);
 
-        assertEquals(19.2, price, 0.0001);
+        assertEquals(20.7, price, 0.0001);
     }
 
     @Test
@@ -114,9 +114,9 @@ class PackageDeliveryPriceCalculatorTest {
         double expressPrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, express);
         double sameDayPrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, sameDay);
 
-        assertEquals(14.5, standardPrice, 0.0001);
-        assertEquals(18.5, expressPrice, 0.0001);
-        assertEquals(22.5, sameDayPrice, 0.0001);
+        assertEquals(15.7, standardPrice, 0.0001);
+        assertEquals(20.0, expressPrice, 0.0001);
+        assertEquals(24.2, sameDayPrice, 0.0001);
         assertTrue(expressPrice > standardPrice);
         assertTrue(sameDayPrice > expressPrice);
     }
@@ -131,8 +131,8 @@ class PackageDeliveryPriceCalculatorTest {
         double lowValuePrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, lowValuePackage);
         double highValuePrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, highValuePackage);
 
-        assertEquals(14.6, lowValuePrice, 0.0001);
-        assertEquals(23.1, highValuePrice, 0.0001);
+        assertEquals(15.7, lowValuePrice, 0.0001);
+        assertEquals(24.9, highValuePrice, 0.0001);
         assertTrue(highValuePrice > lowValuePrice);
     }
 
@@ -147,7 +147,7 @@ class PackageDeliveryPriceCalculatorTest {
         double bulkyPrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, bulkyLightPackage);
 
         assertTrue(bulkyPrice > compactPrice);
-        assertEquals(59.0, bulkyPrice, 0.0001);
+        assertEquals(63.8, bulkyPrice, 0.0001);
     }
 
     @Test
@@ -164,9 +164,9 @@ class PackageDeliveryPriceCalculatorTest {
         double cappedPrice = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, cappedStairs);
 
         assertTrue(withoutElevatorPrice > withElevatorPrice);
-        assertEquals(18.4, withElevatorPrice, 0.0001);
-        assertEquals(20.5, withoutElevatorPrice, 0.0001);
-        assertEquals(31.2, cappedPrice, 0.0001);
+        assertEquals(19.8, withElevatorPrice, 0.0001);
+        assertEquals(22.2, withoutElevatorPrice, 0.0001);
+        assertEquals(33.7, cappedPrice, 0.0001);
     }
 
     @Test
@@ -176,7 +176,7 @@ class PackageDeliveryPriceCalculatorTest {
 
         double price = PackageDeliveryPriceCalculator.calculateDeliveryPrice(6, invalidFloors);
 
-        assertEquals(14.5, price, 0.0001);
+        assertEquals(15.7, price, 0.0001);
     }
 
     private PackageDTO buildPackage(double height,

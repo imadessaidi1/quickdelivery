@@ -83,14 +83,14 @@ export default {
     },
     subscribeToTracking() {
       const guestAccessToken = this.packageData?.guestAccessToken || this.$route.query.guestAccessToken;
-      if (!this.packageReference || !guestAccessToken) {
+      if (!this.packageReference) {
         return;
       }
 
       window.dispatchEvent(new CustomEvent('qd-track-package-subscribe', {
         detail: {
           packageReference: this.packageReference,
-          guestAccessToken,
+          guestAccessToken: guestAccessToken || '',
         },
       }));
     },
@@ -270,6 +270,7 @@ export default {
     grid-template-columns: 1fr;
     gap: 14px;
     align-content: start;
+    height: auto;
   }
 
   .tracking-summary {
@@ -283,6 +284,22 @@ export default {
   .tracking-map-shell,
   .map-frame {
     min-height: 0;
+  }
+}
+
+@media screen and (max-width: 1180px) and (min-width: 768px) {
+  .tracking-map-shell {
+    min-height: clamp(420px, 62vh, 680px);
+  }
+
+  .map-frame {
+    min-height: clamp(420px, 62vh, 680px);
+  }
+
+  .route-metrics {
+    top: 14px;
+    left: 14px;
+    right: 14px;
   }
 }
 

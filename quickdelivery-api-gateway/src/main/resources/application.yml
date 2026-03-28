@@ -7,3 +7,9 @@ spring:
     config:
       username: ${CONFIG_SERVER_USERNAME:configuser}
       password: ${CONFIG_SERVER_PASSWORD:configpass}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

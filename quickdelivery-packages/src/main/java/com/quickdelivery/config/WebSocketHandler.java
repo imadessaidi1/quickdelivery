@@ -76,13 +76,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        packagesService.findGuestPackageByReference(messageDTO.getPackageReference(), messageDTO.getGuestAccessToken());
+        var packageDTO = messageDTO.getGuestAccessToken() != null && !messageDTO.getGuestAccessToken().isBlank()
+                ? packagesService.findGuestPackageByReference(messageDTO.getPackageReference(), messageDTO.getGuestAccessToken())
+                : packagesService.findPackageByReference(messageDTO.getPackageReference());
         packageSubscribers.computeIfAbsent(messageDTO.getPackageReference(), ignored -> ConcurrentHashMap.newKeySet())
                 .add(session.getId());
         sessionSubscriptions.computeIfAbsent(session.getId(), ignored -> ConcurrentHashMap.newKeySet())
                 .add(messageDTO.getPackageReference());
 
-        var packageDTO = packagesService.findGuestPackageByReference(messageDTO.getPackageReference(), messageDTO.getGuestAccessToken());
         if (packageDTO.getLastPositionLatitude() != null && packageDTO.getLastPositionLongitude() != null) {
             PositionDTO positionDTO = new PositionDTO();
             positionDTO.setLatitude(packageDTO.getLastPositionLatitude());
@@ -107,6 +108,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 sendTrackingUpdate(targetSession, packageReference, positionDTO, messageDTO.getFrom());
             });
         });
+    }
+
+    public void broadcastTrackingPositions(String from, Map<String, PositionDTO> updatedPositions) {
+        if (updatedPositions == null || updatedPositions.isEmpty()) {
+            return;
+        }
+
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setFrom(from);
+        broadcastTrackingUpdates(new ObjectMapper(), messageDTO, updatedPositions);
     }
 
     private void sendTrackingUpdate(WebSocketSession session, String packageReference, PositionDTO positionDTO, String from) {

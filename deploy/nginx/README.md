@@ -26,6 +26,19 @@ Flux interne sur la VM:
 - `127.0.0.1:8443` -> `quickdelivery-api-gateway`
 - `127.0.0.1:18443` -> `oauth-authorization-server`
 
+## 1.1 Variante 5 VM
+
+Pour l'architecture MVP retenue sur 5 VMs, utiliser le template:
+
+- [quickdelivery.5vm.conf.template](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/nginx/quickdelivery.5vm.conf.template)
+
+Cette variante:
+
+- sert le front sur `VM1`
+- route `auth` vers `VM2`
+- laisse la gateway de `VM1` router le HTTP metier vers `VM3` et `VM4` via `discovery-server`
+- epingle `/ws` vers `VM3` pour le tracking temps reel
+
 ## 2. Fichiers fournis
 
 - `quickdelivery.conf.template`

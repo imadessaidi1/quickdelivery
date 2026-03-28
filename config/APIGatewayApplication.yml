@@ -18,7 +18,24 @@ spring:
         jwt:
           issuer-uri: ${OAUTH_ISSUER_URI:https://localhost:18443/auth/realms/quickdelivery}
   cloud:
+    loadbalancer:
+      cache:
+        enabled: true
+        caffeine:
+          spec: ${QUICKDELIVERY_GATEWAY_LOADBALANCER_CACHE_SPEC:initialCapacity=32,maximumSize=256,expireAfterWrite=30s}
+      ribbon:
+        MaxAutoRetries: 2
+        MaxAutoRetriesNextServer: 2
+        OkToRetryOnAllOperations: true
+        OkRetryOnConnectionErrors: true
     gateway:
+      httpclient:
+        connect-timeout: ${QUICKDELIVERY_GATEWAY_CONNECT_TIMEOUT_MILLIS:5000}
+        response-timeout: ${QUICKDELIVERY_GATEWAY_RESPONSE_TIMEOUT:15s}
+        pool:
+          type: elastic
+          max-idle-time: ${QUICKDELIVERY_GATEWAY_MAX_IDLE_TIME:30s}
+          max-life-time: ${QUICKDELIVERY_GATEWAY_MAX_LIFE_TIME:120s}
       default-filters:
         - AddRequestHeader=X-Gateway-Token, ${quickdelivery.gateway.internal-token}
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
@@ -68,12 +85,6 @@ spring:
               args:
                 name: IAMService
                 fallbackUri: forward:/fallback/testService
-    loadbalancer:
-      ribbon:
-        MaxAutoRetries: 2
-        MaxAutoRetriesNextServer: 2
-        OkToRetryOnAllOperations: true
-        OkRetryOnConnectionErrors: true
 
 eureka:
   client:
@@ -121,3 +132,12 @@ quickdelivery:
     internal-token: ${GATEWAY_INTERNAL_TOKEN:quickdelivery-internal-token}
   security:
     additional-issuer-uris: ${QUICKDELIVERY_AUTH_ISSUER_URIS:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:health,info,metrics,prometheus}
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:when_authorized}

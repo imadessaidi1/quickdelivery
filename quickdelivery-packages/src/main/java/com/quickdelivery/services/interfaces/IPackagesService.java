@@ -3,6 +3,7 @@ package com.quickdelivery.services.interfaces;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.FinancialDashboardDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 import com.quickdelivery.abstarct.dto.PositionDTO;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 public interface IPackagesService {
     public PackageDTO createNewPackage(PackageDTO packageDTO, MultipartFile[] files, Locale locale);
+    PackageDTO estimateDeliveryPrice(PackageDTO packageDTO);
     void createNewPackages(List<PackageDTO> packageDTOS, Locale locale);
     Map<String, List<PackageDTO>> getPAckagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
 
@@ -59,6 +61,8 @@ public interface IPackagesService {
     boolean isUserWithOngoingDelivery(Long usedId);
     ServiceMetricsDTO loadAdminMetrics();
     ServiceHttpBreakdownDTO loadAdminHttpBreakdown();
+    FinancialDashboardDTO loadAdminFinancialDashboard();
 
     Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO);
+    Map<String, PositionDTO> updateTrackingPosition(Long deliveryPersonId, PositionDTO positionDTO);
 }

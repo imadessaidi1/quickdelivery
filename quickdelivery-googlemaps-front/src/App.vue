@@ -33,11 +33,16 @@ import AppMessages from './components/RequestMessage.vue';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 import http from '@/config/httpInterceptor';
-import { hasValidAccessToken } from '@/config/auth';
+import { getAccessToken, hasValidAccessToken } from '@/config/auth';
+import { getGatewayBaseUrl, isMobileCapacitorRuntime } from '@/config/network';
+import { CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const NEARBY_PACKAGE_RECOVERY_RADIUS = 20000;
 const POSITION_UPDATE_INTERVAL_MS = 10000;
 const POSITION_UPDATE_MIN_DISTANCE_METERS = 25;
+const TRACKING_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/position`;
+const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
 
 export default {
   computed: {
@@ -66,6 +71,7 @@ export default {
       socket: null,
       socketReady: false,
       watchId: null,
+      backgroundWatcherId: null,
       reconnectTimer: null,
       lastSentPosition: null,
       lastPositionSentAt: 0,
@@ -79,14 +85,10 @@ export default {
     connectedUserId: {
       immediate: true,
       handler(newValue, oldValue) {
-        if (!newValue) {
-          this.destroyRealtime();
-          return;
-        }
         if (oldValue && oldValue !== newValue) {
           this.destroyRealtime();
         }
-        this.initializeRealtime();
+        this.syncRealtimeConnection();
       },
     },
   },
@@ -189,7 +191,7 @@ export default {
       }
     },
     scheduleRealtimeReconnect() {
-      if (this.reconnectTimer || !hasValidAccessToken() || !this.connectedUserId) {
+      if (this.reconnectTimer || !this.shouldMaintainRealtimeConnection()) {
         return;
       }
       this.reconnectTimer = setTimeout(() => {
@@ -201,7 +203,13 @@ export default {
       if (this.watchId !== null && navigator.geolocation) {
         navigator.geolocation.clearWatch(this.watchId);
       }
+      if (this.backgroundWatcherId !== null) {
+        BackgroundGeolocation.removeWatcher({ id: this.backgroundWatcherId }).catch((error) => {
+          console.warn('Unable to remove background geolocation watcher:', error);
+        });
+      }
       this.watchId = null;
+      this.backgroundWatcherId = null;
       this.lastSentPosition = null;
       this.lastPositionSentAt = 0;
     },
@@ -216,7 +224,14 @@ export default {
       this.startLocationTrackingIfNeeded();
     },
     startLocationTrackingIfNeeded() {
-      if (!this.socketReady || !this.isUserWithOngoingDelivery || this.watchId !== null) {
+      if (!this.connectedUserId || !this.isUserWithOngoingDelivery) {
+        return;
+      }
+      if (isMobileCapacitorRuntime()) {
+        this.startBackgroundLocationTracking();
+        return;
+      }
+      if (this.watchId !== null) {
         return;
       }
       if (!navigator.geolocation) {
@@ -237,14 +252,7 @@ export default {
 
           this.lastSentPosition = newPosition;
           this.lastPositionSentAt = Date.now();
-          this.sendSocketMessage({
-            type: 'PACKAGE_POSITION_UPDATE',
-            from: String(this.connectedUserId),
-            to: 'PACKAGE_SERVICE',
-            message: 'PACKAGE_POSITION_UPDATE',
-            positionDTO: newPosition,
-            url: '',
-          });
+          this.pushTrackingPositionUpdate(newPosition);
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -255,6 +263,60 @@ export default {
           timeout: 15000,
         }
       );
+    },
+    async requestTrackingRuntimePermissions() {
+      if (!isMobileCapacitorRuntime()) {
+        return;
+      }
+
+      try {
+        await LocalNotifications.requestPermissions();
+      } catch (error) {
+        console.warn('Unable to request notification permission for background tracking:', error);
+      }
+    },
+    async startBackgroundLocationTracking() {
+      if (this.backgroundWatcherId !== null || !this.connectedUserId) {
+        return;
+      }
+
+      await this.requestTrackingRuntimePermissions();
+
+      try {
+        this.backgroundWatcherId = await BackgroundGeolocation.addWatcher(
+          {
+            requestPermissions: true,
+            stale: false,
+            distanceFilter: POSITION_UPDATE_MIN_DISTANCE_METERS,
+            backgroundMessage: 'Le suivi QuickDelivery reste actif pendant la livraison.',
+            backgroundTitle: 'Tracking livraison actif',
+          },
+          async (location, error) => {
+            if (error) {
+              console.error('Background geolocation error:', error);
+              return;
+            }
+            if (!location) {
+              return;
+            }
+
+            const newPosition = {
+              latitude: location.latitude,
+              longitude: location.longitude,
+            };
+
+            if (!this.shouldSendPositionUpdate(newPosition)) {
+              return;
+            }
+
+            this.lastSentPosition = newPosition;
+            this.lastPositionSentAt = Date.now();
+            await this.pushTrackingPositionUpdate(newPosition);
+          }
+        );
+      } catch (error) {
+        console.error('Unable to start background geolocation watcher:', error);
+      }
     },
     shouldSendPositionUpdate(newPosition) {
       if (!this.lastSentPosition) {
@@ -286,11 +348,12 @@ export default {
     },
     handleTrackingSubscriptionEvent(event) {
       const packageReference = event?.detail?.packageReference;
-      const guestAccessToken = event?.detail?.guestAccessToken;
-      if (!packageReference || !guestAccessToken) {
+      const guestAccessToken = event?.detail?.guestAccessToken || '';
+      if (!packageReference) {
         return;
       }
       this.trackingSubscriptions[packageReference] = guestAccessToken;
+      this.syncRealtimeConnection();
       this.sendSocketMessage({
         type: 'TRACK_PACKAGE_SUBSCRIBE',
         from: String(this.connectedUserId || ''),
@@ -311,6 +374,17 @@ export default {
         to: 'PACKAGE_SERVICE',
         packageReference,
       });
+      this.syncRealtimeConnection();
+    },
+    shouldMaintainRealtimeConnection() {
+      return Boolean(this.connectedUserId) || Object.keys(this.trackingSubscriptions).length > 0;
+    },
+    syncRealtimeConnection() {
+      if (this.shouldMaintainRealtimeConnection()) {
+        this.initializeRealtime();
+        return;
+      }
+      this.destroyRealtime();
     },
     flushTrackingSubscriptions() {
       Object.entries(this.trackingSubscriptions).forEach(([packageReference, guestAccessToken]) => {
@@ -399,12 +473,11 @@ export default {
       });
     },
     async initializeRealtime() {
-      if (!hasValidAccessToken() || !this.connectedUserId || this.socket) {
+      if (this.socket || !this.shouldMaintainRealtimeConnection()) {
         return;
       }
 
       console.info('QuickDelivery WS initializing for user:', this.connectedUserId, 'url:', this.$i18n.t('wsURL'));
-      await this.refreshOngoingDeliveryStatus();
 
       this.socket = new WebSocket(this.$i18n.t('wsURL'));
       this.socket.onopen = () => {
@@ -412,7 +485,9 @@ export default {
         this.socketReady = true;
         this.recoverNearbyPackageNotifications();
         this.flushTrackingSubscriptions();
-        this.startLocationTrackingIfNeeded();
+        if (this.connectedUserId && hasValidAccessToken()) {
+          this.refreshOngoingDeliveryStatus();
+        }
       };
 
       this.socket.onmessage = (event) => {
@@ -457,6 +532,39 @@ export default {
       this.socket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
+    },
+    async pushTrackingPositionUpdate(newPosition) {
+      if (!this.connectedUserId || !newPosition) {
+        return;
+      }
+
+      const url = `${TRACKING_POSITION_ENDPOINT}?deliveryPersonId=${encodeURIComponent(this.connectedUserId)}`;
+      const payload = {
+        latitude: newPosition.latitude,
+        longitude: newPosition.longitude,
+      };
+
+      try {
+        if (isMobileCapacitorRuntime()) {
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+          const accessToken = getAccessToken();
+          if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+          }
+          await CapacitorHttp.post({
+            url,
+            headers,
+            data: payload,
+          });
+          return;
+        }
+
+        await http.post(url, payload, { silent: true });
+      } catch (error) {
+        console.error('Unable to push tracking position update:', error);
+      }
     },
     showRealtimeNotification(jsonData) {
       this.$store.commit('updateShowMessage', true);

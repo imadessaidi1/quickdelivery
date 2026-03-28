@@ -25,7 +25,6 @@
             <router-link v-if="isAdmin" @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
-            <router-link v-if="isAdmin" @click="loginMenu" to="/dashboard/metrics"><li>{{$t('menuAdminMetrics')}}</li></router-link>
             <router-link @click="loginMenu" to="/notifications">
               <li class="menu-item-with-badge">
                 <span>{{$t('menuNotifications')}}</span>
@@ -38,6 +37,26 @@
         </ul>
       </div>
     </transition>
+
+    <span
+      v-if="isAdmin"
+      class="infobull admin-trigger"
+      :data-tooltip="$t('menuTooltipAdminCenter')"
+      ref="handleClickOutsideAdminMenu"
+    >
+      <a class="account-link admin-link" @click="adminMenu">
+        <span class="material-symbols-outlined">shield_person</span>
+        <span class="account-name">{{$t('menuAdminCenter')}}</span>
+      </a>
+      <transition name="fade">
+        <div v-if="isActiveAdminMenu" class="menu admin-menu">
+          <ul>
+            <router-link @click="adminMenu" to="/dashboard/metrics"><li>{{$t('menuAdminMetrics')}}</li></router-link>
+            <router-link @click="adminMenu" to="/dashboard/finance"><li>{{$t('menuAdminFinance')}}</li></router-link>
+          </ul>
+        </div>
+      </transition>
+    </span>
 
     <span class="infobull account-trigger" :data-tooltip="$t('menuTooltipAccount')" ref="handleClickOutsideUserMenu">
       <a class="account-link" @click="loginMenu">
@@ -57,6 +76,7 @@ export default {
     return {
       isActiveMenu: false,
       isActiveLoginMenu: false,
+      isActiveAdminMenu: false,
     };
   },
   computed: {
@@ -105,18 +125,30 @@ export default {
   mounted() {
     window.addEventListener('click', this.handleClickOutsideUserMenu);
     window.addEventListener('click', this.handleClickOutsideBurgerMenu);
+    window.addEventListener('click', this.handleClickOutsideAdminMenu);
   },
   beforeUnmount() {
     window.removeEventListener('click', this.handleClickOutsideUserMenu);
     window.removeEventListener('click', this.handleClickOutsideBurgerMenu);
+    window.removeEventListener('click', this.handleClickOutsideAdminMenu);
   },
   methods: {
     toggleMenu() {
       this.isActiveMenu = !this.isActiveMenu;
+      this.isActiveLoginMenu = false;
+      this.isActiveAdminMenu = false;
       this.$store.commit('updateLocation', 'other');
     },
     loginMenu() {
       this.isActiveLoginMenu = !this.isActiveLoginMenu;
+      this.isActiveAdminMenu = false;
+      this.isActiveMenu = false;
+      this.$store.commit('updateLocation', 'other');
+    },
+    adminMenu() {
+      this.isActiveAdminMenu = !this.isActiveAdminMenu;
+      this.isActiveLoginMenu = false;
+      this.isActiveMenu = false;
       this.$store.commit('updateLocation', 'other');
     },
     handleClickOutsideUserMenu(event) {
@@ -129,12 +161,19 @@ export default {
         this.isActiveMenu = false;
       }
     },
+    handleClickOutsideAdminMenu(event) {
+      if (this.$refs.handleClickOutsideAdminMenu && !this.$refs.handleClickOutsideAdminMenu.contains(event.target)) {
+        this.isActiveAdminMenu = false;
+      }
+    },
     logoutUser() {
       this.isActiveLoginMenu = false;
+      this.isActiveAdminMenu = false;
       logout();
     },
     installPwa() {
       this.isActiveLoginMenu = false;
+      this.isActiveAdminMenu = false;
       window.dispatchEvent(new CustomEvent('qd-install-pwa'));
     },
   },
@@ -148,7 +187,7 @@ export default {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   padding: 0 28px;
   background: #f8fafc !important;
@@ -170,6 +209,9 @@ export default {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+.vertical-menu {
+  margin-right: auto;
 }
 .infobull {
   position: relative;
@@ -217,6 +259,11 @@ export default {
   align-items: center;
   min-width: 0;
 }
+.admin-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
 .account-link {
   position: relative;
   display: inline-flex;
@@ -226,6 +273,16 @@ export default {
   text-decoration: none;
   max-width: 100%;
   min-width: 0;
+}
+.admin-link {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff3e8;
+  border: 1px solid #ffd4ae;
+}
+.admin-link .material-symbols-outlined,
+.admin-link .account-name {
+  color: #b45309;
 }
 .account-name {
   font-size: 14px;
@@ -273,6 +330,12 @@ export default {
   top: 100%;
   right: 10px;
 }
+.admin-menu {
+  top: calc(100% + 10px);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
 .menu ul {
   padding: 0;
   margin: 0;
@@ -316,6 +379,13 @@ export default {
   .horizontal-menu,
   .login-menu {
     width: min(280px, calc(100vw - 20px));
+  }
+  .admin-menu {
+    width: min(280px, calc(100vw - 20px));
+    left: auto;
+    right: 0;
+    transform: none;
+    top: calc(100% + 52px);
   }
   .burger_menu{
     display: block;

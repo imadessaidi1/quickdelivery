@@ -269,20 +269,32 @@ export default {
 
 .radio-group {
   display: flex;
-  gap: 16px;
-  min-height: 48px;
+  gap: 10px;
+  min-height: 40px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #d7dfeb;
+  border-radius: 12px;
+  background: #f8fbff;
+  width: fit-content;
 }
 
 .radio-label input {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.radio-label span {
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
 .field-hint {

@@ -49,6 +49,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
@@ -233,7 +234,7 @@ public class UserServices implements IUserServices {
                     FileHelper.saveFilesInParallel(validFilesMap, filesPath, true);
                     triggerOcrForUploadedDocuments(userEntity, validFilesMap);
                 }
-                return modelMapper.map(userEntity, UserDTO.class);
+                return toUserDetailDTO(userEntity);
             } catch (Exception exception) {
                 logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
                 throw exception;
@@ -252,22 +253,19 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO findByID(Long id) {
         User user = users.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = toUserDetailDTO(user);
         if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
             userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
         }
-        userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
-        userDTO.setPhoneConfirmation(userDTO.getPhone());
-        userDTO.setPassword(null);
-        userDTO.setPasswordConfirmation(null);
-        attachDocumentsSafely(user, userDTO);
         return userDTO;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO findByUpdateToken(String updateToken) {
         User user = resolveUserByUpdateToken(updateToken);
         return findByEmail(user.getEmailAddress());
@@ -306,7 +304,7 @@ public class UserServices implements IUserServices {
             } else if (Boolean.TRUE.equals(userFromDB.getActiveAccount())) {
                 CompletableFuture.runAsync(() -> sendUserAccountApprovedEmail(user, userFromDB, locale), mailTaskExecutor);
             }
-            return modelMapper.map(userFromDB,UserDTO.class);
+            return toUserDetailDTO(userFromDB);
         });
     }
 
@@ -328,24 +326,21 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO findByEmail(String email) {
         User user = users.findByEmail(email);
         if(user != null) {
-            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            UserDTO userDTO = toUserDetailDTO(user);
             if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
                 userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
             }
-            userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
-            userDTO.setPhoneConfirmation(userDTO.getPhone());
-            userDTO.setPassword(null);
-            userDTO.setPasswordConfirmation(null);
-            attachDocumentsSafely(user, userDTO);
             return userDTO;
         }else
             return null;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserValidationPageDTO findUsersForValidation(int page, int size) {
         return recordUserOperation("validationPage", () -> {
             int resolvedPage = Math.max(page, 0);
@@ -369,6 +364,7 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DocumentContentDTO loadDocumentContent(Long documentId) {
         return recordUserOperation("documentContent", () -> {
             Document document = documents.findById(documentId)
@@ -391,6 +387,7 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServiceMetricsDTO loadAdminMetrics() {
         ServiceMetricsDTO metrics = new ServiceMetricsDTO();
         metrics.setServiceName("users-service");
@@ -407,6 +404,7 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdminUserOverviewDTO loadAdminUserOverview() {
         AdminUserOverviewDTO overview = new AdminUserOverviewDTO();
 
@@ -433,6 +431,7 @@ public class UserServices implements IUserServices {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServiceHttpBreakdownDTO loadAdminHttpBreakdown() {
         ServiceHttpBreakdownDTO breakdown = new ServiceHttpBreakdownDTO();
         breakdown.setServiceName("users-service");
@@ -550,15 +549,92 @@ public class UserServices implements IUserServices {
     }
 
     private UserDTO toUserValidationSummary(User user) {
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
-            userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
-        }
+        UserDTO userDTO = toBasicUserDTO(user);
+        userDTO.setAddressAuto(resolveUserAddressAuto(user));
         userDTO.setDocument(new LinkedHashMap<>());
         userDTO.setDocumentCount(user.getDocument() == null ? 0 : user.getDocument().size());
+        return userDTO;
+    }
+
+    private UserDTO toUserDetailDTO(User user) {
+        UserDTO userDTO = toBasicUserDTO(user);
+        userDTO.setAddressAuto(resolveUserAddressAuto(user));
+        userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
+        userDTO.setPhoneConfirmation(userDTO.getPhone());
+        attachDocumentsSafely(user, userDTO);
+        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>() : user.getVehicles().stream()
+                .map(this::toVehicleDTO)
+                .toList());
+        return userDTO;
+    }
+
+    private UserDTO toBasicUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setVersion(user.getVersion());
+        userDTO.setType(user.getType());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setAge(user.getAge());
+        userDTO.setBirthDate(user.getBirthDate());
+        userDTO.setSex(user.getSex());
+        userDTO.setEmailAddress(user.getEmailAddress());
+        userDTO.setEmailAddressValidation(user.getEmailAddressValidation());
+        userDTO.setPhone(user.getPhone());
+        userDTO.setPhoneValidation(user.getPhoneValidation());
+        userDTO.setActiveAccount(user.getActiveAccount());
+        userDTO.setDeliveryMode(user.getDeliveryMode());
         userDTO.setPassword(null);
         userDTO.setPasswordConfirmation(null);
+        userDTO.setPersonalAddress(user.getPersonalAddress() == null ? new ArrayList<>() : user.getPersonalAddress().stream()
+                .map(this::toAddressDTO)
+                .toList());
         return userDTO;
+    }
+
+    private VehicleDTO toVehicleDTO(Vehicle vehicle) {
+        VehicleDTO vehicleDTO = new VehicleDTO();
+        vehicleDTO.setId(vehicle.getId());
+        vehicleDTO.setVersion(vehicle.getVersion());
+        vehicleDTO.setBrand(vehicle.getBrand());
+        vehicleDTO.setModel(vehicle.getModel());
+        vehicleDTO.setEnergyType(vehicle.getEnergyType());
+        vehicleDTO.setRegistrationNumber(vehicle.getRegistrationNumber());
+        vehicleDTO.setVehicleDocuments(new LinkedHashMap<>());
+        return vehicleDTO;
+    }
+
+    private com.quickdelivery.abstarct.dto.AddressDTO toAddressDTO(com.quickdelivery.abstarct.entities.Address address) {
+        com.quickdelivery.abstarct.dto.AddressDTO addressDTO = new com.quickdelivery.abstarct.dto.AddressDTO();
+        addressDTO.setId(address.getId());
+        addressDTO.setVersion(address.getVersion());
+        addressDTO.setFirstName(address.getFirstName());
+        addressDTO.setLastName(address.getLastName());
+        addressDTO.setLine1(address.getLine1());
+        addressDTO.setLine2(address.getLine2());
+        addressDTO.setTown(address.getTown());
+        addressDTO.setZipCode(address.getZipCode());
+        addressDTO.setCountry(address.getCountry());
+        addressDTO.setFloor(address.getFloor());
+        addressDTO.setHasElevator(address.getHasElevator());
+        addressDTO.setDateTime(address.getDateTime());
+        addressDTO.setType(address.getType());
+        addressDTO.setLatitude(address.getLatitude());
+        addressDTO.setLongitude(address.getLongitude());
+        addressDTO.setEmail(address.getEmail());
+        addressDTO.setPhone(address.getPhone());
+        addressDTO.setAddressAuto(addressDTO.toString());
+        return addressDTO;
+    }
+
+    private String resolveUserAddressAuto(User user) {
+        if (user.getPersonalAddress() == null || user.getPersonalAddress().isEmpty()) {
+            return null;
+        }
+        return user.getPersonalAddress().stream()
+                .findFirst()
+                .map(address -> toAddressDTO(address).toString())
+                .orElse(null);
     }
 
     private DocumentDTO toDocumentMetadata(Document document) {

@@ -836,7 +836,7 @@ public class PackagesService implements IPackagesService {
 
     private void packageAddressGeocoding(PackageDTO aPackage){
         aPackage.getAddresses().stream().forEach(addressDTO -> {
-            if (addressDTO.getLatitude() != null && addressDTO.getLongitude() != null) {
+            if (hasUsableCoordinates(addressDTO)) {
                 return;
             }
             try {
@@ -849,6 +849,16 @@ public class PackagesService implements IPackagesService {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private boolean hasUsableCoordinates(AddressDTO addressDTO) {
+        if (addressDTO == null || addressDTO.getLatitude() == null || addressDTO.getLongitude() == null) {
+            return false;
+        }
+
+        double latitude = addressDTO.getLatitude().doubleValue();
+        double longitude = addressDTO.getLongitude().doubleValue();
+        return !(Math.abs(latitude) < 1e-9 && Math.abs(longitude) < 1e-9);
     }
 
     private DistanceMatrix packageDistanceCalculation(PackageDTO aPackage){

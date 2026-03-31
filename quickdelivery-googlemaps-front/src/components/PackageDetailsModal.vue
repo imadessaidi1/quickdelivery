@@ -85,8 +85,8 @@ export default {
         email: "",
         phone: "",
         type: "DEPARTURE",
-        latitude: 0,
-        longitude: 0,
+        latitude: null,
+        longitude: null,
       },
       {
         firstName: "",
@@ -101,8 +101,8 @@ export default {
         email: "",
         phone: "",
         type: "ARRIVAL",
-        latitude: 0,
-        longitude: 0,
+        latitude: null,
+        longitude: null,
       }],
       lastPositionLatitude: null,
       lastPositionLongitude: null

@@ -1,6 +1,6 @@
 <template>
     <div class="package_details_group">
-            <div class="package_details">
+            <div class="package_details package_overview">
             <h3>{{$t('createNewPackage')}}</h3>
             <div class="details">
                 <div>
@@ -21,6 +21,25 @@
                 <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']">
                     <a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a>
                 </div>
+            </div>
+            <div v-if="packagePictureAvailable" class="package_photo_block">
+                <button type="button" class="package_photo_preview" @click="openDocumentIMGModal">
+                    <img
+                        v-if="picturePreviewSrc"
+                        :src="picturePreviewSrc"
+                        :alt="$t('PACKAGE_PICTURE')"
+                        class="package_photo_image"
+                    >
+                    <div v-else-if="isPictureLoading" class="package_photo_state">
+                        {{ $t('stateLoading') }}
+                    </div>
+                    <div v-else class="package_photo_state package_photo_state_error">
+                        {{ $t('stateLoadError') }}
+                    </div>
+                </button>
+                <button type="button" class="package_photo_link" @click="openDocumentIMGModal">
+                    {{ $t('PACKAGE_PICTURE') }}
+                </button>
             </div>
             <!--<div v-if="documentS">
                 <div>
@@ -88,6 +107,7 @@
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
+import http from '@/config/httpInterceptor';
 
 export default {
     computed: {
@@ -103,16 +123,65 @@ export default {
         arrivalAddress() {
           return getArrivalAddress(this.package_?.addresses || []) || {};
         },
+        packagePictureDocument() {
+          return this.package_?.documentS?.PACKAGE_PICTURE || null;
+        },
+        packagePictureAvailable() {
+          return Boolean(this.packagePictureDocument?.id);
+        },
     },
     data() {
       return {
         name: 'my-pdf-file.pdf', //change which pdf file loads
-        path: 'pdfjs-2.3.200-dist/web/viewer.html'
+        path: 'pdfjs-2.3.200-dist/web/viewer.html',
+        picturePreviewSrc: '',
+        currentPictureObjectUrl: '',
+        isPictureLoading: false,
       };
+    },
+    watch: {
+        'package_.reference': {
+          immediate: true,
+          handler() {
+            this.loadPicturePreview();
+          },
+        },
+    },
+    beforeUnmount() {
+      this.revokePicturePreview();
     },
     methods: {
         getDepartureAddress,
         getArrivalAddress,
+        async loadPicturePreview() {
+          if (!this.packagePictureAvailable) {
+            this.revokePicturePreview();
+            this.isPictureLoading = false;
+            return;
+          }
+          this.isPictureLoading = true;
+          try {
+            const response = await http.get(
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(this.packagePictureDocument.id)}`,
+              { responseType: 'blob' }
+            );
+            this.revokePicturePreview();
+            this.currentPictureObjectUrl = URL.createObjectURL(response.data);
+            this.picturePreviewSrc = this.currentPictureObjectUrl;
+          } catch (error) {
+            this.revokePicturePreview();
+            console.error('Unable to load package picture preview.', error);
+          } finally {
+            this.isPictureLoading = false;
+          }
+        },
+        revokePicturePreview() {
+          if (this.currentPictureObjectUrl) {
+            URL.revokeObjectURL(this.currentPictureObjectUrl);
+            this.currentPictureObjectUrl = '';
+          }
+          this.picturePreviewSrc = '';
+        },
         openDocumentPDFModal(){
           this.$router.push({
             path: '/document',
@@ -162,6 +231,55 @@ export default {
 }
 
 .custom-link:hover {
+  opacity: 1;
+}
+.package_photo_block{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px 14px;
+}
+.package_photo_preview{
+  width: 100%;
+  min-height: 220px;
+  border: 1px solid #d9dee8;
+  border-radius: 18px;
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  cursor: pointer;
+}
+.package_photo_image{
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 420px;
+  object-fit: cover;
+}
+.package_photo_state{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 16px;
+  color: #475569;
+  font-weight: 600;
+}
+.package_photo_state_error{
+  color: #b91c1c;
+}
+.package_photo_link{
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  border-bottom: 1px solid #0f172a;
+  opacity: .75;
+  cursor: pointer;
+  transition: opacity .3s;
+}
+.package_photo_link:hover{
   opacity: 1;
 }
 .conditionCheckbox{
@@ -249,10 +367,31 @@ export default {
     .package_details_group .package_details .details div{
         font-size: 13px;
     }
+    .package_photo_preview{
+        min-height: 260px;
+    }
 }
 @media screen and (max-width: 500px){
     .modal-content h2{
         font-size: 1em;
+    }
+    .package_details_group .package_details{
+        width: 100%;
+    }
+    .package_overview .details{
+        display: block;
+    }
+    .package_photo_block{
+        padding: 4px 12px 16px;
+    }
+    .package_photo_preview{
+        min-height: 180px;
+        border-radius: 14px;
+    }
+    .package_photo_image{
+        max-height: 280px;
+        object-fit: contain;
+        background: #f8fafc;
     }
 }
 </style>

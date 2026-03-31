@@ -60,7 +60,7 @@ export default {
       default: '',
     },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'place-selected'],
   data() {
     return {
       address: this.modelValue || this.existingAddress || '',
@@ -91,6 +91,11 @@ export default {
     handleInput(event) {
       this.address = event.target.value;
       this.$emit('update:modelValue', this.address);
+      this.$emit('place-selected', {
+        formattedAddress: this.address,
+        latitude: null,
+        longitude: null,
+      });
     },
     async initAutocomplete() {
       try {
@@ -100,14 +105,21 @@ export default {
         }
 
         this.autocompleteInstance = new window.google.maps.places.Autocomplete(this.$refs.inputRef, {
-          fields: ['formatted_address'],
+          fields: ['formatted_address', 'geometry'],
         });
 
         this.autocompleteInstance.addListener('place_changed', () => {
           const place = this.autocompleteInstance.getPlace();
           const formattedAddress = place?.formatted_address || this.$refs.inputRef.value || '';
+          const latitude = place?.geometry?.location?.lat?.() ?? null;
+          const longitude = place?.geometry?.location?.lng?.() ?? null;
           this.address = formattedAddress;
           this.$emit('update:modelValue', formattedAddress);
+          this.$emit('place-selected', {
+            formattedAddress,
+            latitude,
+            longitude,
+          });
         });
       } catch (error) {
         console.error('Failed to initialize Google Places autocomplete', error);

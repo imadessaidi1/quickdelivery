@@ -46,7 +46,12 @@
         <div class="field-wrap field-wide">
           <label for="address">{{ $t('packageAddressAddress') }}</label>
           <div class="autocomplete-wrap">
-            <AddressAutocomplete ref="addressAutoComplete" v-model="address.addressAuto" :existingAddress="address.addressAuto" />
+            <AddressAutocomplete
+              ref="addressAutoComplete"
+              v-model="address.addressAuto"
+              :existingAddress="address.addressAuto"
+              @place-selected="handlePlaceSelected"
+            />
           </div>
           <span v-if="isAddressError" class="errorMessage">{{ errorAddressMessage }}</span>
         </div>
@@ -159,6 +164,11 @@ export default {
     validateEmail,
     validateString,
     validateNumericFieldAcceptZero,
+    handlePlaceSelected(place) {
+      this.address.addressAuto = place?.formattedAddress || '';
+      this.address.latitude = place?.latitude ?? null;
+      this.address.longitude = place?.longitude ?? null;
+    },
   },
   watch: {
     'address.floor'(value) {

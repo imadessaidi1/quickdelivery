@@ -1,16 +1,31 @@
 <template>
   <div class="user-account-page">
-    <div class="page-header">
-      <div>
-        <h1>{{ $t('userAccountPageTitle') }}</h1>
-        <p>{{ $t('userAccountPageSubtitle') }}</p>
+    <template v-if="isLoadingPage">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('userAccountPageTitle') }}</h1>
+          <p>{{ $t('userAccountPageSubtitle') }}</p>
+        </div>
       </div>
-      <div class="header-chip" v-if="selectedUser">{{ $t(selectedUser.type || 'userType') }}</div>
-    </div>
-
-    <div class="page-state" v-if="isLoadingPage">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
+    <template v-else-if="loadError">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('userAccountPageTitle') }}</h1>
+          <p>{{ $t('userAccountPageSubtitle') }}</p>
+        </div>
+      </div>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
     <template v-else-if="selectedUser">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('userAccountPageTitle') }}</h1>
+          <p>{{ $t('userAccountPageSubtitle') }}</p>
+        </div>
+        <div class="header-chip">{{ $t(selectedUser.type || 'userType') }}</div>
+      </div>
       <CourierReadinessCard :readiness="courierReadiness" variant="compact" />
       <UserAccount :selectedUser="selectedUser"/>
     </template>

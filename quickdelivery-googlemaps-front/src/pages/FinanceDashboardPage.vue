@@ -1,22 +1,41 @@
 <template>
   <div class="finance-dashboard-page">
-    <section class="hero-card">
-      <div>
-        <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
-        <h1>{{ $t('financePageTitle') }}</h1>
-        <p>{{ $t('financePageSubtitle') }}</p>
-      </div>
-      <div class="hero-side">
-        <strong>{{ formatCurrency(dashboard.platformMargin) }}</strong>
-        <span>{{ $t('financeMarginLabel') }}</span>
-        <small>{{ $t('financePageLastRefresh') }}: {{ formatDateTime(dashboard.generatedAt) }}</small>
-      </div>
-    </section>
+    <template v-if="isLoading">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+          <h1>{{ $t('financePageTitle') }}</h1>
+          <p>{{ $t('financePageSubtitle') }}</p>
+        </div>
+      </section>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
 
-    <div v-if="isLoading && !dashboard" class="page-state">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError && !dashboard" class="page-state error">{{ $t('stateLoadError') }}</div>
+    <template v-else-if="loadError && !dashboard">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+          <h1>{{ $t('financePageTitle') }}</h1>
+          <p>{{ $t('financePageSubtitle') }}</p>
+        </div>
+      </section>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
 
     <template v-else-if="dashboard">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+          <h1>{{ $t('financePageTitle') }}</h1>
+          <p>{{ $t('financePageSubtitle') }}</p>
+        </div>
+        <div class="hero-side">
+          <strong>{{ formatCurrency(safeDashboard.platformMargin) }}</strong>
+          <span>{{ $t('financeMarginLabel') }}</span>
+          <small>{{ $t('financePageLastRefresh') }}: {{ formatDateTime(safeDashboard.generatedAt) }}</small>
+        </div>
+      </section>
+
       <section class="stats-grid">
         <article class="stat-card tone-dark">
           <strong>{{ formatCurrency(dashboard.customerRevenue) }}</strong>
@@ -195,7 +214,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 import DashboardTrendChart from '../components/DashboardTrendChart.vue';
 import { getAccessToken } from '../config/auth';
 
@@ -216,17 +235,41 @@ export default {
     };
   },
   computed: {
+    safeDashboard() {
+      return this.dashboard || {
+        generatedAt: null,
+        currency: 'EUR',
+        settlementCount: 0,
+        deliveredPackageCount: 0,
+        pendingPayoutCount: 0,
+        paidPayoutCount: 0,
+        customerRevenue: 0,
+        platformServiceFees: 0,
+        platformCommissionAmount: 0,
+        platformMargin: 0,
+        courierPayoutPendingAmount: 0,
+        courierPayoutPaidAmount: 0,
+        averageOrderValue: 0,
+        averageCourierPayout: 0,
+        platformTakeRate: 0,
+        customerRevenueTrend: [],
+        platformMarginTrend: [],
+        courierPayoutTrend: [],
+        recentSettlements: [],
+        pendingPayouts: [],
+      };
+    },
     customerRevenuePoints() {
-      return this.buildChartPoints(this.dashboard?.customerRevenueTrend || []);
+      return this.buildChartPoints(this.safeDashboard.customerRevenueTrend || []);
     },
     platformMarginPoints() {
-      return this.buildChartPoints(this.dashboard?.platformMarginTrend || []);
+      return this.buildChartPoints(this.safeDashboard.platformMarginTrend || []);
     },
     courierPayoutPoints() {
-      return this.buildChartPoints(this.dashboard?.courierPayoutTrend || []);
+      return this.buildChartPoints(this.safeDashboard.courierPayoutTrend || []);
     },
     totalCourierShare() {
-      return Number(this.dashboard?.courierPayoutPendingAmount || 0) + Number(this.dashboard?.courierPayoutPaidAmount || 0);
+      return Number(this.safeDashboard.courierPayoutPendingAmount || 0) + Number(this.safeDashboard.courierPayoutPaidAmount || 0);
     },
   },
   mounted() {
@@ -240,7 +283,7 @@ export default {
         const headers = {
           Authorization: `Bearer ${getAccessToken()}`,
         };
-        const response = await axios.get(
+        const response = await http.get(
           `${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageFinancialDashboard')}`,
           { headers },
         );

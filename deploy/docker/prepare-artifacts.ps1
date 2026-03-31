@@ -43,9 +43,16 @@ else {
 }
 
 New-Item -ItemType Directory -Force -Path $artifactsDir | Out-Null
+foreach ($module in $selectedModules) {
+    $artifactPath = Join-Path $artifactsDir $module.Artifact
+    if (Test-Path $artifactPath) {
+        Remove-Item -Force $artifactPath
+    }
+}
 
 Push-Location $root
 try {
+    $buildStartedAt = Get-Date
     $projectList = ($selectedModules | ForEach-Object { $_.Name }) -join ","
     if ([string]::IsNullOrWhiteSpace($projectList)) {
         throw "No Maven projects resolved for requested modules."
@@ -53,7 +60,11 @@ try {
 
     & mvn "-pl" $projectList "-am" "clean" "package" "-DskipTests"
     if ($LASTEXITCODE -ne 0) {
-        throw "Maven build failed with exit code $LASTEXITCODE"
+        Write-Warning "Clean package failed. Retrying without clean to avoid local file lock issues."
+        & mvn "-pl" $projectList "-am" "package" "-DskipTests"
+        if ($LASTEXITCODE -ne 0) {
+            throw "Maven build failed with exit code $LASTEXITCODE"
+        }
     }
 
     foreach ($module in $selectedModules) {
@@ -68,6 +79,9 @@ try {
 
         if (-not $jar) {
             throw "No jar found for module $($module.Name) in $targetDir"
+        }
+        if ($jar.LastWriteTime -lt $buildStartedAt.AddSeconds(-5)) {
+            throw "Resolved jar for module $($module.Name) looks stale: $($jar.FullName) ($($jar.LastWriteTime))"
         }
 
         Copy-Item $jar.FullName (Join-Path $artifactsDir $module.Artifact) -Force

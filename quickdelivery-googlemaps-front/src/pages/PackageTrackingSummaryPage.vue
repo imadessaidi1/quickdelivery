@@ -1,18 +1,44 @@
 <template>
   <div class="tracking-summary-page">
-    <div class="page-head">
-      <button class="btn primary_btn back-btn" type="button" @click="goBack">
-        {{ $t('actionBack') }}
-      </button>
-      <div>
-        <h1>{{ $t('trackingSummaryTitle') }}</h1>
-        <p>{{ packageReference }}</p>
+    <template v-if="isLoadingPage">
+      <div class="page-head">
+        <button class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
+        <div>
+          <h1>{{ $t('trackingSummaryTitle') }}</h1>
+          <p>{{ packageReference }}</p>
+        </div>
       </div>
-    </div>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
+    <template v-else-if="loadError">
+      <div class="page-head">
+        <button class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
+        <div>
+          <h1>{{ $t('trackingSummaryTitle') }}</h1>
+          <p>{{ packageReference }}</p>
+        </div>
+      </div>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
+    <template v-else>
+      <div class="page-head">
+        <button class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
+        <div>
+          <h1>{{ $t('trackingSummaryTitle') }}</h1>
+          <p>{{ packageReference }}</p>
+        </div>
+      </div>
 
-    <div class="summary-shell">
-      <VerticalPackageDetails />
-    </div>
+      <div class="summary-shell">
+        <VerticalPackageDetails />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -42,12 +68,23 @@ export default {
     if (!this.packageReference) {
       return;
     }
+    this.isLoadingPage = true;
+    this.loadError = false;
     try {
       const response = await fetchTrackingPackage(this.packageReference, this.guestAccessToken, this.$i18n);
       this.$store.commit('updatePackage', response.data);
     } catch (error) {
+      this.loadError = true;
       console.error('Unable to load tracking summary.', error);
+    } finally {
+      this.isLoadingPage = false;
     }
+  },
+  data() {
+    return {
+      isLoadingPage: false,
+      loadError: false,
+    };
   },
   methods: {
     goBack() {

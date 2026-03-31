@@ -1,15 +1,16 @@
 import http from 'k6/http';
 import { group } from 'k6';
-import { authHeaders, config } from '../lib/config.js';
+import { config } from '../lib/config.js';
+import { adminHeaders, hasAdminAuth } from '../lib/auth.js';
 import { asJson, ensureResponse, hasEnv } from '../lib/utils.js';
 
 export function runAdminDashboards() {
-  if (!hasEnv(config.adminBearerToken)) {
+  if (!hasAdminAuth()) {
     console.warn('Skipping admin dashboard scenario: ADMIN_BEARER_TOKEN is missing.');
     return;
   }
 
-  const headers = authHeaders(config.adminBearerToken);
+  const headers = adminHeaders();
 
   group('admin-dashboard-metrics', () => {
     const response = http.get(`${config.baseUrl}/packages/v1/admin/metrics`, {

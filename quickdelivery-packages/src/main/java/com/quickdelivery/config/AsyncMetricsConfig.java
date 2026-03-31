@@ -11,9 +11,11 @@ public class AsyncMetricsConfig {
 
     public AsyncMetricsConfig(MeterRegistry meterRegistry,
                               @Qualifier("packageAsyncTaskExecutor") ThreadPoolTaskExecutor packageAsyncTaskExecutor,
-                              @Qualifier("packageMailTaskExecutor") ThreadPoolTaskExecutor packageMailTaskExecutor) {
+                              @Qualifier("packageMailTaskExecutor") ThreadPoolTaskExecutor packageMailTaskExecutor,
+                              @Qualifier("trackingAsyncTaskExecutor") ThreadPoolTaskExecutor trackingAsyncTaskExecutor) {
         registerExecutorMetrics(meterRegistry, "packageAsyncTaskExecutor", packageAsyncTaskExecutor);
         registerExecutorMetrics(meterRegistry, "packageMailTaskExecutor", packageMailTaskExecutor);
+        registerExecutorMetrics(meterRegistry, "trackingAsyncTaskExecutor", trackingAsyncTaskExecutor);
     }
 
     private void registerExecutorMetrics(MeterRegistry meterRegistry, String executorName, ThreadPoolTaskExecutor executor) {

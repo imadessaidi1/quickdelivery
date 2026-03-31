@@ -1,0 +1,25 @@
+﻿{
+    "id":  "198af896-8c88-4501-9d84-630b5151b970",
+    "createdTimestamp":  1774904375946,
+    "username":  "sci.essaidi.orly@gmail.com",
+    "enabled":  false,
+    "totp":  false,
+    "emailVerified":  false,
+    "firstName":  "Imad",
+    "lastName":  "ESSAIDI",
+    "email":  "sci.essaidi.orly@gmail.com",
+    "disableableCredentialTypes":  [
+
+                                   ],
+    "requiredActions":  [
+
+                        ],
+    "notBefore":  0,
+    "access":  {
+                   "manageGroupMembership":  true,
+                   "view":  true,
+                   "mapRoles":  true,
+                   "impersonate":  true,
+                   "manage":  true
+               }
+}

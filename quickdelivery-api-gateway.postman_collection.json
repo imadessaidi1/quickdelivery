@@ -194,6 +194,252 @@
                                                   }
                                   },
                                   {
+                                      "name":  "Create Account Bootstrap",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"user\": {{account_create_payload_json}},\n  \"locale\": \"{{locale}}\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/create-account",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "create-account"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "let json = {};",
+                                                                                    "try { json = pm.response.json(); } catch (e) {}",
+                                                                                    "if (json.id) { pm.collectionVariables.set('user_id', json.id); }",
+                                                                                    "if (json.emailAddress) { pm.collectionVariables.set('user_email', json.emailAddress); }",
+                                                                                    "if (json.onboarding && json.onboarding.resumeToken) {",
+                                                                                    "  pm.collectionVariables.set('onboarding_update_token', json.onboarding.resumeToken);",
+                                                                                    "}",
+                                                                                    "pm.test('Bootstrap returns 200', function () {",
+                                                                                    "  pm.response.to.have.status(200);",
+                                                                                    "});"
+                                                                                ],
+                                                                       "type":  "text/javascript"
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Save Onboarding Draft",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "user",
+                                                                                        "value":  "{{onboarding_user_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "vehicle",
+                                                                                        "value":  "{{onboarding_vehicle_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "step",
+                                                                                        "value":  "{{onboarding_step}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/save-onboarding-draft",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "save-onboarding-draft"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Complete Onboarding",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "user",
+                                                                                        "value":  "{{onboarding_user_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "vehicle",
+                                                                                        "value":  "{{onboarding_vehicle_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/complete-onboarding",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "complete-onboarding"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Public Update Profile",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "auth":  {
+                                                                   "type":  "noauth"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/public-update-profile?updateToken={{onboarding_update_token}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "public-update-profile"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "updateToken",
+                                                                                    "value":  "{{onboarding_update_token}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Public Update",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "auth":  {
+                                                                   "type":  "noauth"
+                                                               },
+                                                      "body":  {
+                                                                   "mode":  "formdata",
+                                                                   "formdata":  [
+                                                                                    {
+                                                                                        "key":  "user",
+                                                                                        "value":  "{{onboarding_user_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "vehicle",
+                                                                                        "value":  "{{onboarding_vehicle_payload_json}}",
+                                                                                        "type":  "text"
+                                                                                    },
+                                                                                    {
+                                                                                        "key":  "locale",
+                                                                                        "value":  "{{locale}}",
+                                                                                        "type":  "text"
+                                                                                    }
+                                                                                ]
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/public-update?updateToken={{onboarding_update_token}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "public-update"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "updateToken",
+                                                                                    "value":  "{{onboarding_update_token}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Onboarding Status",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Accept",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{gateway_url}}/users/v1/onboarding-status?email={{user_email}}",
+                                                                  "host":  [
+                                                                               "{{gateway_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "users",
+                                                                               "v1",
+                                                                               "onboarding-status"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "email",
+                                                                                    "value":  "{{user_email}}"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  }
+                                  },
+                                  {
                                       "name":  "Update User (multipart)",
                                       "request":  {
                                                       "method":  "POST",
@@ -1202,8 +1448,28 @@
                          "value":  "{\"type\":\"DELIVERY_PERSON\",\"firstName\":\"Test\",\"lastName\":\"Courier\",\"emailAddress\":\"test.delivery@quickdelivery.com\",\"emailAddressConfirmation\":\"test.delivery@quickdelivery.com\",\"phone\":\"0600000000\",\"phoneConfirmation\":\"0600000000\",\"password\":\"Quickdelivery123@\",\"passwordConfirmation\":\"Quickdelivery123@\",\"activeAccount\":false,\"emailAddressValidation\":false,\"phoneValidation\":false,\"personalAddress\":[{\"line1\":\"10 rue de Paris\",\"zipCode\":\"75001\",\"town\":\"Paris\",\"country\":\"France\",\"firstName\":\"Test\",\"lastName\":\"Courier\"}],\"document\":{},\"paymentModes\":{}}"
                      },
                      {
+                         "key":  "account_create_payload_json",
+                         "value":  "{\"type\":\"DELIVERY_PERSON\",\"firstName\":\"Imad\",\"lastName\":\"Essaidi\",\"birthDate\":\"1988-03-24\",\"sex\":\"MAL\",\"emailAddress\":\"sci.essaidi.orly@gmail.com\",\"emailAddressConfirmation\":\"sci.essaidi.orly@gmail.com\",\"phone\":\"+33667181217\",\"phoneConfirmation\":\"+33667181217\",\"password\":\"Quickdelivery123@\",\"passwordConfirmation\":\"Quickdelivery123@\",\"activeAccount\":false,\"emailAddressValidation\":false,\"phoneValidation\":false,\"deliveryMode\":\"CAR\",\"personalAddress\":[{\"type\":\"RESIDENCE\",\"line1\":\"3 Rue Pasteur\",\"zipCode\":\"94450\",\"town\":\"Limeil-Brevannes\",\"country\":\"France\",\"firstName\":\"Imad\",\"lastName\":\"Essaidi\"}],\"document\":{},\"paymentModes\":{\"CREDIT_CARD\":{\"holderNam\":\"Imad ESSAIDI\",\"cardNumber\":\"4974018720329404\",\"expiryDate\":\"07/2026\",\"cvv\":\"793\"},\"IBAN\":{\"iban\":\"\",\"bic\":\"\"}}}"
+                     },
+                     {
+                         "key":  "onboarding_user_payload_json",
+                         "value":  "{\"id\":{{user_id}},\"type\":\"DELIVERY_PERSON\",\"firstName\":\"Imad\",\"lastName\":\"Essaidi\",\"birthDate\":\"1988-03-24\",\"sex\":\"MAL\",\"emailAddress\":\"{{user_email}}\",\"emailAddressConfirmation\":\"{{user_email}}\",\"phone\":\"+33667181217\",\"phoneConfirmation\":\"+33667181217\",\"activeAccount\":false,\"emailAddressValidation\":false,\"phoneValidation\":false,\"addressAuto\":\"3 Rue Pasteur, 94450 Limeil-Brevannes, France\",\"deliveryMode\":\"CAR\",\"personalAddress\":[{\"type\":\"RESIDENCE\",\"line1\":\"3 Rue Pasteur\",\"zipCode\":\"94450\",\"town\":\"Limeil-Brevannes\",\"country\":\"France\",\"firstName\":\"Imad\",\"lastName\":\"Essaidi\",\"latitude\":48.7447,\"longitude\":2.4896}],\"paymentModes\":{\"CREDIT_CARD\":{\"holderNam\":\"Imad ESSAIDI\",\"cardNumber\":\"4974018720329404\",\"expiryDate\":\"07/2026\",\"cvv\":\"793\"},\"IBAN\":{\"iban\":\"\",\"bic\":\"\"}},\"document\":{},\"onboarding\":{\"resumeToken\":\"{{onboarding_update_token}}\"}}"
+                     },
+                     {
                          "key":  "vehicle_payload_json",
                          "value":  "{\"registrationNumber\":\"AA-123-BB\",\"brand\":\"Renault\",\"model\":\"Clio\",\"energyType\":\"ESSENCE\",\"vehicleDocuments\":{}}"
+                     },
+                     {
+                         "key":  "onboarding_vehicle_payload_json",
+                         "value":  "{\"registrationNumber\":\"HD-479-ZT\",\"brand\":\"Volkswagen\",\"model\":\"Tiguan\",\"energyType\":\"DIESEL\",\"vehicleDocuments\":{}}"
+                     },
+                     {
+                         "key":  "onboarding_step",
+                         "value":  "2"
+                     },
+                     {
+                         "key":  "onboarding_update_token",
+                         "value":  ""
                      },
                      {
                          "key":  "package_payload_json",

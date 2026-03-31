@@ -37,6 +37,7 @@ function saveNotificationsForUser(userId, notifications) {
 export default createStore({
   state: {
       isLoading: false,
+      loadingRequestsCount: 0,
       showMessage: false,
       requestSuccess: false,
       requestMessage: '',
@@ -214,8 +215,25 @@ export default createStore({
       updatePackageArrivalAddress(state, updatedAddress) {
         state.package_.addresses[1] = updatedAddress;
       },
+      beginLoading(state) {
+        state.loadingRequestsCount += 1;
+        state.isLoading = state.loadingRequestsCount > 0;
+      },
+      endLoading(state) {
+        state.loadingRequestsCount = Math.max(0, state.loadingRequestsCount - 1);
+        state.isLoading = state.loadingRequestsCount > 0;
+      },
+      resetLoading(state) {
+        state.loadingRequestsCount = 0;
+        state.isLoading = false;
+      },
       updateLoaderStatus(state, isLoading_) {
-        state.isLoading = isLoading_;
+        if (isLoading_) {
+          state.loadingRequestsCount += 1;
+        } else {
+          state.loadingRequestsCount = Math.max(0, state.loadingRequestsCount - 1);
+        }
+        state.isLoading = state.loadingRequestsCount > 0;
       },
       updateShowMessage(state, showMessage_) {
         state.showMessage = showMessage_;

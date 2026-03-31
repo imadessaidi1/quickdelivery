@@ -103,7 +103,7 @@ if (-not $SkipFrontendUpload -and -not (Test-Path $distDir)) {
     throw "Frontend dist not found: $distDir"
 }
 
-Invoke-SshCommand "Ensuring remote directories" "mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
+Invoke-SshCommand "Ensuring remote directories" "sudo mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release && sudo chown -R ${SshUser}:${SshUser} $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
 
 if (-not $SkipBackendUpload) {
     Write-Step "Uploading backend payload..."

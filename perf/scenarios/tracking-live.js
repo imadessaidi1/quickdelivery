@@ -4,6 +4,7 @@ import { check, group, sleep } from 'k6';
 import exec from 'k6/execution';
 import { Counter, Trend } from 'k6/metrics';
 import { authHeaders, config } from '../lib/config.js';
+import { hasTrackingAuth, resolveTrackingToken, trackingHeaders } from '../lib/auth.js';
 import { hasEnv } from '../lib/utils.js';
 
 const trackingPropagationTrend = new Trend('tracking_propagation_ms');
@@ -35,76 +36,152 @@ export const options = {
   insecureSkipTLSVerify: config.insecureSkipTLSVerify,
 };
 
-export function runTrackingLive() {
-  if (!hasEnv(
-    config.trackingBearerToken,
-    config.trackingDeliveryPersonId,
-    config.trackingPackageReference,
-  )) {
-    console.warn('Skipping tracking scenario: tracking env values are missing.');
-    return;
-  }
-
+function runTrackingAttempt({ bearerToken, deliveryPersonId, packageReference, guestAccessToken }) {
+  const resolvedToken = resolveTrackingToken(bearerToken);
   const subscriptionMessage = JSON.stringify({
     type: 'TRACK_PACKAGE_SUBSCRIBE',
     from: `k6-subscriber-${exec.vu.idInTest}`,
     to: 'PACKAGE_SERVICE',
-    packageReference: config.trackingPackageReference,
-    guestAccessToken: config.trackingGuestAccessToken || null,
+    packageReference,
+    guestAccessToken: guestAccessToken || null,
   });
 
   let sentAt = 0;
   let receivedCount = 0;
+  let handshakeOk = false;
+  let subscribed = false;
+  let publishingStarted = false;
+
+  function startPublishing(socket) {
+    if (publishingStarted) {
+      return;
+    }
+    publishingStarted = true;
+
+      const trackingUpdateUrl = packageReference
+        ? `${config.baseUrl}/packages/v1/tracking/package-position?packageReference=${encodeURIComponent(packageReference)}`
+        : `${config.baseUrl}/packages/v1/tracking/position?deliveryPersonId=${encodeURIComponent(deliveryPersonId)}`;
+
+      positionSequence().forEach((position, index) => {
+        group(`tracking-http-update-${index + 1}`, () => {
+          sentAt = Date.now();
+          const publish = http.post(
+            trackingUpdateUrl,
+            JSON.stringify(position),
+            {
+            headers: {
+              ...(bearerToken ? authHeaders(bearerToken) : trackingHeaders()),
+              'Content-Type': 'application/json',
+            },
+            tags: { flow: 'tracking-http' },
+          },
+        );
+        check(publish, {
+          'tracking update returns 200': (res) => res.status === 200,
+        }, { flow: 'tracking-http' });
+        sleep(1);
+      });
+    });
+
+    socket.setTimeout(() => {
+        if (receivedCount === 0) {
+          const retryPosition = positionSequence()[positionSequence().length - 1];
+          sentAt = Date.now();
+          const retryPublish = http.post(
+            trackingUpdateUrl,
+            JSON.stringify(retryPosition),
+            {
+            headers: {
+              ...(bearerToken ? authHeaders(bearerToken) : trackingHeaders()),
+              'Content-Type': 'application/json',
+            },
+            tags: { flow: 'tracking-http' },
+          },
+        );
+        check(retryPublish, {
+          'tracking update returns 200': (res) => res.status === 200,
+        }, { flow: 'tracking-http' });
+      }
+      socket.setTimeout(() => socket.close(), receivedCount === 0 ? 3500 : 1500);
+    }, 3000);
+  }
 
   const response = ws.connect(config.wsUrl, { tags: { flow: 'tracking-ws' } }, (socket) => {
     socket.on('open', () => {
+      handshakeOk = true;
       socket.send(subscriptionMessage);
+      socket.setTimeout(() => {
+        if (!publishingStarted) {
+          startPublishing(socket);
+        }
+      }, 1500);
     });
 
     socket.on('message', (raw) => {
       try {
         const payload = JSON.parse(raw);
-        if (payload.type === 'PACKAGE_POSITION_UPDATE' && payload.packageReference === config.trackingPackageReference) {
+        if (payload.type === 'TRACK_PACKAGE_SUBSCRIBED' && payload.packageReference === packageReference) {
+          subscribed = true;
+          startPublishing(socket);
+          return;
+        }
+        if (payload.type === 'PACKAGE_POSITION_UPDATE' && payload.packageReference === packageReference) {
           receivedCount += 1;
           trackingMessagesReceived.add(1);
           if (sentAt > 0) {
-            trackingPropagationTrend.add(Date.now() - sentAt);
+            trackingPropagationTrend.add(Date.now() - sentAt, { flow: 'tracking-ws' });
           }
         }
       } catch (_) {
         // Ignore non-JSON frames.
       }
     });
-
-    socket.setTimeout(() => {
-      positionSequence().forEach((position, index) => {
-        group(`tracking-http-update-${index + 1}`, () => {
-          sentAt = Date.now();
-          const publish = http.post(
-            `${config.baseUrl}/packages/v1/tracking/position?deliveryPersonId=${encodeURIComponent(config.trackingDeliveryPersonId)}`,
-            JSON.stringify(position),
-            {
-              headers: {
-                ...authHeaders(config.trackingBearerToken),
-                'Content-Type': 'application/json',
-              },
-              tags: { flow: 'tracking-http' },
-            },
-          );
-          check(publish, {
-            'tracking update returns 200': (res) => res.status === 200,
-          }, { flow: 'tracking-http' });
-          sleep(1);
-        });
-      });
-      socket.setTimeout(() => socket.close(), 3000);
-    }, 800);
   });
 
-  check(response, {
-    'tracking websocket handshake ok': (res) => res && res.status === 101,
-    'tracking websocket received updates': () => receivedCount > 0,
+  return {
+    response,
+    handshakeOk: handshakeOk || (response && response.status === 101),
+    subscribed,
+    receivedCount,
+  };
+}
+
+export function runTrackingLiveForPackage({ bearerToken, deliveryPersonId, packageReference, guestAccessToken }) {
+  let finalAttempt = null;
+  const maxAttempts = 2;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    finalAttempt = runTrackingAttempt({
+      bearerToken,
+      deliveryPersonId,
+      packageReference,
+      guestAccessToken,
+    });
+    if (finalAttempt.receivedCount > 0) {
+      break;
+    }
+    sleep(0.8);
+  }
+
+  check(finalAttempt?.response, {
+    'tracking websocket handshake ok': () => !!finalAttempt?.handshakeOk,
+    'tracking websocket subscribed': () => !!finalAttempt?.subscribed,
+    'tracking websocket received updates': () => Number(finalAttempt?.receivedCount || 0) > 0,
   }, { flow: 'tracking-ws' });
+}
+
+export function runTrackingLive() {
+  if (!hasTrackingAuth() || !hasEnv(config.trackingDeliveryPersonId, config.trackingPackageReference)) {
+    console.warn('Skipping tracking scenario: tracking env values are missing.');
+    return;
+  }
+
+  runTrackingLiveForPackage({
+    bearerToken: '',
+    deliveryPersonId: config.trackingDeliveryPersonId,
+    packageReference: config.trackingPackageReference,
+    guestAccessToken: config.trackingGuestAccessToken,
+  });
 }
 
 export default function trackingDefault() {

@@ -67,3 +67,4 @@ artifacts/*.jar
 deploy/docker/.env.production
 deploy/docker/.env
 deploy/docker/.env.local
+deploy/lightsail/*.env

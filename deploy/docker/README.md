@@ -11,6 +11,7 @@ Le front n'est pas inclus ici, car l'option AWS retenue pour le MVP est:
 
 - `docker-compose.lightsail.yml`
 - `docker-compose.production.yml`
+- `5vm/`
 - `Dockerfile.java-service`
 - `Dockerfile.runtime-jar`
 - `.env.example`
@@ -131,3 +132,19 @@ curl -I http://127.0.0.1:18443/auth
 ```
 
 7. publier ensuite avec `Nginx` hote
+
+## 8. Variante 5 VM En Cours De Migration
+
+Le socle de migration vers la cible 5 VM est disponible dans:
+
+- [deploy/docker/5vm/README.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/docker/5vm/README.md)
+
+avec:
+
+- `docker-compose.vm1-gateway.yml`
+- `docker-compose.vm2-platform.yml`
+- `docker-compose.vm3-app.yml`
+- `docker-compose.vm4-app.yml`
+- `docker-compose.vm5-mysql.yml`
+
+Ces compose servent a preparer la nouvelle infra en parallele de la prod actuelle.

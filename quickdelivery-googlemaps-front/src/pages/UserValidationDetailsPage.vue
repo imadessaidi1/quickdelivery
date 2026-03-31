@@ -1,18 +1,34 @@
 <template>
   <div class="validation-details-page">
-    <div class="page-head">
-      <button v-if="showBackButton" class="btn primary_btn back-btn" type="button" @click="goBack">
-        {{ $t('actionBack') }}
-      </button>
-      <div v-if="selectedUser">
-        <h1>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h1>
-        <p>{{ selectedUser.emailAddress }}</p>
+    <template v-if="isLoadingPage">
+      <div class="page-head">
+        <button v-if="showBackButton" class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
       </div>
-    </div>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
 
-    <div v-if="!selectedUser" class="page-state error">{{ $t('stateLoadError') }}</div>
+    <template v-else-if="loadError || !selectedUser">
+      <div class="page-head">
+        <button v-if="showBackButton" class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
+      </div>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
 
     <template v-else>
+      <div class="page-head">
+        <button v-if="showBackButton" class="btn primary_btn back-btn" type="button" @click="goBack">
+          {{ $t('actionBack') }}
+        </button>
+        <div>
+          <h1>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h1>
+          <p>{{ selectedUser.emailAddress }}</p>
+        </div>
+      </div>
+
       <div class="page-grid">
         <div class="details-card">
           <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}" :show-update-button="false" />
@@ -54,6 +70,8 @@ export default {
   data() {
     return {
       selectedUser: null,
+      isLoadingPage: false,
+      loadError: false,
     };
   },
   computed: {
@@ -74,11 +92,15 @@ export default {
         this.goBack();
         return;
       }
+      this.isLoadingPage = true;
+      this.loadError = false;
       try {
         const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserById')}${encodeURIComponent(userId)}`);
         this.selectedUser = response.data;
       } catch (_error) {
-        this.goBack();
+        this.loadError = true;
+      } finally {
+        this.isLoadingPage = false;
       }
     },
     goBack() {

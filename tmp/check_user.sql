@@ -1,0 +1,2 @@
+SELECT id,email_address,active_account,email_address_validation,type,birth_date,delivery_mode FROM user WHERE email_address='sci.essaidi.orly@gmail.com';
+SELECT user_id,status,account_created_at,profile_completed_at,documents_uploaded_at,ready_for_validation_at,completed_at,last_error_code,last_error_message FROM user_onboarding WHERE user_id IN (SELECT id FROM user WHERE email_address='sci.essaidi.orly@gmail.com');

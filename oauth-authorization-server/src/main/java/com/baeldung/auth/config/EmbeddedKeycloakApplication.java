@@ -67,6 +67,12 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 
 		try {
 			session.getTransactionManager().begin();
+			RealmModel existingRealm = session.realms().getRealmByName("quickdelivery");
+			if (existingRealm != null) {
+				synchronizeFrontClient(session, existingRealm.getName());
+				session.getTransactionManager().commit();
+				return;
+			}
 
 			RealmManager manager = new RealmManager(session);
 			Resource lessonRealmImportFile = new ClassPathResource(keycloakServerProperties.getRealmImportFile());
@@ -122,7 +128,12 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 			redirectUris.add(baseUrl + "/dashboard/admin");
 			redirectUris.add(baseUrl + "/dashboard/courier");
 			redirectUris.add(baseUrl + "/dashboard/client");
+			redirectUris.add(baseUrl + "/dashboard/metrics");
+			redirectUris.add(baseUrl + "/dashboard/finance");
 			redirectUris.add(baseUrl + "/createPackage");
+			redirectUris.add(baseUrl + "/myPackages");
+			redirectUris.add(baseUrl + "/userAccount");
+			redirectUris.add(baseUrl + "/notifications");
 			redirectUris.add(baseUrl + "/usersAccountValidation");
 		}
 		frontClient.setRedirectUris(redirectUris);

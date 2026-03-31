@@ -1,0 +1,42 @@
+services:
+  api-gateway:
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/Dockerfile.runtime-jar
+      args:
+        JAR_FILE: artifacts/quickdelivery-api-gateway.jar
+    container_name: quickdelivery-api-gateway
+    environment:
+      SPRING_APPLICATION_NAME: APIGatewayApplication
+      SPRING_CONFIG_IMPORT: configserver:${CONFIG_SERVER_URL}
+      SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
+      SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      SERVER_PORT: 8443
+      SERVER_SSL_ENABLED: "false"
+      USERS_SERVICE_URI: ${USERS_SERVICE_URI:-lb://users-service}
+      PACKAGES_SERVICE_URI: ${PACKAGES_SERVICE_URI:-lb://package-service}
+      PACKAGES_STATEFUL_URI: ${PACKAGES_STATEFUL_URI:-http://packages-service:8082}
+      PACKAGES_WS_URI: ${PACKAGES_WS_URI}
+      EUREKA_DEFAULT_ZONE: ${DISCOVERY_SERVER_URL}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${DISCOVERY_SERVER_URL}
+      OAUTH_ISSUER_URI: ${KEYCLOAK_PUBLIC_ISSUER}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+      DISCOVERY_SERVER_URL: ${DISCOVERY_SERVER_URL}
+      KEYCLOAK_INTERNAL_URL: ${KEYCLOAK_INTERNAL_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      QUICKDELIVERY_FRONTEND_BASE_URLS: https://${APP_DOMAIN}
+      QUICKDELIVERY_AUTH_ISSUER_URIS: ${KEYCLOAK_PUBLIC_ISSUER}
+      GATEWAY_INTERNAL_TOKEN: ${GATEWAY_INTERNAL_TOKEN}
+      JAVA_TOOL_OPTIONS: ${API_GATEWAY_JAVA_TOOL_OPTIONS}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8443/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
+    ports:
+      - "127.0.0.1:8443:8443"
+    restart: unless-stopped

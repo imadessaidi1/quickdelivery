@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -27,17 +25,20 @@ public class DocumentOcrOrchestrator {
     private final ObjectMapper objectMapper;
     private final DocumentProfileMatchingService documentProfileMatchingService;
     private final MeterRegistry meterRegistry;
+    private final UserDocumentStorageService userDocumentStorageService;
 
     public DocumentOcrOrchestrator(Documents documents,
                                    DocumentOcrService documentOcrService,
                                    ObjectMapper objectMapper,
                                    DocumentProfileMatchingService documentProfileMatchingService,
-                                   MeterRegistry meterRegistry) {
+                                   MeterRegistry meterRegistry,
+                                   UserDocumentStorageService userDocumentStorageService) {
         this.documents = documents;
         this.documentOcrService = documentOcrService;
         this.objectMapper = objectMapper;
         this.documentProfileMatchingService = documentProfileMatchingService;
         this.meterRegistry = meterRegistry;
+        this.userDocumentStorageService = userDocumentStorageService;
     }
 
     @Async("ocrTaskExecutor")
@@ -64,7 +65,7 @@ public class DocumentOcrOrchestrator {
             return;
         }
 
-        if (!Files.exists(Path.of(document.getDocURL()))) {
+        if (!userDocumentStorageService.exists(document.getDocURL())) {
             markFailure(document, "FILE_NOT_READY");
             result = "failed";
             return;

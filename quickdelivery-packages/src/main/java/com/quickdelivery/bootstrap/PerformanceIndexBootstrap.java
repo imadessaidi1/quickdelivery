@@ -28,6 +28,10 @@ public class PerformanceIndexBootstrap {
                     "CREATE INDEX idx_package_reference ON `package` (reference)");
             ensureIndex(jdbcTemplate, "package", "idx_package_guest_access_token",
                     "CREATE INDEX idx_package_guest_access_token ON `package` (guest_access_token)");
+            ensureIndex(jdbcTemplate, "address", "idx_address_type_latitude_longitude",
+                    "CREATE INDEX idx_address_type_latitude_longitude ON address (type, latitude, longitude)");
+            ensureIndex(jdbcTemplate, "address", "idx_address_package_id_type",
+                    "CREATE INDEX idx_address_package_id_type ON address (package_id, type)");
             ensurePackageReservationDeliveryStatusIndex(jdbcTemplate);
             ensureIndex(jdbcTemplate, "package_reservation", "idx_package_reservation_package_status",
                     "CREATE INDEX idx_package_reservation_package_status ON package_reservation (package_id, status)");

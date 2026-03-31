@@ -7,6 +7,7 @@ import com.quickdelivery.abstarct.entities.Vehicle;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
@@ -33,8 +34,12 @@ public interface Users extends JpaRepository<User, Long> {
             "FROM User u WHERE u.activeAccount = false")
     List<User> findUsersForValidation();
 
-    @Query("SELECT u FROM User u WHERE u.activeAccount = false")
-    Page<User> findUsersForValidation(Pageable pageable);
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @Query("SELECT u FROM User u WHERE u.id IN :ids")
+    List<User> findUsersForValidationByIds(@Param("ids") Collection<Long> ids);
+
+    @Query("SELECT u.id FROM User u WHERE u.activeAccount = false ORDER BY u.id DESC")
+    Page<Long> findUserIdsForValidation(Pageable pageable);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.activeAccount = false")
     long countUsersForValidation();
@@ -49,6 +54,9 @@ public interface Users extends JpaRepository<User, Long> {
     long countDocumentsForValidationByType(@Param("types") Collection<DOCUMENT_TYPE> types);
 
     long countByTypeIgnoreCase(String type);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE LOWER(u.type) = LOWER(:type)")
+    long countRegisteredUsersByType(@Param("type") String type);
 
     @Query("SELECT COUNT(u) FROM User u WHERE LOWER(u.type) = LOWER(:type) AND u.activeAccount = true AND LOWER(u.emailAddress) IN :emails")
     long countConnectedUsersByType(@Param("type") String type, @Param("emails") Set<String> emails);

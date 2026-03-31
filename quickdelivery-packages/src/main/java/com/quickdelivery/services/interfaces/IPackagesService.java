@@ -2,6 +2,9 @@ package com.quickdelivery.services.interfaces;
 
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
+import com.quickdelivery.abstarct.dto.ActiveTrackingPackageDTO;
+import com.quickdelivery.abstarct.dto.AdminPackageDashboardSummaryDTO;
+import com.quickdelivery.abstarct.dto.DeliveryReservationContextDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.FinancialDashboardDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
@@ -51,18 +54,24 @@ public interface IPackagesService {
 
     Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(Long deliveryPersonID);
     Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(Long senderID);
+    DeliveryReservationContextDTO getDeliveryReservationContext(Long packageId, Long deliveryPersonId);
 
     List<Address> findUsersAroundPosition(String aPackage);
 
     PackageDTO findPackageByReference(String reference);
     PackageDTO findGuestPackageByReference(String reference, String guestAccessToken);
+    PackageDTO findTrackingSubscriptionPackage(String reference, String guestAccessToken);
     DocumentContentDTO loadPackageDocumentContent(Long documentId);
 
     boolean isUserWithOngoingDelivery(Long usedId);
     ServiceMetricsDTO loadAdminMetrics();
+    ServiceMetricsDTO loadAdminTrackingMetrics();
     ServiceHttpBreakdownDTO loadAdminHttpBreakdown();
+    AdminPackageDashboardSummaryDTO loadAdminDashboardSummary(int year);
     FinancialDashboardDTO loadAdminFinancialDashboard();
 
     Map<String, PositionDTO> handleWebsocketMessage(MessageDTO messageDTO);
     Map<String, PositionDTO> updateTrackingPosition(Long deliveryPersonId, PositionDTO positionDTO);
+    Map<String, PositionDTO> updateTrackingPositionByPackageReference(String packageReference, PositionDTO positionDTO);
+    ActiveTrackingPackageDTO getActiveTrackingPackage(Long deliveryPersonId);
 }

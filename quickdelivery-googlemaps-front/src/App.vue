@@ -42,6 +42,8 @@ const NEARBY_PACKAGE_RECOVERY_RADIUS = 20000;
 const POSITION_UPDATE_INTERVAL_MS = 10000;
 const POSITION_UPDATE_MIN_DISTANCE_METERS = 25;
 const TRACKING_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/position`;
+const TRACKING_PACKAGE_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/package-position`;
+const TRACKING_ACTIVE_PACKAGE_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/active-package`;
 const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
 
 export default {
@@ -67,8 +69,9 @@ export default {
   },
   data() {
     return {
-      isUserWithOngoingDelivery: false,
-      socket: null,
+        isUserWithOngoingDelivery: false,
+        activeTrackingPackageReference: '',
+        socket: null,
       socketReady: false,
       watchId: null,
       backgroundWatcherId: null,
@@ -181,6 +184,7 @@ export default {
     destroyRealtime() {
       this.stopLocationTracking();
       this.socketReady = false;
+      this.activeTrackingPackageReference = '';
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
@@ -212,6 +216,23 @@ export default {
       this.backgroundWatcherId = null;
       this.lastSentPosition = null;
       this.lastPositionSentAt = 0;
+      this.activeTrackingPackageReference = '';
+    },
+    async refreshActiveTrackingPackage() {
+      if (!this.connectedUserId || !hasValidAccessToken()) {
+        this.activeTrackingPackageReference = '';
+        return;
+      }
+
+      try {
+        const response = await http.get(
+          `${TRACKING_ACTIVE_PACKAGE_ENDPOINT}?deliveryPersonId=${encodeURIComponent(this.connectedUserId)}`,
+          { silent: true },
+        );
+        this.activeTrackingPackageReference = response?.data?.packageReference || '';
+      } catch {
+        this.activeTrackingPackageReference = '';
+      }
     },
     async refreshOngoingDeliveryStatus() {
       try {
@@ -220,6 +241,7 @@ export default {
       } catch {
         this.isUserWithOngoingDelivery = false;
       }
+      await this.refreshActiveTrackingPackage();
       console.info('QuickDelivery WS ongoing delivery status:', this.isUserWithOngoingDelivery);
       this.startLocationTrackingIfNeeded();
     },
@@ -538,7 +560,9 @@ export default {
         return;
       }
 
-      const url = `${TRACKING_POSITION_ENDPOINT}?deliveryPersonId=${encodeURIComponent(this.connectedUserId)}`;
+      const url = this.activeTrackingPackageReference
+        ? `${TRACKING_PACKAGE_POSITION_ENDPOINT}?packageReference=${encodeURIComponent(this.activeTrackingPackageReference)}`
+        : `${TRACKING_POSITION_ENDPOINT}?deliveryPersonId=${encodeURIComponent(this.connectedUserId)}`;
       const payload = {
         latitude: newPosition.latitude,
         longitude: newPosition.longitude,

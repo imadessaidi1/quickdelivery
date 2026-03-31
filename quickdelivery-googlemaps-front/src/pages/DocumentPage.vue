@@ -1,22 +1,46 @@
 <template>
   <div class="document-page">
     <div class="page-shell">
-      <div class="page-head">
-        <button class="btn primary_btn back-btn" type="button" @click="goBack">
-          {{ $t('actionBack') }}
-        </button>
-        <div>
-          <h1>{{ documentTitle }}</h1>
-          <p>{{ packageReference }}</p>
+      <template v-if="isLoading">
+        <div class="page-head">
+          <button class="btn primary_btn back-btn" type="button" @click="goBack">
+            {{ $t('actionBack') }}
+          </button>
+          <div>
+            <h1>{{ documentTitle }}</h1>
+            <p>{{ packageReference }}</p>
+          </div>
         </div>
-      </div>
+        <div class="page-state">{{ $t('stateLoading') }}</div>
+      </template>
+      <template v-else-if="loadError">
+        <div class="page-head">
+          <button class="btn primary_btn back-btn" type="button" @click="goBack">
+            {{ $t('actionBack') }}
+          </button>
+          <div>
+            <h1>{{ documentTitle }}</h1>
+            <p>{{ packageReference }}</p>
+          </div>
+        </div>
+        <div class="page-state error">{{ $t('stateLoadError') }}</div>
+      </template>
+      <template v-else>
+        <div class="page-head">
+          <button class="btn primary_btn back-btn" type="button" @click="goBack">
+            {{ $t('actionBack') }}
+          </button>
+          <div>
+            <h1>{{ documentTitle }}</h1>
+            <p>{{ packageReference }}</p>
+          </div>
+        </div>
 
-      <div v-if="isLoading" class="page-state">{{ $t('stateLoading') }}</div>
-      <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-      <div v-else-if="!documentSrc" class="page-state">{{ $t('packageDocumentMissing') }}</div>
-      <div v-else class="document-frame-shell">
-        <iframe :src="documentSrc" class="document-frame"></iframe>
-      </div>
+        <div v-if="!documentSrc" class="page-state">{{ $t('packageDocumentMissing') }}</div>
+        <div v-else class="document-frame-shell">
+          <iframe :src="documentSrc" class="document-frame"></iframe>
+        </div>
+      </template>
     </div>
   </div>
 </template>

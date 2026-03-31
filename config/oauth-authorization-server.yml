@@ -22,7 +22,6 @@ keycloak:
   connectionsJpa:
     url: ${OAUTH_DB_URL:jdbc:mysql://localhost:3306/KeycloakDB}
     driver: com.mysql.cj.jdbc.Driver
-    driverDialect: org.hibernate.dialect.MySQLDialect
     user: ${OAUTH_DB_USERNAME:KeycloakUser}
     password: ${OAUTH_DB_PASSWORD:Keycloak123@}
 

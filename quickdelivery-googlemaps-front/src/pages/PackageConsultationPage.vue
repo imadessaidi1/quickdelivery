@@ -7,7 +7,9 @@
                 <p>{{ package_.reference || id }}</p>
             </div>
         </div>
-        <div class="package-form">
+        <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
+        <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+        <div v-else class="package-form">
             <div class="summary_component">
                 <PackageSummary/>
             </div>
@@ -65,6 +67,8 @@ export default{
     return {
       otp: '',
       deliveryOtp: '',
+      isLoadingPage: false,
+      loadError: false,
       package: {
         id: null,
         version: null,
@@ -121,11 +125,16 @@ export default{
       console.warn('Missing package reference in route query parameter "id".');
       return;
     }
+    this.isLoadingPage = true;
+    this.loadError = false;
     http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage')+this.id)
       .then(response => {
         this.$store.commit('updatePackage', response.data);
     }).catch(() => {
+      this.loadError = true;
       console.error("Unable to process your request this time. Please try again later.");
+    }).finally(() => {
+      this.isLoadingPage = false;
     });
   },
   methods: {

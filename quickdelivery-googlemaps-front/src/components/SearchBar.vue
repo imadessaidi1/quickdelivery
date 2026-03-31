@@ -23,7 +23,6 @@
       <div v-if="isActiveLoginMenu" class="menu login-menu">
         <ul>
             <router-link v-if="isAdmin" @click="loginMenu" to="/userSignInPage"><li>{{$t('menuUserSignin')}}</li></router-link>
-            <router-link v-if="isAdmin" @click="loginMenu" to="/packageTracking?packageReference=PACKFR202403170003271731677"><li>{{$t('menuUserLogin')}}</li></router-link>
             <router-link v-if="isAdmin" @click="loginMenu" to="/usersAccountValidation"><li>{{$t('menuUusersAccountValidation')}}</li></router-link>
             <router-link @click="loginMenu" to="/notifications">
               <li class="menu-item-with-badge">
@@ -38,25 +37,26 @@
       </div>
     </transition>
 
-    <span
+    <div
       v-if="isAdmin"
-      class="infobull admin-trigger"
-      :data-tooltip="$t('menuTooltipAdminCenter')"
+      class="admin-menu-wrapper"
       ref="handleClickOutsideAdminMenu"
     >
-      <a class="account-link admin-link" @click="adminMenu">
-        <span class="material-symbols-outlined">shield_person</span>
-        <span class="account-name">{{$t('menuAdminCenter')}}</span>
-      </a>
+      <span class="infobull admin-trigger" :data-tooltip="$t('menuTooltipAdminCenter')">
+        <a class="account-link admin-link" @click="adminMenu">
+          <span class="material-symbols-outlined">shield_person</span>
+          <span class="account-name">{{$t('menuAdminCenter')}}</span>
+        </a>
+      </span>
       <transition name="fade">
-        <div v-if="isActiveAdminMenu" class="menu admin-menu">
+        <div v-if="isActiveAdminMenu" class="menu login-menu admin-menu">
           <ul>
             <router-link @click="adminMenu" to="/dashboard/metrics"><li>{{$t('menuAdminMetrics')}}</li></router-link>
             <router-link @click="adminMenu" to="/dashboard/finance"><li>{{$t('menuAdminFinance')}}</li></router-link>
           </ul>
         </div>
       </transition>
-    </span>
+    </div>
 
     <span class="infobull account-trigger" :data-tooltip="$t('menuTooltipAccount')" ref="handleClickOutsideUserMenu">
       <a class="account-link" @click="loginMenu">
@@ -264,6 +264,12 @@ export default {
   align-items: center;
   min-width: 0;
 }
+.admin-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
 .account-link {
   position: relative;
   display: inline-flex;
@@ -331,10 +337,9 @@ export default {
   right: 10px;
 }
 .admin-menu {
-  top: calc(100% + 10px);
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
+  top: 100%;
+  right: 0;
+  left: auto;
 }
 .menu ul {
   padding: 0;
@@ -384,8 +389,7 @@ export default {
     width: min(280px, calc(100vw - 20px));
     left: auto;
     right: 0;
-    transform: none;
-    top: calc(100% + 52px);
+    top: 100%;
   }
   .burger_menu{
     display: block;

@@ -1,31 +1,43 @@
 import { config } from '../lib/config.js';
 import { buildStressThresholds } from '../lib/thresholds.js';
 import { runAdminDashboards } from '../scenarios/admin-dashboards.js';
-import { runCourierLifecycle } from '../scenarios/courier-lifecycle.js';
-import { runGuestCheckout } from '../scenarios/guest-checkout.js';
-import { runTrackingLive } from '../scenarios/tracking-live.js';
+import { runCourierOnboarding } from '../scenarios/courier-onboarding.js';
+import { runCustomerOnboarding } from '../scenarios/customer-onboarding.js';
+import { runEndToEndDelivery } from '../scenarios/e2e-delivery.js';
 
 export const options = {
   scenarios: {
-    guest_checkout_stress: {
+    customer_onboarding_stress: {
       executor: 'ramping-vus',
-      exec: 'guestCheckout',
+      exec: 'customerOnboarding',
       stages: [
-        { duration: '3m', target: 10 },
-        { duration: '5m', target: 20 },
-        { duration: '5m', target: 40 },
+        { duration: '3m', target: 4 },
+        { duration: '5m', target: 8 },
+        { duration: '5m', target: 12 },
         { duration: '5m', target: 0 },
       ],
       gracefulRampDown: '30s',
     },
-    tracking_live_stress: {
+    courier_onboarding_stress: {
       executor: 'ramping-vus',
-      exec: 'trackingLive',
+      exec: 'courierOnboarding',
+      startTime: '20s',
+      stages: [
+        { duration: '3m', target: 2 },
+        { duration: '5m', target: 4 },
+        { duration: '5m', target: 6 },
+        { duration: '5m', target: 0 },
+      ],
+      gracefulRampDown: '30s',
+    },
+    e2e_delivery_stress: {
+      executor: 'ramping-vus',
+      exec: 'e2eDelivery',
       startTime: '30s',
       stages: [
-        { duration: '3m', target: 5 },
-        { duration: '5m', target: 10 },
-        { duration: '5m', target: 20 },
+        { duration: '3m', target: 4 },
+        { duration: '5m', target: 8 },
+        { duration: '5m', target: 12 },
         { duration: '5m', target: 0 },
       ],
       gracefulRampDown: '30s',
@@ -37,30 +49,23 @@ export const options = {
       duration: '18m',
       startTime: '45s',
     },
-    courier_lifecycle_stress: {
-      executor: 'constant-vus',
-      exec: 'courierLifecycle',
-      vus: 4,
-      duration: '15m',
-      startTime: '1m',
-    },
   },
   thresholds: buildStressThresholds(),
   insecureSkipTLSVerify: config.insecureSkipTLSVerify,
 };
 
-export function guestCheckout() {
-  runGuestCheckout();
+export function customerOnboarding() {
+  runCustomerOnboarding();
+}
+
+export function courierOnboarding() {
+  runCourierOnboarding();
 }
 
 export function adminDashboards() {
   runAdminDashboards();
 }
 
-export function courierLifecycle() {
-  runCourierLifecycle();
-}
-
-export function trackingLive() {
-  runTrackingLive();
+export function e2eDelivery() {
+  runEndToEndDelivery();
 }

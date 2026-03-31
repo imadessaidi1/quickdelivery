@@ -43,6 +43,7 @@ public class UserDTO {
     private List<PackageDTO> packagesSent;
 
     private List<VehicleDTO> vehicles = new ArrayList<>();
+    private UserOnboardingDTO onboarding;
     public UserDTO(){}
 
     public Long getId() {
@@ -251,5 +252,13 @@ public class UserDTO {
 
     public void setVehicles(List<VehicleDTO> vehicles) {
         this.vehicles = vehicles;
+    }
+
+    public UserOnboardingDTO getOnboarding() {
+        return onboarding;
+    }
+
+    public void setOnboarding(UserOnboardingDTO onboarding) {
+        this.onboarding = onboarding;
     }
 }

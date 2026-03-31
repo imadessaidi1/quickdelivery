@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("smoke", "nominal", "stress", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live")]
+    [ValidateSet("smoke", "nominal", "stress", "regression", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live", "customer-onboarding", "courier-onboarding", "e2e-delivery", "seed-visible-packages")]
     [string]$Suite = "smoke",
 
     [string]$EnvFile = "",
@@ -8,6 +8,29 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+$envMutex = $null
+
+function Enter-PerfEnvMutex {
+    $script:envMutex = New-Object System.Threading.Mutex($false, "Global\QuickDeliveryPerfEnvLock")
+    if (-not $script:envMutex.WaitOne([TimeSpan]::FromSeconds(30))) {
+        throw "Unable to acquire perf env lock within 30 seconds. Another perf command is probably running."
+    }
+}
+
+function Exit-PerfEnvMutex {
+    if ($script:envMutex) {
+        try {
+            $script:envMutex.ReleaseMutex() | Out-Null
+        }
+        catch {
+        }
+        finally {
+            $script:envMutex.Dispose()
+            $script:envMutex = $null
+        }
+    }
+}
 
 function Resolve-PerfRoot {
     if ($PSScriptRoot) {
@@ -85,10 +108,15 @@ function Resolve-TargetScript {
         "smoke" = "suites/smoke.js"
         "nominal" = "suites/nominal.js"
         "stress" = "suites/stress.js"
+        "regression" = "suites/regression.js"
         "guest-checkout" = "scenarios/guest-checkout.js"
         "admin-dashboards" = "scenarios/admin-dashboards.js"
         "courier-lifecycle" = "scenarios/courier-lifecycle.js"
         "tracking-live" = "scenarios/tracking-live.js"
+        "customer-onboarding" = "scenarios/customer-onboarding.js"
+        "courier-onboarding" = "scenarios/courier-onboarding.js"
+        "e2e-delivery" = "scenarios/e2e-delivery.js"
+        "seed-visible-packages" = "scenarios/seed-visible-packages.js"
     }
 
     $relativePath = $mapping[$SelectedSuite]
@@ -182,24 +210,38 @@ function Resolve-K6Command {
 
 $perfRoot = Resolve-PerfRoot
 $envPath = Resolve-EnvFile -RequestedFile $EnvFile -PerfRoot $perfRoot
-Load-EnvFile -Path $envPath
 
 if (Should-RefreshAuth -SelectedSuite $Suite) {
+    Enter-PerfEnvMutex
+    try {
+        Load-EnvFile -Path $envPath
+    }
+    finally {
+        Exit-PerfEnvMutex
+    }
+
     Refresh-EnvAuthentication -PerfRoot $perfRoot -EnvPath $envPath
+}
+
+Enter-PerfEnvMutex
+try {
     Load-EnvFile -Path $envPath
+
+    $k6Command = Resolve-K6Command
+    if (-not $k6Command) {
+        throw "k6 is not installed or not available in PATH."
+    }
+
+    $targetScript = Resolve-TargetScript -PerfRoot $perfRoot -SelectedSuite $Suite
+    if (-not (Test-Path $targetScript)) {
+        throw "Unable to locate k6 script: $targetScript"
+    }
+
+    $arguments = @("run", $targetScript) + $ExtraArgs
+
+    Write-Host "Running k6 suite '$Suite' with script: $targetScript"
+    & $k6Command @arguments
 }
-
-$k6Command = Resolve-K6Command
-if (-not $k6Command) {
-    throw "k6 is not installed or not available in PATH."
+finally {
+    Exit-PerfEnvMutex
 }
-
-$targetScript = Resolve-TargetScript -PerfRoot $perfRoot -SelectedSuite $Suite
-if (-not (Test-Path $targetScript)) {
-    throw "Unable to locate k6 script: $targetScript"
-}
-
-$arguments = @("run", $targetScript) + $ExtraArgs
-
-Write-Host "Running k6 suite '$Suite' with script: $targetScript"
-& $k6Command @arguments

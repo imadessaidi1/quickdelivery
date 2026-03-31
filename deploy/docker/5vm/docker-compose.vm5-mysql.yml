@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: quickdelivery-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=${MYSQL_INNODB_BUFFER_POOL_SIZE:-1024M}
+      - --max-connections=${MYSQL_MAX_CONNECTIONS:-300}
+      - --table-open-cache=${MYSQL_TABLE_OPEN_CACHE:-1024}
+      - --tmp-table-size=${MYSQL_TMP_TABLE_SIZE:-128M}
+      - --max-heap-table-size=${MYSQL_MAX_HEAP_TABLE_SIZE:-128M}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      QUICKDELIVERY_DB_USERNAME: ${QUICKDELIVERY_DB_USERNAME}
+      QUICKDELIVERY_DB_PASSWORD: ${QUICKDELIVERY_DB_PASSWORD}
+      KEYCLOAK_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+volumes:
+  mysql-data:

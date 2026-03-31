@@ -21,7 +21,7 @@ const instance = axios.create();
 instance.interceptors.request.use(
   function(config) {
     if (!config.silent) {
-      store.commit('updateLoaderStatus', true);
+      store.commit('beginLoading');
     }
     if (!config.skipAuth && hasValidAccessToken()) {
       const token = getAccessToken();
@@ -32,7 +32,7 @@ instance.interceptors.request.use(
   },
   function(error) {
     if (!error?.config?.silent) {
-      store.commit('updateLoaderStatus', false);
+      store.commit('endLoading');
     }
     const status = error?.response?.status;
     const requestUrl = error?.config?.url || '';
@@ -62,7 +62,7 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   function(response) {
     if (!response.config.silent) {
-      store.commit('updateLoaderStatus', false);
+      store.commit('endLoading');
     }
     if (!response.config.silent && (response.config.method === 'post' || response.config.method === 'put')) {
         store.commit('updateShowMessage', true);
@@ -76,7 +76,7 @@ instance.interceptors.response.use(
   },
   function(error) {
     if (!error?.config?.silent) {
-      store.commit('updateLoaderStatus', false);
+      store.commit('endLoading');
       store.commit('updateShowMessage', true);
       store.commit('updateRequestSuccess', false);
       store.commit('updateRequestMessage', 'error');

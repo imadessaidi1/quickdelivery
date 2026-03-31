@@ -9,6 +9,8 @@ import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.ServiceLogInsightsDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
+import com.quickdelivery.abstarct.dto.UserAccountCreateRequestDTO;
+import com.quickdelivery.abstarct.dto.UserOnboardingDTO;
 import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
@@ -61,6 +63,50 @@ public class UsersController {
         StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
         logger.info("createUser multipart file keys: {}", multipartRequest.getMultiFileMap().keySet());
         return userServices.createNewUser(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
+    }
+    @PostMapping("/create-account")
+    public UserDTO createAccount(@RequestBody UserAccountCreateRequestDTO request) {
+        Locale locale = request.getLocale() == null ? Locale.getDefault() : request.getLocale();
+        return userServices.createAccount(request.getUser(), locale);
+    }
+    @PostMapping("/complete-onboarding")
+    public UserDTO completeOnboarding(MultipartHttpServletRequest request,
+                                      @RequestParam("user") String user,
+                                      @RequestParam("vehicle") String vehicle,
+                                      @RequestParam("locale") Locale locale) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        UserDTO userDTO;
+        VehicleDTO vehicleDTO;
+        try {
+            userDTO = objectMapper.readValue(user, UserDTO.class);
+            vehicleDTO = objectMapper.readValue(vehicle, VehicleDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
+        logger.info("completeOnboarding multipart file keys: {}", multipartRequest.getMultiFileMap().keySet());
+        return userServices.completeOnboarding(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
+    }
+    @PostMapping("/save-onboarding-draft")
+    public UserDTO saveOnboardingDraft(MultipartHttpServletRequest request,
+                                       @RequestParam("user") String user,
+                                       @RequestParam("vehicle") String vehicle,
+                                       @RequestParam("locale") Locale locale,
+                                       @RequestParam("step") Integer step) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        UserDTO userDTO;
+        VehicleDTO vehicleDTO;
+        try {
+            userDTO = objectMapper.readValue(user, UserDTO.class);
+            vehicleDTO = objectMapper.readValue(vehicle, VehicleDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        StandardMultipartHttpServletRequest multipartRequest = (StandardMultipartHttpServletRequest) request;
+        logger.info("saveOnboardingDraft step={} multipart file keys: {}", step, multipartRequest.getMultiFileMap().keySet());
+        return userServices.saveOnboardingDraft(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale, step);
     }
     @PostMapping("/update")
     public UserDTO updateUser(MultipartHttpServletRequest request, @RequestParam("user") String user,
@@ -139,6 +185,10 @@ public class UsersController {
     public UserValidationPageDTO usersForValidation(@RequestParam(name = "page", defaultValue = "0") int page,
                                                     @RequestParam(name = "size", defaultValue = "12") int size){
         return userServices.findUsersForValidation(page, size);
+    }
+    @GetMapping("/onboarding-status")
+    public UserOnboardingDTO onboardingStatus(@RequestParam(name = "email") String email) {
+        return userServices.loadOnboardingStatus(email);
     }
 
     @GetMapping("/document-content")

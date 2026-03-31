@@ -33,12 +33,85 @@ public class UserOnboardingValidationService {
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\+[1-9]\\d{5,14}$");
     private static final Set<String> DELIVERY_MODES = Set.of("CAR", "SCOOTER", "BIKE", "ON_FOOT");
 
+    public ValidationResult validateForAccountCreate(UserDTO user, Locale locale) {
+        List<String> messages = new ArrayList<>();
+        boolean courier = "DELIVERY_PERSON".equalsIgnoreCase(user.getType());
+
+        validateCommonProfile(user, messages, locale);
+        validateCredentials(user, messages, locale);
+
+        if (courier) {
+            if (!hasValidAdultBirthDate(user.getBirthDate())) {
+                messages.add(localize("COURIER_MINIMUM_AGE", locale));
+            }
+            String deliveryMode = Objects.toString(user.getDeliveryMode(), "").trim().toUpperCase(Locale.ROOT);
+            if (!DELIVERY_MODES.contains(deliveryMode)) {
+                messages.add(localize("DELIVERY_MODE_INVALID", locale));
+            }
+        }
+
+        return new ValidationResult(messages.isEmpty(), messages);
+    }
+
     public ValidationResult validateForCreate(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         return validate(user, vehicleDTO, filesMap, null, locale);
     }
 
     public ValidationResult validateForUpdate(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, User existingUser, Locale locale) {
         return validate(user, vehicleDTO, filesMap, existingUser, locale);
+    }
+
+    public ValidationResult validateForDraftStep(UserDTO user,
+                                                 VehicleDTO vehicleDTO,
+                                                 MultiValueMap<String, MultipartFile> filesMap,
+                                                 User existingUser,
+                                                 Locale locale,
+                                                 int step) {
+        List<String> messages = new ArrayList<>();
+        boolean courier = "DELIVERY_PERSON".equalsIgnoreCase(user.getType());
+        validateCommonProfile(user, messages, locale);
+        if (!courier) {
+            return new ValidationResult(messages.isEmpty(), messages);
+        }
+
+        if (!hasValidAdultBirthDate(user.getBirthDate())) {
+            messages.add(localize("COURIER_MINIMUM_AGE", locale));
+        }
+
+        String deliveryMode = Objects.toString(user.getDeliveryMode(), "").trim().toUpperCase(Locale.ROOT);
+        if (!DELIVERY_MODES.contains(deliveryMode)) {
+            messages.add(localize("DELIVERY_MODE_INVALID", locale));
+            return new ValidationResult(false, messages);
+        }
+
+        if (step >= 2 && !hasResidenceAddress(user.getPersonalAddress(), user.getAddressAuto())) {
+            messages.add(localize("ADDRESS_REQUIRED", locale));
+        }
+
+        if (step >= 3) {
+            if (!hasValidPaymentMethod(user.getPaymentModes())) {
+                messages.add(localize("PAYMENT_REQUIRED", locale));
+            }
+            validateRequiredUserDocuments(deliveryMode, filesMap, existingUser, messages, locale);
+        }
+
+        if (step >= 4 && requiresVehicleInfo(deliveryMode)) {
+            if (!hasText(vehicleDTO.getRegistrationNumber())) {
+                messages.add(localize("VEHICLE_REGISTRATION_REQUIRED", locale));
+            }
+            if (!hasText(vehicleDTO.getBrand())) {
+                messages.add(localize("VEHICLE_BRAND_REQUIRED", locale));
+            }
+            if (!hasText(vehicleDTO.getModel())) {
+                messages.add(localize("VEHICLE_MODEL_REQUIRED", locale));
+            }
+            if (!hasText(vehicleDTO.getEnergyType())) {
+                messages.add(localize("VEHICLE_ENERGY_REQUIRED", locale));
+            }
+            validateRequiredVehicleDocuments(deliveryMode, filesMap, existingUser, messages, locale);
+        }
+
+        return new ValidationResult(messages.isEmpty(), messages);
     }
 
     private ValidationResult validate(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, User existingUser, Locale locale) {
@@ -67,6 +140,21 @@ public class UserOnboardingValidationService {
         }
     }
 
+    private void validateCredentials(UserDTO user, List<String> messages, Locale locale) {
+        if (!hasText(user.getPassword()) || user.getPassword().length() < 8) {
+            messages.add(localize("PASSWORD_INVALID", locale));
+        }
+        if (!Objects.equals(user.getPassword(), user.getPasswordConfirmation())) {
+            messages.add(localize("PASSWORD_CONFIRMATION_INVALID", locale));
+        }
+        if (!Objects.equals(user.getEmailAddress(), user.getEmailAddressConfirmation())) {
+            messages.add(localize("EMAIL_CONFIRMATION_INVALID", locale));
+        }
+        if (!Objects.equals(user.getPhone(), user.getPhoneConfirmation())) {
+            messages.add(localize("PHONE_CONFIRMATION_INVALID", locale));
+        }
+    }
+
     private void validateCourierProfile(UserDTO user,
                                         VehicleDTO vehicleDTO,
                                         MultiValueMap<String, MultipartFile> filesMap,
@@ -90,7 +178,8 @@ public class UserOnboardingValidationService {
             messages.add(localize("PAYMENT_REQUIRED", locale));
         }
 
-        validateRequiredDocuments(deliveryMode, filesMap, existingUser, messages, locale);
+        validateRequiredUserDocuments(deliveryMode, filesMap, existingUser, messages, locale);
+        validateRequiredVehicleDocuments(deliveryMode, filesMap, existingUser, messages, locale);
 
         if (requiresVehicleInfo(deliveryMode)) {
             if (!hasText(vehicleDTO.getRegistrationNumber())) {
@@ -108,11 +197,29 @@ public class UserOnboardingValidationService {
         }
     }
 
-    private void validateRequiredDocuments(String deliveryMode,
-                                           MultiValueMap<String, MultipartFile> filesMap,
-                                           User existingUser,
-                                           List<String> messages,
-                                           Locale locale) {
+    private void validateRequiredUserDocuments(String deliveryMode,
+                                               MultiValueMap<String, MultipartFile> filesMap,
+                                               User existingUser,
+                                               List<String> messages,
+                                               Locale locale) {
+        Set<DOCUMENT_TYPE> availableDocuments = availableDocuments(filesMap, existingUser);
+        requiredUserDocuments(deliveryMode).stream()
+                .filter(documentType -> !availableDocuments.contains(documentType))
+                .forEach(documentType -> messages.add(localizeMissingDocument(documentType, locale)));
+    }
+
+    private void validateRequiredVehicleDocuments(String deliveryMode,
+                                                  MultiValueMap<String, MultipartFile> filesMap,
+                                                  User existingUser,
+                                                  List<String> messages,
+                                                  Locale locale) {
+        Set<DOCUMENT_TYPE> availableDocuments = availableDocuments(filesMap, existingUser);
+        requiredVehicleDocuments(deliveryMode).stream()
+                .filter(documentType -> !availableDocuments.contains(documentType))
+                .forEach(documentType -> messages.add(localizeMissingDocument(documentType, locale)));
+    }
+
+    private Set<DOCUMENT_TYPE> availableDocuments(MultiValueMap<String, MultipartFile> filesMap, User existingUser) {
         Set<DOCUMENT_TYPE> availableDocuments = new HashSet<>();
         if (existingUser != null) {
             existingUser.getDocument().stream()
@@ -129,14 +236,7 @@ public class UserOnboardingValidationService {
                 }
             });
         }
-
-        requiredUserDocuments(deliveryMode).stream()
-                .filter(documentType -> !availableDocuments.contains(documentType))
-                .forEach(documentType -> messages.add(localizeMissingDocument(documentType, locale)));
-
-        requiredVehicleDocuments(deliveryMode).stream()
-                .filter(documentType -> !availableDocuments.contains(documentType))
-                .forEach(documentType -> messages.add(localizeMissingDocument(documentType, locale)));
+        return availableDocuments;
     }
 
     private boolean hasResidenceAddress(List<AddressDTO> addresses, String addressAuto) {
@@ -207,13 +307,13 @@ public class UserOnboardingValidationService {
     private String localizeMissingDocument(DOCUMENT_TYPE documentType, Locale locale) {
         boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
         return switch (documentType) {
-            case ID -> french ? "Document requis manquant : pièce d'identité." : "Missing required document: ID.";
+            case ID -> french ? "Document requis manquant : piece d'identite." : "Missing required document: ID.";
             case PICTURE -> french ? "Document requis manquant : photo de profil." : "Missing required document: profile picture.";
             case DRIVER_LICENCE -> french ? "Document requis manquant : permis de conduire." : "Missing required document: driver licence.";
             case USER_COMPANY_EXTRACT -> french ? "Document requis manquant : extrait d'entreprise." : "Missing required document: company extract.";
             case USER_COMPANY_INSURANCE -> french ? "Document requis manquant : assurance d'entreprise." : "Missing required document: company insurance.";
             case GRAY_CARD -> french ? "Document requis manquant : carte grise." : "Missing required document: vehicle registration.";
-            case INSURANCE -> french ? "Document requis manquant : assurance véhicule." : "Missing required document: vehicle insurance.";
+            case INSURANCE -> french ? "Document requis manquant : assurance vehicule." : "Missing required document: vehicle insurance.";
             case RIB -> french ? "Document requis manquant : RIB." : "Missing required document: bank identity statement.";
             default -> french ? "Document requis manquant." : "Missing required document.";
         };
@@ -222,18 +322,22 @@ public class UserOnboardingValidationService {
     private String localize(String code, Locale locale) {
         boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
         return switch (code) {
-            case "FIRST_NAME_REQUIRED" -> french ? "Le prénom est obligatoire." : "First name is required.";
+            case "FIRST_NAME_REQUIRED" -> french ? "Le prenom est obligatoire." : "First name is required.";
             case "LAST_NAME_REQUIRED" -> french ? "Le nom est obligatoire." : "Last name is required.";
             case "EMAIL_INVALID" -> french ? "L'adresse e-mail est invalide." : "Email address is invalid.";
-            case "PHONE_INVALID" -> french ? "Le numéro de téléphone est invalide." : "Phone number is invalid.";
+            case "PHONE_INVALID" -> french ? "Le numero de telephone est invalide." : "Phone number is invalid.";
             case "COURIER_MINIMUM_AGE" -> french ? "Le livreur doit avoir au moins 18 ans." : "Courier must be at least 18 years old.";
-            case "ADDRESS_REQUIRED" -> french ? "L'adresse de résidence est obligatoire." : "Residence address is required.";
-            case "DELIVERY_MODE_INVALID" -> french ? "Le mode de livraison sélectionné est invalide." : "Selected delivery mode is invalid.";
+            case "ADDRESS_REQUIRED" -> french ? "L'adresse de residence est obligatoire." : "Residence address is required.";
+            case "DELIVERY_MODE_INVALID" -> french ? "Le mode de livraison selectionne est invalide." : "Selected delivery mode is invalid.";
             case "PAYMENT_REQUIRED" -> french ? "Un moyen de paiement complet est obligatoire." : "A complete payment method is required.";
-            case "VEHICLE_REGISTRATION_REQUIRED" -> french ? "Le numéro d'immatriculation est obligatoire." : "Vehicle registration number is required.";
-            case "VEHICLE_BRAND_REQUIRED" -> french ? "La marque du véhicule est obligatoire." : "Vehicle brand is required.";
-            case "VEHICLE_MODEL_REQUIRED" -> french ? "Le modèle du véhicule est obligatoire." : "Vehicle model is required.";
-            case "VEHICLE_ENERGY_REQUIRED" -> french ? "Le type d'énergie du véhicule est obligatoire." : "Vehicle energy type is required.";
+            case "VEHICLE_REGISTRATION_REQUIRED" -> french ? "Le numero d'immatriculation est obligatoire." : "Vehicle registration number is required.";
+            case "VEHICLE_BRAND_REQUIRED" -> french ? "La marque du vehicule est obligatoire." : "Vehicle brand is required.";
+            case "VEHICLE_MODEL_REQUIRED" -> french ? "Le modele du vehicule est obligatoire." : "Vehicle model is required.";
+            case "VEHICLE_ENERGY_REQUIRED" -> french ? "Le type d'energie du vehicule est obligatoire." : "Vehicle energy type is required.";
+            case "PASSWORD_INVALID" -> french ? "Le mot de passe doit contenir au moins 8 caracteres." : "Password must contain at least 8 characters.";
+            case "PASSWORD_CONFIRMATION_INVALID" -> french ? "La confirmation du mot de passe est invalide." : "Password confirmation is invalid.";
+            case "EMAIL_CONFIRMATION_INVALID" -> french ? "La confirmation de l'adresse e-mail est invalide." : "Email confirmation is invalid.";
+            case "PHONE_CONFIRMATION_INVALID" -> french ? "La confirmation du numero de telephone est invalide." : "Phone confirmation is invalid.";
             default -> french ? "Le dossier n'est pas complet." : "The onboarding file is incomplete.";
         };
     }

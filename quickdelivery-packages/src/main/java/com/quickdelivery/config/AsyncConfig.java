@@ -23,6 +23,12 @@ public class AsyncConfig {
     private int mailMaxPoolSize;
     @Value("${quickdelivery.async.mail.queue-capacity:100}")
     private int mailQueueCapacity;
+    @Value("${quickdelivery.async.tracking.core-pool-size:4}")
+    private int trackingCorePoolSize;
+    @Value("${quickdelivery.async.tracking.max-pool-size:12}")
+    private int trackingMaxPoolSize;
+    @Value("${quickdelivery.async.tracking.queue-capacity:500}")
+    private int trackingQueueCapacity;
 
     @Bean(name = "packageAsyncTaskExecutor")
     public ThreadPoolTaskExecutor packageAsyncTaskExecutor() {
@@ -34,6 +40,11 @@ public class AsyncConfig {
         return buildExecutor(mailCorePoolSize, mailMaxPoolSize, mailQueueCapacity, "package-mail-");
     }
 
+    @Bean(name = "trackingAsyncTaskExecutor")
+    public ThreadPoolTaskExecutor trackingAsyncTaskExecutor() {
+        return buildExecutor(trackingCorePoolSize, trackingMaxPoolSize, trackingQueueCapacity, "tracking-");
+    }
+
     private ThreadPoolTaskExecutor buildExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, String threadNamePrefix) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(corePoolSize);
@@ -42,7 +53,7 @@ public class AsyncConfig {
         executor.setThreadNamePrefix(threadNamePrefix);
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.initialize();
         return executor;
     }

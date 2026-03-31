@@ -5,14 +5,19 @@ This folder contains a ready-to-run `k6` performance test kit for QuickDelivery.
 ## Contents
 
 - `suites/`
-  - `smoke.js`: fast validation against the main flows
-  - `nominal.js`: baseline load close to expected daily usage
-  - `stress.js`: push the platform until latency and errors degrade
+  - `smoke.js`: fast end-to-end validation of account onboarding, delivery and admin flows
+  - `nominal.js`: baseline load close to expected daily usage with end-to-end account and package flows
+  - `stress.js`: push the platform with end-to-end scenarios until latency and errors degrade
+  - `regression.js`: short post-deploy integrity and non-regression suite
 - `scenarios/`
   - `guest-checkout.js`: estimate, create, confirm guest payment, consult package
+  - `customer-onboarding.js`: create a customer account then verify it from admin
+  - `courier-onboarding.js`: create a courier with vehicle/documents then validate it from admin
+  - `e2e-delivery.js`: estimate, create, pay, reserve, pickup, track and deliver a package
   - `admin-dashboards.js`: admin metrics and finance dashboards
   - `courier-lifecycle.js`: reserve, pickup, deliver on prepared data
   - `tracking-live.js`: live tracking with websocket subscription and HTTP position updates
+  - `seed-visible-packages.js`: create paid `NEW` packages around Limeil-Brevannes for map inspection
 - `lib/`
   - shared config, thresholds, payload builders, helpers
 - `.env.example`
@@ -39,12 +44,6 @@ Minimum for guest smoke:
 ```bash
 BASE_URL=https://api.quickdelivery.fr
 k6 run perf/suites/smoke.js
-```
-
-By default, the smoke suite skips the courier lifecycle because it mutates delivery state and depends on a truly reservable package. Enable it only when you explicitly want that destructive check:
-
-```bash
-ENABLE_COURIER_LIFECYCLE_SMOKE=true
 ```
 
 Admin dashboard tests require:
@@ -97,14 +96,23 @@ k6 run perf/suites/stress.js
 k6 run perf/scenarios/tracking-live.js
 ```
 
+5. Seed visible `NEW` packages around `3 rue Pasteur, 94450 Limeil-Brevannes`
+
+```bash
+k6 run perf/scenarios/seed-visible-packages.js
+```
+
 ## PowerShell runner
 
 On Windows, you can launch the suites with the helper script:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite smoke
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite regression
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite nominal
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite stress
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite e2e-delivery
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite seed-visible-packages
 ```
 
 The runner automatically loads the first file it finds in this order:
@@ -151,6 +159,9 @@ If no `NEW` package or no `PICKEDUP` package exists, the related variables stay 
 ## Notes
 
 - `guest-checkout.js` is self-contained and creates its own guest package.
-- `courier-lifecycle.js` resolves OTPs dynamically after reserve and pickup.
-- `tracking-live.js` keeps websocket and HTTP tracking checks in one place and skips itself cleanly when required variables are missing.
+- `courier-onboarding.js` uploads a full courier file with vehicle documents, then validates it as admin.
+- `e2e-delivery.js` creates a package near `3 Rue Pasteur, 94450 Limeil-Brevannes` and drives it to `DELIVERED`.
+- `seed-visible-packages.js` leaves paid `NEW` packages around Limeil-Brevannes so they can be seen on the “packages autour de moi” map in 10, 20 and 30 km radius filters.
+- `tracking-live.js` retries once before failing the websocket update assertion to reduce false negatives.
 - Thresholds are versioned in `perf/lib/thresholds.js`.
+- `cleanup-test-data.ps1` is `dry-run` by default and only executes with `-Execute -ConfirmationPhrase DELETE_QUICKDELIVERY_PERF_DATA`.

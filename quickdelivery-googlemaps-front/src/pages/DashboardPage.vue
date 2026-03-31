@@ -1,28 +1,47 @@
 <template>
   <div class="dashboard-page">
-    <section class="hero-card">
-      <div>
-        <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
-        <h1>{{ dashboardTitle }}</h1>
-        <p>{{ dashboardSubtitle }}</p>
-      </div>
-      <div class="hero-account">
-        <strong>{{ connectedUserName }}</strong>
-        <span>{{ connectedUserRoleLabel }}</span>
-      </div>
-    </section>
+    <template v-if="isLoadingPage">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+          <h1>{{ dashboardTitle }}</h1>
+          <p>{{ dashboardSubtitle }}</p>
+        </div>
+      </section>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
 
-    <section class="stats-grid" v-if="!isLoadingPage">
-      <article v-for="stat in statsCards" :key="stat.label" class="stat-card" :class="stat.tone">
-        <strong>{{ stat.value }}</strong>
-        <span>{{ stat.label }}</span>
-      </article>
-    </section>
-
-    <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+    <template v-else-if="loadError">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+          <h1>{{ dashboardTitle }}</h1>
+          <p>{{ dashboardSubtitle }}</p>
+        </div>
+      </section>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
 
     <template v-else>
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+          <h1>{{ dashboardTitle }}</h1>
+          <p>{{ dashboardSubtitle }}</p>
+        </div>
+        <div class="hero-account">
+          <strong>{{ connectedUserName }}</strong>
+          <span>{{ connectedUserRoleLabel }}</span>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article v-for="stat in statsCards" :key="stat.label" class="stat-card" :class="stat.tone">
+          <strong>{{ stat.value }}</strong>
+          <span>{{ stat.label }}</span>
+        </article>
+      </section>
+
       <section class="dashboard-grid top-grid">
         <article class="panel-card">
           <div class="panel-head">
@@ -101,7 +120,6 @@ import { getCurrentUserRoles } from '@/config/auth';
 import DashboardTrendChart from '../components/DashboardTrendChart.vue';
 
 const PACKAGE_ACTIVITY_ORDER = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
-const CHART_STATUSES = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
 const MONTH_COUNT = 12;
 const MONTH_GRAPH_START_X = 32;
 const MONTH_GRAPH_STEP_X = 25;
@@ -122,6 +140,10 @@ export default {
       isLoadingPage: false,
       loadError: false,
       packagesByStatus: {},
+      adminPackageCounts: {},
+      adminMonthlyShipmentCounts: Array.from({ length: MONTH_COUNT }, () => 0),
+      adminMonthlyDeliveredRevenue: Array.from({ length: MONTH_COUNT }, () => 0),
+      adminRecentPackages: [],
       pendingUsers: [],
       pendingUsersTotal: 0,
       pendingVehiclesTotal: 0,
@@ -171,6 +193,9 @@ export default {
       return this.$t('dashboardClientSubtitle');
     },
     flattenedPackages() {
+      if (this.dashboardType === 'admin') {
+        return this.adminRecentPackages;
+      }
       return Object.values(this.packagesByStatus || {}).flatMap((group) => group || []);
     },
     currentLocale() {
@@ -183,6 +208,9 @@ export default {
       }).format(new Date(this.currentYear, monthIndex, 1)));
     },
     packageCounts() {
+      if (this.dashboardType === 'admin') {
+        return this.adminPackageCounts || {};
+      }
       return this.flattenedPackages.reduce((acc, pkg) => {
         const status = pkg.status || 'UNKNOWN';
         acc[status] = (acc[status] || 0) + 1;
@@ -222,9 +250,7 @@ export default {
         subtitle: this.$t('dashboardAdminEarningsChartSubtitle', { year: this.currentYear }),
         tone: '#ef7d32',
         formatter: this.formatCurrency,
-        values: this.flattenedPackages
-          .filter((pkg) => pkg.status === 'DELIVERED')
-          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, Number(pkg.deliveryPrice || 0)), this.createMonthlyAccumulator()),
+        values: this.adminMonthlyDeliveredRevenue,
       });
     },
     adminShipmentsChart() {
@@ -234,8 +260,7 @@ export default {
         subtitle: this.$t('dashboardAdminShipmentsChartSubtitle', { year: this.currentYear }),
         tone: '#1f5fae',
         formatter: this.formatInteger,
-        values: this.flattenedPackages
-          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, 1), this.createMonthlyAccumulator()),
+        values: this.adminMonthlyShipmentCounts,
       });
     },
     chartCards() {
@@ -375,19 +400,24 @@ export default {
       this.loadError = false;
       try {
         if (this.dashboardType === 'admin') {
-          const [usersResponse, packageResponses] = await Promise.all([
+          const [usersResponse, packageSummaryResponse] = await Promise.all([
             http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=0&size=5`),
-            Promise.all(CHART_STATUSES.map((status) => http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesByStatusUrl')}${status}`))),
+            http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageDashboardSummary')}?year=${this.currentYear}`),
           ]);
           this.pendingUsers = Array.isArray(usersResponse.data?.items) ? usersResponse.data.items : [];
           this.pendingUsersTotal = usersResponse.data?.totalItems || 0;
           this.pendingVehiclesTotal = usersResponse.data?.totalVehicles || 0;
           this.pendingDocumentsTotal = usersResponse.data?.totalDocuments || 0;
           this.pendingVehicleDocumentsTotal = usersResponse.data?.totalVehicleDocuments || 0;
-          this.packagesByStatus = CHART_STATUSES.reduce((acc, status, index) => {
-            acc[status] = Array.isArray(packageResponses[index].data) ? packageResponses[index].data : [];
-            return acc;
-          }, {});
+          const packageSummary = packageSummaryResponse.data || {};
+          this.adminPackageCounts = packageSummary.statusCounts || {};
+          this.adminMonthlyShipmentCounts = Array.isArray(packageSummary.monthlyShipmentCounts)
+            ? packageSummary.monthlyShipmentCounts
+            : this.createMonthlyAccumulator();
+          this.adminMonthlyDeliveredRevenue = Array.isArray(packageSummary.monthlyDeliveredRevenue)
+            ? packageSummary.monthlyDeliveredRevenue
+            : this.createMonthlyAccumulator();
+          this.adminRecentPackages = Array.isArray(packageSummary.recentPackages) ? packageSummary.recentPackages : [];
           return;
         }
 

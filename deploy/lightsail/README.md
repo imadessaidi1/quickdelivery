@@ -12,6 +12,8 @@ Il complete:
 - `install-ubuntu.sh`
 - `ROUTE53.md`
 - `MVP-5VM-ARCHITECTURE.md`
+- `MIGRATION-RUNBOOK.md`
+- `ROLLBACK-PLAN.md`
 - `vm1-gateway.env.example`
 - `vm2-platform.env.example`
 - `vm3-app.env.example`
@@ -31,6 +33,8 @@ Pour l'architecture MVP retenue:
 utiliser en priorite:
 
 - [MVP-5VM-ARCHITECTURE.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/MVP-5VM-ARCHITECTURE.md)
+- [MIGRATION-RUNBOOK.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/MIGRATION-RUNBOOK.md)
+- [ROLLBACK-PLAN.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/deploy/lightsail/ROLLBACK-PLAN.md)
 
 Le present README reste utile comme runbook general Lightsail, mais le mode `tout sur une seule VM` n'est plus la cible recommandee pour la prod MVP.
 

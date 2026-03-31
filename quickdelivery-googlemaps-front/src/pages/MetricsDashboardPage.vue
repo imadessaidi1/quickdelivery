@@ -1,22 +1,41 @@
 <template>
   <div class="metrics-dashboard-page">
-    <section class="hero-card">
-      <div>
-        <span class="hero-chip">{{ $t('menuAdminMetrics') }}</span>
-        <h1>{{ $t('metricsPageTitle') }}</h1>
-        <p>{{ $t('metricsPageSubtitle') }}</p>
-      </div>
-      <div class="hero-side">
-        <strong>{{ overallStatus.label }}</strong>
-        <span>{{ $t('metricsPageLastRefresh') }}: {{ formatDateTime(lastRefreshAt) }}</span>
-        <small>{{ $t('metricsPageAutoRefresh') }}</small>
-      </div>
-    </section>
+    <template v-if="isLoading && !currentSnapshot">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminMetrics') }}</span>
+          <h1>{{ $t('metricsPageTitle') }}</h1>
+          <p>{{ $t('metricsPageSubtitle') }}</p>
+        </div>
+      </section>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
 
-    <div v-if="isLoading && !currentSnapshot" class="page-state">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError && !currentSnapshot" class="page-state error">{{ $t('stateLoadError') }}</div>
+    <template v-else-if="loadError && !currentSnapshot">
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminMetrics') }}</span>
+          <h1>{{ $t('metricsPageTitle') }}</h1>
+          <p>{{ $t('metricsPageSubtitle') }}</p>
+        </div>
+      </section>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
 
     <template v-else>
+      <section class="hero-card">
+        <div>
+          <span class="hero-chip">{{ $t('menuAdminMetrics') }}</span>
+          <h1>{{ $t('metricsPageTitle') }}</h1>
+          <p>{{ $t('metricsPageSubtitle') }}</p>
+        </div>
+        <div class="hero-side">
+          <strong>{{ overallStatus.label }}</strong>
+          <span>{{ $t('metricsPageLastRefresh') }}: {{ formatDateTime(lastRefreshAt) }}</span>
+          <small>{{ $t('metricsPageAutoRefresh') }}</small>
+        </div>
+      </section>
+
       <section class="population-grid">
         <article class="stat-card tone-dark">
           <strong>{{ formatInteger(currentPopulation.registeredCustomers) }}</strong>
@@ -38,7 +57,7 @@
 
       <section class="summary-grid">
         <article class="stat-card tone-dark">
-          <strong>{{ healthyModuleCount }}/3</strong>
+          <strong>{{ healthyModuleCount }}/{{ moduleCards.length }}</strong>
           <span>{{ $t('metricsOverallHealthy') }}</span>
         </article>
         <article class="stat-card tone-warn">
@@ -124,7 +143,37 @@
             </div>
           </div>
 
-          <div v-else class="empty-state">{{ $t('metricsModuleUnavailable') }}</div>
+          <div v-if="module.instances.length" class="instance-block">
+            <div class="panel-head instance-head">
+              <h3>{{ $t('metricsInstancesTitle') }}</h3>
+              <strong>{{ module.healthyInstances }}/{{ module.totalInstances }}</strong>
+            </div>
+            <div class="instance-list">
+              <article
+                v-for="instance in module.instances"
+                :key="`${module.key}-${instance.instanceId || instance.host || instance.port}`"
+                class="instance-card"
+                :class="{ unavailable: !instance.available }"
+              >
+                <div class="instance-topline">
+                  <strong>{{ formatInstanceLabel(instance) }}</strong>
+                  <span :class="instance.available ? 'status-ok' : 'status-critical'">
+                    {{ instance.available ? $t('metricsHealthOk') : $t('metricsInstanceUnavailable') }}
+                  </span>
+                </div>
+                <div v-if="instance.payload" class="instance-metrics">
+                  <span>{{ $t('dashboardMetricCpu') }} {{ formatPercent(instance.payload.cpuUsagePercent) }}</span>
+                  <span>{{ $t('dashboardMetricHeap') }} {{ formatHeap(instance.payload.heapUsedMb, instance.payload.heapMaxMb) }}</span>
+                  <span>{{ $t('metricsModuleRequests') }} {{ formatInteger(instance.payload.httpRequestCount) }}</span>
+                  <span>{{ $t('metricsModuleOperations') }} {{ formatInteger(instance.payload.operationCallCount) }}</span>
+                  <span>{{ $t('metricsModuleQueue') }} {{ formatInteger(instance.payload.asyncQueueSize) }}</span>
+                </div>
+                <div v-else class="instance-error">
+                  {{ instance.errorMessage || $t('metricsInstanceUnavailable') }}
+                </div>
+              </article>
+            </div>
+          </div>
         </article>
       </section>
 
@@ -257,7 +306,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import http from '@/config/httpInterceptor';
 import MetricsBarChart from '../components/MetricsBarChart.vue';
 import MetricsMultiSeriesChart from '../components/MetricsMultiSeriesChart.vue';
 import { getAccessToken } from '../config/auth';
@@ -268,8 +317,14 @@ const POLL_INTERVAL_MS = 5 * 60 * 1000;
 const PACKAGE_STATUSES = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
 const MODULE_CONFIG = [
   { key: 'gateway', titleKey: 'dashboardMetricsGatewayService', color: '#1f5fae' },
+  { key: 'config', titleKey: 'dashboardMetricsConfigService', color: '#5b6b82' },
+  { key: 'discovery', titleKey: 'dashboardMetricsDiscoveryService', color: '#0f766e' },
+  { key: 'oauth', titleKey: 'dashboardMetricsOauthService', color: '#7c3aed' },
+  { key: 'redis', titleKey: 'dashboardMetricsRedisService', color: '#b91c1c' },
+  { key: 'mysql', titleKey: 'dashboardMetricsMysqlService', color: '#1d4ed8' },
   { key: 'users', titleKey: 'dashboardMetricsUsersService', color: '#ef7d32' },
   { key: 'packages', titleKey: 'dashboardMetricsPackagesService', color: '#159947' },
+  { key: 'tracking', titleKey: 'dashboardMetricsTrackingService', color: '#0ea5e9' },
 ];
 
 export default {
@@ -329,6 +384,9 @@ export default {
           logInsights: this.logInsights[moduleConfig.key] || null,
           heartbeatAt: moduleSnapshot?.timestamp || null,
           availability,
+          instances: moduleSnapshot?.instances || [],
+          totalInstances: Number(moduleSnapshot?.totalInstances || 0),
+          healthyInstances: Number(moduleSnapshot?.healthyInstances || 0),
           statusLabel: this.resolveModuleStatusLabel(moduleSnapshot, availability),
           statusClass: this.resolveModuleStatusClass(moduleSnapshot, availability),
           topCategories: this.topCategoriesForModule(moduleConfig.key),
@@ -358,6 +416,9 @@ export default {
           alerts.push(`${module.title}: ${this.$t('metricsModuleUnavailable')}`);
           return;
         }
+        if (module.totalInstances > 0 && module.healthyInstances < module.totalInstances) {
+          alerts.push(`${module.title}: ${module.healthyInstances}/${module.totalInstances} ${this.$t('metricsInstancesTitle').toLowerCase()}`);
+        }
         const heapRatio = this.computeHeapRatio(module.metrics);
         if (module.metrics.cpuUsagePercent != null && module.metrics.cpuUsagePercent >= 80) {
           alerts.push(`${module.title}: CPU ${this.formatPercent(module.metrics.cpuUsagePercent)}`);
@@ -384,6 +445,9 @@ export default {
       const actions = [];
       if (this.moduleCards.some((module) => !module.metrics)) {
         actions.push('Stabilize discovery, deployment and startup dependencies before analyzing business performance.');
+      }
+      if (this.moduleCards.some((module) => module.totalInstances > 0 && module.healthyInstances < module.totalInstances)) {
+        actions.push('Recover the missing service instances because the metrics center reports a partial cluster state.');
       }
       if (this.moduleCards.some((module) => (module.metrics?.cpuUsagePercent || 0) >= 80)) {
         actions.push('Inspect the busiest endpoints and worker threads during peak CPU periods to isolate expensive code paths.');
@@ -530,44 +594,69 @@ export default {
       try {
         const token = getAccessToken();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const currentYear = new Date().getFullYear();
         const requests = await Promise.allSettled([
-          axios.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayMetrics')}`, { headers }),
-          axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getAdminUserMetrics')}`, { headers }),
-          axios.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageMetrics')}`, { headers }),
-          axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getAdminUserOverview')}`, { headers }),
-          axios.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayHttpBreakdown')}`, { headers }),
-          axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getAdminUserHttpBreakdown')}`, { headers }),
-          axios.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageHttpBreakdown')}`, { headers }),
-          axios.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayLogInsights')}`, { headers }),
-          axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getAdminUserLogInsights')}`, { headers }),
-          axios.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageLogInsights')}`, { headers }),
-          axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=0&size=5`, { headers }),
-          ...PACKAGE_STATUSES.map((status) => axios.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesByStatusUrl')}${status}`, { headers })),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminConfigMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminDiscoveryMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminOauthMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminRedisMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminMysqlMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedUserMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedPackageMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedTrackingMetrics')}`, { headers }),
+          http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getAdminUserOverview')}`, { headers }),
+          http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageDashboardSummary')}?year=${currentYear}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayHttpBreakdown')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedUserHttpBreakdown')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedPackageHttpBreakdown')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminGatewayLogInsights')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedUserLogInsights')}`, { headers }),
+          http.get(`${this.$i18n.t('gatewayRootURL')}${this.$i18n.t('getAdminAggregatedPackageLogInsights')}`, { headers }),
+          http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=0&size=5`, { headers }),
         ]);
 
         const timestamp = Date.now();
         const modules = {
           gateway: this.toModuleSnapshot(requests[0], timestamp),
-          users: this.toModuleSnapshot(requests[1], timestamp),
-          packages: this.toModuleSnapshot(requests[2], timestamp),
+          config: this.toModuleSnapshot(requests[1], timestamp),
+          discovery: this.toModuleSnapshot(requests[2], timestamp),
+          oauth: this.toModuleSnapshot(requests[3], timestamp),
+          redis: this.toModuleSnapshot(requests[4], timestamp),
+          mysql: this.toModuleSnapshot(requests[5], timestamp),
+          users: this.toModuleSnapshot(requests[6], timestamp),
+          packages: this.toModuleSnapshot(requests[7], timestamp),
+          tracking: this.toModuleSnapshot(requests[8], timestamp),
         };
         this.logInsights = {
-          gateway: requests[7].status === 'fulfilled' ? requests[7].value.data : null,
-          users: requests[8].status === 'fulfilled' ? requests[8].value.data : null,
-          packages: requests[9].status === 'fulfilled' ? requests[9].value.data : null,
+          gateway: requests[14].status === 'fulfilled' ? requests[14].value.data : null,
+          config: null,
+          discovery: null,
+          oauth: null,
+          redis: null,
+          mysql: null,
+          users: requests[15].status === 'fulfilled' ? requests[15].value.data?.summary || null : null,
+          packages: requests[16].status === 'fulfilled' ? requests[16].value.data?.summary || null : null,
+          tracking: null,
         };
         this.httpBreakdown = {
-          gateway: requests[4].status === 'fulfilled' ? requests[4].value.data : null,
-          users: requests[5].status === 'fulfilled' ? requests[5].value.data : null,
-          packages: requests[6].status === 'fulfilled' ? requests[6].value.data : null,
+          gateway: requests[11].status === 'fulfilled' ? requests[11].value.data : null,
+          config: null,
+          discovery: null,
+          oauth: null,
+          redis: null,
+          mysql: null,
+          users: requests[12].status === 'fulfilled' ? requests[12].value.data?.summary || null : null,
+          packages: requests[13].status === 'fulfilled' ? requests[13].value.data?.summary || null : null,
+          tracking: this.buildDerivedTrackingHttpBreakdown(requests[8]),
         };
 
-        const overviewResponse = requests[3].status === 'fulfilled' ? requests[3].value.data : null;
-        const usersResponse = requests[10].status === 'fulfilled' ? requests[10].value.data : null;
+        const overviewResponse = requests[9].status === 'fulfilled' ? requests[9].value.data : null;
+        const packageSummaryResponse = requests[10].status === 'fulfilled' ? requests[10].value.data : null;
+        const usersResponse = requests[17].status === 'fulfilled' ? requests[17].value.data : null;
         const packageCounts = this.emptyPackageCounts();
-        PACKAGE_STATUSES.forEach((status, index) => {
-          const response = requests[11 + index];
-          packageCounts[status] = response.status === 'fulfilled' && Array.isArray(response.value.data) ? response.value.data.length : 0;
+        PACKAGE_STATUSES.forEach((status) => {
+          packageCounts[status] = Number(packageSummaryResponse?.statusCounts?.[status] || 0);
         });
 
         const snapshot = {
@@ -598,9 +687,30 @@ export default {
     },
     toModuleSnapshot(result, timestamp) {
       if (result.status !== 'fulfilled') {
-        return { timestamp, metrics: null, httpDelta: 0, operationDelta: 0 };
+        return { timestamp, metrics: null, instances: [], totalInstances: 0, healthyInstances: 0, httpDelta: 0, operationDelta: 0 };
       }
-      return { timestamp, metrics: result.value.data || null, httpDelta: 0, operationDelta: 0 };
+      const payload = result.value.data || null;
+      if (payload?.summary !== undefined) {
+        const instances = Array.isArray(payload.instances) ? payload.instances : [];
+        return {
+          timestamp,
+          metrics: payload.summary || null,
+          instances,
+          totalInstances: Number(payload.totalInstances || instances.length),
+          healthyInstances: Number(payload.healthyInstances || instances.filter((instance) => instance?.available).length),
+          httpDelta: 0,
+          operationDelta: 0,
+        };
+      }
+      return {
+        timestamp,
+        metrics: payload,
+        instances: [],
+        totalInstances: payload ? 1 : 0,
+        healthyInstances: payload ? 1 : 0,
+        httpDelta: 0,
+        operationDelta: 0,
+      };
     },
     attachCounterDeltas(modules) {
       const previousSnapshot = this.history[this.history.length - 1] || this.currentSnapshot;
@@ -726,12 +836,32 @@ export default {
         return values[values.length - 1];
       });
     },
+    buildDerivedTrackingHttpBreakdown(result) {
+      if (result.status !== 'fulfilled') {
+        return null;
+      }
+      const metrics = result.value.data?.summary || null;
+      if (!metrics) {
+        return null;
+      }
+      return {
+        serviceName: 'tracking-service',
+        totalRequestCount: Number(metrics.httpRequestCount || 0),
+        endpoints: [],
+      };
+    },
     topCategoriesForModule(moduleKey) {
       const categoryCounts = this.logInsights[moduleKey]?.categoryCounts || {};
       return Object.entries(categoryCounts)
         .sort((left, right) => Number(right[1]) - Number(left[1]))
         .slice(0, 3)
         .map(([label, count]) => ({ label, count }));
+    },
+    formatInstanceLabel(instance) {
+      const host = instance?.ipAddress || instance?.host || 'n/a';
+      const port = instance?.port ? `:${instance.port}` : '';
+      const instanceId = instance?.instanceId ? ` (${instance.instanceId})` : '';
+      return `${host}${port}${instanceId}`;
     },
     formatInteger(value) {
       return new Intl.NumberFormat(this.currentLocale, { maximumFractionDigits: 0 }).format(Number(value || 0));
@@ -896,6 +1026,49 @@ export default {
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+.instance-block {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.instance-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+.instance-list {
+  display: grid;
+  gap: 10px;
+}
+.instance-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e7edf6;
+}
+.instance-card.unavailable {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.instance-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.instance-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #334155;
+  font-size: 0.9rem;
+}
+.instance-error {
+  color: #b91c1c;
+  font-size: 0.9rem;
 }
 .log-chip-row,
 .category-list {

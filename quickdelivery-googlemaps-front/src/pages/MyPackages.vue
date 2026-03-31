@@ -1,31 +1,52 @@
 <template>
   <div class="my-packages-page">
-    <div class="page-header">
-      <div>
-        <h1>{{ $t('myPackagesTitle') }}</h1>
-        <p>{{ $t('myPackagesSubtitle') }}</p>
-      </div>
-      <router-link v-if="canCreatePackage" to="/createPackage" class="primary-action">
-        {{ $t('myPackagesNewDelivery') }}
-      </router-link>
-    </div>
-
-    <div class="filters-panel">
-      <div class="filters-row">
-        <div class="search-field">
-          <span class="material-symbols-outlined">search</span>
-          <input v-model.trim="searchTerm" type="text" :placeholder="$t('myPackagesSearchPlaceholder')">
+    <template v-if="isLoadingPage">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('myPackagesTitle') }}</h1>
+          <p>{{ $t('myPackagesSubtitle') }}</p>
         </div>
-        <select v-model="selectedStatus" class="status-select">
-          <option value="ALL">{{ $t('myPackagesAllStatuses') }}</option>
-          <option v-for="status in availableStatuses" :key="status" :value="status">
-            {{ statusLabel(status) }}
-          </option>
-        </select>
       </div>
-    </div>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
 
-    <div class="stats-grid" v-if="!isLoadingPage && !loadError">
+    <template v-else-if="loadError">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('myPackagesTitle') }}</h1>
+          <p>{{ $t('myPackagesSubtitle') }}</p>
+        </div>
+      </div>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
+
+    <template v-else>
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('myPackagesTitle') }}</h1>
+          <p>{{ $t('myPackagesSubtitle') }}</p>
+        </div>
+        <router-link v-if="canCreatePackage" to="/createPackage" class="primary-action">
+          {{ $t('myPackagesNewDelivery') }}
+        </router-link>
+      </div>
+
+      <div class="filters-panel">
+        <div class="filters-row">
+          <div class="search-field">
+            <span class="material-symbols-outlined">search</span>
+            <input v-model.trim="searchTerm" type="text" :placeholder="$t('myPackagesSearchPlaceholder')">
+          </div>
+          <select v-model="selectedStatus" class="status-select">
+            <option value="ALL">{{ $t('myPackagesAllStatuses') }}</option>
+            <option v-for="status in availableStatuses" :key="status" :value="status">
+              {{ statusLabel(status) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stats-grid">
       <div class="stat-card">
         <strong>{{ filteredPackages.length }}</strong>
         <span>{{ $t('myPackagesStatTotal') }}</span>
@@ -44,7 +65,7 @@
       </div>
     </div>
 
-    <div v-if="!isMobile && !isLoadingPage && !loadError && filteredPackages.length > 0" class="view-switch">
+    <div v-if="!isMobile && filteredPackages.length > 0" class="view-switch">
       <button class="view-btn" :class="{ active: displayMode === 'cards' }" @click="displayMode = 'cards'">
         {{ $t('myPackagesCardsView') }}
       </button>
@@ -53,9 +74,7 @@
       </button>
     </div>
 
-    <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-    <div v-else-if="filteredPackages.length === 0" class="page-state">{{ $t('stateEmptyPackages') }}</div>
+    <div v-if="filteredPackages.length === 0" class="page-state">{{ $t('stateEmptyPackages') }}</div>
 
     <div v-else-if="displayMode === 'cards'" class="status-groups">
       <section v-for="group in groupedPackagesByStatus" :key="group.status" class="status-group">
@@ -150,6 +169,7 @@
         </tbody>
       </table>
     </div>
+    </template>
   </div>
 </template>
 

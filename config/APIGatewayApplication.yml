@@ -62,12 +62,16 @@ spring:
               - "*"
             allowCredentials: true
       routes:
+        - id: packages-stateful-service
+          uri: ${PACKAGES_STATEFUL_URI:http://packages-service:8082}
+          predicates:
+            - Path=/packages/v1/tracking/**,/packages/v1/reserve,/packages/v1/reserve-batch,/packages/v1/pickup,/packages/v1/deliver,/packages/v1/checkOTPForPickup,/packages/v1/checkOTPForDelivery,/packages/v1/checkGuestOTPForPickup,/packages/v1/checkGuestOTPForDelivery,/packages/v1/delivery-context,/packages/v1/getPackagesByDeliveryPerson,/packages/v1/isUserWithOngoingDelivery
         - id: users-service
-          uri: ${USERS_SERVICE_URI:http://users-service:8081}
+          uri: ${USERS_SERVICE_URI:lb://users-service}
           predicates:
             - Path=/users/v1/**
         - id: packages-service
-          uri: ${PACKAGES_SERVICE_URI:http://packages-service:8082}
+          uri: ${PACKAGES_SERVICE_URI:lb://package-service}
           predicates:
             - Path=/packages/v1/**
         - id: packages-websocket
@@ -89,7 +93,7 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:admin@localhost:8080/eureka/}
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:admin@172.26.4.12:8080/eureka/}
 
 resilience4j.circuitbreaker:
   configs:
@@ -130,6 +134,18 @@ quickdelivery:
     base-urls: ${QUICKDELIVERY_FRONTEND_BASE_URLS:}
   gateway:
     internal-token: ${GATEWAY_INTERNAL_TOKEN:quickdelivery-internal-token}
+  config-server:
+    base-url: ${CONFIG_SERVER_URL:}
+  discovery-server:
+    base-url: ${DISCOVERY_SERVER_URL:}
+  oauth-server:
+    base-url: ${KEYCLOAK_INTERNAL_URL:}
+  redis:
+    host: ${REDIS_HOST:}
+    port: ${REDIS_PORT:6379}
+  mysql:
+    host: ${MYSQL_HOST:}
+    port: ${MYSQL_PORT:3306}
   security:
     additional-issuer-uris: ${QUICKDELIVERY_AUTH_ISSUER_URIS:}
 

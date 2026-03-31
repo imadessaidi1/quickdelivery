@@ -39,6 +39,7 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/app.quickdelivery.tld/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/app.quickdelivery.tld/privkey.pem;
+    client_max_body_size 100m;
 
     root /var/www/quickdelivery-front;
     index index.html;
@@ -74,6 +75,7 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/api.quickdelivery.tld/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/api.quickdelivery.tld/privkey.pem;
+    client_max_body_size 100m;
 
     location /ws {
         proxy_pass http://packages_tracking_ws_backend;
@@ -81,6 +83,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
+        proxy_set_header X-Gateway-Token gateway_internal_token_placeholder;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;

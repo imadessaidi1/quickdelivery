@@ -19,8 +19,6 @@ import software.amazon.awssdk.services.textract.model.DetectDocumentTextRequest;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +31,14 @@ import java.util.stream.Collectors;
 public class TextractDocumentOcrService implements DocumentOcrService {
     private final TextractClient textractClient;
     private final DocumentOcrUnderstandingService documentOcrUnderstandingService;
+    private final UserDocumentStorageService userDocumentStorageService;
 
     public TextractDocumentOcrService(TextractClient textractClient,
-                                      DocumentOcrUnderstandingService documentOcrUnderstandingService) {
+                                      DocumentOcrUnderstandingService documentOcrUnderstandingService,
+                                      UserDocumentStorageService userDocumentStorageService) {
         this.textractClient = textractClient;
         this.documentOcrUnderstandingService = documentOcrUnderstandingService;
+        this.userDocumentStorageService = userDocumentStorageService;
     }
 
     @Override
@@ -56,10 +57,9 @@ public class TextractDocumentOcrService implements DocumentOcrService {
             if (document.getType() == DOCUMENT_TYPE.PICTURE) {
                 return new OcrExtractionResult(false, null, null, null, "OCR_NOT_APPLICABLE_PICTURE");
             }
-            Path path = Path.of(document.getDocURL());
-            byte[] bytes = Files.readAllBytes(path);
+            byte[] bytes = userDocumentStorageService.readBytes(document.getDocURL());
             OcrPageResult pageResult;
-            if (isPdf(path)) {
+            if (isPdf(document.getDocURL())) {
                 try {
                     pageResult = extractPdfText(bytes);
                 } catch (Exception pdfException) {
@@ -149,8 +149,8 @@ public class TextractDocumentOcrService implements DocumentOcrService {
         return new OcrPageResult(extractedText, averageConfidence);
     }
 
-    private boolean isPdf(Path path) {
-        String fileName = path.getFileName() == null ? "" : path.getFileName().toString().toLowerCase();
+    private boolean isPdf(String location) {
+        String fileName = location == null ? "" : location.toLowerCase();
         return fileName.endsWith(".pdf");
     }
 

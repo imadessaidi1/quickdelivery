@@ -7,6 +7,8 @@ import com.quickdelivery.abstarct.dto.PositionDTO;
 import com.quickdelivery.services.interfaces.IPackagesService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -18,8 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -31,7 +36,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final Map<String, Set<String>> packageSubscribers = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> sessionSubscriptions = new ConcurrentHashMap<>();
     @Autowired
+    @Lazy
     private IPackagesService packagesService;
+    @Autowired
+    private TrackingPositionCacheService trackingPositionCacheService;
+    @Autowired
+    @Qualifier("trackingAsyncTaskExecutor")
+    private Executor trackingAsyncTaskExecutor;
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.add(session);
@@ -76,19 +87,35 @@ public class WebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        var packageDTO = messageDTO.getGuestAccessToken() != null && !messageDTO.getGuestAccessToken().isBlank()
-                ? packagesService.findGuestPackageByReference(messageDTO.getPackageReference(), messageDTO.getGuestAccessToken())
-                : packagesService.findPackageByReference(messageDTO.getPackageReference());
         packageSubscribers.computeIfAbsent(messageDTO.getPackageReference(), ignored -> ConcurrentHashMap.newKeySet())
                 .add(session.getId());
         sessionSubscriptions.computeIfAbsent(session.getId(), ignored -> ConcurrentHashMap.newKeySet())
                 .add(messageDTO.getPackageReference());
 
-        if (packageDTO.getLastPositionLatitude() != null && packageDTO.getLastPositionLongitude() != null) {
-            PositionDTO positionDTO = new PositionDTO();
-            positionDTO.setLatitude(packageDTO.getLastPositionLatitude());
-            positionDTO.setLongitude(packageDTO.getLastPositionLongitude());
-            sendTrackingUpdate(session, messageDTO.getPackageReference(), positionDTO, "PACKAGE_SERVICE");
+        try {
+            var packageDTO = packagesService.findTrackingSubscriptionPackage(
+                    messageDTO.getPackageReference(),
+                    messageDTO.getGuestAccessToken()
+            );
+
+            sendTrackingSubscriptionAck(session, messageDTO.getPackageReference());
+
+            PositionDTO positionDTO = trackingPositionCacheService.load(messageDTO.getPackageReference())
+                    .orElseGet(() -> {
+                        if (packageDTO.getLastPositionLatitude() == null || packageDTO.getLastPositionLongitude() == null) {
+                            return null;
+                        }
+                        PositionDTO latestPosition = new PositionDTO();
+                        latestPosition.setLatitude(packageDTO.getLastPositionLatitude());
+                        latestPosition.setLongitude(packageDTO.getLastPositionLongitude());
+                        return latestPosition;
+                    });
+            if (positionDTO != null) {
+                sendTrackingUpdate(session, messageDTO.getPackageReference(), positionDTO, "PACKAGE_SERVICE");
+            }
+        } catch (RuntimeException exception) {
+            removeSubscription(session.getId(), messageDTO.getPackageReference());
+            throw exception;
         }
     }
 
@@ -105,7 +132,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 if (targetSession == null || !targetSession.isOpen() || !deliveredTo.add(sessionId)) {
                     return;
                 }
-                sendTrackingUpdate(targetSession, packageReference, positionDTO, messageDTO.getFrom());
+                submitTrackingSend(() -> sendTrackingUpdate(targetSession, packageReference, positionDTO, messageDTO.getFrom()), packageReference, sessionId);
             });
         });
     }
@@ -137,6 +164,33 @@ public class WebSocketHandler extends TextWebSocketHandler {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
         } catch (IOException e) {
             logger.warn("Unable to send tracking update for {} to session {}", packageReference, session.getId(), e);
+        }
+    }
+
+    private void sendTrackingSubscriptionAck(WebSocketSession session, String packageReference) {
+        if (session == null || !session.isOpen()) {
+            return;
+        }
+
+        MessageDTO response = new MessageDTO();
+        response.setType("TRACK_PACKAGE_SUBSCRIBED");
+        response.setFrom("PACKAGE_SERVICE");
+        response.setTo(session.getId());
+        response.setPackageReference(packageReference);
+        response.setMessage("subscribed");
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+        } catch (IOException e) {
+            logger.warn("Unable to send tracking subscription ack for {} to session {}", packageReference, session.getId(), e);
+        }
+    }
+
+    private void submitTrackingSend(Runnable task, String packageReference, String sessionId) {
+        try {
+            CompletableFuture.runAsync(task, trackingAsyncTaskExecutor);
+        } catch (RejectedExecutionException exception) {
+            logger.warn("Dropping tracking websocket push for {} to session {} because the tracking executor is saturated", packageReference, sessionId);
         }
     }
 

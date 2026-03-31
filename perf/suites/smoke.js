@@ -1,18 +1,34 @@
 import { config } from '../lib/config.js';
 import { buildSmokeThresholds } from '../lib/thresholds.js';
 import { runAdminDashboards } from '../scenarios/admin-dashboards.js';
-import { runCourierLifecycle } from '../scenarios/courier-lifecycle.js';
-import { runGuestCheckout } from '../scenarios/guest-checkout.js';
-import { runTrackingLive } from '../scenarios/tracking-live.js';
+import { runCourierOnboarding } from '../scenarios/courier-onboarding.js';
+import { runCustomerOnboarding } from '../scenarios/customer-onboarding.js';
+import { runEndToEndDelivery } from '../scenarios/e2e-delivery.js';
 
 export const options = {
   scenarios: {
-    guest_checkout_smoke: {
+    customer_onboarding_smoke: {
       executor: 'shared-iterations',
-      exec: 'guestCheckout',
+      exec: 'customerOnboarding',
       vus: 1,
       iterations: 2,
       maxDuration: '2m',
+    },
+    courier_onboarding_smoke: {
+      executor: 'shared-iterations',
+      exec: 'courierOnboarding',
+      vus: 1,
+      iterations: 1,
+      maxDuration: '2m',
+      startTime: '3s',
+    },
+    e2e_delivery_smoke: {
+      executor: 'shared-iterations',
+      exec: 'e2eDelivery',
+      vus: 1,
+      iterations: 1,
+      maxDuration: '3m',
+      startTime: '6s',
     },
     admin_dashboards_smoke: {
       executor: 'shared-iterations',
@@ -20,43 +36,25 @@ export const options = {
       vus: 1,
       iterations: 2,
       maxDuration: '2m',
-      startTime: '5s',
+      startTime: '10s',
     },
-    tracking_live_smoke: {
-      executor: 'shared-iterations',
-      exec: 'trackingLive',
-      vus: 1,
-      iterations: 1,
-      maxDuration: '2m',
-      startTime: '15s',
-    },
-    ...(config.enableCourierLifecycleSmoke ? {
-      courier_lifecycle_smoke: {
-        executor: 'shared-iterations',
-        exec: 'courierLifecycle',
-        vus: 1,
-        iterations: 1,
-        maxDuration: '2m',
-        startTime: '10s',
-      },
-    } : {}),
   },
   thresholds: buildSmokeThresholds(),
   insecureSkipTLSVerify: config.insecureSkipTLSVerify,
 };
 
-export function guestCheckout() {
-  runGuestCheckout();
+export function customerOnboarding() {
+  runCustomerOnboarding();
+}
+
+export function courierOnboarding() {
+  runCourierOnboarding();
 }
 
 export function adminDashboards() {
   runAdminDashboards();
 }
 
-export function courierLifecycle() {
-  runCourierLifecycle();
-}
-
-export function trackingLive() {
-  runTrackingLive();
+export function e2eDelivery() {
+  runEndToEndDelivery();
 }

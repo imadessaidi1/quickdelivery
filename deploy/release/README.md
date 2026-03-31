@@ -5,9 +5,13 @@ Ce dossier contient l'automatisation minimale pour redeployer front et back sur 
 ## Fichiers
 
 - `package-and-upload.ps1`
+- `package-and-upload-5vm.ps1`
 - `update-deploy.ps1`
+- `update-deploy-5vm.ps1`
 - `release-on-vm.sh`
+- `release-on-vm-5vm.sh`
 - `verify-release.sh`
+- `verify-release-5vm.sh`
 
 ## Flux retenu
 
@@ -127,3 +131,41 @@ Tu peux aussi utiliser le nom du `jar` correspondant:
 - `quickdelivery-api-gateway.jar`
 - `quickdelivery-users.jar`
 - `quickdelivery-packages.jar`
+
+## Variante 5 VM
+
+Pour l'architecture:
+
+- `VM1`: `front + nginx + gateway`
+- `VM2`: `keycloak + config-server + discovery-server`
+- `VM3`: `users + packages`
+- `VM4`: `users + packages`
+- `VM5`: `mysql`
+
+utiliser les scripts `5vm` dedies.
+
+Exemples:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy-5vm.ps1 -Role vm5-mysql -ServerIp 10.0.5.10 -Mode backend
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy-5vm.ps1 -Role vm2-platform -ServerIp 10.0.2.10 -Mode backend
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy-5vm.ps1 -Role vm3-app -ServerIp 10.0.3.10 -Mode backend
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy/release/update-deploy-5vm.ps1 -Role vm1-gateway -ServerIp 10.0.1.10 -Mode full
+```
+
+Chaque role lit par defaut son fichier:
+
+- `deploy/docker/5vm/.env.<role>` sur la VM
+
+et le met a jour depuis:
+
+- `deploy/lightsail/<role>.env` localement si ce fichier existe.

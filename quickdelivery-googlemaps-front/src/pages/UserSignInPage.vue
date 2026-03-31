@@ -8,7 +8,10 @@
       </div>
     </header>
 
-    <Form class="wizard-shell" @submit="handleStepSubmit">
+    <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
+    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+
+    <Form v-else class="wizard-shell" @submit="handleStepSubmit">
       <aside class="wizard-sidebar">
         <button
           v-for="(step, index) in visibleSteps"
@@ -86,9 +89,8 @@
 </template>
 
 <script>
-import axios from 'axios';
-import { Form } from 'vee-validate';
 import http from '@/config/httpInterceptor';
+import { Form } from 'vee-validate';
 import { LEGAL_FLOW_ACCOUNT_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
 import { validateAddress, validateEmailConfirmation, validateFileInput, validatePasswordConfirmation, validatePhoneConfirmation } from '@/config/comonFunction';
 import LegalConsentCard from '../components/LegalConsentCard.vue';
@@ -109,7 +111,7 @@ const EMPTY_USER = {
   lastName: '',
   age: null,
   birthDate: null,
-  sex: '',
+  sex: 'MAL',
   emailAddress: '',
   emailAddressValidation: false,
   phone: '',
@@ -160,9 +162,110 @@ const EMPTY_VEHICLE = {
   registrationNumber: '',
   brand: '',
   model: '',
-  energyType: '',
+  energyType: 'ELECTRIC',
   vehicleDocuments: {},
 };
+
+function createEmptyResidenceAddress() {
+  return JSON.parse(JSON.stringify(EMPTY_USER.personalAddress[0]));
+}
+
+function ensureResidenceAddress(user) {
+  const normalizedUser = user ? { ...user } : {};
+  const personalAddress = Array.isArray(normalizedUser.personalAddress)
+    ? [...normalizedUser.personalAddress]
+    : [];
+
+  if (!personalAddress.length || !personalAddress[0]) {
+    personalAddress[0] = createEmptyResidenceAddress();
+  } else {
+    personalAddress[0] = {
+      ...createEmptyResidenceAddress(),
+      ...personalAddress[0],
+    };
+  }
+
+  normalizedUser.personalAddress = personalAddress;
+  return normalizedUser;
+}
+
+function normalizeUserWizardState(user) {
+  const normalizedUser = ensureResidenceAddress(user);
+  normalizedUser.paymentModes = {
+    CREDIT_CARD: {
+      ...EMPTY_USER.paymentModes.CREDIT_CARD,
+      ...(normalizedUser.paymentModes?.CREDIT_CARD || {}),
+    },
+    IBAN: {
+      ...EMPTY_USER.paymentModes.IBAN,
+      ...(normalizedUser.paymentModes?.IBAN || {}),
+    },
+  };
+  return normalizedUser;
+}
+
+function normalizeUserForSubmission(user) {
+  const normalizedUser = ensureResidenceAddress(user);
+  if (!normalizedUser.sex) {
+    normalizedUser.sex = EMPTY_USER.sex;
+  }
+  if (normalizedUser.type === 'DELIVERY_PERSON' && !normalizedUser.deliveryMode) {
+    normalizedUser.deliveryMode = DEFAULT_DELIVERY_MODE;
+  }
+  return normalizedUser;
+}
+
+function normalizeVehicleForSubmission(vehicle) {
+  return {
+    ...JSON.parse(JSON.stringify(EMPTY_VEHICLE)),
+    ...(vehicle || {}),
+    energyType: vehicle?.energyType || EMPTY_VEHICLE.energyType,
+  };
+}
+
+function onboardingAddressStorageKey(emailAddress) {
+  return emailAddress ? `quickdelivery.onboarding.address.${emailAddress.toLowerCase()}` : null;
+}
+
+function createResidenceSnapshot(user) {
+  const normalizedUser = normalizeUserWizardState(user);
+  return {
+    addressAuto: normalizedUser.addressAuto || '',
+    personalAddress: normalizedUser.personalAddress?.length
+      ? JSON.parse(JSON.stringify(normalizedUser.personalAddress))
+      : [createEmptyResidenceAddress()],
+  };
+}
+
+function hasValidResidenceData(user) {
+  const residence = user?.personalAddress?.[0];
+  return !!(
+    user?.addressAuto
+    && residence?.line1
+    && residence?.town
+    && residence?.zipCode
+    && residence?.country
+  );
+}
+
+function isAdultBirthDate(value) {
+  if (!value) {
+    return false;
+  }
+
+  const birthDate = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(birthDate.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDelta = today.getMonth() - birthDate.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age >= 18;
+}
 
 export default {
   components: {
@@ -183,6 +286,8 @@ export default {
     return {
       currentStep: 1,
       isForUpdate: false,
+      accountBootstrapCompleted: false,
+      accountBootstrapPending: false,
       selectedPaymentType: 'CARD',
       steps: [
         { id: 1, label: 'wizardUserStepInfo', title: 'userRegistrationProfileTitle', subtitle: 'userRegistrationProfileSubtitle' },
@@ -193,6 +298,8 @@ export default {
       ],
       legalConsentAccepted: false,
       showLegalConsentError: false,
+      isLoadingPage: false,
+      loadError: false,
     };
   },
   computed: {
@@ -200,7 +307,13 @@ export default {
       return LEGAL_FLOW_ACCOUNT_CREATION;
     },
     isPendingAccountValidation() {
-      return this.isForUpdate && this.user?.activeAccount !== true;
+      return this.isForUpdate && this.user?.activeAccount !== true && !this.isResumeOnboardingFlow;
+    },
+    isResumeOnboardingFlow() {
+      const status = this.user?.onboarding?.status;
+      return this.isForUpdate
+        && this.user?.activeAccount !== true
+        && ['ACCOUNT_CREATED', 'PROFILE_COMPLETED', 'DOCUMENTS_UPLOADED'].includes(status);
     },
     isPublicTokenUpdate() {
       return !!this.updateToken;
@@ -249,6 +362,12 @@ export default {
       return [...userDocuments, ...vehicleDocuments];
     },
     visibleSteps() {
+      if (this.isResumeOnboardingFlow) {
+        if (!this.requiresVehicleSection) {
+          return this.steps.filter((step) => step.id !== 4);
+        }
+        return this.steps;
+      }
       if (this.isClientRegistrationFlow) {
         if (this.isForUpdate) {
           return this.steps.filter((step) => {
@@ -307,15 +426,10 @@ export default {
       return this.isForUpdate ? this.$t('userAccountUpdate') : this.$t('userCreateAction');
     },
     shouldShowLegalConsent() {
-      if (this.isForUpdate) {
+      if (this.isForUpdate || this.isResumeOnboardingFlow) {
         return false;
       }
-
-      if (this.isClientRegistrationFlow) {
-        return this.currentStep === 1;
-      }
-
-      return this.currentStep === this.visibleSteps[this.visibleSteps.length - 1].id;
+      return this.currentStep === 1;
     },
     user() {
       return this.$store.state.user;
@@ -391,8 +505,57 @@ export default {
       this.$store.commit('updateUserDocuments', {});
       this.$store.commit('updateVehicleDocuments', {});
       this.selectedPaymentType = 'CARD';
+      this.accountBootstrapCompleted = false;
+      this.accountBootstrapPending = false;
       this.legalConsentAccepted = false;
       this.showLegalConsentError = false;
+    },
+    persistResidenceSnapshot(userCandidate = this.$store.state.user) {
+      const storageKey = onboardingAddressStorageKey(userCandidate?.emailAddress);
+      if (!storageKey || typeof window === 'undefined') {
+        return;
+      }
+      try {
+        const snapshot = createResidenceSnapshot(userCandidate);
+        if (hasValidResidenceData(snapshot)) {
+          window.localStorage.setItem(storageKey, JSON.stringify(snapshot));
+        }
+      } catch (error) {
+        console.warn('Unable to persist onboarding residence snapshot:', error);
+      }
+    },
+    restoreResidenceSnapshot() {
+      const currentUser = normalizeUserWizardState(this.$store.state.user);
+      if (hasValidResidenceData(currentUser)) {
+        return currentUser;
+      }
+
+      const storageKey = onboardingAddressStorageKey(currentUser?.emailAddress);
+      if (!storageKey || typeof window === 'undefined') {
+        return currentUser;
+      }
+
+      try {
+        const rawSnapshot = window.localStorage.getItem(storageKey);
+        if (!rawSnapshot) {
+          return currentUser;
+        }
+        const snapshot = JSON.parse(rawSnapshot);
+        const restoredUser = normalizeUserWizardState({
+          ...currentUser,
+          addressAuto: currentUser.addressAuto || snapshot.addressAuto || '',
+          personalAddress: hasValidResidenceData(currentUser)
+            ? currentUser.personalAddress
+            : (snapshot.personalAddress?.length ? snapshot.personalAddress : currentUser.personalAddress),
+        });
+        if (hasValidResidenceData(restoredUser)) {
+          this.$store.commit('updateUser', restoredUser);
+        }
+        return restoredUser;
+      } catch (error) {
+        console.warn('Unable to restore onboarding residence snapshot:', error);
+        return currentUser;
+      }
     },
     restoreDraftIfAvailable() {
       if (this.id) {
@@ -446,6 +609,8 @@ export default {
       const url = this.isPublicTokenUpdate
         ? `${this.$i18n.t('userRootURL')}public-update-profile?updateToken=${encodeURIComponent(this.updateToken)}`
         : this.$i18n.t('userRootURL') + this.$i18n.t('getUserByEmail') + encodeURIComponent(this.id);
+      this.isLoadingPage = true;
+      this.loadError = false;
       http.get(url)
         .then((response) => {
           const residence = response.data.personalAddress?.[0] || {};
@@ -456,6 +621,12 @@ export default {
           const normalizedUser = {
             ...JSON.parse(JSON.stringify(EMPTY_USER)),
             ...response.data,
+            onboarding: this.updateToken
+              ? {
+                  ...(response.data.onboarding || {}),
+                  resumeToken: this.updateToken,
+                }
+              : (response.data.onboarding || null),
             deliveryMode: response.data.deliveryMode || DEFAULT_DELIVERY_MODE,
             addressAuto: normalizedAddressAuto,
             personalAddress: response.data.personalAddress?.length ? response.data.personalAddress : JSON.parse(JSON.stringify(EMPTY_USER.personalAddress)),
@@ -477,6 +648,7 @@ export default {
 
           this.$store.commit('updateUser', normalizedUser);
           this.$store.commit('updateVehicle', normalizedVehicle);
+          this.persistResidenceSnapshot(normalizedUser);
 
           const userDocument = {};
           ['ID', 'PICTURE', 'DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE', 'RIB'].forEach((key) => {
@@ -510,14 +682,19 @@ export default {
             || userDocument.RIB
             ? 'IBAN'
             : 'CARD';
+          this.accountBootstrapCompleted = true;
           this.currentStep = this.resolveInitialUpdateStep(userDocument, vehicleDocuments);
         })
         .catch((error) => {
+          this.loadError = true;
           console.error('Unable to process your request this time. Please try again later.', {
             status: error?.response?.status,
             data: error?.response?.data,
             message: error?.message,
           });
+        })
+        .finally(() => {
+          this.isLoadingPage = false;
         });
     },
     previousStep() {
@@ -546,6 +723,9 @@ export default {
       return labels[key] || key;
     },
     resolveInitialUpdateStep(userDocuments, vehicleDocuments) {
+      if (this.user?.onboarding?.currentStep) {
+        return this.user.onboarding.currentStep;
+      }
       const hasRejectedUserDocs = Object.values(userDocuments || {}).some((document) => document?.documentStatus === 'REJECTED');
       if (hasRejectedUserDocs) {
         return 3;
@@ -562,15 +742,15 @@ export default {
         return;
       }
       if (this.currentStep === 2) {
-        this.validateAddressStep();
+        await this.validateAddressStep();
         return;
       }
       if (this.currentStep === 3) {
-        this.validateDocumentsStep();
+        await this.validateDocumentsStep();
         return;
       }
       if (this.currentStep === 4) {
-        this.validateVehicleStep();
+        await this.validateVehicleStep();
         return;
       }
       await this.submitFormUser();
@@ -580,6 +760,7 @@ export default {
       const validPasswordConfirm = this.isForUpdate || validatePasswordConfirmation(this.user.password, this.user.passwordConfirmation);
       const validEmailConfirmation = validateEmailConfirmation(this.user.emailAddress, this.user.emailAddressConfirmation);
       const validPhoneConfirmation = validatePhoneConfirmation(this.user.phone, this.user.phoneConfirmation);
+      const validBirthDate = this.user.type !== 'DELIVERY_PERSON' || isAdultBirthDate(this.user.birthDate);
       const shouldCheckExistingEmail = !this.isForUpdate && !!this.user.emailAddress && validEmailConfirmation;
       const existingEmail = shouldCheckExistingEmail ? await this.existingEmail(this.user.emailAddress) : false;
 
@@ -587,28 +768,41 @@ export default {
       userInfo.passwordConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('PasswordConfirmation');
       userInfo.isExistingEmail = existingEmail;
       userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
+      userInfo.isBirthDateError = !validBirthDate;
+      userInfo.birthDateErrorMessage = 'Le livreur doit avoir au moins 18 ans.';
       userInfo.isEmailConfirmationError = !validEmailConfirmation;
       userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('emailConfirmation');
       userInfo.isPhoneConfirmationError = !validPhoneConfirmation;
       userInfo.phoneConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('phoneConfirmation');
       this.showLegalConsentError = false;
 
-      if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && !existingEmail) {
+      if (validPasswordConfirm && validEmailConfirmation && validPhoneConfirmation && validBirthDate && !existingEmail) {
         if (this.isClientRegistrationFlow) {
           if (this.isForUpdate && this.visibleSteps.length > 1) {
             this.goToNextVisibleStep();
             return;
           }
+          await this.submitFormUser();
+          return;
+        }
+        if (!this.isForUpdate && !this.accountBootstrapCompleted) {
           if (!this.validateLegalConsent()) {
             return;
           }
-          await this.submitFormUser();
+          const bootstrapSucceeded = await this.createAccountBootstrap();
+          if (!bootstrapSucceeded) {
+            return;
+          }
+        }
+        const nextStep = this.user?.onboarding?.currentStep;
+        if (nextStep && nextStep > this.currentStep) {
+          this.currentStep = nextStep;
           return;
         }
         this.goToNextVisibleStep();
       }
     },
-    validateAddressStep() {
+    async validateAddressStep() {
       const addressStep = this.$refs.userAddress;
       const addressAuto = addressStep.$refs.addressAutoComplete.address || this.user.addressAuto;
       this.user.addressAuto = addressAuto;
@@ -621,7 +815,8 @@ export default {
 
       addressStep.isAddressError = false;
       const chunks = addressAuto.split(',').map((chunk) => chunk.trim()).filter(Boolean);
-      const residence = this.user.personalAddress[0];
+      const normalizedUser = normalizeUserWizardState(this.user);
+      const residence = normalizedUser.personalAddress[0];
       const lineChunks = chunks.slice(0, Math.max(chunks.length - 2, 1));
       const cityChunk = chunks[chunks.length - 2] || '';
       const cityTokens = cityChunk.split(' ').filter(Boolean);
@@ -630,14 +825,25 @@ export default {
       residence.town = cityTokens.slice(1).join(' ');
       residence.country = chunks[chunks.length - 1] || '';
 
-      this.$store.commit('updateUser', { ...this.user });
+      const persistedUser = { ...normalizedUser, addressAuto };
+      this.$store.commit('updateUser', persistedUser);
+      this.persistResidenceSnapshot(persistedUser);
+      if (this.shouldPersistDraftOnStepSubmit()) {
+        await this.saveOnboardingDraftStep(2);
+        return;
+      }
       if (this.isLastStep) {
-        this.submitFormUser();
+        await this.submitFormUser();
         return;
       }
       this.goToNextVisibleStep();
     },
-    validateDocumentsStep() {
+    async validateDocumentsStep() {
+      const restoredUser = this.restoreResidenceSnapshot();
+      if (!hasValidResidenceData(restoredUser)) {
+        this.currentStep = 2;
+        return;
+      }
       const selectedFilesKeys = this.isForUpdate
         ? this.editableUserDocumentKeys
         : (this.user.type === 'DELIVERY_PERSON'
@@ -663,13 +869,22 @@ export default {
         return;
       }
 
+      if (this.shouldPersistDraftOnStepSubmit()) {
+        await this.saveOnboardingDraftStep(3);
+        return;
+      }
       if (this.isLastStep) {
-        this.submitFormUser();
+        await this.submitFormUser();
         return;
       }
       this.goToNextVisibleStep();
     },
-    validateVehicleStep() {
+    async validateVehicleStep() {
+      const restoredUser = this.restoreResidenceSnapshot();
+      if (!hasValidResidenceData(restoredUser)) {
+        this.currentStep = 2;
+        return;
+      }
       const userDocs = this.$refs.userDocuments;
       const selectedPaymentType = this.selectedPaymentType || 'CARD';
 
@@ -704,17 +919,27 @@ export default {
         return;
       }
 
+      if (this.shouldPersistDraftOnStepSubmit()) {
+        await this.saveOnboardingDraftStep(4);
+        return;
+      }
       if (this.isLastStep) {
-        this.submitFormUser();
+        await this.submitFormUser();
         return;
       }
       this.goToNextVisibleStep();
     },
     existingEmail(email) {
       return new Promise((resolve) => {
-        axios.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`)
+        http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`)
           .then((response) => {
-            resolve(response.status === 200 && !!response.data);
+            const existingUser = response.data;
+            const resumableCourier = existingUser
+              && existingUser.type === 'DELIVERY_PERSON'
+              && existingUser.activeAccount !== true
+              && existingUser.onboarding
+              && existingUser.onboarding.status !== 'COMPLETED';
+            resolve(response.status === 200 && !!existingUser && !resumableCourier);
           })
           .catch(() => {
             resolve(false);
@@ -731,50 +956,43 @@ export default {
       this.showLegalConsentError = !hasConsulted || !isAccepted;
       return hasConsulted && isAccepted;
     },
-    async submitFormUser() {
-      if (!this.validateLegalConsent()) {
-        return;
-      }
-
+    buildAccountCreatePayload() {
+      const userState = normalizeUserForSubmission(this.$store.state.user);
+      delete userState.documents;
+      return {
+        ...userState,
+        document: {},
+      };
+    },
+    shouldPersistDraftOnStepSubmit() {
+      return this.user.type === 'DELIVERY_PERSON'
+        && !this.isPendingAccountValidation
+        && (!this.isForUpdate || this.isResumeOnboardingFlow);
+    },
+    buildOnboardingFormData(includeFiles = false) {
       const formData = new FormData();
-      const userState = { ...this.$store.state.user };
+      const restoredUser = this.restoreResidenceSnapshot();
+      const userState = normalizeUserForSubmission(restoredUser);
       delete userState.documents;
       const payloadUser = {
         ...userState,
         document: {},
       };
       const payloadVehicle = {
-        ...this.$store.state.vehicle,
+        ...normalizeVehicleForSubmission(this.$store.state.vehicle),
         vehicleDocuments: {},
       };
       formData.append('user', JSON.stringify(payloadUser));
+      formData.append('vehicle', JSON.stringify(payloadVehicle));
 
-      if (!this.isForUpdate) {
+      if (includeFiles) {
         Object.entries(this.$store.state.userDocuments || {}).forEach(([key, value]) => {
           if (value?.file) {
             formData.append(key, value.file);
           }
         });
-      } else if (this.isPendingAccountValidation) {
-        this.editableUserDocumentKeys.forEach((key) => {
-          const value = this.$store.state.userDocuments?.[key];
-          if (value?.documentStatus === 'UPDATED' && value?.file) {
-            formData.append(key, value.file);
-          }
-        });
-      }
-
-      formData.append('vehicle', JSON.stringify(payloadVehicle));
-      if (!this.isForUpdate) {
         Object.entries(this.$store.state.vehicleDocuments || {}).forEach(([key, value]) => {
           if (value?.file) {
-            formData.append(key, value.file);
-          }
-        });
-      } else if (this.isPendingAccountValidation) {
-        this.editableVehicleDocumentKeys.forEach((key) => {
-          const value = this.$store.state.vehicleDocuments?.[key];
-          if (value?.documentStatus === 'UPDATED' && value?.file) {
             formData.append(key, value.file);
           }
         });
@@ -782,12 +1000,201 @@ export default {
 
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       formData.append('locale', userLanguage);
+      return formData;
+    },
+    async saveOnboardingDraftStep(step) {
+      const executeDraftSave = async () => {
+        const formData = this.buildOnboardingFormData(true);
+        formData.append('step', `${step}`);
+        return http.post(
+          this.$i18n.t('userRootURL') + this.$i18n.t('saveUserOnboardingDraft'),
+          formData,
+          { headers: { acept: 'application/json' } }
+        );
+      };
 
-      const url = this.isForUpdate
+      try {
+        let response;
+        try {
+          response = await executeDraftSave();
+        } catch (error) {
+          const responseStatus = error?.response?.status;
+          const staleResumeToken = this.$store.state.user?.onboarding?.resumeToken;
+          if (responseStatus === 404 && staleResumeToken) {
+            const currentUser = normalizeUserWizardState(this.$store.state.user);
+            this.$store.commit('updateUser', {
+              ...currentUser,
+              onboarding: currentUser.onboarding
+                ? {
+                    ...currentUser.onboarding,
+                    resumeToken: null,
+                    resumeLink: null,
+                  }
+                : null,
+            });
+            response = await executeDraftSave();
+          } else {
+            throw error;
+          }
+        }
+        if (`${response.status}` === '200') {
+          const currentUser = normalizeUserWizardState(this.$store.state.user);
+          const mergedUser = normalizeUserWizardState({
+            ...currentUser,
+            ...response.data,
+            addressAuto: response.data?.addressAuto || currentUser.addressAuto,
+            personalAddress: response.data?.personalAddress?.length
+              ? response.data.personalAddress
+              : currentUser.personalAddress,
+            paymentModes: {
+              CREDIT_CARD: {
+                ...EMPTY_USER.paymentModes.CREDIT_CARD,
+                ...(currentUser.paymentModes?.CREDIT_CARD || {}),
+                ...(response.data?.paymentModes?.CREDIT_CARD || {}),
+              },
+              IBAN: {
+                ...EMPTY_USER.paymentModes.IBAN,
+                ...(currentUser.paymentModes?.IBAN || {}),
+                ...(response.data?.paymentModes?.IBAN || {}),
+              },
+            },
+            onboarding: response.data?.onboarding || this.$store.state.user?.onboarding || null,
+          });
+          this.$store.commit('updateUser', mergedUser);
+          this.persistResidenceSnapshot(mergedUser);
+          if (response.data?.vehicles?.[0]) {
+            this.$store.commit('updateVehicle', {
+              ...this.$store.state.vehicle,
+              ...response.data.vehicles[0],
+            });
+          }
+          const nextStep = mergedUser?.onboarding?.currentStep;
+          if (nextStep) {
+            this.currentStep = nextStep;
+          } else {
+            this.goToNextVisibleStep();
+          }
+          return true;
+        }
+      } catch (error) {
+        console.error('Unable to save the onboarding draft at this time.', {
+          status: error?.response?.status,
+          data: error?.response?.data,
+          message: error?.message,
+        });
+      }
+      return false;
+    },
+    async createAccountBootstrap() {
+      if (this.isForUpdate || this.accountBootstrapCompleted || this.accountBootstrapPending) {
+        return true;
+      }
+
+      this.accountBootstrapPending = true;
+      const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
+      const payload = {
+        user: this.buildAccountCreatePayload(),
+        locale: userLanguage,
+      };
+
+      try {
+        const response = await http.post(
+          this.$i18n.t('userRootURL') + this.$i18n.t('createUserAccount'),
+          payload,
+          { headers: { 'Content-Type': 'application/json', acept: 'application/json' } }
+        );
+        if (`${response.status}` === '200') {
+          const mergedUser = normalizeUserWizardState({
+            ...this.$store.state.user,
+            ...response.data,
+            onboarding: response.data?.onboarding || null,
+          });
+          this.$store.commit('updateUser', mergedUser);
+          this.persistResidenceSnapshot(mergedUser);
+          this.accountBootstrapCompleted = true;
+          if (mergedUser.onboarding?.currentStep) {
+            this.currentStep = mergedUser.onboarding.currentStep;
+          }
+          return true;
+        }
+      } catch (error) {
+        console.error('Unable to bootstrap the account at this time.', {
+          status: error?.response?.status,
+          data: error?.response?.data,
+          message: error?.message,
+        });
+      } finally {
+        this.accountBootstrapPending = false;
+      }
+      return false;
+    },
+    async submitFormUser() {
+      if (!this.isForUpdate && !this.isResumeOnboardingFlow && !this.validateLegalConsent()) {
+        return;
+      }
+
+      if (!this.isForUpdate && this.isClientRegistrationFlow) {
+        const bootstrapSucceeded = await this.createAccountBootstrap();
+        if (!bootstrapSucceeded) {
+          return;
+        }
+        clearLegalDraft(this.legalFlow);
+        this.initializeStore();
+        this.$router.push('/');
+        return;
+      }
+
+      if (!this.isForUpdate && !this.accountBootstrapCompleted) {
+        const bootstrapSucceeded = await this.createAccountBootstrap();
+        if (!bootstrapSucceeded) {
+          return;
+        }
+      }
+
+      const formData = this.buildOnboardingFormData(false);
+
+      if (!this.isForUpdate) {
+        Object.entries(this.$store.state.userDocuments || {}).forEach(([key, value]) => {
+          if (value?.file) {
+            if (!formData.getAll(key).length) {
+              formData.append(key, value.file);
+            }
+          }
+        });
+      } else if (this.isPendingAccountValidation) {
+        this.editableUserDocumentKeys.forEach((key) => {
+          const value = this.$store.state.userDocuments?.[key];
+          if (value?.documentStatus === 'UPDATED' && value?.file) {
+            if (!formData.getAll(key).length) {
+              formData.append(key, value.file);
+            }
+          }
+        });
+      }
+      if (!this.isForUpdate) {
+        Object.entries(this.$store.state.vehicleDocuments || {}).forEach(([key, value]) => {
+          if (value?.file) {
+            if (!formData.getAll(key).length) {
+              formData.append(key, value.file);
+            }
+          }
+        });
+      } else if (this.isPendingAccountValidation) {
+        this.editableVehicleDocumentKeys.forEach((key) => {
+          const value = this.$store.state.vehicleDocuments?.[key];
+          if (value?.documentStatus === 'UPDATED' && value?.file) {
+            if (!formData.getAll(key).length) {
+              formData.append(key, value.file);
+            }
+          }
+        });
+      }
+
+      const url = this.isForUpdate && !this.isResumeOnboardingFlow
         ? (this.isPublicTokenUpdate
             ? `${this.$i18n.t('userRootURL')}public-update?updateToken=${encodeURIComponent(this.updateToken)}`
             : this.$i18n.t('userRootURL') + this.$i18n.t('updateUser'))
-        : this.$i18n.t('userRootURL') + this.$i18n.t('createUser');
+        : this.$i18n.t('userRootURL') + this.$i18n.t('completeUserOnboarding');
 
       return http.post(url, formData, { headers: { acept: 'application/json' } })
         .then((response) => {

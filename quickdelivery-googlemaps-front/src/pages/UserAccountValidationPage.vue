@@ -1,32 +1,55 @@
 <template>
   <div class="user-validation-page">
-    <div class="page-header">
-      <div>
-        <h1>{{ $t('validationPageTitle') }}</h1>
-        <p>{{ $t('validationPageSubtitle') }}</p>
+    <template v-if="isLoadingPage">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('validationPageTitle') }}</h1>
+          <p>{{ $t('validationPageSubtitle') }}</p>
+        </div>
       </div>
-      <div class="header-chip">{{ totalUsers }}</div>
-    </div>
-
-    <div class="summary-panel" v-if="!isLoadingPage && !loadError">
-      <div class="summary-card">
-        <strong>{{ totalUsers }}</strong>
-        <span>{{ $t('validationPendingUsers') }}</span>
+      <div class="page-state">{{ $t('stateLoading') }}</div>
+    </template>
+    <template v-else-if="loadError">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('validationPageTitle') }}</h1>
+          <p>{{ $t('validationPageSubtitle') }}</p>
+        </div>
       </div>
-      <div class="summary-card accent-neutral">
-        <strong>{{ totalVehicles }}</strong>
-        <span>{{ $t('validationVehiclesCount') }}</span>
+      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+    </template>
+    <template v-else-if="usersList.length === 0">
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('validationPageTitle') }}</h1>
+          <p>{{ $t('validationPageSubtitle') }}</p>
+        </div>
       </div>
-      <div class="summary-card accent-warn">
-        <strong>{{ totalDocuments }}</strong>
-        <span>{{ $t('validationDocumentsCount') }}</span>
-      </div>
-    </div>
-
-    <div class="page-state" v-if="isLoadingPage">{{ $t('stateLoading') }}</div>
-    <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-    <div v-else-if="usersList.length === 0" class="page-state">{{ $t('stateEmptyUsersValidation') }}</div>
+      <div class="page-state">{{ $t('stateEmptyUsersValidation') }}</div>
+    </template>
     <template v-else>
+      <div class="page-header">
+        <div>
+          <h1>{{ $t('validationPageTitle') }}</h1>
+          <p>{{ $t('validationPageSubtitle') }}</p>
+        </div>
+        <div class="header-chip">{{ totalUsers }}</div>
+      </div>
+
+      <div class="summary-panel">
+        <div class="summary-card">
+          <strong>{{ totalUsers }}</strong>
+          <span>{{ $t('validationPendingUsers') }}</span>
+        </div>
+        <div class="summary-card accent-neutral">
+          <strong>{{ totalVehicles }}</strong>
+          <span>{{ $t('validationVehiclesCount') }}</span>
+        </div>
+        <div class="summary-card accent-warn">
+          <strong>{{ totalDocuments }}</strong>
+          <span>{{ $t('validationDocumentsCount') }}</span>
+        </div>
+      </div>
       <UsersAccountList :users="usersList"/>
       <div class="pagination-bar">
         <button class="pagination-btn" type="button" :disabled="currentPage === 0 || isLoadingPage" @click="loadUsers(currentPage - 1)">

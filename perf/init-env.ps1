@@ -16,6 +16,29 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$envMutex = $null
+
+function Enter-PerfEnvMutex {
+    $script:envMutex = New-Object System.Threading.Mutex($false, "Global\QuickDeliveryPerfEnvLock")
+    if (-not $script:envMutex.WaitOne([TimeSpan]::FromSeconds(30))) {
+        throw "Unable to acquire perf env lock within 30 seconds. Another perf command is probably running."
+    }
+}
+
+function Exit-PerfEnvMutex {
+    if ($script:envMutex) {
+        try {
+            $script:envMutex.ReleaseMutex() | Out-Null
+        }
+        catch {
+        }
+        finally {
+            $script:envMutex.Dispose()
+            $script:envMutex = $null
+        }
+    }
+}
+
 function Resolve-PerfRoot {
     if ($PSScriptRoot) {
         return (Resolve-Path $PSScriptRoot).Path
@@ -83,7 +106,13 @@ function Write-EnvFile {
     foreach ($entry in $Values.GetEnumerator()) {
         $lines += "$($entry.Key)=$($entry.Value)"
     }
-    Set-Content -Path $Path -Value $lines -Encoding UTF8
+    $directory = Split-Path -Parent $Path
+    if ($directory -and -not (Test-Path $directory)) {
+        New-Item -ItemType Directory -Force -Path $directory | Out-Null
+    }
+    $tempPath = "$Path.tmp"
+    Set-Content -Path $tempPath -Value $lines -Encoding UTF8
+    Move-Item -Path $tempPath -Destination $Path -Force
 }
 
 function Decode-JwtPayload {
@@ -206,97 +235,99 @@ function Request-AccessToken {
     return ""
 }
 
-$perfRoot = Resolve-PerfRoot
-$envPath = Resolve-EnvFilePath -RequestedFile $EnvFile -PerfRoot $perfRoot
-$envValues = Read-EnvFile -Path $envPath
+Enter-PerfEnvMutex
+try {
+    $perfRoot = Resolve-PerfRoot
+    $envPath = Resolve-EnvFilePath -RequestedFile $EnvFile -PerfRoot $perfRoot
+    $envValues = Read-EnvFile -Path $envPath
 
-$baseUrl = if ($BaseUrl) { $BaseUrl } elseif ($envValues["BASE_URL"]) { $envValues["BASE_URL"] } else { "https://api.quickdelivery.fr" }
-$authBaseUrl = Resolve-AuthBaseUrl -RequestedAuthBaseUrl $AuthBaseUrl -EnvValues $envValues -ResolvedBaseUrl $baseUrl
-$wsUrl = if ($envValues["WS_URL"]) { $envValues["WS_URL"] } else { ($baseUrl -replace '^http', 'ws') + "/ws" }
-$defaultLocale = if ($envValues["DEFAULT_LOCALE"]) { $envValues["DEFAULT_LOCALE"] } else { "fr" }
-$insecureSkipTls = if ($envValues["INSECURE_SKIP_TLS_VERIFY"]) { $envValues["INSECURE_SKIP_TLS_VERIFY"] } else { "false" }
-$oauthClientId = if ($OAuthClientId) { $OAuthClientId } elseif ($envValues["OAUTH_CLIENT_ID"]) { $envValues["OAUTH_CLIENT_ID"] } else { "quickdelivery-postman" }
-$oauthClientSecret = if ($OAuthClientSecret) { $OAuthClientSecret } elseif ($envValues["OAUTH_CLIENT_SECRET"]) { $envValues["OAUTH_CLIENT_SECRET"] } else { "" }
-$oauthRealm = if ($OAuthRealm) { $OAuthRealm } elseif ($envValues["OAUTH_REALM"]) { $envValues["OAUTH_REALM"] } else { "quickdelivery" }
+    $baseUrl = if ($BaseUrl) { $BaseUrl } elseif ($envValues["BASE_URL"]) { $envValues["BASE_URL"] } else { "https://api.quickdelivery.fr" }
+    $authBaseUrl = Resolve-AuthBaseUrl -RequestedAuthBaseUrl $AuthBaseUrl -EnvValues $envValues -ResolvedBaseUrl $baseUrl
+    $wsUrl = if ($envValues["WS_URL"]) { $envValues["WS_URL"] } else { ($baseUrl -replace '^http', 'ws') + "/ws" }
+    $defaultLocale = if ($envValues["DEFAULT_LOCALE"]) { $envValues["DEFAULT_LOCALE"] } else { "fr" }
+    $insecureSkipTls = if ($envValues["INSECURE_SKIP_TLS_VERIFY"]) { $envValues["INSECURE_SKIP_TLS_VERIFY"] } else { "false" }
+    $oauthClientId = if ($OAuthClientId) { $OAuthClientId } elseif ($envValues["OAUTH_CLIENT_ID"]) { $envValues["OAUTH_CLIENT_ID"] } else { "quickdelivery-postman" }
+    $oauthClientSecret = if ($OAuthClientSecret) { $OAuthClientSecret } elseif ($envValues["OAUTH_CLIENT_SECRET"]) { $envValues["OAUTH_CLIENT_SECRET"] } else { "" }
+    $oauthRealm = if ($OAuthRealm) { $OAuthRealm } elseif ($envValues["OAUTH_REALM"]) { $envValues["OAUTH_REALM"] } else { "quickdelivery" }
 
-$forceAdminLogin = ($AdminUsername -and $AdminPassword)
-$forceCourierLogin = ($CourierUsername -and $CourierPassword)
+    $forceAdminLogin = ($AdminUsername -and $AdminPassword)
+    $forceCourierLogin = ($CourierUsername -and $CourierPassword)
 
-$adminToken = if ($AdminBearerToken) {
-    $AdminBearerToken
-} elseif (-not $forceAdminLogin) {
-    $envValues["ADMIN_BEARER_TOKEN"]
-} else {
-    ""
-}
-
-$courierToken = if ($CourierBearerToken) {
-    $CourierBearerToken
-} elseif (-not $forceCourierLogin) {
-    $envValues["COURIER_BEARER_TOKEN"]
-} else {
-    ""
-}
-
-if (-not $adminToken) {
-    $resolvedAdminUsername = if ($AdminUsername) { $AdminUsername } elseif ($envValues["ADMIN_USERNAME"]) { $envValues["ADMIN_USERNAME"] } else { "" }
-    $resolvedAdminPassword = if ($AdminPassword) { $AdminPassword } elseif ($envValues["ADMIN_PASSWORD"]) { $envValues["ADMIN_PASSWORD"] } else { "" }
-    $resolvedAdminUsername = Prompt-IfEmpty -Value $resolvedAdminUsername -Prompt "Admin username"
-    $resolvedAdminPassword = Prompt-IfEmpty -Value $resolvedAdminPassword -Prompt "Admin password"
-    $adminToken = Request-AccessToken -AuthUrl $authBaseUrl -Realm $oauthRealm -ClientId $oauthClientId -ClientSecret $oauthClientSecret -Username $resolvedAdminUsername -Password $resolvedAdminPassword
-}
-
-if (-not $courierToken) {
-    $resolvedCourierUsername = if ($CourierUsername) { $CourierUsername } elseif ($envValues["COURIER_USERNAME"]) { $envValues["COURIER_USERNAME"] } else { "" }
-    $resolvedCourierPassword = if ($CourierPassword) { $CourierPassword } elseif ($envValues["COURIER_PASSWORD"]) { $envValues["COURIER_PASSWORD"] } else { "" }
-    $resolvedCourierUsername = Prompt-IfEmpty -Value $resolvedCourierUsername -Prompt "Courier username"
-    $resolvedCourierPassword = Prompt-IfEmpty -Value $resolvedCourierPassword -Prompt "Courier password"
-    $courierToken = Request-AccessToken -AuthUrl $authBaseUrl -Realm $oauthRealm -ClientId $oauthClientId -ClientSecret $oauthClientSecret -Username $resolvedCourierUsername -Password $resolvedCourierPassword
-}
-
-if (-not $adminToken) {
-    $adminToken = Prompt-IfEmpty -Value $adminToken -Prompt "Admin access token"
-}
-
-if (-not $courierToken) {
-    $courierToken = Prompt-IfEmpty -Value $courierToken -Prompt "Courier access token"
-}
-
-$courierJwt = Decode-JwtPayload -Token $courierToken
-$courierEmail = $CourierEmail
-if ($courierJwt) {
-    if (-not $courierEmail) {
-        $courierEmail = [string]$courierJwt.email
+    $adminToken = if ($AdminBearerToken) {
+        $AdminBearerToken
+    } elseif (-not $forceAdminLogin) {
+        $envValues["ADMIN_BEARER_TOKEN"]
+    } else {
+        ""
     }
-}
-if (-not $courierEmail) {
-    $courierEmail = Read-Host -Prompt "Courier email"
-}
-if (-not $courierEmail) {
-    throw "Unable to resolve courier email. Provide a valid courier token or enter the courier email when prompted."
-}
 
-Write-Host "Resolving courier by email: $courierEmail"
-$courierUser = Invoke-JsonGet -Url "$baseUrl/users/v1/userByEmail?email=$([uri]::EscapeDataString($courierEmail))" -Token $adminToken
-$courierId = [string]$courierUser.id
+    $courierToken = if ($CourierBearerToken) {
+        $CourierBearerToken
+    } elseif (-not $forceCourierLogin) {
+        $envValues["COURIER_BEARER_TOKEN"]
+    } else {
+        ""
+    }
 
-Write-Host "Fetching first NEW package for courier lifecycle"
-$newPackages = Invoke-JsonGet -Url "$baseUrl/packages/v1/package-by-status?status=NEW" -Token $adminToken
-$courierPackageId = ""
-if ($newPackages -and $newPackages.Count -gt 0) {
-    $courierPackageId = [string]$newPackages[0].id
-}
+    if (-not $adminToken) {
+        $resolvedAdminUsername = if ($AdminUsername) { $AdminUsername } elseif ($envValues["ADMIN_USERNAME"]) { $envValues["ADMIN_USERNAME"] } else { "" }
+        $resolvedAdminPassword = if ($AdminPassword) { $AdminPassword } elseif ($envValues["ADMIN_PASSWORD"]) { $envValues["ADMIN_PASSWORD"] } else { "" }
+        $resolvedAdminUsername = Prompt-IfEmpty -Value $resolvedAdminUsername -Prompt "Admin username"
+        $resolvedAdminPassword = Prompt-IfEmpty -Value $resolvedAdminPassword -Prompt "Admin password"
+        $adminToken = Request-AccessToken -AuthUrl $authBaseUrl -Realm $oauthRealm -ClientId $oauthClientId -ClientSecret $oauthClientSecret -Username $resolvedAdminUsername -Password $resolvedAdminPassword
+    }
 
-Write-Host "Fetching packages already attached to courier for tracking"
-$courierPackages = Invoke-JsonGet -Url "$baseUrl/packages/v1/getPackagesByDeliveryPerson?deliveryPersonID=$courierId" -Token $adminToken
-$trackingPackageReference = ""
-if ($courierPackages.PICKEDUP -and $courierPackages.PICKEDUP.Count -gt 0) {
-    $trackingPackageReference = [string]$courierPackages.PICKEDUP[0].reference
-} elseif ($courierPackages.INDELIVERY -and $courierPackages.INDELIVERY.Count -gt 0) {
-    $trackingPackageReference = [string]$courierPackages.INDELIVERY[0].reference
-}
+    if (-not $courierToken) {
+        $resolvedCourierUsername = if ($CourierUsername) { $CourierUsername } elseif ($envValues["COURIER_USERNAME"]) { $envValues["COURIER_USERNAME"] } else { "" }
+        $resolvedCourierPassword = if ($CourierPassword) { $CourierPassword } elseif ($envValues["COURIER_PASSWORD"]) { $envValues["COURIER_PASSWORD"] } else { "" }
+        $resolvedCourierUsername = Prompt-IfEmpty -Value $resolvedCourierUsername -Prompt "Courier username"
+        $resolvedCourierPassword = Prompt-IfEmpty -Value $resolvedCourierPassword -Prompt "Courier password"
+        $courierToken = Request-AccessToken -AuthUrl $authBaseUrl -Realm $oauthRealm -ClientId $oauthClientId -ClientSecret $oauthClientSecret -Username $resolvedCourierUsername -Password $resolvedCourierPassword
+    }
 
-$orderedValues = [ordered]@{
+    if (-not $adminToken) {
+        $adminToken = Prompt-IfEmpty -Value $adminToken -Prompt "Admin access token"
+    }
+
+    if (-not $courierToken) {
+        $courierToken = Prompt-IfEmpty -Value $courierToken -Prompt "Courier access token"
+    }
+
+    $courierJwt = Decode-JwtPayload -Token $courierToken
+    $courierEmail = $CourierEmail
+    if ($courierJwt) {
+        if (-not $courierEmail) {
+            $courierEmail = [string]$courierJwt.email
+        }
+    }
+    if (-not $courierEmail) {
+        $courierEmail = Read-Host -Prompt "Courier email"
+    }
+    if (-not $courierEmail) {
+        throw "Unable to resolve courier email. Provide a valid courier token or enter the courier email when prompted."
+    }
+
+    Write-Host "Resolving courier by email: $courierEmail"
+    $courierUser = Invoke-JsonGet -Url "$baseUrl/users/v1/userByEmail?email=$([uri]::EscapeDataString($courierEmail))" -Token $adminToken
+    $courierId = [string]$courierUser.id
+
+    Write-Host "Fetching first NEW package for courier lifecycle"
+    $newPackages = Invoke-JsonGet -Url "$baseUrl/packages/v1/package-by-status?status=NEW" -Token $adminToken
+    $courierPackageId = ""
+    if ($newPackages -and $newPackages.Count -gt 0) {
+        $courierPackageId = [string]$newPackages[0].id
+    }
+
+    Write-Host "Fetching packages already attached to courier for tracking"
+    $courierPackages = Invoke-JsonGet -Url "$baseUrl/packages/v1/getPackagesByDeliveryPerson?deliveryPersonID=$courierId" -Token $adminToken
+    $trackingPackageReference = ""
+    if ($courierPackages.PICKEDUP -and $courierPackages.PICKEDUP.Count -gt 0) {
+        $trackingPackageReference = [string]$courierPackages.PICKEDUP[0].reference
+    } elseif ($courierPackages.INDELIVERY -and $courierPackages.INDELIVERY.Count -gt 0) {
+        $trackingPackageReference = [string]$courierPackages.INDELIVERY[0].reference
+    }
+
+    $orderedValues = [ordered]@{
     BASE_URL = $baseUrl
     AUTH_BASE_URL = $authBaseUrl
     WS_URL = $wsUrl
@@ -326,18 +357,22 @@ $orderedValues = [ordered]@{
     ADMIN_DASHBOARD_P95_MS = $(if ($envValues["ADMIN_DASHBOARD_P95_MS"]) { $envValues["ADMIN_DASHBOARD_P95_MS"] } else { "2000" })
     TRACKING_HTTP_P95_MS = $(if ($envValues["TRACKING_HTTP_P95_MS"]) { $envValues["TRACKING_HTTP_P95_MS"] } else { "1200" })
     TRACKING_PROPAGATION_P95_MS = $(if ($envValues["TRACKING_PROPAGATION_P95_MS"]) { $envValues["TRACKING_PROPAGATION_P95_MS"] } else { "2000" })
-}
+    }
 
-Write-EnvFile -Path $envPath -Values $orderedValues
+    Write-EnvFile -Path $envPath -Values $orderedValues
 
-Write-Host ""
-Write-Host "perf env initialized: $envPath"
-Write-Host "COURIER_ID=$courierId"
-Write-Host "COURIER_PACKAGE_ID=$courierPackageId"
-Write-Host "TRACKING_PACKAGE_REFERENCE=$trackingPackageReference"
-if (-not $courierPackageId) {
-    Write-Warning "No NEW package found for the courier lifecycle scenario."
+    Write-Host ""
+    Write-Host "perf env initialized: $envPath"
+    Write-Host "COURIER_ID=$courierId"
+    Write-Host "COURIER_PACKAGE_ID=$courierPackageId"
+    Write-Host "TRACKING_PACKAGE_REFERENCE=$trackingPackageReference"
+    if (-not $courierPackageId) {
+        Write-Warning "No NEW package found for the courier lifecycle scenario."
+    }
+    if (-not $trackingPackageReference) {
+        Write-Warning "No PICKEDUP package found for the tracking scenario."
+    }
 }
-if (-not $trackingPackageReference) {
-    Write-Warning "No PICKEDUP package found for the tracking scenario."
+finally {
+    Exit-PerfEnvMutex
 }

@@ -56,6 +56,7 @@
           :enable-time-picker="false"
           :max-date="birthDateMaxDate"
         />
+        <span v-if="isBirthDateError" class="errorMessage">{{ birthDateErrorMessage }}</span>
       </div>
 
       <div class="field-wrap">
@@ -138,6 +139,8 @@ export default {
       passwordConfirmationErrorMessage: '',
       isExistingEmail: false,
       existingEmailErrorMessage: '',
+      isBirthDateError: false,
+      birthDateErrorMessage: '',
       isEmailConfirmationError: false,
       emailConfirmationErrorMessage: '',
       isPhoneConfirmationError: false,

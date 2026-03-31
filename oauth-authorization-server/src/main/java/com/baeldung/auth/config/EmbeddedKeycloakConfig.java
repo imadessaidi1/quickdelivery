@@ -143,10 +143,6 @@ public class EmbeddedKeycloakConfig {
 		setIfPresent("keycloak.adminUrl", keycloakAdminUrl);
 		setIfPresent("keycloak.hostname.default.forceBackendUrlToFrontendUrl", forceBackendUrlToFrontendUrl);
 
-		if ("com.mysql.cj.jdbc.Driver".equals(springDatasourceDriverClassName)) {
-			System.setProperty("keycloak.connectionsJpa.driverDialect", "org.hibernate.dialect.MySQLDialect");
-		}
-
 		LOG.info("Keycloak datasource bridge: url={}, user={}, password={}, driver={}, dialect={}",
 				System.getProperty("keycloak.connectionsJpa.url"),
 				System.getProperty("keycloak.connectionsJpa.user"),

@@ -249,8 +249,8 @@ services:
       SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
       SERVER_PORT: 8443
       SERVER_SSL_ENABLED: "false"
-      USERS_SERVICE_URI: http://users-service:8081
-      PACKAGES_SERVICE_URI: http://packages-service:8082
+      USERS_SERVICE_URI: lb://Users_Service
+      PACKAGES_SERVICE_URI: lb://Package_Service
       PACKAGES_WS_URI: ws://packages-service:8082
       EUREKA_DEFAULT_ZONE: http://discovery-server:8080/eureka/
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/

@@ -1,0 +1,765 @@
+{
+    "metrics": {
+        "http_req_failed": {
+            "passes": 5,
+            "fails": 58790,
+            "thresholds": {
+                "rate<0.02": false
+            },
+            "value": 0.00008504124500382685
+        },
+        "http_reqs": {
+            "count": 58795,
+            "rate": 93.40967721901484
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 50.2144,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.013490140318054258,
+            "min": 0
+        },
+        "http_req_duration{flow:guest-create}": {
+            "med": 67.6145,
+            "max": 226.1533,
+            "p(90)": 109.3676,
+            "p(95)": 134.9619,
+            "avg": 74.99592716049385,
+            "min": 41.5148,
+            "thresholds": {
+                "p(95)<2500": false
+            }
+        },
+        "http_req_duration{flow:customer-create}": {
+            "avg": 313.79934050972525,
+            "min": 125.7786,
+            "med": 268.6698,
+            "max": 1217.7666,
+            "p(90)": 550.7197,
+            "p(95)": 631.6386,
+            "thresholds": {
+                "p(95)<2500": false
+            }
+        },
+        "data_received": {
+            "count": 165675937,
+            "rate": 263215.16792461666
+        },
+        "http_req_duration": {
+            "avg": 36.63675097202144,
+            "min": 6.5422,
+            "med": 16.3387,
+            "max": 2821.3705,
+            "p(90)": 55.77706,
+            "p(95)": 97.68967999999994
+        },
+        "ws_msgs_received": {
+            "count": 747,
+            "rate": 1.1867850817689274
+        },
+        "http_req_duration{flow:customer-verify}": {
+            "max": 194.9425,
+            "p(90)": 32.7365,
+            "p(95)": 37.27785,
+            "avg": 22.788697786720324,
+            "min": 11.1303,
+            "med": 20.0893,
+            "thresholds": {
+                "p(95)<1200": false
+            }
+        },
+        "http_req_duration{flow:guest-estimate}": {
+            "min": 21.9796,
+            "med": 34.6327,
+            "max": 301.6664,
+            "p(90)": 60.0917,
+            "p(95)": 67.867,
+            "avg": 41.87333086419753,
+            "thresholds": {
+                "p(95)<800": false
+            }
+        },
+        "http_req_receiving": {
+            "med": 0,
+            "max": 149.0856,
+            "p(90)": 0.8301,
+            "p(95)": 1.0036,
+            "avg": 0.28996356662981476,
+            "min": 0
+        },
+        "iterations": {
+            "count": 28774,
+            "rate": 45.71426230631742
+        },
+        "http_req_sending": {
+            "med": 0,
+            "max": 3.6136,
+            "p(90)": 0,
+            "p(95)": 0.5097,
+            "avg": 0.05404742239986432,
+            "min": 0
+        },
+        "http_req_duration{flow:courier-fetch}": {
+            "min": 12.3799,
+            "med": 22.163449999999997,
+            "max": 215.1471,
+            "p(90)": 36.8321,
+            "p(95)": 41.47005,
+            "avg": 26.736684831460668,
+            "thresholds": {
+                "p(95)<1200": false
+            }
+        },
+        "data_sent": {
+            "count": 8573139,
+            "rate": 13620.44641115312
+        },
+        "ws_sessions": {
+            "count": 81,
+            "rate": 0.12868753898699212
+        },
+        "ws_msgs_sent": {
+            "count": 81,
+            "rate": 0.12868753898699212
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 12
+        },
+        "tracking_messages_received": {
+            "count": 628,
+            "rate": 0.9977256109114945
+        },
+        "http_req_duration{flow:admin-metrics}": {
+            "avg": 14.167146379348777,
+            "min": 6.5422,
+            "med": 12.7257,
+            "max": 157.1025,
+            "p(90)": 20.217950000000002,
+            "p(95)": 24.709475,
+            "thresholds": {
+                "p(95)<2000": false
+            }
+        },
+        "http_req_duration{flow:guest-payment}": {
+            "avg": 64.386912345679,
+            "min": 25.8407,
+            "med": 56.9701,
+            "max": 212.8512,
+            "p(90)": 103.6662,
+            "p(95)": 117.7798,
+            "thresholds": {
+                "p(95)<1500": false
+            }
+        },
+        "vus_max": {
+            "value": 12,
+            "min": 12,
+            "max": 12
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 18.1054,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.007968675907815293,
+            "min": 0
+        },
+        "checks": {
+            "passes": 119622,
+            "fails": 9,
+            "thresholds": {
+                "rate>0.98": false
+            },
+            "value": 0.9999247686636407
+        },
+        "ws_connecting": {
+            "avg": 27.856686419753085,
+            "min": 19.4459,
+            "med": 25.7216,
+            "max": 49.0834,
+            "p(90)": 38.2756,
+            "p(95)": 41.2214
+        },
+        "tracking_propagation_ms": {
+            "med": 1031,
+            "max": 5501,
+            "p(90)": 4115.8,
+            "p(95)": 4967.7,
+            "avg": 1734.0019417475728,
+            "min": 1013
+        },
+        "http_req_duration{flow:guest-consult}": {
+            "max": 170.2944,
+            "p(90)": 40.24242,
+            "p(95)": 47.61938499999998,
+            "avg": 28.871540123456803,
+            "min": 11.788,
+            "med": 25.1443,
+            "thresholds": {
+                "p(95)<800": false
+            }
+        },
+        "http_req_waiting": {
+            "p(90)": 55.51161999999999,
+            "p(95)": 97.15402999999996,
+            "avg": 36.292739982991904,
+            "min": 6.3374,
+            "med": 16.0687,
+            "max": 2804.4336
+        },
+        "http_req_duration{flow:courier-create}": {
+            "p(90)": 734.0775,
+            "p(95)": 848.4139,
+            "avg": 499.00053398876406,
+            "min": 275.3102,
+            "med": 450.9119,
+            "max": 1324.8305,
+            "thresholds": {
+                "p(95)<2500": false
+            }
+        },
+        "http_req_duration{flow:courier-validate}": {
+            "min": 59.9599,
+            "med": 187.30360000000002,
+            "max": 627.4344,
+            "p(90)": 454.01475,
+            "p(95)": 521.870375,
+            "avg": 232.09497162921352,
+            "thresholds": {
+                "p(95)<1500": false
+            }
+        },
+        "http_req_duration{flow:tracking-http}": {
+            "min": 12.9403,
+            "med": 24.6772,
+            "max": 112.5006,
+            "p(90)": 37.69142,
+            "p(95)": 45.585099999999926,
+            "avg": 27.101537860082306,
+            "thresholds": {
+                "p(95)<1200": false
+            }
+        },
+        "http_req_duration{flow:admin-finance}": {
+            "avg": 30.144004417790203,
+            "min": 8.3795,
+            "med": 21.5473,
+            "max": 445.6279,
+            "p(90)": 61.36535000000001,
+            "p(95)": 79.53190000000001,
+            "thresholds": {
+                "p(95)<2000": false
+            }
+        },
+        "ws_session_duration": {
+            "med": 8413.1205,
+            "max": 8500.7128,
+            "p(90)": 8434.9825,
+            "p(95)": 8444.6417,
+            "avg": 8412.381690123457,
+            "min": 8373.8059
+        },
+        "tracking_propagation_ms{flow:tracking-ws}": {
+            "min": 1013,
+            "med": 1031,
+            "max": 5501,
+            "p(90)": 4115.8,
+            "p(95)": 4967.7,
+            "avg": 1734.0019417475728,
+            "thresholds": {
+                "p(95)<2000": true
+            }
+        },
+        "http_req_blocked": {
+            "med": 0,
+            "max": 69.6533,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.021966446126371292,
+            "min": 0
+        },
+        "group_duration": {
+            "avg": 40.96428486265837,
+            "min": 6.7422,
+            "med": 16.507,
+            "max": 2827.8254,
+            "p(90)": 58.17857999999997,
+            "p(95)": 106.34100999999963
+        },
+        "iteration_duration": {
+            "avg": 158.01837747966826,
+            "min": 17.1948,
+            "med": 37.75045,
+            "max": 20969.9548,
+            "p(90)": 105.31628000000008,
+            "p(95)": 775.1872249999996
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(90)": 55.74793999999999,
+            "p(95)": 97.69307999999994,
+            "avg": 36.63413255145434,
+            "min": 6.5422,
+            "med": 16.3366,
+            "max": 2821.3705
+        }
+    },
+    "root_group": {
+        "groups": {
+            "customer-onboarding-create": {
+                "name": "customer-onboarding-create",
+                "path": "::customer-onboarding-create",
+                "id": "6eadaed12baecc63036a6a56f9f65398",
+                "groups": {},
+                "checks": {
+                        "customer create returns 200": {
+                            "name": "customer create returns 200",
+                            "path": "::customer-onboarding-create::customer create returns 200",
+                            "id": "bd9c5b0ed7d549b9c19a8398a272d6e8",
+                            "passes": 1491,
+                            "fails": 0
+                        },
+                        "customer create returns id": {
+                            "name": "customer create returns id",
+                            "path": "::customer-onboarding-create::customer create returns id",
+                            "id": "c6a2f6e89f3d8b3da5469b96229d2543",
+                            "passes": 1491,
+                            "fails": 0
+                        },
+                        "customer create echoes email": {
+                            "id": "f0ff450aca1e7e6e16533d7d13ea771e",
+                            "passes": 1491,
+                            "fails": 0,
+                            "name": "customer create echoes email",
+                            "path": "::customer-onboarding-create::customer create echoes email"
+                        }
+                    }
+            },
+            "customer-onboarding-verify": {
+                "checks": {
+                    "customer verify returns 200": {
+                        "passes": 1491,
+                        "fails": 0,
+                        "name": "customer verify returns 200",
+                        "path": "::customer-onboarding-verify::customer verify returns 200",
+                        "id": "459420e7fb8f356c91d31b78a27e3db3"
+                    },
+                    "customer verify returns same id": {
+                        "name": "customer verify returns same id",
+                        "path": "::customer-onboarding-verify::customer verify returns same id",
+                        "id": "e63686bf03fa3f109c757ef176b5f416",
+                        "passes": 1491,
+                        "fails": 0
+                    }
+                },
+                "name": "customer-onboarding-verify",
+                "path": "::customer-onboarding-verify",
+                "id": "29612818cda6a3b65d0d0c312918b1d4",
+                "groups": {}
+            },
+            "courier-onboarding-create": {
+                "name": "courier-onboarding-create",
+                "path": "::courier-onboarding-create",
+                "id": "a894f93ac8e8a4d96b799a80498c1c2a",
+                "groups": {},
+                "checks": {
+                        "courier create returns 200": {
+                            "passes": 356,
+                            "fails": 0,
+                            "name": "courier create returns 200",
+                            "path": "::courier-onboarding-create::courier create returns 200",
+                            "id": "2ec93785b39c657ee98ec69d0750fa1c"
+                        },
+                        "courier create returns id": {
+                            "path": "::courier-onboarding-create::courier create returns id",
+                            "id": "ce5d3daff91348dd06002d09e472d38f",
+                            "passes": 356,
+                            "fails": 0,
+                            "name": "courier create returns id"
+                        },
+                        "courier create echoes email": {
+                            "name": "courier create echoes email",
+                            "path": "::courier-onboarding-create::courier create echoes email",
+                            "id": "a783b0981ae5d086ea9ec12f08a171fe",
+                            "passes": 356,
+                            "fails": 0
+                        }
+                    }
+            },
+            "courier-onboarding-fetch": {
+                "name": "courier-onboarding-fetch",
+                "path": "::courier-onboarding-fetch",
+                "id": "36efabe6c81cb377398b20ec17c00278",
+                "groups": {},
+                "checks": {
+                        "courier fetch returns 200": {
+                            "name": "courier fetch returns 200",
+                            "path": "::courier-onboarding-fetch::courier fetch returns 200",
+                            "id": "2a0ce2eb57d1772f64902984caa7ca5b",
+                            "passes": 356,
+                            "fails": 0
+                        },
+                        "courier fetch returns same id": {
+                            "name": "courier fetch returns same id",
+                            "path": "::courier-onboarding-fetch::courier fetch returns same id",
+                            "id": "c72b215a9c6f75b89b48c0928cd5f6d4",
+                            "passes": 356,
+                            "fails": 0
+                        },
+                        "courier fetch returns documents": {
+                            "id": "c28da6e517d433c5e5886cf34cce832a",
+                            "passes": 356,
+                            "fails": 0,
+                            "name": "courier fetch returns documents",
+                            "path": "::courier-onboarding-fetch::courier fetch returns documents"
+                        }
+                    }
+            },
+            "courier-onboarding-validate": {
+                "checks": {
+                    "courier validate returns 200": {
+                        "fails": 4,
+                        "name": "courier validate returns 200",
+                        "path": "::courier-onboarding-validate::courier validate returns 200",
+                        "id": "cfeb6c6e05859227f1f7d30501ae6aa6",
+                        "passes": 352
+                    },
+                    "courier validate activates account": {
+                        "fails": 4,
+                        "name": "courier validate activates account",
+                        "path": "::courier-onboarding-validate::courier validate activates account",
+                        "id": "1e03022fb6098e5faa956b82231d9529",
+                        "passes": 352
+                    }
+                },
+                "name": "courier-onboarding-validate",
+                "path": "::courier-onboarding-validate",
+                "id": "06896dd8b2aeff42500b1eb989421bca",
+                "groups": {}
+            },
+            "e2e-estimate": {
+                "path": "::e2e-estimate",
+                "id": "42240c13dea2c26f2803e09bc996cf69",
+                "groups": {},
+                "checks": {
+                        "e2e estimate returns 200": {
+                            "name": "e2e estimate returns 200",
+                            "path": "::e2e-estimate::e2e estimate returns 200",
+                            "id": "4405b0e77b4a547fa7eb8f2ee72ca73c",
+                            "passes": 81,
+                            "fails": 0
+                        },
+                        "e2e estimate returns delivery price": {
+                            "path": "::e2e-estimate::e2e estimate returns delivery price",
+                            "id": "e3f3be67ce6e34ec15051b26d8f0fc53",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "e2e estimate returns delivery price"
+                        }
+                    },
+                "name": "e2e-estimate"
+            },
+            "e2e-create": {
+                "groups": {},
+                "checks": {
+                        "e2e create returns 200": {
+                            "path": "::e2e-create::e2e create returns 200",
+                            "id": "f4b5054d12d4d68af8ed8391ce3d6644",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "e2e create returns 200"
+                        },
+                        "e2e create returns package id": {
+                            "name": "e2e create returns package id",
+                            "path": "::e2e-create::e2e create returns package id",
+                            "id": "db52b39264afdde6a7da1e25d4e9cbeb",
+                            "passes": 81,
+                            "fails": 0
+                        },
+                        "e2e create returns guest token": {
+                            "name": "e2e create returns guest token",
+                            "path": "::e2e-create::e2e create returns guest token",
+                            "id": "f9f76188721e18ced41302f8ce182dbb",
+                            "passes": 81,
+                            "fails": 0
+                        },
+                        "e2e create returns reference": {
+                            "id": "a56ed9e7915d42ad0117238eaa524b5d",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "e2e create returns reference",
+                            "path": "::e2e-create::e2e create returns reference"
+                        },
+                        "e2e create returns payment pending status": {
+                            "path": "::e2e-create::e2e create returns payment pending status",
+                            "id": "9d3c3149b6c5ccdea9418082c56ba92c",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "e2e create returns payment pending status"
+                        }
+                    },
+                "name": "e2e-create",
+                "path": "::e2e-create",
+                "id": "5278aba93655794409950ced9fa37be9"
+            },
+            "e2e-payment": {
+                "path": "::e2e-payment",
+                "id": "be90aa92430760010872d63afdc160d7",
+                "groups": {},
+                "checks": {
+                        "e2e payment returns success or conflict": {
+                            "fails": 0,
+                            "name": "e2e payment returns success or conflict",
+                            "path": "::e2e-payment::e2e payment returns success or conflict",
+                            "id": "b1516a48a0df87dd7093cc53b1306eb0",
+                            "passes": 81
+                        }
+                    },
+                "name": "e2e-payment"
+            },
+            "e2e-wait-new": {
+                "checks": {
+                    "e2e package becomes NEW after payment": {
+                        "name": "e2e package becomes NEW after payment",
+                        "path": "::e2e-wait-new::e2e package becomes NEW after payment",
+                        "id": "71d6c064b995ddbb48bd1aa74dd90fe2",
+                        "passes": 81,
+                        "fails": 0
+                    }
+                },
+                "name": "e2e-wait-new",
+                "path": "::e2e-wait-new",
+                "id": "fabf683d705f5d16a9ba8d478b17fb14",
+                "groups": {}
+            },
+            "courier-reserve": {
+                "checks": {
+                    "reserve returns 200": {
+                        "name": "reserve returns 200",
+                        "path": "::courier-reserve::reserve returns 200",
+                        "id": "6ccadffb8e44ce1d6c099a98e1c17543",
+                        "passes": 81,
+                        "fails": 0
+                    }
+                },
+                "name": "courier-reserve",
+                "path": "::courier-reserve",
+                "id": "9080c76701d9d63f2c79f8613dd06a90",
+                "groups": {}
+            },
+            "courier-read-pickup-otp": {
+                "path": "::courier-read-pickup-otp",
+                "id": "af2bd434c47447af6aed4bd9e4d1f188",
+                "groups": {},
+                "checks": {
+                        "packages by delivery person returns 200": {
+                            "name": "packages by delivery person returns 200",
+                            "path": "::courier-read-pickup-otp::packages by delivery person returns 200",
+                            "id": "434736b71b823a224e1bcff1b9bce5a1",
+                            "passes": 81,
+                            "fails": 0
+                        },
+                        "pickup otp resolved after reserve": {
+                            "path": "::courier-read-pickup-otp::pickup otp resolved after reserve",
+                            "id": "6b7b40b9b60353c0ad7b42bc7abe5360",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "pickup otp resolved after reserve"
+                        }
+                    },
+                "name": "courier-read-pickup-otp"
+            },
+            "courier-pickup": {
+                "name": "courier-pickup",
+                "path": "::courier-pickup",
+                "id": "dc72f598a8521478d76c24a4f9104a37",
+                "groups": {},
+                "checks": {
+                        "pickup returns 200": {
+                            "id": "340743bdbd49ed050b5ca3ec5e2f334d",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "pickup returns 200",
+                            "path": "::courier-pickup::pickup returns 200"
+                        }
+                    }
+            },
+            "courier-read-delivery-otp": {
+                "name": "courier-read-delivery-otp",
+                "path": "::courier-read-delivery-otp",
+                "id": "d25726e29cfbe0b2f31f60c27251b66d",
+                "groups": {},
+                "checks": {
+                        "packages by delivery person returns 200 after pickup": {
+                            "name": "packages by delivery person returns 200 after pickup",
+                            "path": "::courier-read-delivery-otp::packages by delivery person returns 200 after pickup",
+                            "id": "33f3fdbaec7e5a8c6e8cf0f70c99ee10",
+                            "passes": 81,
+                            "fails": 0
+                        },
+                        "delivery otp resolved after pickup": {
+                            "name": "delivery otp resolved after pickup",
+                            "path": "::courier-read-delivery-otp::delivery otp resolved after pickup",
+                            "id": "3cc4b8c3eb57b4d3be197cd3eb4a60fe",
+                            "passes": 81,
+                            "fails": 0
+                        }
+                    }
+            },
+            "admin-dashboard-metrics": {
+                "checks": {
+                    "admin metrics returns 200": {
+                        "name": "admin metrics returns 200",
+                        "path": "::admin-dashboard-metrics::admin metrics returns 200",
+                        "id": "8b4bef84a4e0c875e713756fd848ea32",
+                        "passes": 26846,
+                        "fails": 0
+                    },
+                    "admin metrics contains serviceName": {
+                        "id": "a6b7540de2a48751bc4422c5f9fe195d",
+                        "passes": 26846,
+                        "fails": 0,
+                        "name": "admin metrics contains serviceName",
+                        "path": "::admin-dashboard-metrics::admin metrics contains serviceName"
+                    }
+                },
+                "name": "admin-dashboard-metrics",
+                "path": "::admin-dashboard-metrics",
+                "id": "354489363828f4dd8837ad77eadbfab5",
+                "groups": {}
+            },
+            "admin-dashboard-finance": {
+                "name": "admin-dashboard-finance",
+                "path": "::admin-dashboard-finance",
+                "id": "e1d2c299cea9e42df0be61117fb42afe",
+                "groups": {},
+                "checks": {
+                        "admin finance returns 200": {
+                            "path": "::admin-dashboard-finance::admin finance returns 200",
+                            "id": "4fcdc2e1f50047bbca3371b8d1df8503",
+                            "passes": 26846,
+                            "fails": 0,
+                            "name": "admin finance returns 200"
+                        },
+                        "admin finance contains generatedAt": {
+                            "path": "::admin-dashboard-finance::admin finance contains generatedAt",
+                            "id": "93ba06102af8555c38c847810817630f",
+                            "passes": 26846,
+                            "fails": 0,
+                            "name": "admin finance contains generatedAt"
+                        }
+                    }
+            },
+            "tracking-http-update-1": {
+                "name": "tracking-http-update-1",
+                "path": "::tracking-http-update-1",
+                "id": "db0d2e27f45e31aad551bfbbc6334aa7",
+                "groups": {},
+                "checks": {
+                        "tracking update returns 200": {
+                            "fails": 0,
+                            "name": "tracking update returns 200",
+                            "path": "::tracking-http-update-1::tracking update returns 200",
+                            "id": "14ba9e024db21cf1c2b4253c2e987c15",
+                            "passes": 81
+                        }
+                    }
+            },
+            "tracking-http-update-2": {
+                "checks": {
+                    "tracking update returns 200": {
+                        "path": "::tracking-http-update-2::tracking update returns 200",
+                        "id": "db2afd4a872812e1245ec56776f534d1",
+                        "passes": 81,
+                        "fails": 0,
+                        "name": "tracking update returns 200"
+                    }
+                },
+                "name": "tracking-http-update-2",
+                "path": "::tracking-http-update-2",
+                "id": "ebf06d756fd79fe028d4919604a751fb",
+                "groups": {}
+            },
+            "tracking-http-update-3": {
+                "path": "::tracking-http-update-3",
+                "id": "202d68936b771554e66421a577985cb2",
+                "groups": {},
+                "checks": {
+                        "tracking update returns 200": {
+                            "fails": 1,
+                            "name": "tracking update returns 200",
+                            "path": "::tracking-http-update-3::tracking update returns 200",
+                            "id": "0bd53031eef40803c385f1200071d8f7",
+                            "passes": 80
+                        }
+                    },
+                "name": "tracking-http-update-3"
+            },
+            "courier-deliver": {
+                "name": "courier-deliver",
+                "path": "::courier-deliver",
+                "id": "ae441896062db0d1fe13743828b6ad47",
+                "groups": {},
+                "checks": {
+                        "deliver returns 200": {
+                            "path": "::courier-deliver::deliver returns 200",
+                            "id": "e1376d8c8b6128b1e0faa3fad70ebe8e",
+                            "passes": 81,
+                            "fails": 0,
+                            "name": "deliver returns 200"
+                        }
+                    }
+            },
+            "e2e-consult": {
+                "groups": {},
+                "checks": {
+                        "e2e consult returns 200": {
+                            "fails": 0,
+                            "name": "e2e consult returns 200",
+                            "path": "::e2e-consult::e2e consult returns 200",
+                            "id": "e1a19e57b1174bbbdc0149b0db09c383",
+                            "passes": 81
+                        },
+                        "e2e consult returns package": {
+                            "fails": 0,
+                            "name": "e2e consult returns package",
+                            "path": "::e2e-consult::e2e consult returns package",
+                            "id": "d9f527405b30bd2c3311be16236c97a2",
+                            "passes": 81
+                        },
+                        "e2e consult returns delivered status": {
+                            "name": "e2e consult returns delivered status",
+                            "path": "::e2e-consult::e2e consult returns delivered status",
+                            "id": "aa89ed787dfbffef4499ce1644f93fc4",
+                            "passes": 81,
+                            "fails": 0
+                        }
+                    },
+                "name": "e2e-consult",
+                "path": "::e2e-consult",
+                "id": "902ef6641c85b55b8449cb09ce457e8a"
+            }
+        },
+        "checks": {
+            "tracking websocket handshake ok": {
+                "passes": 81,
+                "fails": 0,
+                "name": "tracking websocket handshake ok",
+                "path": "::tracking websocket handshake ok",
+                "id": "c9ba2a462d12d6c533aa1dcd3ad47c19"
+            },
+            "tracking websocket received updates": {
+                "name": "tracking websocket received updates",
+                "path": "::tracking websocket received updates",
+                "id": "989daf13a387b4e95e2dea642c37a205",
+                "passes": 81,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+}

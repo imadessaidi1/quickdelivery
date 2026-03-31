@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.errors.ApiException;
 import com.quickdelivery.abstarct.dto.AddressDTO;
+import com.quickdelivery.abstarct.dto.ActiveTrackingPackageDTO;
+import com.quickdelivery.abstarct.dto.AdminPackageDashboardSummaryDTO;
+import com.quickdelivery.abstarct.dto.DeliveryReservationContextDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.FinancialDashboardDTO;
 import com.quickdelivery.abstarct.dto.MessageDTO;
@@ -105,7 +108,7 @@ public class PackageController {
         return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude);
     }
 
-    @GetMapping("/package-by-status{status}")
+    @GetMapping("/package-by-status")
     public List<PackageDTO> findPackagesByStatus(@RequestParam(name = "status", required = true) PACKAGE_STATUS status){
         return packagesService.findPackagesByStatus(status);
     }
@@ -135,39 +138,41 @@ public class PackageController {
         notifyPackageCreation(packagesService.findPackageByID(packageID).getReference());
     }
 
-    @PutMapping("/reserve{packageID}{deliveryPersonID}{locale}")
-    public void reservePackage(@RequestParam("packageID") Long packageID,
-                               @RequestParam("deliveryPersonID") Long deliveryPersonID,
-                               @RequestParam("locale") Locale locale){
+    @PutMapping("/reserve")
+    public DeliveryReservationContextDTO reservePackage(@RequestParam("packageID") Long packageID,
+                                                        @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                                        @RequestParam("locale") Locale locale){
         try {
             PackageReservation packageReservation = packagesService.reservePackage(packageID, deliveryPersonID, locale);
             notifyPackageReservation(packageReservation.getPickUpOTP(), deliveryPersonID, packageReservation.getaPackage().getReference());
+            return packagesService.getDeliveryReservationContext(packageID, deliveryPersonID);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @PutMapping("/reserve-batch{deliveryPersonID}{locale}")
+    @PutMapping("/reserve-batch")
     public ReserveBatchResultDTO reservePackagesBatch(@RequestBody List<Long> packageIds,
                                                       @RequestParam("deliveryPersonID") Long deliveryPersonID,
                                                       @RequestParam("locale") Locale locale) {
         return packagesService.reservePackagesBatch(packageIds, deliveryPersonID, locale);
     }
 
-    @PutMapping("/pickup{packageID}{deliveryPersonID}{pickUpOTP}{locale}")
-    public void pickUpPackage(@RequestParam("packageID") Long packageID,
-                              @RequestParam("deliveryPersonID") Long deliveryPersonID,
-                              @RequestParam("pickUpOTP") String pickUpOTP,
-                              @RequestParam("locale") Locale locale){
+    @PutMapping("/pickup")
+    public DeliveryReservationContextDTO pickUpPackage(@RequestParam("packageID") Long packageID,
+                                                       @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                                       @RequestParam("pickUpOTP") String pickUpOTP,
+                                                       @RequestParam("locale") Locale locale){
         try {
             packagesService.pickUpPackage(packageID,deliveryPersonID,pickUpOTP,locale);
             notifyPackagePickup(packageID);
+            return packagesService.getDeliveryReservationContext(packageID, deliveryPersonID);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @PutMapping("/deliver{packageID}{deliveryPersonID}{pickUpOTP}{locale}")
+    @PutMapping("/deliver")
     public void deliverPackage(@RequestParam("packageID") Long packageID,
                               @RequestParam("deliveryPersonID") Long deliveryPersonID,
                               @RequestParam("deliveryOTP") String deliveryOTP,
@@ -180,49 +185,55 @@ public class PackageController {
         }
     }
 
-    @GetMapping("/checkOTPForPickup{packageID}{senderID}{pickUpOTP}")
+    @GetMapping("/checkOTPForPickup")
     public CHECK_STATUS checkOTPForPickUpPackage(@RequestParam("packageID") Long packageID,
                                                  @RequestParam("senderID") Long senderID,
                                                  @RequestParam("pickUpOTP") String pickUpOTP){
             return packagesService.checkOTPForPickUpPackage(packageID,senderID,pickUpOTP);
     }
 
-    @GetMapping("/checkOTPForDelivery{packageID}{deliveryPersonID}{deliveryOTP}")
+    @GetMapping("/checkOTPForDelivery")
     public CHECK_STATUS checkOTPForDeliveryPackage(@RequestParam("packageID") Long packageID,
                                            @RequestParam("deliveryPersonID") Long deliveryPersonID,
                                            @RequestParam("deliveryOTP") String deliveryOTP){
         return packagesService.checkOTPForDeliverPackage(packageID,deliveryPersonID,deliveryOTP);
     }
 
-    @GetMapping("/checkGuestOTPForPickup{packageID}{guestAccessToken}{pickUpOTP}")
+    @GetMapping("/checkGuestOTPForPickup")
     public CHECK_STATUS checkGuestOTPForPickUpPackage(@RequestParam("packageID") Long packageID,
                                                       @RequestParam("guestAccessToken") String guestAccessToken,
                                                       @RequestParam("pickUpOTP") String pickUpOTP){
         return packagesService.checkGuestOTPForPickUpPackage(packageID, guestAccessToken, pickUpOTP);
     }
 
-    @GetMapping("/checkGuestOTPForDelivery{packageID}{guestAccessToken}{deliveryOTP}")
+    @GetMapping("/checkGuestOTPForDelivery")
     public CHECK_STATUS checkGuestOTPForDeliveryPackage(@RequestParam("packageID") Long packageID,
                                                         @RequestParam("guestAccessToken") String guestAccessToken,
                                                         @RequestParam("deliveryOTP") String deliveryOTP){
         return packagesService.checkGuestOTPForDeliverPackage(packageID, guestAccessToken, deliveryOTP);
     }
-    @GetMapping("/getPackagesByDeliveryPerson{deliveryPersonID}")
+    @GetMapping("/getPackagesByDeliveryPerson")
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesByDeliveryPerson(@RequestParam("deliveryPersonID") Long deliveryPersonID){
         return packagesService.getPackagesByDeliveryPerson(deliveryPersonID);
     }
 
-    @GetMapping("/getPackagesBySender{senderID}")
+    @GetMapping("/getPackagesBySender")
     public Map<PACKAGE_STATUS, List<PackageDTO>> getPackagesBySender(@RequestParam("senderID") Long senderID){
         return packagesService.getPackagesBySender(senderID);
     }
 
-    @GetMapping("/getPackage{reference}")
+    @GetMapping("/delivery-context")
+    public DeliveryReservationContextDTO getDeliveryReservationContext(@RequestParam("packageID") Long packageID,
+                                                                       @RequestParam("deliveryPersonID") Long deliveryPersonID) {
+        return packagesService.getDeliveryReservationContext(packageID, deliveryPersonID);
+    }
+
+    @GetMapping("/getPackage")
     public PackageDTO getPackagesByID(@RequestParam("reference") String reference){
         return packagesService.findPackageByReference(reference);
     }
 
-    @GetMapping("/getGuestPackage{reference}{guestAccessToken}")
+    @GetMapping("/getGuestPackage")
     public PackageDTO getGuestPackage(@RequestParam("reference") String reference,
                                       @RequestParam("guestAccessToken") String guestAccessToken){
         return packagesService.findGuestPackageByReference(reference, guestAccessToken);
@@ -231,10 +242,18 @@ public class PackageController {
     @PostMapping("/tracking/position")
     public void updateTrackingPosition(@RequestParam("deliveryPersonId") Long deliveryPersonId,
                                        @RequestBody PositionDTO positionDTO) {
-        webSocketHandler.broadcastTrackingPositions(
-                "PACKAGE_SERVICE",
-                packagesService.updateTrackingPosition(deliveryPersonId, positionDTO)
-        );
+        packagesService.updateTrackingPosition(deliveryPersonId, positionDTO);
+    }
+
+    @PostMapping("/tracking/package-position")
+    public void updateTrackingPositionByPackageReference(@RequestParam("packageReference") String packageReference,
+                                                         @RequestBody PositionDTO positionDTO) {
+        packagesService.updateTrackingPositionByPackageReference(packageReference, positionDTO);
+    }
+
+    @GetMapping("/tracking/active-package")
+    public ActiveTrackingPackageDTO getActiveTrackingPackage(@RequestParam("deliveryPersonId") Long deliveryPersonId) {
+        return packagesService.getActiveTrackingPackage(deliveryPersonId);
     }
 
     @GetMapping("/document-content")
@@ -269,7 +288,7 @@ public class PackageController {
         webSocketHandler.sendMessageToAll(json);
     }
 
-    @GetMapping("/isUserWithOngoingDelivery{userId}")
+    @GetMapping("/isUserWithOngoingDelivery")
     public Boolean isUserWithOngoingDelivery(@RequestParam("userId") Long userId){
         return packagesService.isUserWithOngoingDelivery(userId);
     }
@@ -279,9 +298,20 @@ public class PackageController {
         return packagesService.loadAdminMetrics();
     }
 
+    @GetMapping("/admin/tracking-metrics")
+    public ServiceMetricsDTO adminTrackingMetrics() {
+        return packagesService.loadAdminTrackingMetrics();
+    }
+
     @GetMapping("/admin/http-breakdown")
     public ServiceHttpBreakdownDTO adminHttpBreakdown() {
         return packagesService.loadAdminHttpBreakdown();
+    }
+
+    @GetMapping("/admin/dashboard-summary")
+    public AdminPackageDashboardSummaryDTO adminDashboardSummary(@RequestParam(name = "year", required = false) Integer year) {
+        int resolvedYear = year == null ? java.time.LocalDate.now().getYear() : year;
+        return packagesService.loadAdminDashboardSummary(resolvedYear);
     }
 
     @GetMapping("/admin/log-insights")

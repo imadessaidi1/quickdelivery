@@ -1,0 +1,55 @@
+﻿{
+    "id":  374391,
+    "version":  0,
+    "type":  "DELIVERY_PERSON",
+    "firstName":  "Imad",
+    "age":  null,
+    "sex":  "MAL",
+    "birthDate":  "2003-03-13",
+    "lastName":  "ESSAIDI",
+    "emailAddress":  "sci.essaidi.orly@gmail.com",
+    "emailAddressConfirmation":  "sci.essaidi.orly@gmail.com",
+    "phoneConfirmation":  "+33667181217",
+    "emailAddressValidation":  false,
+    "phone":  "+33667181217",
+    "phoneValidation":  false,
+    "activeAccount":  false,
+    "password":  null,
+    "addressAuto":  null,
+    "deliveryMode":  "CAR",
+    "passwordConfirmation":  null,
+    "personalAddress":  [
+
+                        ],
+    "paymentModes":  {
+
+                     },
+    "document":  {
+
+                 },
+    "documentCount":  0,
+    "packagesDELIVERED":  null,
+    "packagesSent":  null,
+    "vehicles":  [
+
+                 ],
+    "onboarding":  {
+                       "userId":  374391,
+                       "userType":  "DELIVERY_PERSON",
+                       "status":  "ACCOUNT_CREATED",
+                       "accountCreated":  true,
+                       "profileCompleted":  false,
+                       "documentsUploaded":  false,
+                       "readyForValidation":  false,
+                       "activeAccount":  false,
+                       "emailAddressValidation":  false,
+                       "accountCreatedAt":  "2026-03-30T20:59:35.526+00:00",
+                       "profileCompletedAt":  null,
+                       "documentsUploadedAt":  null,
+                       "readyForValidationAt":  null,
+                       "completedAt":  null,
+                       "currentStep":  2,
+                       "resumeToken":  null,
+                       "resumeLink":  null
+                   }
+}

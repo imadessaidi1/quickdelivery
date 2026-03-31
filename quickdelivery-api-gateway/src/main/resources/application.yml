@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:configserver:http://localhost:8889
+    import: optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://172.26.4.12:8889}
   application:
     name: APIGatewayApplication
   cloud:

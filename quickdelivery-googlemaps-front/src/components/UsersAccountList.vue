@@ -60,7 +60,8 @@ export default {
       if (!vehicle) {
         return '-';
       }
-      return [vehicle.brand, vehicle.model, vehicle.registrationNumber].filter(Boolean).join(' - ');
+      const summary = [vehicle.brand, vehicle.model, vehicle.registrationNumber].filter(Boolean).join(' - ');
+      return summary || this.$t('validationVehicleDeclaredFallback');
     },
     documentCount(user) {
       return user?.documentCount || Object.keys(user?.documents || user?.document || {}).length || 0;

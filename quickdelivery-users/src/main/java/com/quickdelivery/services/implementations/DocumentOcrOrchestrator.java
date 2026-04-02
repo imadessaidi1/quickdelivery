@@ -10,12 +10,14 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
 public class DocumentOcrOrchestrator {
@@ -53,6 +55,18 @@ public class DocumentOcrOrchestrator {
             return;
         }
 
+        if (document.getOcrStatus() == DOCUMENT_OCR_STATUS.PROCESSING) {
+            logger.info("Skipping OCR for document {} because processing is already in progress", documentId);
+            result = "skipped_processing";
+            return;
+        }
+
+        if (document.getOcrStatus() == DOCUMENT_OCR_STATUS.COMPLETED && document.getOcrProcessedAt() != null) {
+            logger.info("Skipping OCR for document {} because it is already completed", documentId);
+            result = "skipped_completed";
+            return;
+        }
+
         if (document.getDocURL() == null || document.getDocURL().isBlank()) {
             markDisabled(document, "NO_DOCUMENT_PATH");
             result = "disabled";
@@ -72,10 +86,15 @@ public class DocumentOcrOrchestrator {
         }
 
         try {
-            document.setOcrStatus(DOCUMENT_OCR_STATUS.PROCESSING);
-            document.setOcrProvider(documentOcrService.providerName());
-            document.setOcrErrorCode(null);
-            document = documents.save(document);
+            document = updateDocument(documentId, current -> {
+                current.setOcrStatus(DOCUMENT_OCR_STATUS.PROCESSING);
+                current.setOcrProvider(documentOcrService.providerName());
+                current.setOcrErrorCode(null);
+            });
+            if (document == null) {
+                result = "not_found";
+                return;
+            }
 
             DocumentOcrService.OcrExtractionResult extractionResult = documentOcrService.extract(document);
             if (!extractionResult.success()) {
@@ -97,17 +116,22 @@ public class DocumentOcrOrchestrator {
             DocumentProfileMatchingService.MatchingResult matchingResult =
                     documentProfileMatchingService.match(document, extractionResult.structuredData());
             String matchDetails = objectMapper.writeValueAsString(matchingResult.details());
-            document.setOcrStatus(DOCUMENT_OCR_STATUS.COMPLETED);
-            document.setOcrProvider(documentOcrService.providerName());
-            document.setOcrConfidenceScore(extractionResult.confidenceScore());
-            document.setOcrExtractedData(extractedData);
-            applyNormalizedOcrFields(document, extractionResult.structuredData());
-            document.setOcrProcessedAt(new Date());
-            document.setOcrErrorCode(extractionResult.errorCode());
-            document.setMatchStatus(matchingResult.status());
-            document.setMatchScore(matchingResult.score());
-            document.setMatchDetails(matchDetails);
-            document = documents.save(document);
+            document = updateDocument(documentId, current -> {
+                current.setOcrStatus(DOCUMENT_OCR_STATUS.COMPLETED);
+                current.setOcrProvider(documentOcrService.providerName());
+                current.setOcrConfidenceScore(extractionResult.confidenceScore());
+                current.setOcrExtractedData(extractedData);
+                applyNormalizedOcrFields(current, extractionResult.structuredData());
+                current.setOcrProcessedAt(new Date());
+                current.setOcrErrorCode(extractionResult.errorCode());
+                current.setMatchStatus(matchingResult.status());
+                current.setMatchScore(matchingResult.score());
+                current.setMatchDetails(matchDetails);
+            });
+            if (document == null) {
+                result = "not_found";
+                return;
+            }
             result = "completed";
             logger.info("OCR processing completed for document {} with provider {}", documentId, documentOcrService.providerName());
         } catch (Exception exception) {
@@ -129,14 +153,19 @@ public class DocumentOcrOrchestrator {
             logger.warn("Unable to mark OCR disabled because document {} no longer exists", documentId);
             return;
         }
-        document.setOcrStatus(DOCUMENT_OCR_STATUS.DISABLED);
-        document.setOcrProvider(documentOcrService.providerName());
-        document.setOcrErrorCode(errorCode);
-        document.setOcrProcessedAt(new Date());
-        document.setMatchStatus(errorCode.startsWith("OCR_MANUAL_REVIEW") ? DOCUMENT_MATCH_STATUS.REVIEW_REQUIRED : DOCUMENT_MATCH_STATUS.NOT_APPLICABLE);
-        document.setMatchScore(null);
-        document.setMatchDetails(null);
-        documents.save(document);
+        if (document.getOcrStatus() == DOCUMENT_OCR_STATUS.COMPLETED) {
+            logger.info("Skipping OCR disabled marker for document {} because OCR already completed", document.getId());
+            return;
+        }
+        updateDocument(document.getId(), current -> {
+            current.setOcrStatus(DOCUMENT_OCR_STATUS.DISABLED);
+            current.setOcrProvider(documentOcrService.providerName());
+            current.setOcrErrorCode(errorCode);
+            current.setOcrProcessedAt(new Date());
+            current.setMatchStatus(errorCode.startsWith("OCR_MANUAL_REVIEW") ? DOCUMENT_MATCH_STATUS.REVIEW_REQUIRED : DOCUMENT_MATCH_STATUS.NOT_APPLICABLE);
+            current.setMatchScore(null);
+            current.setMatchDetails(null);
+        });
         logger.info("OCR disabled for document {} with code {}", document.getId(), errorCode);
     }
 
@@ -147,14 +176,19 @@ public class DocumentOcrOrchestrator {
             logger.warn("Unable to mark OCR failure because document {} no longer exists", documentId);
             return;
         }
-        document.setOcrStatus(DOCUMENT_OCR_STATUS.FAILED);
-        document.setOcrProvider(documentOcrService.providerName());
-        document.setOcrErrorCode(errorCode);
-        document.setOcrProcessedAt(new Date());
-        document.setMatchStatus(DOCUMENT_MATCH_STATUS.UNAVAILABLE);
-        document.setMatchScore(null);
-        document.setMatchDetails(null);
-        documents.save(document);
+        if (document.getOcrStatus() == DOCUMENT_OCR_STATUS.COMPLETED) {
+            logger.info("Skipping OCR failure marker for document {} because OCR already completed", document.getId());
+            return;
+        }
+        updateDocument(document.getId(), current -> {
+            current.setOcrStatus(DOCUMENT_OCR_STATUS.FAILED);
+            current.setOcrProvider(documentOcrService.providerName());
+            current.setOcrErrorCode(errorCode);
+            current.setOcrProcessedAt(new Date());
+            current.setMatchStatus(DOCUMENT_MATCH_STATUS.UNAVAILABLE);
+            current.setMatchScore(null);
+            current.setMatchDetails(null);
+        });
         logger.warn("OCR failed for document {} with code {}", document.getId(), errorCode);
     }
 
@@ -163,6 +197,22 @@ public class DocumentOcrOrchestrator {
             return null;
         }
         return documents.findByIdWithMatchingContext(document.getId()).orElse(null);
+    }
+
+    private Document updateDocument(Long documentId, Consumer<Document> updater) {
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            Document current = documents.findByIdWithMatchingContext(documentId).orElse(null);
+            if (current == null) {
+                return null;
+            }
+            updater.accept(current);
+            try {
+                return documents.saveAndFlush(current);
+            } catch (OptimisticLockingFailureException exception) {
+                logger.info("Retrying OCR document {} update after optimistic locking conflict (attempt {})", documentId, attempt);
+            }
+        }
+        throw new OptimisticLockingFailureException("Unable to update OCR document " + documentId + " after retry");
     }
 
     @SuppressWarnings("unchecked")

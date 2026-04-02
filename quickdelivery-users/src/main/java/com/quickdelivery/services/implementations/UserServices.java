@@ -1109,6 +1109,7 @@ public class UserServices implements IUserServices {
                 return;
             }
             document.setDocURL(resolveDocumentPath(filesPath, newFileName));
+            resetOcrState(document);
             validFilesMap.add(fileName, file);
         });
 
@@ -1678,6 +1679,7 @@ public class UserServices implements IUserServices {
                 .filter(document -> document.getId() != null)
                 .filter(document -> document.getDocURL() != null && !document.getDocURL().isBlank())
                 .filter(document -> validFilesMap.containsKey(document.getType().name()))
+                .filter(this::shouldTriggerOcr)
                 .map(Document::getId)
                 .toList();
 
@@ -1700,6 +1702,43 @@ public class UserServices implements IUserServices {
 
         logger.info("Triggering OCR immediately for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
         submitUserAsyncTask(trigger, userAsyncTaskExecutor, "user-ocr");
+    }
+
+    private boolean shouldTriggerOcr(Document document) {
+        DOCUMENT_OCR_STATUS status = document.getOcrStatus();
+        return status == null
+                || status == DOCUMENT_OCR_STATUS.PENDING
+                || status == DOCUMENT_OCR_STATUS.FAILED
+                || status == DOCUMENT_OCR_STATUS.DISABLED;
+    }
+
+    private void resetOcrState(Document document) {
+        document.setOcrStatus(DOCUMENT_OCR_STATUS.PENDING);
+        document.setOcrProvider(null);
+        document.setOcrConfidenceScore(null);
+        document.setOcrExtractedData(null);
+        document.setOcrDocumentType(null);
+        document.setOcrDetectedDocumentType(null);
+        document.setOcrTypeConsistent(null);
+        document.setOcrLastName(null);
+        document.setOcrFirstName(null);
+        document.setOcrBirthDate(null);
+        document.setOcrExpiryDate(null);
+        document.setOcrRegistrationNumber(null);
+        document.setOcrBrand(null);
+        document.setOcrModel(null);
+        document.setOcrEnergyType(null);
+        document.setOcrHolderName(null);
+        document.setOcrCompanyName(null);
+        document.setOcrSiren(null);
+        document.setOcrInsuranceKind(null);
+        document.setOcrIban(null);
+        document.setOcrBic(null);
+        document.setOcrProcessedAt(null);
+        document.setOcrErrorCode(null);
+        document.setMatchStatus(null);
+        document.setMatchScore(null);
+        document.setMatchDetails(null);
     }
 
     private void submitUserAsyncTask(Runnable task, Executor executor, String taskName) {

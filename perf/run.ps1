@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("smoke", "nominal", "stress", "regression", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live", "customer-onboarding", "courier-onboarding", "e2e-delivery", "seed-visible-packages")]
+    [ValidateSet("smoke", "nominal", "stress", "crash", "vm1-frontdoor", "packages-write-heavy", "db-pressure", "public-realistic", "regression", "security-pentest", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live", "customer-onboarding", "courier-onboarding", "e2e-delivery", "seed-visible-packages")]
     [string]$Suite = "smoke",
 
     [string]$EnvFile = "",
@@ -108,7 +108,13 @@ function Resolve-TargetScript {
         "smoke" = "suites/smoke.js"
         "nominal" = "suites/nominal.js"
         "stress" = "suites/stress.js"
+        "crash" = "suites/crash.js"
+        "vm1-frontdoor" = "suites/vm1-frontdoor.js"
+        "packages-write-heavy" = "suites/packages-write-heavy.js"
+        "db-pressure" = "suites/db-pressure.js"
+        "public-realistic" = "suites/public-realistic.js"
         "regression" = "suites/regression.js"
+        "security-pentest" = "suites/security-pentest.js"
         "guest-checkout" = "scenarios/guest-checkout.js"
         "admin-dashboards" = "scenarios/admin-dashboards.js"
         "courier-lifecycle" = "scenarios/courier-lifecycle.js"

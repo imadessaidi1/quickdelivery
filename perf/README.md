@@ -8,7 +8,13 @@ This folder contains a ready-to-run `k6` performance test kit for QuickDelivery.
   - `smoke.js`: fast end-to-end validation of account onboarding, delivery and admin flows
   - `nominal.js`: baseline load close to expected daily usage with end-to-end account and package flows
   - `stress.js`: push the platform with end-to-end scenarios until latency and errors degrade
+  - `crash.js`: aggressive mixed campaign intended to force failure and identify the breaking point
+  - `vm1-frontdoor.js`: isolate the public entrypoint with mostly guest traffic and background admin reads
+  - `packages-write-heavy.js`: isolate package estimate/create/lifecycle pressure
+  - `db-pressure.js`: isolate mixed read/write pressure likely to surface MySQL bottlenecks
+  - `public-realistic.js`: realistic public mix with connection reuse and moderate sustained traffic
   - `regression.js`: short post-deploy integrity and non-regression suite
+  - `security-pentest.js`: lightweight application security probes for CORS, authz, headers, method abuse and hostile payload handling
 - `scenarios/`
   - `guest-checkout.js`: estimate, create, confirm guest payment, consult package
   - `customer-onboarding.js`: create a customer account then verify it from admin
@@ -17,7 +23,7 @@ This folder contains a ready-to-run `k6` performance test kit for QuickDelivery.
   - `admin-dashboards.js`: admin metrics and finance dashboards
   - `courier-lifecycle.js`: reserve, pickup, deliver on prepared data
   - `tracking-live.js`: live tracking with websocket subscription and HTTP position updates
-  - `seed-visible-packages.js`: create paid `NEW` packages around Limeil-Brevannes for map inspection
+  - `seed-visible-packages.js`: create paid `NEW` packages around Limeil-Brevannes or across France for map inspection
 - `lib/`
   - shared config, thresholds, payload builders, helpers
 - `.env.example`
@@ -90,13 +96,43 @@ k6 run perf/suites/nominal.js
 k6 run perf/suites/stress.js
 ```
 
-4. Focused tracking campaign
+4. Crash test
+
+```bash
+k6 run perf/suites/crash.js
+```
+
+5. VM1 frontdoor isolation
+
+```bash
+k6 run perf/suites/vm1-frontdoor.js
+```
+
+6. Packages write-heavy isolation
+
+```bash
+k6 run perf/suites/packages-write-heavy.js
+```
+
+7. DB pressure isolation
+
+```bash
+k6 run perf/suites/db-pressure.js
+```
+
+8. Realistic public campaign
+
+```bash
+k6 run perf/suites/public-realistic.js
+```
+
+9. Focused tracking campaign
 
 ```bash
 k6 run perf/scenarios/tracking-live.js
 ```
 
-5. Seed visible `NEW` packages around `3 rue Pasteur, 94450 Limeil-Brevannes`
+10. Seed visible `NEW` packages around `3 rue Pasteur, 94450 Limeil-Brevannes` or across France
 
 ```bash
 k6 run perf/scenarios/seed-visible-packages.js
@@ -111,6 +147,12 @@ powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite smoke
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite regression
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite nominal
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite stress
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite crash
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite vm1-frontdoor
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite packages-write-heavy
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite db-pressure
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite public-realistic
+powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite security-pentest
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite e2e-delivery
 powershell -ExecutionPolicy Bypass -File perf/run.ps1 -Suite seed-visible-packages
 ```
@@ -154,7 +196,7 @@ The bootstrap script:
 - selects one `PICKEDUP` package for the tracking scenario when available
 - writes the resolved values back to `perf/.env.local`
 
-If no `NEW` package or no `PICKEDUP` package exists, the related variables stay empty and the corresponding scenario will be skipped.
+If no `PICKEDUP` package exists for the configured courier, `init-env.ps1` now tries to reserve and pick up the first available `NEW` package automatically. If that preparation also fails, the related variables stay empty and the tracking scenario will be skipped.
 
 ## Notes
 
@@ -163,5 +205,11 @@ If no `NEW` package or no `PICKEDUP` package exists, the related variables stay 
 - `e2e-delivery.js` creates a package near `3 Rue Pasteur, 94450 Limeil-Brevannes` and drives it to `DELIVERED`.
 - `seed-visible-packages.js` leaves paid `NEW` packages around Limeil-Brevannes so they can be seen on the “packages autour de moi” map in 10, 20 and 30 km radius filters.
 - `tracking-live.js` retries once before failing the websocket update assertion to reduce false negatives.
+- `crash.js` is intentionally destructive and should only be run against a non-production environment or during an approved failure-window.
+- `vm1-frontdoor.js` is the best campaign to isolate `Nginx` / TLS / `api-gateway` saturation on `VM1`.
+- `packages-write-heavy.js` is the best campaign to isolate `packages-service` write-path degradation.
+- `db-pressure.js` is the best campaign to correlate app degradation with MySQL saturation metrics.
+- `security-pentest.js` is a safe regression suite for access control, CORS, security headers and basic abuse resistance. It is not a substitute for a manual pentest.
+  It is expected to fail when it discovers a real security regression or missing hardening.
 - Thresholds are versioned in `perf/lib/thresholds.js`.
 - `cleanup-test-data.ps1` is `dry-run` by default and only executes with `-Execute -ConfirmationPhrase DELETE_QUICKDELIVERY_PERF_DATA`.

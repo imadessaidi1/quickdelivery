@@ -3,7 +3,7 @@ server:
   ssl:
     enabled: true
     key-store: ${API_GATEWAY_SSL_KEY_STORE:file:./certs/quickdelivery-dev.p12}
-    key-store-password: ${API_GATEWAY_SSL_KEY_STORE_PASSWORD:QuickDelivery123@}
+    key-store-password: ${API_GATEWAY_SSL_KEY_STORE_PASSWORD}
     key-store-type: PKCS12
     key-alias: ${API_GATEWAY_SSL_KEY_ALIAS:quickdelivery-dev}
 
@@ -43,13 +43,12 @@ spring:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
           '[/**]':
-            allowedOriginPatterns:
-              - "http://localhost"
-              - "https://localhost"
-              - "http://localhost:*"
-              - "https://localhost:*"
-              - "http://*:*"
-              - "https://*:*"
+            allowedOrigins:
+              - ${QUICKDELIVERY_FRONTEND_BASE_URL:https://app.quickdelivery.fr}
+              - ${QUICKDELIVERY_FRONTEND_LOCAL_HTTP_URL:http://localhost}
+              - ${QUICKDELIVERY_FRONTEND_LOCAL_HTTPS_URL:https://localhost}
+              - ${QUICKDELIVERY_FRONTEND_LOCAL_HTTP_ALT_URL:http://localhost:8080}
+              - ${QUICKDELIVERY_FRONTEND_LOCAL_HTTPS_ALT_URL:https://localhost:8080}
               - "capacitor://localhost"
               - "ionic://localhost"
             allowedMethods:
@@ -93,7 +92,7 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://admin:admin@172.26.4.12:8080/eureka/}
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://127.0.0.1:8080/eureka/}
 
 resilience4j.circuitbreaker:
   configs:
@@ -133,7 +132,7 @@ quickdelivery:
   frontend:
     base-urls: ${QUICKDELIVERY_FRONTEND_BASE_URLS:}
   gateway:
-    internal-token: ${GATEWAY_INTERNAL_TOKEN:quickdelivery-internal-token}
+    internal-token: ${GATEWAY_INTERNAL_TOKEN}
   config-server:
     base-url: ${CONFIG_SERVER_URL:}
   discovery-server:

@@ -1,5 +1,6 @@
 import { getAuthBaseUrl } from './network';
 import { App as CapacitorApp } from '@capacitor/app';
+import { cancelPendingRequests } from './requestControl';
 
 const REALM = 'quickdelivery';
 const CLIENT_ID = 'quickdelivery-front';
@@ -20,6 +21,59 @@ const ALLOWED_REDIRECTS = new Set([
   '/dashboard/courier',
   '/dashboard/client'
 ]);
+
+function safeSessionStorage() {
+  try {
+    return window.sessionStorage;
+  } catch (_) {
+    return null;
+  }
+}
+
+function safeLocalStorage() {
+  try {
+    return window.localStorage;
+  } catch (_) {
+    return null;
+  }
+}
+
+function storageGet(key) {
+  const session = safeSessionStorage();
+  const local = safeLocalStorage();
+
+  const sessionValue = session?.getItem(key) || '';
+  if (sessionValue) {
+    return sessionValue;
+  }
+
+  const legacyValue = local?.getItem(key) || '';
+  if (legacyValue && session) {
+    session.setItem(key, legacyValue);
+  }
+  if (legacyValue && local) {
+    local.removeItem(key);
+  }
+  return legacyValue;
+}
+
+function storageSet(key, value) {
+  const session = safeSessionStorage();
+  const local = safeLocalStorage();
+  if (session) {
+    session.setItem(key, value);
+  }
+  if (local) {
+    local.removeItem(key);
+  }
+}
+
+function storageRemove(key) {
+  const session = safeSessionStorage();
+  const local = safeLocalStorage();
+  session?.removeItem(key);
+  local?.removeItem(key);
+}
 
 function base64UrlEncode(bytes) {
   return btoa(String.fromCharCode(...bytes))
@@ -71,9 +125,9 @@ async function buildAuthorizeUrl(options = {}) {
   const redirectPath = defaultRedirectPath();
   const redirectUri = getRedirectUri();
 
-  localStorage.setItem(OIDC_STATE_KEY, state);
-  localStorage.setItem(OIDC_VERIFIER_KEY, codeVerifier);
-  localStorage.setItem(OIDC_REDIRECT_KEY, redirectPath);
+  storageSet(OIDC_STATE_KEY, state);
+  storageSet(OIDC_VERIFIER_KEY, codeVerifier);
+  storageSet(OIDC_REDIRECT_KEY, redirectPath);
 
   const authorizeUrl = new URL(`${getAuthBaseUrl()}/realms/${REALM}/protocol/openid-connect/auth`);
   authorizeUrl.searchParams.set('client_id', CLIENT_ID);
@@ -184,15 +238,15 @@ export function userHasAnyRole(expectedRoles) {
 }
 
 export function getAccessToken() {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
+  return storageGet(TOKEN_STORAGE_KEY);
 }
 
 function clearAuthStorage() {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-  localStorage.removeItem(OIDC_STATE_KEY);
-  localStorage.removeItem(OIDC_VERIFIER_KEY);
-  localStorage.removeItem(OIDC_REDIRECT_KEY);
+  storageRemove(TOKEN_STORAGE_KEY);
+  storageRemove(REFRESH_TOKEN_STORAGE_KEY);
+  storageRemove(OIDC_STATE_KEY);
+  storageRemove(OIDC_VERIFIER_KEY);
+  storageRemove(OIDC_REDIRECT_KEY);
 }
 
 export function hasValidAccessToken() {
@@ -214,6 +268,7 @@ export async function redirectToLogin(options = {}) {
 }
 
 export function logout() {
+  cancelPendingRequests('Logout in progress');
   clearAuthStorage();
   const postLogoutRedirectUri = isMobileRuntime() ? MOBILE_REDIRECT_URI : `${window.location.origin}/`;
   const logoutUrl = new URL(`${getAuthBaseUrl()}/realms/${REALM}/protocol/openid-connect/logout`);
@@ -230,8 +285,8 @@ async function processAuthCallback(sourceUrl) {
     return { handled: false, redirected: false };
   }
 
-  const expectedState = localStorage.getItem(OIDC_STATE_KEY);
-  const codeVerifier = localStorage.getItem(OIDC_VERIFIER_KEY);
+  const expectedState = storageGet(OIDC_STATE_KEY);
+  const codeVerifier = storageGet(OIDC_VERIFIER_KEY);
   const redirectUri = getRedirectUri();
 
   if (!expectedState || expectedState !== state || !codeVerifier) {
@@ -266,12 +321,12 @@ async function processAuthCallback(sourceUrl) {
 
   const json = await response.json();
   const accessToken = json.access_token || '';
-  localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, json.refresh_token || '');
+  storageSet(TOKEN_STORAGE_KEY, accessToken);
+  storageRemove(REFRESH_TOKEN_STORAGE_KEY);
 
-  localStorage.removeItem(OIDC_STATE_KEY);
-  localStorage.removeItem(OIDC_VERIFIER_KEY);
-  localStorage.removeItem(OIDC_REDIRECT_KEY);
+  storageRemove(OIDC_STATE_KEY);
+  storageRemove(OIDC_VERIFIER_KEY);
+  storageRemove(OIDC_REDIRECT_KEY);
 
   if (!isMobileRuntime()) {
     url.searchParams.delete('code');

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -23,6 +24,27 @@ public interface Users extends JpaRepository<User, Long> {
     @Query("SELECT u " +
             "FROM User u WHERE u.emailAddress = :email")
     User findByEmail(@Param("email") String email);
+
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @Query("SELECT u FROM User u WHERE u.emailAddress = :email")
+    User findDetailedByEmail(@Param("email") String email);
+
+    @EntityGraph(attributePaths = {"personalAddress"})
+    @Query("SELECT u FROM User u WHERE u.emailAddress = :email")
+    User findProfileByEmail(@Param("email") String email);
+
+    @Override
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    Optional<User> findById(Long id);
+
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findDetailedById(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"personalAddress"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findProfileById(@Param("id") Long id);
+
     @Query("SELECT a FROM Address a " +
             "WHERE st_distance_sphere(POINT(a.latitude, a.longitude), POINT(:latitude, :longitude)) <= :rayonEnMetres " +
             "AND a.residents.type='DELIVERY_PERSON' " +

@@ -2,7 +2,7 @@
   <div class="phone-field">
     <div class="phone-row">
       <div ref="countryPicker" class="phone-country-wrap">
-        <button :id="`${inputId}-country`" class="phone-country" type="button" @click="toggleCountryList">
+        <button :id="`${inputId}-country`" class="phone-country" type="button" :disabled="disabled" @click="toggleCountryList">
           <FlagIcon :country-code="currentOption.countryCode" />
           <span>{{ currentOption.label }}</span>
           <span class="phone-country-arrow">v</span>
@@ -27,6 +27,7 @@
         v-model="localNumber"
         class="phone-number"
         type="tel"
+        :disabled="disabled"
         inputmode="tel"
         autocomplete="tel-national"
         @input="handleLocalNumberInput"
@@ -75,6 +76,10 @@ export default {
       type: String,
       required: true,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:modelValue'],
   data() {
@@ -114,9 +119,15 @@ export default {
   methods: {
     validatePhone,
     toggleCountryList() {
+      if (this.disabled) {
+        return;
+      }
       this.isCountryListOpen = !this.isCountryListOpen;
     },
     selectCountry(option) {
+      if (this.disabled) {
+        return;
+      }
       this.selectedDialCode = option.dialCode;
       this.isCountryListOpen = false;
       this.emitPhoneValue();
@@ -190,6 +201,13 @@ export default {
   align-items: center;
   gap: 8px;
   cursor: pointer;
+}
+
+.phone-country:disabled,
+.phone-number:disabled {
+  cursor: not-allowed;
+  background: #f3f6fb;
+  color: #617086;
 }
 
 .phone-country-arrow {

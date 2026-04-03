@@ -9,7 +9,7 @@
     <div class="profile-grid">
       <div class="field-wrap">
         <label for="accountType">{{ $t('userRegistrationAccountType') }}</label>
-        <select id="accountType" v-model="user.type" @change="handleAccountTypeChange">
+        <select id="accountType" v-model="user.type" :disabled="isFieldLocked('accountType')" @change="handleAccountTypeChange">
           <option value="DELIVERY_PERSON">{{ $t('DELIVERY_PERSON') }}</option>
           <option value="CUSTOMER">{{ $t('CUSTOMER') }}</option>
         </select>
@@ -17,7 +17,7 @@
 
       <div v-if="user.type === 'DELIVERY_PERSON'" class="field-wrap">
         <label for="deliveryMode">{{ $t('userDeliveryMode') }}</label>
-        <select id="deliveryMode" v-model="user.deliveryMode">
+        <select id="deliveryMode" v-model="user.deliveryMode" :disabled="isFieldLocked('deliveryMode')">
           <option value="CAR">{{ $t('deliveryModeCar') }}</option>
           <option value="SCOOTER">{{ $t('deliveryModeScooter') }}</option>
           <option value="BIKE">{{ $t('deliveryModeBike') }}</option>
@@ -28,7 +28,7 @@
 
       <div class="field-wrap">
         <label for="sex">{{ $t('userGender') }}</label>
-        <select id="sex" v-model="user.sex">
+        <select id="sex" v-model="user.sex" :disabled="isFieldLocked('sex')">
           <option value="MAL">{{ $t('userRegistrationGenderMale') }}</option>
           <option value="FEMALE">{{ $t('userRegistrationGenderFemale') }}</option>
           <option value="OTHER">{{ $t('userRegistrationGenderOther') }}</option>
@@ -37,13 +37,13 @@
 
       <div class="field-wrap">
         <label for="firstName">{{ $t('packageAddressFirstName') }}</label>
-        <Field id="firstName" v-model="user.firstName" name="firstName" autocomplete="given-name" :rules="validateString" />
+        <Field id="firstName" v-model="user.firstName" name="firstName" autocomplete="given-name" :rules="validateString" :disabled="isFieldLocked('firstName')" />
         <ErrorMessage class="errorMessage" name="firstName" />
       </div>
 
       <div class="field-wrap">
         <label for="lastName">{{ $t('packageAddressLastName') }}</label>
-        <Field id="lastName" v-model="user.lastName" name="lastName" autocomplete="family-name" :rules="validateString" />
+        <Field id="lastName" v-model="user.lastName" name="lastName" autocomplete="family-name" :rules="validateString" :disabled="isFieldLocked('lastName')" />
         <ErrorMessage class="errorMessage" name="lastName" />
       </div>
 
@@ -55,6 +55,7 @@
           :flow="flow"
           :enable-time-picker="false"
           :max-date="birthDateMaxDate"
+          :disabled="isFieldLocked('birthDate')"
         />
         <span v-if="isBirthDateError" class="errorMessage">{{ birthDateErrorMessage }}</span>
       </div>
@@ -75,12 +76,12 @@
 
       <div class="field-wrap">
         <label for="phone">{{ $t('packageAddressPhone') }}</label>
-        <PhoneNumberField input-id="phone" v-model="user.phone" name="phone" />
+        <PhoneNumberField input-id="phone" v-model="user.phone" name="phone" :disabled="isFieldLocked('phone')" />
       </div>
 
       <div class="field-wrap">
         <label for="phoneConfirmation">{{ $t('userPhoneConfirmation') }}</label>
-        <PhoneNumberField input-id="phoneConfirmation" v-model="user.phoneConfirmation" name="phoneConfirmation" />
+        <PhoneNumberField input-id="phoneConfirmation" v-model="user.phoneConfirmation" name="phoneConfirmation" :disabled="isFieldLocked('phoneConfirmation')" />
         <span v-if="isPhoneConfirmationError" class="errorMessage">{{ phoneConfirmationErrorMessage }}</span>
       </div>
 
@@ -119,6 +120,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    restrictToContactFields: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     user() {
@@ -152,6 +157,12 @@ export default {
     validateEmail,
     validateString,
     validatePassword,
+    isFieldLocked(fieldName) {
+      if (!this.restrictToContactFields) {
+        return false;
+      }
+      return !['email', 'emailAddressConfirmation', 'phone', 'phoneConfirmation'].includes(fieldName);
+    },
     handleAccountTypeChange() {
       if (this.user.type === 'DELIVERY_PERSON' && !this.user.deliveryMode) {
         this.user.deliveryMode = DEFAULT_DELIVERY_MODE;
@@ -237,6 +248,14 @@ export default {
   border-radius: 14px;
   background: #fff;
   box-sizing: border-box;
+}
+
+.field-wrap :deep(input:disabled),
+.field-wrap select:disabled,
+.field-wrap :deep(.dp__input:disabled) {
+  cursor: not-allowed;
+  background: #f3f6fb;
+  color: #617086;
 }
 
 .field-wrap :deep(.dp__main) {

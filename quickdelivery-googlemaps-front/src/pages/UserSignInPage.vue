@@ -54,7 +54,12 @@
         </section>
 
         <div class="card-content">
-          <UserInfo v-if="currentStep === 1" ref="userInfo" :is-for-update="isForUpdate" />
+          <UserInfo
+            v-if="currentStep === 1"
+            ref="userInfo"
+            :is-for-update="isForUpdate"
+            :restrict-to-contact-fields="isCustomerContactOnlyUpdate"
+          />
           <UserAddressStep v-else-if="currentStep === 2" ref="userAddress" />
           <UserDocuments
             v-else-if="currentStep === 3"
@@ -73,6 +78,15 @@
             :show-error="showLegalConsentError"
             @open-terms="saveDraftBeforeLegalConsultation"
           />
+          <TurnstileCaptcha
+            v-if="shouldShowCaptcha"
+            ref="accountCaptcha"
+            action="account-create"
+            @verified="captchaToken = $event"
+            @expired="captchaToken = ''"
+            @error="captchaToken = ''"
+          />
+          <p v-if="captchaErrorMessage" class="captcha-error">{{ captchaErrorMessage }}</p>
         </div>
 
         <footer class="card-actions">
@@ -93,6 +107,7 @@ import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
 import { LEGAL_FLOW_ACCOUNT_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
 import { validateAddress, validateEmailConfirmation, validateFileInput, validatePasswordConfirmation, validatePhoneConfirmation } from '@/config/comonFunction';
+import TurnstileCaptcha from '../components/TurnstileCaptcha.vue';
 import LegalConsentCard from '../components/LegalConsentCard.vue';
 import CourierReadinessCard from '../components/CourierReadinessCard.vue';
 import UserAddressStep from '../components/UserAddressStep.vue';
@@ -270,6 +285,7 @@ function isAdultBirthDate(value) {
 export default {
   components: {
     Form,
+    TurnstileCaptcha,
     LegalConsentCard,
     CourierReadinessCard,
     UserInfo,
@@ -300,6 +316,8 @@ export default {
       showLegalConsentError: false,
       isLoadingPage: false,
       loadError: false,
+      captchaToken: '',
+      captchaErrorMessage: '',
     };
   },
   computed: {
@@ -320,6 +338,9 @@ export default {
     },
     isClientRegistrationFlow() {
       return this.user.type !== 'DELIVERY_PERSON';
+    },
+    isCustomerContactOnlyUpdate() {
+      return this.isForUpdate && this.user?.type === 'CUSTOMER';
     },
     editableUserDocumentKeys() {
       if (!this.isPendingAccountValidation) {
@@ -430,6 +451,9 @@ export default {
         return false;
       }
       return this.currentStep === 1;
+    },
+    shouldShowCaptcha() {
+      return !this.isForUpdate && !this.accountBootstrapCompleted && this.currentStep === 1 && !!process.env.VUE_APP_TURNSTILE_SITE_KEY;
     },
     user() {
       return this.$store.state.user;
@@ -931,15 +955,10 @@ export default {
     },
     existingEmail(email) {
       return new Promise((resolve) => {
-        http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserByEmail')}${encodeURIComponent(email)}`)
+        http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getPublicRegistrationStatus')}${encodeURIComponent(email)}`)
           .then((response) => {
-            const existingUser = response.data;
-            const resumableCourier = existingUser
-              && existingUser.type === 'DELIVERY_PERSON'
-              && existingUser.activeAccount !== true
-              && existingUser.onboarding
-              && existingUser.onboarding.status !== 'COMPLETED';
-            resolve(response.status === 200 && !!existingUser && !resumableCourier);
+            const lookup = response.data || {};
+            resolve(response.status === 200 && lookup.emailInUse === true && lookup.resumableOnboarding !== true);
           })
           .catch(() => {
             resolve(false);
@@ -1009,7 +1028,7 @@ export default {
         return http.post(
           this.$i18n.t('userRootURL') + this.$i18n.t('saveUserOnboardingDraft'),
           formData,
-          { headers: { acept: 'application/json' } }
+          { headers: { Accept: 'application/json' } }
         );
       };
 
@@ -1096,12 +1115,23 @@ export default {
         user: this.buildAccountCreatePayload(),
         locale: userLanguage,
       };
+      if (this.shouldShowCaptcha && !this.captchaToken) {
+        this.captchaErrorMessage = this.$i18n.t('captchaRequiredMessage');
+        this.accountBootstrapPending = false;
+        return false;
+      }
 
       try {
         const response = await http.post(
           this.$i18n.t('userRootURL') + this.$i18n.t('createUserAccount'),
           payload,
-          { headers: { 'Content-Type': 'application/json', acept: 'application/json' } }
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              ...(this.captchaToken ? { 'X-Captcha-Token': this.captchaToken } : {}),
+            },
+          }
         );
         if (`${response.status}` === '200') {
           const mergedUser = normalizeUserWizardState({
@@ -1112,12 +1142,16 @@ export default {
           this.$store.commit('updateUser', mergedUser);
           this.persistResidenceSnapshot(mergedUser);
           this.accountBootstrapCompleted = true;
-          if (mergedUser.onboarding?.currentStep) {
-            this.currentStep = mergedUser.onboarding.currentStep;
-          }
+          this.captchaToken = '';
+          this.captchaErrorMessage = '';
           return true;
         }
       } catch (error) {
+        this.captchaToken = '';
+        this.$refs.accountCaptcha?.resetCaptcha?.();
+        if (error?.response?.status === 400) {
+          this.captchaErrorMessage = this.$i18n.t('captchaRetryMessage');
+        }
         console.error('Unable to bootstrap the account at this time.', {
           status: error?.response?.status,
           data: error?.response?.data,
@@ -1196,7 +1230,7 @@ export default {
             : this.$i18n.t('userRootURL') + this.$i18n.t('updateUser'))
         : this.$i18n.t('userRootURL') + this.$i18n.t('completeUserOnboarding');
 
-      return http.post(url, formData, { headers: { acept: 'application/json' } })
+      return http.post(url, formData, { headers: { Accept: 'application/json' } })
         .then((response) => {
           if (`${response.status}` === '200') {
             clearLegalDraft(this.legalFlow);
@@ -1415,6 +1449,12 @@ export default {
 
 .card-content :deep(.legal-consent-card) {
   margin-top: 18px;
+}
+
+.captcha-error {
+  margin-top: 12px;
+  color: #b42318;
+  font-size: 0.9rem;
 }
 
 .card-actions .wizard-action-btn:hover {

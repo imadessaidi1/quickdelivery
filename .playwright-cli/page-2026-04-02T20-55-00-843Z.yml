@@ -1,0 +1,14 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: Nouveau Colis
+      - heading "Créer un colis" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Préparez l’enlèvement, la livraison et les détails du colis avant le paiement.
+  - generic [ref=e11]:
+    - generic [ref=e12]: Accès public
+    - heading "Créer un colis sans se connecter" [level=2] [ref=e13]
+    - paragraph [ref=e14]: Créez un compte pour rattacher vos livraisons à votre espace, ou continuez en mode anonyme pour une demande ponctuelle.
+    - generic [ref=e15]:
+      - link "Créer un compte" [ref=e16] [cursor=pointer]:
+        - /url: /register
+      - button "Continuer en anonyme" [ref=e17] [cursor=pointer]

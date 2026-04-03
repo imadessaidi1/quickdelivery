@@ -7,6 +7,7 @@ import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.DocumentDTO;
 import com.quickdelivery.abstarct.dto.HttpEndpointMetricDTO;
+import com.quickdelivery.abstarct.dto.PublicRegistrationStatusDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.UserOnboardingDTO;
@@ -449,29 +450,37 @@ public class UserServices implements IUserServices {
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         return recordUserOperation("update", () -> {
             try {
-                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
-                sanitizeAddresses(user, deliveryPerson);
-                User userEntity = users.findById(user.getId())
+                User persistedUser = users.findProfileById(user.getId())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(persistedUser.getType());
+                User userEntity = deliveryPerson
+                        ? users.findDetailedById(user.getId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
+                        : persistedUser;
+                preserveImmutableProfileFieldsForUpdate(user, userEntity, deliveryPerson);
+                sanitizeAddresses(user, deliveryPerson);
                 validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
-                String filesPath = buildUserFilesPath(user.getEmailAddress());
+                String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
 
-                mergeUserProfile(userEntity, user);
                 if (deliveryPerson) {
+                    mergeUserProfile(userEntity, user);
                     geocodeAddressesIfPossible(user);
                     mergeVehicle(userEntity, vehicleDTO);
+                    MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
+                    users.saveAndFlush(userEntity);
+                    if (!validFilesMap.isEmpty()) {
+                        userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
+                        triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+                    }
+                    scheduleIdentityStateSync(userEntity);
+                    return toUserDetailDTO(users.findDetailedById(userEntity.getId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")));
                 } else {
-                    userEntity.setPersonalAddress(new HashSet<>());
-                    userEntity.setVehicles(new HashSet<>());
+                    mergeCustomerContactProfile(userEntity, user);
+                    users.saveAndFlush(userEntity);
+                    scheduleIdentityStateSync(userEntity);
+                    return toCustomerContactDTO(userEntity);
                 }
-
-                MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
-                users.saveAndFlush(userEntity);
-                if (!validFilesMap.isEmpty()) {
-                    userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
-                    triggerOcrForUploadedDocuments(userEntity, validFilesMap);
-                }
-                return toUserDetailDTO(userEntity);
             } catch (Exception exception) {
                 logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
                 throw exception;
@@ -492,7 +501,7 @@ public class UserServices implements IUserServices {
     @Override
     @Transactional(readOnly = true)
     public UserDTO findByID(Long id) {
-        User user = users.findById(id)
+        User user = users.findDetailedById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         UserDTO userDTO = toUserDetailDTO(user);
         if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
@@ -586,15 +595,50 @@ public class UserServices implements IUserServices {
     @Override
     @Transactional(readOnly = true)
     public UserDTO findByEmail(String email) {
-        User user = users.findByEmail(email);
+        User user = users.findProfileByEmail(email);
         if(user != null) {
-            UserDTO userDTO = toUserDetailDTO(user);
+            UserDTO userDTO = DELIVERY_PERSON.equalsIgnoreCase(user.getType())
+                    ? toUserDetailDTO(users.findDetailedByEmail(email))
+                    : toCustomerContactDTO(user);
             if (userDTO.getPersonalAddress() != null && !userDTO.getPersonalAddress().isEmpty()) {
                 userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
             }
             return userDTO;
         }else
             return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PublicRegistrationStatusDTO loadPublicRegistrationStatus(String email) {
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
+        }
+
+        User user = users.findByEmail(email);
+        PublicRegistrationStatusDTO response = new PublicRegistrationStatusDTO();
+        if (user == null) {
+            response.setEmailInUse(false);
+            response.setResumableOnboarding(false);
+            return response;
+        }
+
+        response.setEmailInUse(true);
+        response.setUserType(user.getType());
+        response.setActiveAccount(user.getActiveAccount());
+
+        UserOnboarding onboarding = userOnboardings.findByUserId(user.getId()).orElse(null);
+        String onboardingStatus = onboarding == null || onboarding.getStatus() == null
+                ? null
+                : onboarding.getStatus().name();
+        response.setOnboardingStatus(onboardingStatus);
+        response.setResumableOnboarding(
+                DELIVERY_PERSON.equalsIgnoreCase(user.getType())
+                        && !Boolean.TRUE.equals(user.getActiveAccount())
+                        && onboardingStatus != null
+                        && !"COMPLETED".equalsIgnoreCase(onboardingStatus)
+        );
+        return response;
     }
 
     @Override
@@ -841,6 +885,22 @@ public class UserServices implements IUserServices {
                 .collect(Collectors.toList()));
     }
 
+    private void preserveImmutableProfileFieldsForUpdate(UserDTO incomingUser, User persistedUser, boolean deliveryPerson) {
+        incomingUser.setVersion(persistedUser.getVersion());
+        incomingUser.setType(persistedUser.getType());
+        incomingUser.setFirstName(persistedUser.getFirstName());
+        incomingUser.setLastName(persistedUser.getLastName());
+        incomingUser.setAge(persistedUser.getAge());
+        incomingUser.setBirthDate(persistedUser.getBirthDate());
+        incomingUser.setSex(persistedUser.getSex());
+        incomingUser.setActiveAccount(persistedUser.getActiveAccount());
+        incomingUser.setEmailAddressValidation(persistedUser.getEmailAddressValidation());
+        incomingUser.setPhoneValidation(persistedUser.getPhoneValidation());
+        if (!deliveryPerson) {
+            incomingUser.setDeliveryMode(null);
+        }
+    }
+
     private void geocodeAddressesIfPossible(UserDTO user) {
         user.getPersonalAddress().forEach(address -> {
             try {
@@ -921,6 +981,17 @@ public class UserServices implements IUserServices {
         if (onboarding != null) {
             userDTO.setOnboarding(toUserOnboardingDTO(onboarding));
         }
+        return userDTO;
+    }
+
+    private UserDTO toCustomerContactDTO(User user) {
+        UserDTO userDTO = toBasicUserDTO(user);
+        userDTO.setAddressAuto(resolveUserAddressAuto(user));
+        userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
+        userDTO.setPhoneConfirmation(userDTO.getPhone());
+        userDTO.setDocument(new LinkedHashMap<>());
+        userDTO.setDocumentCount(0);
+        userDTO.setVehicles(new ArrayList<>());
         return userDTO;
     }
 
@@ -1059,6 +1130,20 @@ public class UserServices implements IUserServices {
                 .collect(Collectors.toCollection(LinkedHashSet::new)));
         userEntity.setPayments(payments);
         userEntity.getPayments().forEach(payment -> payment.setHolderInApp(userEntity));
+    }
+
+    private void mergeCustomerContactProfile(User userEntity, UserDTO user) {
+        userEntity.setVersion(user.getVersion());
+        userEntity.setEmailAddress(user.getEmailAddress());
+        userEntity.setPhone(user.getPhone());
+        Set<com.quickdelivery.abstarct.entities.Address> addresses = user.getPersonalAddress().stream()
+                .map(addressDTO -> {
+                    com.quickdelivery.abstarct.entities.Address address = modelMapper.map(addressDTO, com.quickdelivery.abstarct.entities.Address.class);
+                    address.setResidents(userEntity);
+                    return address;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        userEntity.setPersonalAddress(addresses);
     }
 
     private void mergeVehicle(User userEntity, VehicleDTO vehicleDTO) {

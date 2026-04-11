@@ -24,6 +24,7 @@
 <script>
 import UserDetails from '../components/UserDetails.vue';
 import DocumentViewer from '../components/DocumentViwer.vue';
+import { normalizeDocumentCollection } from '@/config/documents';
 
 export default {
   components: {
@@ -37,8 +38,11 @@ export default {
     primaryVehicle() {
       return Array.isArray(this.selectedUser?.vehicles) ? this.selectedUser.vehicles[0] || null : null;
     },
+    normalizedDocuments() {
+      return normalizeDocumentCollection(this.selectedUser?.document || this.selectedUser?.documents || {});
+    },
     displayableDocuments() {
-      const documents = this.selectedUser?.document || {};
+      const documents = this.normalizedDocuments;
       return Object.fromEntries(
         Object.entries(documents).filter(([key, document]) => key !== 'PICTURE' && document?.id)
       );

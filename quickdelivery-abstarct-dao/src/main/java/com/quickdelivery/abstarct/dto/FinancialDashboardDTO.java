@@ -17,6 +17,9 @@ public class FinancialDashboardDTO {
     private Double platformMargin;
     private Double courierPayoutPendingAmount;
     private Double courierPayoutPaidAmount;
+    private Long courierPenaltyCount;
+    private Long courierActiveSuspensionCount;
+    private Double courierFinancialPenaltyAmount;
     private Double averageOrderValue;
     private Double averageCourierPayout;
     private Double platformTakeRate;
@@ -25,6 +28,7 @@ public class FinancialDashboardDTO {
     private List<FinancialTrendPointDTO> courierPayoutTrend = new ArrayList<>();
     private List<FinancialRecentSettlementDTO> recentSettlements = new ArrayList<>();
     private List<CourierPayoutSummaryDTO> pendingPayouts = new ArrayList<>();
+    private List<CourierPenaltyDTO> recentCourierPenalties = new ArrayList<>();
 
     public Timestamp getGeneratedAt() {
         return generatedAt;
@@ -126,6 +130,30 @@ public class FinancialDashboardDTO {
         return averageOrderValue;
     }
 
+    public Long getCourierPenaltyCount() {
+        return courierPenaltyCount;
+    }
+
+    public void setCourierPenaltyCount(Long courierPenaltyCount) {
+        this.courierPenaltyCount = courierPenaltyCount;
+    }
+
+    public Long getCourierActiveSuspensionCount() {
+        return courierActiveSuspensionCount;
+    }
+
+    public void setCourierActiveSuspensionCount(Long courierActiveSuspensionCount) {
+        this.courierActiveSuspensionCount = courierActiveSuspensionCount;
+    }
+
+    public Double getCourierFinancialPenaltyAmount() {
+        return courierFinancialPenaltyAmount;
+    }
+
+    public void setCourierFinancialPenaltyAmount(Double courierFinancialPenaltyAmount) {
+        this.courierFinancialPenaltyAmount = courierFinancialPenaltyAmount;
+    }
+
     public void setAverageOrderValue(Double averageOrderValue) {
         this.averageOrderValue = averageOrderValue;
     }
@@ -184,5 +212,13 @@ public class FinancialDashboardDTO {
 
     public void setPendingPayouts(List<CourierPayoutSummaryDTO> pendingPayouts) {
         this.pendingPayouts = pendingPayouts;
+    }
+
+    public List<CourierPenaltyDTO> getRecentCourierPenalties() {
+        return recentCourierPenalties;
+    }
+
+    public void setRecentCourierPenalties(List<CourierPenaltyDTO> recentCourierPenalties) {
+        this.recentCourierPenalties = recentCourierPenalties;
     }
 }

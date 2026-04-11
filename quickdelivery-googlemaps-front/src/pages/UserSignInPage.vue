@@ -79,12 +79,12 @@
             @open-terms="saveDraftBeforeLegalConsultation"
           />
           <TurnstileCaptcha
-            v-if="shouldShowCaptcha"
+            v-if="shouldRenderCaptcha"
             ref="accountCaptcha"
             action="account-create"
-            @verified="captchaToken = $event"
-            @expired="captchaToken = ''"
-            @error="captchaToken = ''"
+            @verified="handleCaptchaVerified"
+            @expired="handleCaptchaExpired"
+            @error="handleCaptchaExpired"
           />
           <p v-if="captchaErrorMessage" class="captcha-error">{{ captchaErrorMessage }}</p>
         </div>
@@ -107,6 +107,7 @@ import http from '@/config/httpInterceptor';
 import { Form } from 'vee-validate';
 import { LEGAL_FLOW_ACCOUNT_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
 import { validateAddress, validateEmailConfirmation, validateFileInput, validatePasswordConfirmation, validatePhoneConfirmation } from '@/config/comonFunction';
+import { isMobileCapacitorRuntime } from '@/config/network';
 import TurnstileCaptcha from '../components/TurnstileCaptcha.vue';
 import LegalConsentCard from '../components/LegalConsentCard.vue';
 import CourierReadinessCard from '../components/CourierReadinessCard.vue';
@@ -177,6 +178,7 @@ const EMPTY_VEHICLE = {
   registrationNumber: '',
   brand: '',
   model: '',
+  type: 'CAR',
   energyType: 'ELECTRIC',
   vehicleDocuments: {},
 };
@@ -316,6 +318,7 @@ export default {
       showLegalConsentError: false,
       isLoadingPage: false,
       loadError: false,
+      captchaVisible: false,
       captchaToken: '',
       captchaErrorMessage: '',
     };
@@ -339,8 +342,11 @@ export default {
     isClientRegistrationFlow() {
       return this.user.type !== 'DELIVERY_PERSON';
     },
+    isAccountContactUpdateFlow() {
+      return this.isForUpdate && !this.isResumeOnboardingFlow;
+    },
     isCustomerContactOnlyUpdate() {
-      return this.isForUpdate && this.user?.type === 'CUSTOMER';
+      return this.isAccountContactUpdateFlow;
     },
     editableUserDocumentKeys() {
       if (!this.isPendingAccountValidation) {
@@ -383,6 +389,9 @@ export default {
       return [...userDocuments, ...vehicleDocuments];
     },
     visibleSteps() {
+      if (this.isAccountContactUpdateFlow) {
+        return this.steps.filter((step) => step.id === 1 || step.id === 2);
+      }
       if (this.isResumeOnboardingFlow) {
         if (!this.requiresVehicleSection) {
           return this.steps.filter((step) => step.id !== 4);
@@ -412,14 +421,6 @@ export default {
             return this.requiresVehicleSection && this.hasEditableRejectedVehicleDocuments;
           }
           return step.id === 1 || step.id === 2;
-        });
-      }
-      if (this.isForUpdate) {
-        return this.steps.filter((step) => {
-          if (step.id === 3) {
-            return this.hasEditableRejectedUserDocuments;
-          }
-          return true;
         });
       }
       if (!this.requiresVehicleSection) {
@@ -453,7 +454,13 @@ export default {
       return this.currentStep === 1;
     },
     shouldShowCaptcha() {
-      return !this.isForUpdate && !this.accountBootstrapCompleted && this.currentStep === 1 && !!process.env.VUE_APP_TURNSTILE_SITE_KEY;
+      return !this.isForUpdate
+        && !this.accountBootstrapCompleted
+        && !isMobileCapacitorRuntime()
+        && !!process.env.VUE_APP_TURNSTILE_SITE_KEY;
+    },
+    shouldRenderCaptcha() {
+      return this.shouldShowCaptcha && this.captchaVisible;
     },
     user() {
       return this.$store.state.user;
@@ -533,6 +540,21 @@ export default {
       this.accountBootstrapPending = false;
       this.legalConsentAccepted = false;
       this.showLegalConsentError = false;
+      this.captchaVisible = false;
+      this.captchaToken = '';
+      this.captchaErrorMessage = '';
+    },
+    handleCaptchaVerified(token) {
+      this.captchaToken = token;
+      this.captchaErrorMessage = '';
+    },
+    handleCaptchaExpired() {
+      this.captchaToken = '';
+    },
+    requestCaptchaChallenge() {
+      this.captchaVisible = true;
+      this.captchaToken = '';
+      this.captchaErrorMessage = this.$i18n.t('captchaRequiredMessage');
     },
     persistResidenceSnapshot(userCandidate = this.$store.state.user) {
       const storageKey = onboardingAddressStorageKey(userCandidate?.emailAddress);
@@ -678,7 +700,7 @@ export default {
           ['ID', 'PICTURE', 'DRIVER_LICENCE', 'USER_COMPANY_EXTRACT', 'USER_COMPANY_INSURANCE', 'RIB'].forEach((key) => {
             if (response.data.document?.[key]) {
               userDocument[key] = {
-                name: key === 'RIB' ? 'BANK ID' : key,
+                name: key === 'RIB' ? this.$t('bankIdLabel') : key,
                 documentStatus: response.data.document[key].documentStatus,
                 reviewComment: response.data.document[key].reviewComment || '',
                 reviewedAt: response.data.document[key].reviewedAt || null,
@@ -707,11 +729,13 @@ export default {
             ? 'IBAN'
             : 'CARD';
           this.accountBootstrapCompleted = true;
-          this.currentStep = this.resolveInitialUpdateStep(userDocument, vehicleDocuments);
+          this.currentStep = this.isAccountContactUpdateFlow
+            ? 1
+            : this.resolveInitialUpdateStep(userDocument, vehicleDocuments);
         })
         .catch((error) => {
           this.loadError = true;
-          console.error('Unable to process your request this time. Please try again later.', {
+          console.error(this.$t('requestErrorGeneric'), {
             status: error?.response?.status,
             data: error?.response?.data,
             message: error?.message,
@@ -793,7 +817,7 @@ export default {
       userInfo.isExistingEmail = existingEmail;
       userInfo.existingEmailErrorMessage = this.$i18n.t('ExistingEmail');
       userInfo.isBirthDateError = !validBirthDate;
-      userInfo.birthDateErrorMessage = 'Le livreur doit avoir au moins 18 ans.';
+      userInfo.birthDateErrorMessage = this.$t('userRegistrationAgeError');
       userInfo.isEmailConfirmationError = !validEmailConfirmation;
       userInfo.emailConfirmationErrorMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('emailConfirmation');
       userInfo.isPhoneConfirmationError = !validPhoneConfirmation;
@@ -1096,7 +1120,7 @@ export default {
           return true;
         }
       } catch (error) {
-        console.error('Unable to save the onboarding draft at this time.', {
+        console.error(this.$t('requestErrorGeneric'), {
           status: error?.response?.status,
           data: error?.response?.data,
           message: error?.message,
@@ -1116,7 +1140,7 @@ export default {
         locale: userLanguage,
       };
       if (this.shouldShowCaptcha && !this.captchaToken) {
-        this.captchaErrorMessage = this.$i18n.t('captchaRequiredMessage');
+        this.requestCaptchaChallenge();
         this.accountBootstrapPending = false;
         return false;
       }
@@ -1142,6 +1166,7 @@ export default {
           this.$store.commit('updateUser', mergedUser);
           this.persistResidenceSnapshot(mergedUser);
           this.accountBootstrapCompleted = true;
+          this.captchaVisible = false;
           this.captchaToken = '';
           this.captchaErrorMessage = '';
           return true;
@@ -1152,7 +1177,7 @@ export default {
         if (error?.response?.status === 400) {
           this.captchaErrorMessage = this.$i18n.t('captchaRetryMessage');
         }
-        console.error('Unable to bootstrap the account at this time.', {
+        console.error(this.$t('requestErrorGeneric'), {
           status: error?.response?.status,
           data: error?.response?.data,
           message: error?.message,
@@ -1238,8 +1263,12 @@ export default {
             this.$router.push('/');
           }
         })
-        .catch(() => {
-          console.error('Unable to process your request this time. Please try again later.');
+        .catch((error) => {
+          console.error(this.$t('requestErrorGeneric'), {
+            status: error?.response?.status,
+            data: error?.response?.data,
+            message: error?.message,
+          });
         });
     },
   },

@@ -33,6 +33,7 @@ build/
 
 ### VS Code ###
 .vscode/
+firebase-service-account.json
 
 ### Mac OS ###
 .DS_Store

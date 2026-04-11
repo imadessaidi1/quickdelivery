@@ -20,4 +20,28 @@ public interface PackageReservations extends JpaRepository<PackageReservation, L
     Optional<PackageReservation> findReservationContext(@Param("packageId") Long packageId,
                                                         @Param("deliveryPersonId") Long deliveryPersonId,
                                                         @Param("status") PACKAGE_RESERVATION_STATUS status);
+
+    @Query("""
+            SELECT COUNT(DISTINCT pr.aPackage.id)
+            FROM PackageReservation pr
+            JOIN pr.aPackage p
+            WHERE pr.deliveryPerson.id = :deliveryPersonId
+            AND pr.status = :reservationStatus
+            AND p.status IN :packageStatuses
+            """)
+    long countActiveReservationsByDeliveryPerson(@Param("deliveryPersonId") Long deliveryPersonId,
+                                                 @Param("reservationStatus") PACKAGE_RESERVATION_STATUS reservationStatus,
+                                                 @Param("packageStatuses") java.util.Collection<com.quickdelivery.abstarct.parameters.PACKAGE_STATUS> packageStatuses);
+
+    @Query("""
+            SELECT pr
+            FROM PackageReservation pr
+            JOIN FETCH pr.aPackage p
+            WHERE p.id = :packageId
+            AND pr.deliveryPerson.id = :deliveryPersonId
+            AND pr.status = :status
+            """)
+    Optional<PackageReservation> findByPackageAndDeliveryPersonAndStatus(@Param("packageId") Long packageId,
+                                                                         @Param("deliveryPersonId") Long deliveryPersonId,
+                                                                         @Param("status") PACKAGE_RESERVATION_STATUS status);
 }

@@ -105,7 +105,7 @@
       const CONFIGURATION = {
         "ctaTitle": "Checkout",
         "mapOptions": {"center":{"lat":37.4221,"lng":-122.0841},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":true,"zoom":11,"zoomControl":true,"maxZoom":22,"mapId":""},
-        "mapsApiKey": "AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U",
+        "mapsApiKey": "AIzaSyBM2N0ClMcuAiqudfcTbBarYuvT3bS-OJQ",
         "capabilities": {"addressAutocompleteControl":true,"mapDisplayControl":true,"ctaControl":true}
       };
 
@@ -205,6 +205,6 @@
       </div>
       <div class="map" id="gmp-map"></div>
     </div>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1f2Lu1F17vCuENCim7PPNv3AA8WxMUfs&libraries=places,marker&callback=initMap&solution_channel=GMP_QB_addressselection_v2_cABC" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=<%= VUE_APP_GOOGLE_MAPS_KEY %>&libraries=places,marker&callback=initMap&solution_channel=GMP_QB_addressselection_v2_cABC&loading=async" async defer></script>
   </body>
 </html>

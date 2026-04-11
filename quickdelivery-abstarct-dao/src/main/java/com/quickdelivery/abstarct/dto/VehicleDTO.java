@@ -11,6 +11,7 @@ public class VehicleDTO {
     private String registrationNumber;
     private String brand;
     private String model;
+    private String type;
     private String energyType;
     private Map<DOCUMENT_TYPE, DocumentDTO> vehicleDocuments = new HashMap<>();
     public VehicleDTO(){}
@@ -45,6 +46,14 @@ public class VehicleDTO {
 
     public void setEnergyType(String energyType) {
         this.energyType = energyType;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Integer getVersion() {

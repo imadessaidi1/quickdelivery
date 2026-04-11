@@ -54,6 +54,8 @@ export default {
     return {
       trackingState: 'loading',
       packageData: null,
+      trackingMessageHandler: null,
+      isTrackingLoaderActive: false,
       routeInfo: {
         distance: {
           text: '',
@@ -67,39 +69,48 @@ export default {
     };
   },
   async mounted() {
-    this.$store.commit('updateLoaderStatus', true);
+    this.setTrackingLoader(true);
     if (!this.packageReference) {
       this.trackingState = 'not_found';
-      this.$store.commit('updateLoaderStatus', false);
+      this.setTrackingLoader(false);
       return;
     }
 
-    window.onmessage = (e) => {
+    this.trackingMessageHandler = (e) => {
       if (typeof e.data === 'string' && e.data === 'StartLoading') {
-        this.$store.commit('updateLoaderStatus', true);
+        this.setTrackingLoader(true);
       } else if (typeof e.data === 'string' && e.data === 'EndLoading') {
-        this.$store.commit('updateLoaderStatus', false);
+        this.setTrackingLoader(false);
       } else if (typeof e.data === 'string' && e.data.includes('RouteInfo;')) {
         this.routeInfo = JSON.parse(e.data.split(';')[1]);
       } else if (typeof e.data === 'string' && e.data === 'PackageNotFound') {
         this.trackingState = 'not_found';
-        this.$store.commit('updateLoaderStatus', false);
+        this.setTrackingLoader(false);
       } else if (typeof e.data === 'string' && e.data === 'TrackingError') {
         this.trackingState = 'error';
-        this.$store.commit('updateLoaderStatus', false);
+        this.setTrackingLoader(false);
       }
     };
+    window.addEventListener('message', this.trackingMessageHandler);
 
     try {
       const response = await fetchTrackingPackage(this.packageReference, this.guestAccessToken, this.$i18n);
       this.packageData = response.data;
       this.$store.commit('updatePackage', response.data);
       this.trackingState = 'ready';
+      this.setTrackingLoader(false);
     } catch (error) {
       const status = error?.response?.status;
       this.trackingState = status === 404 || status === 403 ? 'not_found' : 'error';
-      this.$store.commit('updateLoaderStatus', false);
+      this.setTrackingLoader(false);
     }
+  },
+  beforeUnmount() {
+    if (this.trackingMessageHandler) {
+      window.removeEventListener('message', this.trackingMessageHandler);
+      this.trackingMessageHandler = null;
+    }
+    this.setTrackingLoader(false);
   },
   computed: {
     showBackButton() {
@@ -113,6 +124,13 @@ export default {
     },
   },
   methods: {
+    setTrackingLoader(isActive) {
+      if (this.isTrackingLoaderActive === isActive) {
+        return;
+      }
+      this.isTrackingLoaderActive = isActive;
+      this.$store.commit('updateLoaderStatus', isActive);
+    },
     goBack() {
       if (this.returnTo) {
         this.$router.push(this.returnTo);
@@ -151,12 +169,7 @@ export default {
   min-width: 110px;
   height: 42px;
   padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .page-header h1 {

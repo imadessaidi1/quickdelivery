@@ -11,6 +11,7 @@ public class ReserveBatchResultDTO {
     private int reservedCount;
     private List<Long> reservedPackageIds = new ArrayList<>();
     private Map<Long, String> skippedPackages = new LinkedHashMap<>();
+    private RoutePlanDTO reservedRoutePlan;
 
     public Long getDeliveryPersonId() {
         return deliveryPersonId;
@@ -50,5 +51,13 @@ public class ReserveBatchResultDTO {
 
     public void setSkippedPackages(Map<Long, String> skippedPackages) {
         this.skippedPackages = skippedPackages;
+    }
+
+    public RoutePlanDTO getReservedRoutePlan() {
+        return reservedRoutePlan;
+    }
+
+    public void setReservedRoutePlan(RoutePlanDTO reservedRoutePlan) {
+        this.reservedRoutePlan = reservedRoutePlan;
     }
 }

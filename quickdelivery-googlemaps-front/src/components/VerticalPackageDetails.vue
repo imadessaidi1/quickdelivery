@@ -15,8 +15,8 @@
                 <div>
                     <strong>{{$t('packageWeight')}}:</strong> {{package_.weight}}
                 </div>
-                <div v-if="package_.deliveryPrice">
-                    <strong>{{$t('packagePrice')}}:</strong> {{package_.deliveryPrice}} {{$t('currency')}}
+                <div v-if="displayedPrice !== '-'">
+                    <strong>{{displayedPriceLabel}}:</strong> {{displayedPrice}}
                 </div>
                 <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']">
                     <a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a>
@@ -87,7 +87,8 @@
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
-import http from '@/config/httpInterceptor';
+import { fetchProtectedBlob } from '@/config/binaryContent';
+import { formatDisplayedPackageAmount, resolveDisplayedPackagePriceLabel } from '@/config/packagePricing';
 
 export default {
     computed: {
@@ -108,6 +109,12 @@ export default {
         },
         packagePictureAvailable() {
           return Boolean(this.packagePictureDocument?.id);
+        },
+        displayedPrice() {
+          return formatDisplayedPackageAmount(this.$i18n, this.package_);
+        },
+        displayedPriceLabel() {
+          return resolveDisplayedPackagePriceLabel(this.$i18n);
         },
     },
     data() {
@@ -141,12 +148,11 @@ export default {
           }
           this.isPictureLoading = true;
           try {
-            const response = await http.get(
-              `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(this.packagePictureDocument.id)}`,
-              { responseType: 'blob' }
+            const blob = await fetchProtectedBlob(
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(this.packagePictureDocument.id)}`
             );
             this.revokePicturePreview();
-            this.currentPictureObjectUrl = URL.createObjectURL(response.data);
+            this.currentPictureObjectUrl = URL.createObjectURL(blob);
             this.picturePreviewSrc = this.currentPictureObjectUrl;
           } catch (error) {
             this.revokePicturePreview();

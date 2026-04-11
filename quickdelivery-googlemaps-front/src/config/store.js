@@ -34,6 +34,29 @@ function saveNotificationsForUser(userId, notifications) {
   }
 }
 
+function normalizeNotification(notification) {
+  return {
+    id: notification.id || notification.notificationId || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    type: notification.type || notification.eventType || 'GENERIC_NOTIFICATION',
+    from: notification.from ?? null,
+    to: notification.to ?? null,
+    title: notification.title || '',
+    message: notification.message || notification.body || '',
+    url: notification.url || notification.targetUrl || '',
+    payloadJson: notification.payloadJson || '',
+    receivedAt: notification.receivedAt || notification.createdAt || new Date().toISOString(),
+    read: Boolean(notification.read),
+  };
+}
+
+function sortNotificationsByDate(notifications) {
+  return [...notifications].sort((left, right) => {
+    const leftTime = new Date(left.receivedAt || 0).getTime();
+    const rightTime = new Date(right.receivedAt || 0).getTime();
+    return rightTime - leftTime;
+  });
+}
+
 export default createStore({
   state: {
       isLoading: false,
@@ -112,6 +135,8 @@ export default createStore({
       birthDate: null,
       phone: '',
       addressAuto: '',
+      deliveryMode: '',
+      primaryVehicleType: '',
       personalAddress: [],
       vehicles: [],
       documents: [],
@@ -184,8 +209,19 @@ export default createStore({
               vehicleDocuments: [],
               userRIB: {},
               packagesLastPosition: {},
+              packagesArround: [],
               location: 'mapPage',
               mapSearchRadius: 10000,
+              isUserWithOngoingDelivery: false,
+              activeDeliveryRoute: null,
+              reservationAvailability: {
+                  canReserve: true,
+                  activeRouteBlocking: false,
+                  capacityReached: false,
+                  activeReservations: 0,
+                  maxReservations: 0,
+                  reason: 'available',
+              },
   },
   mutations: {
       updatePackage(state, updatedPackage) {
@@ -263,6 +299,10 @@ export default createStore({
         state.connectedUser = connectedUser;
         state.notifications = loadNotificationsForUser(connectedUser?.id);
       },
+      setNotifications(state, notifications) {
+        state.notifications = sortNotificationsByDate((notifications || []).map(normalizeNotification)).slice(0, MAX_NOTIFICATIONS);
+        saveNotificationsForUser(state.connectedUser?.id, state.notifications);
+      },
       resetConnectedUser(state) {
         state.connectedUser = {
           id: null,
@@ -275,6 +315,8 @@ export default createStore({
           birthDate: null,
           phone: '',
           addressAuto: '',
+          deliveryMode: '',
+          primaryVehicleType: '',
           personalAddress: [],
           vehicles: [],
           documents: [],
@@ -283,6 +325,16 @@ export default createStore({
           loaded: false,
         };
         state.notifications = [];
+        state.isUserWithOngoingDelivery = false;
+        state.activeDeliveryRoute = null;
+        state.reservationAvailability = {
+          canReserve: true,
+          activeRouteBlocking: false,
+          capacityReached: false,
+          activeReservations: 0,
+          maxReservations: 0,
+          reason: 'available',
+        };
       },
       updateLocation(state, updateLocation) {
         state.location = updateLocation;
@@ -290,19 +342,48 @@ export default createStore({
       updateMapSearchRadius(state, radius) {
         state.mapSearchRadius = radius;
       },
-      pushNotification(state, notification) {
-        const formattedNotification = {
-          id: notification.id || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-          type: notification.type || 'GENERIC_NOTIFICATION',
-          from: notification.from ?? null,
-          to: notification.to ?? null,
-          message: notification.message || '',
-          url: notification.url || '',
-          receivedAt: notification.receivedAt || new Date().toISOString(),
-          read: false,
+      updatePackagesArround(state, packages) {
+        state.packagesArround = Array.isArray(packages) ? packages : [];
+      },
+      setOngoingDeliveryState(state, payload) {
+        state.isUserWithOngoingDelivery = Boolean(payload?.isUserWithOngoingDelivery);
+        state.activeDeliveryRoute = payload?.activeDeliveryRoute || null;
+      },
+      setActiveDeliveryRoute(state, activeDeliveryRoute) {
+        state.activeDeliveryRoute = activeDeliveryRoute || null;
+      },
+      setReservationAvailability(state, reservationAvailability) {
+        state.reservationAvailability = {
+          canReserve: reservationAvailability?.canReserve !== false,
+          activeRouteBlocking: Boolean(reservationAvailability?.activeRouteBlocking),
+          capacityReached: Boolean(reservationAvailability?.capacityReached),
+          activeReservations: Number(reservationAvailability?.activeReservations || 0),
+          maxReservations: Number(reservationAvailability?.maxReservations || 0),
+          reason: reservationAvailability?.reason || 'available',
         };
-
-        state.notifications = [formattedNotification, ...state.notifications].slice(0, MAX_NOTIFICATIONS);
+      },
+      patchPackageSoftLock(state, payload) {
+        if (!payload?.packageId) {
+          return;
+        }
+        state.packagesArround = (state.packagesArround || []).map((pkg) => (
+          pkg.id === payload.packageId
+            ? { ...pkg, isSoftLockedBy: payload.lockedBy || null, softLockExpiresAt: payload.softLockExpiresAt || null }
+            : pkg
+        ));
+      },
+      pushNotification(state, notification) {
+        const formattedNotification = normalizeNotification(notification);
+        const existingIndex = state.notifications.findIndex((item) => `${item.id}` === `${formattedNotification.id}`);
+        if (existingIndex >= 0) {
+          state.notifications.splice(existingIndex, 1, {
+            ...state.notifications[existingIndex],
+            ...formattedNotification,
+          });
+        } else {
+          state.notifications = [formattedNotification, ...state.notifications];
+        }
+        state.notifications = sortNotificationsByDate(state.notifications).slice(0, MAX_NOTIFICATIONS);
         saveNotificationsForUser(state.connectedUser?.id, state.notifications);
       },
       markNotificationRead(state, notificationId) {

@@ -34,7 +34,7 @@
           <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}" :show-update-button="false" />
         </div>
         <div class="documents-card">
-          <DocumentViewer :documents="selectedUser.document || {}" />
+          <DocumentViewer :documents="normalizedDocuments" />
         </div>
       </div>
 
@@ -55,6 +55,7 @@
 import http from '@/config/httpInterceptor';
 import DocumentViewer from '../components/DocumentViwer.vue';
 import UserDetails from '../components/UserDetails.vue';
+import { normalizeDocumentCollection } from '@/config/documents';
 
 export default {
   components: {
@@ -77,6 +78,9 @@ export default {
   computed: {
     selectedVehicle() {
       return this.selectedUser?.vehicles?.[0] || {};
+    },
+    normalizedDocuments() {
+      return normalizeDocumentCollection(this.selectedUser?.document || this.selectedUser?.documents || {});
     },
     showBackButton() {
       return !!this.returnTo;
@@ -126,7 +130,7 @@ export default {
         await http.put(url, formData);
         this.$router.push(this.returnTo || '/usersAccountValidation');
       } catch (error) {
-        console.error('Unable to process your request at this time. Please try again later.', error);
+        console.error(this.$t('requestErrorGeneric'), error);
       }
     },
   },

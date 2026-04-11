@@ -26,25 +26,25 @@
     <div class="measure-grid">
       <div class="field-wrap">
         <label for="height">{{ $t('packageHeight') }}</label>
-        <Field id="height" v-model="package_.height" type="number" name="package_.height" :rules="validateNumericField" />
+        <Field id="height" v-model="package_.height" type="number" name="package_.height" :rules="validateNumericField" min="1" max="300" step="1" @change="clampField('height', 1, 300)" />
         <ErrorMessage class="errorMessage" name="package_.height" />
       </div>
 
       <div class="field-wrap">
         <label for="width">{{ $t('packageWidth') }}</label>
-        <Field id="width" v-model="package_.width" type="number" name="package_.width" :rules="validateNumericField" />
+        <Field id="width" v-model="package_.width" type="number" name="package_.width" :rules="validateNumericField" min="1" max="300" step="1" @change="clampField('width', 1, 300)" />
         <ErrorMessage class="errorMessage" name="package_.width" />
       </div>
 
       <div class="field-wrap">
         <label for="depth">{{ $t('packageDepth') }}</label>
-        <Field id="depth" v-model="package_.depth" type="number" name="package_.depth" :rules="validateNumericField" />
+        <Field id="depth" v-model="package_.depth" type="number" name="package_.depth" :rules="validateNumericField" min="1" max="300" step="1" @change="clampField('depth', 1, 300)" />
         <ErrorMessage class="errorMessage" name="package_.depth" />
       </div>
 
       <div class="field-wrap">
         <label for="weight">{{ $t('packageWeight') }}</label>
-        <Field id="weight" v-model="package_.weight" type="number" name="package_.weight" :rules="validateNumericField" />
+        <Field id="weight" v-model="package_.weight" type="number" name="package_.weight" :rules="validateNumericField" min="0.1" max="100" step="0.1" @change="clampField('weight', 0.1, 100)" />
         <ErrorMessage class="errorMessage" name="package_.weight" />
       </div>
     </div>
@@ -86,15 +86,27 @@ export default {
     const preset = PRESETS.find((entry) => entry.key === this.selectedPreset) || PRESETS[1];
     if (!this.package_.height && !this.package_.width && !this.package_.depth && !this.package_.weight) {
       this.applyPreset(preset);
+      return;
+    }
+    if (!this.package_.packageSizeCategory) {
+      this.package_.packageSizeCategory = preset.key;
     }
   },
   methods: {
     validateNumericField,
+    clampField(fieldName, min, max) {
+      const parsedValue = Number(this.package_[fieldName]);
+      if (!Number.isFinite(parsedValue)) {
+        return;
+      }
+      this.package_[fieldName] = Math.min(max, Math.max(min, parsedValue));
+    },
     applyPreset(preset) {
       this.package_.height = preset.height;
       this.package_.width = preset.width;
       this.package_.depth = preset.depth;
       this.package_.weight = preset.weight;
+      this.package_.packageSizeCategory = preset.key;
       this.$emit('update:selectedPreset', preset.key);
     },
   },

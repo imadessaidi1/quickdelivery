@@ -114,6 +114,15 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 			return;
 		}
 
+		realm.setBruteForceProtected(true);
+		realm.setPermanentLockout(false);
+		realm.setMaxFailureWaitSeconds(900);
+		realm.setMinimumQuickLoginWaitSeconds(60);
+		realm.setWaitIncrementSeconds(60);
+		realm.setQuickLoginCheckMilliSeconds(1000L);
+		realm.setMaxDeltaTimeSeconds(43200);
+		realm.setFailureFactor(5);
+
 		ClientModel frontClient = realm.getClientByClientId("quickdelivery-front");
 		if (frontClient == null) {
 			LOG.warn("Client quickdelivery-front not found in realm {}.", realmName);

@@ -40,8 +40,10 @@
           id="declaredValue"
           v-model.number="localValue.declaredValue"
           type="number"
-          min="0"
+          :min="declaredValueMin"
+          :max="declaredValueMax"
           step="0.01"
+          @change="clampDeclaredValue"
         >
         <span v-if="declaredValueError" class="errorMessage">{{ declaredValueError }}</span>
       </div>
@@ -73,6 +75,9 @@
 </template>
 
 <script>
+const DECLARED_VALUE_MIN = 1;
+const DECLARED_VALUE_MAX = 10000;
+
 export default {
   props: {
     modelValue: {
@@ -100,6 +105,12 @@ export default {
     documentS() {
       return this.$store.state.documentS;
     },
+    declaredValueMin() {
+      return DECLARED_VALUE_MIN;
+    },
+    declaredValueMax() {
+      return DECLARED_VALUE_MAX;
+    },
   },
   watch: {
     'localValue.insurance'(value) {
@@ -109,7 +120,7 @@ export default {
       }
     },
     'localValue.declaredValue'() {
-      if (this.declaredValueError && Number(this.localValue.declaredValue) > 0) {
+      if (this.declaredValueError && Number(this.localValue.declaredValue) >= this.declaredValueMin) {
         this.declaredValueError = null;
       }
     },
@@ -133,12 +144,20 @@ export default {
       return this.documentS?.[index]?.name || this.$t('packageDocumentMissing');
     },
     validateSelection() {
-      if (this.localValue.insurance && !(Number(this.localValue.declaredValue) > 0)) {
+      const declaredValue = Number(this.localValue.declaredValue);
+      if (this.localValue.insurance && !(declaredValue >= this.declaredValueMin && declaredValue <= this.declaredValueMax)) {
         this.declaredValueError = this.$t('packageDeclaredValueRequired');
         return false;
       }
       this.declaredValueError = null;
       return true;
+    },
+    clampDeclaredValue() {
+      const parsedValue = Number(this.localValue.declaredValue);
+      if (!Number.isFinite(parsedValue)) {
+        return;
+      }
+      this.localValue.declaredValue = Math.min(this.declaredValueMax, Math.max(this.declaredValueMin, parsedValue));
     },
   },
 };

@@ -6,30 +6,40 @@
       'mobile-list-mode': isMobile && mobileViewMode === 'list',
     }"
   >
+    <div v-if="isAroundMeLoading" class="around-loader">
+      <div class="around-loader-card">
+        <div class="around-loader-spinner"></div>
+        <strong>{{ $t('stateLoading') }}</strong>
+        <span>{{ $t('stateLoadingPackagesAround') }}</span>
+      </div>
+    </div>
     <div class="map-shell">
       <div v-if="!isMobile" class="map-search-toolbar">
         <div class="search-block">
           <div class="search-input-shell">
-            <span class="material-symbols-outlined search-icon">search</span>
             <AddressAutoComplete
               v-model="searchAddress"
               class="search-address-input"
               :placeholder="$t('mapSearchPlaceholder')"
+              @place-selected="handleSearchPlaceSelected"
               @keyup.enter="submitAddressSearch"
             />
           </div>
         </div>
-        <div class="radius-group">
-          <button class="radius-btn" :class="{ active: searchRadius === 10000 }" type="button" @click="updateRadius(10000)">10km</button>
-          <button class="radius-btn" :class="{ active: searchRadius === 20000 }" type="button" @click="updateRadius(20000)">20km</button>
-          <button class="radius-btn" :class="{ active: searchRadius === 30000 }" type="button" @click="updateRadius(30000)">30km</button>
+        <div class="search-mode-group">
+          <button class="search-mode-btn" :class="{ active: searchMode === 'direct' }" type="button" @click="searchMode = 'direct'">{{ $t('mapSearchModeDirect') }}</button>
+          <button class="search-mode-btn" :class="{ active: searchMode === 'tour' }" type="button" @click="searchMode = 'tour'">{{ $t('mapSearchModeTour') }}</button>
+        </div>
+        <div class="radius-block">
+          <label class="radius-label">{{ $t('mapSearchRadiusLabel') }} <strong>{{ $t('mapSearchRadiusValue', { n: radiusKm }) }}</strong></label>
+          <input class="radius-slider" type="range" min="1" max="100" step="1" v-model.number="radiusKm" @input="updateRadiusOnly" />
         </div>
         <div class="toolbar-actions">
           <button class="toolbar-btn secondary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
           <button class="toolbar-btn primary" type="button" @click="refreshAroundMe">{{ $t('mapSearchAroundMeAction') }}</button>
         </div>
       </div>
-      <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }"/>
+      <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }" @map-iframe-loaded="handleMapIframeLoaded"/>
       <div class="map-legend">
         <div class="legend-title">{{ $t('mapLegendTitle') }}</div>
         <div class="legend-row">
@@ -43,25 +53,31 @@
       </div>
     </div>
     <div class="packages-shell">
-      <Carrousel @mobile-view-change="handleMobileViewChange" />
+      <Carrousel
+        @mobile-view-change="handleMobileViewChange"
+        @loading-state-change="handleAroundMeLoadingState"
+      />
     </div>
     <div v-if="isMobile" class="mobile-search-shell">
       <div class="map-search-toolbar mobile-search-toolbar">
         <div class="search-block">
           <div class="search-input-shell">
-            <span class="material-symbols-outlined search-icon">search</span>
             <AddressAutoComplete
               v-model="searchAddress"
               class="search-address-input"
               :placeholder="$t('mapSearchPlaceholder')"
+              @place-selected="handleSearchPlaceSelected"
               @keyup.enter="submitAddressSearch"
             />
           </div>
         </div>
-        <div class="radius-group">
-          <button class="radius-btn" :class="{ active: searchRadius === 10000 }" type="button" @click="updateRadius(10000)">10km</button>
-          <button class="radius-btn" :class="{ active: searchRadius === 20000 }" type="button" @click="updateRadius(20000)">20km</button>
-          <button class="radius-btn" :class="{ active: searchRadius === 30000 }" type="button" @click="updateRadius(30000)">30km</button>
+        <div class="search-mode-group">
+          <button class="search-mode-btn" :class="{ active: searchMode === 'direct' }" type="button" @click="searchMode = 'direct'">{{ $t('mapSearchModeDirect') }}</button>
+          <button class="search-mode-btn" :class="{ active: searchMode === 'tour' }" type="button" @click="searchMode = 'tour'">{{ $t('mapSearchModeTour') }}</button>
+        </div>
+        <div class="radius-block">
+          <label class="radius-label">{{ $t('mapSearchRadiusLabel') }} <strong>{{ $t('mapSearchRadiusValue', { n: radiusKm }) }}</strong></label>
+          <input class="radius-slider" type="range" min="1" max="100" step="1" v-model.number="radiusKm" @input="updateRadiusOnly" />
         </div>
         <div class="toolbar-actions">
           <button class="toolbar-btn secondary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
@@ -78,6 +94,7 @@ import GoogleMap from '../components/GoogleMap.vue';
 import Carrousel from '../components/PackagesCarousel.vue'
 import PackageDetailsModal from "../components/PackageDetailsModal.vue";
 import AddressAutoComplete from '../components/AddressAutocomplete.vue';
+const GOOGLE_MAPS_KEY = process.env.VUE_APP_GOOGLE_MAPS_KEY || '';
 
 export default {
   data() {
@@ -85,61 +102,153 @@ export default {
       mobileViewMode: 'map',
       isMobile: window.innerWidth < 768,
       searchAddress: '',
-      searchRadius: this.$store.state.mapSearchRadius || 10000,
+      searchMode: 'tour',
+      isAroundMeLoading: true,
+      hasCompletedInitialLoad: false,
+      selectedSearchPlace: null,
+      radiusKm: Math.max(1, Math.round((Number(this.$store.state.mapSearchRadius || 10000) / 1000))),
     };
   },
   mounted() {
     window.addEventListener('resize', this.handleResize);
+    window.addEventListener('message', this.handleMapMessage);
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('message', this.handleMapMessage);
   },
   methods: {
-    parseAddressCriteria(rawAddress) {
-      const normalized = (rawAddress || '').trim();
-      if (!normalized) {
+    handleMapIframeLoaded() {
+      window.dispatchEvent(new CustomEvent('qd-map-iframe-loaded'));
+    },
+    handleSearchPlaceSelected(place) {
+      this.selectedSearchPlace = place?.latitude != null && place?.longitude != null ? place : null;
+    },
+    currentRadiusMeters() {
+      return Math.max(1000, Math.round(Number(this.radiusKm || 1) * 1000));
+    },
+    updateRadiusOnly() {
+      return this.currentRadiusMeters();
+    },
+    commitSearchRadius() {
+      this.$store.commit('updateMapSearchRadius', this.currentRadiusMeters());
+    },
+    async geocodeSearchAddress(rawAddress) {
+      const normalized = String(rawAddress || '').trim();
+      if (!normalized || !GOOGLE_MAPS_KEY) {
         return null;
       }
-
-      const chunks = normalized.split(',').map((value) => value.trim()).filter(Boolean);
-      const postalTown = chunks[1] || '';
-      const firstSpaceIndex = postalTown.indexOf(' ');
-
-      return {
-        rawAddress: normalized,
-        line1: chunks[0] || '',
-        zipCode: firstSpaceIndex === -1 ? '' : postalTown.slice(0, firstSpaceIndex).trim(),
-        town: firstSpaceIndex === -1 ? postalTown : postalTown.slice(firstSpaceIndex + 1).trim(),
-        country: chunks[2] || '',
-      };
+      try {
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(normalized)}&key=${encodeURIComponent(GOOGLE_MAPS_KEY)}`);
+        if (!response.ok) {
+          return null;
+        }
+        const payload = await response.json();
+        const result = Array.isArray(payload?.results) ? payload.results[0] : null;
+        const location = result?.geometry?.location;
+        if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+          return null;
+        }
+        return {
+          rawAddress: result.formatted_address || normalized,
+          latitude: location.lat,
+          longitude: location.lng,
+        };
+      } catch (_error) {
+        return null;
+      }
     },
-    submitAddressSearch() {
-      const criteria = this.parseAddressCriteria(this.searchAddress);
+    async submitAddressSearch() {
+      this.commitSearchRadius();
+      let criteria = this.selectedSearchPlace && this.selectedSearchPlace.formattedAddress === this.searchAddress
+        ? {
+            rawAddress: this.selectedSearchPlace.formattedAddress,
+            latitude: this.selectedSearchPlace.latitude,
+            longitude: this.selectedSearchPlace.longitude,
+          }
+        : null;
+      if (!criteria) {
+        criteria = await this.geocodeSearchAddress(this.searchAddress);
+      }
       if (!criteria) {
         return;
       }
-      window.dispatchEvent(new CustomEvent('qd-search-around-address', { detail: criteria }));
+      this.searchAddress = criteria.rawAddress;
+      this.selectedSearchPlace = {
+        formattedAddress: criteria.rawAddress,
+        latitude: criteria.latitude,
+        longitude: criteria.longitude,
+      };
+      window.dispatchEvent(new CustomEvent('qd-search-address', {
+        detail: {
+          mode: this.searchMode,
+          criteria,
+        },
+      }));
     },
-    updateRadius(radius) {
-      if (this.searchRadius === radius) {
-        return;
+    async refreshAroundMe() {
+      this.commitSearchRadius();
+      const typedAddress = String(this.searchAddress || '').trim();
+      if (typedAddress) {
+        let criteria = this.selectedSearchPlace && this.selectedSearchPlace.formattedAddress === this.searchAddress
+          ? {
+              rawAddress: this.selectedSearchPlace.formattedAddress,
+              latitude: this.selectedSearchPlace.latitude,
+              longitude: this.selectedSearchPlace.longitude,
+            }
+          : null;
+        if (!criteria) {
+          criteria = await this.geocodeSearchAddress(typedAddress);
+        }
+        if (criteria) {
+          this.searchMode = 'direct';
+          this.searchAddress = criteria.rawAddress;
+          this.selectedSearchPlace = {
+            formattedAddress: criteria.rawAddress,
+            latitude: criteria.latitude,
+            longitude: criteria.longitude,
+          };
+          window.dispatchEvent(new CustomEvent('qd-search-address', {
+            detail: {
+              mode: 'direct',
+              criteria,
+            },
+          }));
+          return;
+        }
       }
-      this.searchRadius = radius;
-      this.$store.commit('updateMapSearchRadius', radius);
-      if (this.searchAddress?.trim()) {
-        this.submitAddressSearch();
-        return;
-      }
-      this.refreshAroundMe();
-    },
-    refreshAroundMe() {
+      this.selectedSearchPlace = null;
       window.dispatchEvent(new CustomEvent('qd-refresh-package-search', { detail: { mode: 'aroundMe' } }));
+    },
+    handleAroundMeLoadingState(isLoading) {
+      const loading = Boolean(isLoading);
+      if (!loading) {
+        this.hasCompletedInitialLoad = true;
+      }
+      this.isAroundMeLoading = loading;
     },
     handleMobileViewChange(mode) {
       this.mobileViewMode = mode || 'map';
     },
     handleResize() {
       this.isMobile = window.innerWidth < 768;
+    },
+    handleMapMessage(event) {
+      if (typeof event.data === 'string' && event.data.startsWith('SelectedPackage:')) {
+        const packageId = event.data.split(':')[1];
+        // Trigger Soft Lock
+        const userId = this.$store.state.connectedUser?.id;
+        if (userId) {
+          window.dispatchEvent(new CustomEvent('qd-package-soft-lock', { 
+            detail: { packageId: parseInt(packageId), userId } 
+          }));
+        }
+        // Open Modal
+        const pkg = this.$store.state.packagesArround?.find(p => p.id === parseInt(packageId));
+        if (pkg && this.$refs.AppModal) {
+          this.$refs.AppModal.openModalForPackage(pkg);
+        }
+      }
     },
   },
   components: {
@@ -153,6 +262,7 @@ export default {
 
 <style>
 .home-page {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
@@ -162,6 +272,57 @@ export default {
   min-height: 540px;
   box-sizing: border-box;
   background: #f3f4f6;
+  overflow-x: clip;
+}
+
+.around-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(243, 244, 246, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.around-loader-card {
+  min-width: 220px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid rgba(221, 227, 236, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  text-align: center;
+}
+
+.around-loader-card strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.around-loader-card span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.around-loader-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(37, 84, 143, 0.16);
+  border-top-color: #24558f;
+  animation: around-loader-spin 0.8s linear infinite;
+}
+
+@keyframes around-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .map-shell {
@@ -172,6 +333,7 @@ export default {
   overflow: hidden;
   background: #dfe6f3;
   box-shadow: 0 10px 25px rgba(21, 27, 39, 0.06);
+  min-width: 0;
 }
 
 .map-search-toolbar {
@@ -200,36 +362,51 @@ export default {
   position: relative;
 }
 
-.search-icon {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  color: #64748b;
-  font-size: 18px;
-  pointer-events: none;
-  z-index: 1;
+.search-address-input {
+  width: 100%;
 }
 
-.search-address-input,
-.search-address-input:deep(.address-autocomplete-input) {
+.search-address-input :deep(.address-autocomplete-input) {
   width: 100%;
   min-height: 44px;
-  padding: 0 14px 0 48px;
-  border-radius: 12px;
+  padding: 0 14px;
+  border-radius: 14px;
   border-color: #d7deea;
   font-size: 14px;
   box-sizing: border-box;
 }
 
-.radius-group {
+.search-address-input :deep(.qd-place-autocomplete) {
+  min-height: 44px;
+  border-radius: 14px;
+  border-color: #d7deea;
+}
+
+.search-mode-group {
   display: flex;
   gap: 6px;
   flex: 0 0 auto;
 }
 
-.radius-btn {
-  min-width: 62px;
+.radius-block {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  flex: 0 0 190px;
+}
+
+.radius-label {
+  font-size: 12px;
+  color: #475569;
+}
+
+.radius-slider {
+  width: 100%;
+  accent-color: #0f766e;
+}
+
+.search-mode-btn {
+  min-width: 80px;
   height: 42px;
   padding: 0 10px;
   border: 1px solid #d7deea;
@@ -240,7 +417,7 @@ export default {
   font-weight: 700;
 }
 
-.radius-btn.active {
+.search-mode-btn.active {
   background: #eef2ff;
   border-color: #b8c3dd;
 }
@@ -276,6 +453,10 @@ export default {
 
 .mobile-search-shell {
   display: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .map-legend {
@@ -352,7 +533,7 @@ export default {
 
 @media screen and (max-width: 767px) {
   .home-page {
-    min-height: 480px;
+    min-height: calc(100dvh - 56px);
     padding: 8px;
     gap: 8px;
     width: 100%;
@@ -360,9 +541,21 @@ export default {
     overflow-x: hidden;
   }
 
+  .around-loader {
+    padding: 12px;
+  }
+
+  .around-loader-card {
+    width: min(100%, 280px);
+    padding: 16px;
+    border-radius: 16px;
+  }
+
   .map-shell {
-    min-height: 292px;
+    min-height: 360px;
     border-radius: 14px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .map-search-toolbar {
@@ -384,11 +577,16 @@ export default {
     border-radius: 16px;
     background: #ffffff;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
 
   .search-block,
   .toolbar-actions,
-  .radius-group {
+  .search-mode-group,
+  .radius-block {
     width: 100%;
   }
 
@@ -397,12 +595,12 @@ export default {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .radius-group {
+  .search-mode-group {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .radius-btn,
+  .search-mode-btn,
   .toolbar-btn {
     width: 100%;
   }
@@ -411,7 +609,7 @@ export default {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
     margin-top: -2px;
   }
 
@@ -436,6 +634,10 @@ export default {
     min-height: 0;
   }
 
+  .home-page.mobile-map-mode .map-shell {
+    min-height: calc(100dvh - 210px);
+  }
+
   .home-page.mobile-list-mode .map-shell {
     display: none;
   }
@@ -447,23 +649,24 @@ export default {
 
 @media screen and (max-width: 420px) {
   .map-shell {
-    min-height: 272px;
+    min-height: 340px;
   }
 
   .mobile-search-toolbar {
     padding: 8px;
   }
 
-  .search-address-input,
-  .search-address-input:deep(.address-autocomplete-input) {
+  .search-address-input :deep(.address-autocomplete-input),
+  .search-address-input :deep(.qd-place-autocomplete) {
     min-height: 42px;
     font-size: 13px;
   }
 
-  .radius-btn,
+  .search-mode-btn,
   .toolbar-btn {
     height: 40px;
     font-size: 12px;
   }
 }
+
 </style>

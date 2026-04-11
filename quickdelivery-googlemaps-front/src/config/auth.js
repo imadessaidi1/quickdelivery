@@ -1,5 +1,6 @@
 import { getAuthBaseUrl } from './network';
 import { App as CapacitorApp } from '@capacitor/app';
+import { CapacitorHttp } from '@capacitor/core';
 import { cancelPendingRequests } from './requestControl';
 
 const REALM = 'quickdelivery';
@@ -11,6 +12,10 @@ const REFRESH_TOKEN_STORAGE_KEY = 'qd_refresh_token';
 const OIDC_STATE_KEY = 'qd_oidc_state';
 const OIDC_VERIFIER_KEY = 'qd_oidc_verifier';
 const OIDC_REDIRECT_KEY = 'qd_oidc_redirect';
+const LOGIN_ATTEMPT_COUNT_KEY = 'qd_login_attempt_count';
+const POST_AUTH_ROUTE_KEY = 'qd_post_auth_route';
+const LAST_AUTH_SUCCESS_AT_KEY = 'qd_last_auth_success_at';
+const MOBILE_LOGOUT_MARKER = 'logout';
 
 const ALLOWED_REDIRECTS = new Set([
   '/createPackage',
@@ -63,7 +68,9 @@ function storageSet(key, value) {
   if (session) {
     session.setItem(key, value);
   }
-  if (local) {
+  if (local && isMobileRuntime()) {
+    local.setItem(key, value);
+  } else if (local) {
     local.removeItem(key);
   }
 }
@@ -115,6 +122,49 @@ function getRedirectUri() {
   }
   const redirectPath = defaultRedirectPath();
   return `${window.location.origin}${redirectPath}`;
+}
+
+async function exchangeAuthorizationCode(tokenUrl, formBody) {
+  if (isMobileRuntime()) {
+    const response = await CapacitorHttp.post({
+      url: tokenUrl,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: formBody.toString(),
+    });
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(`Token exchange failed with status ${response.status}`);
+    }
+    return response.data || {};
+  }
+
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formBody.toString()
+  });
+
+  if (!response.ok) {
+    throw new Error(`Token exchange failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function performMobileKeycloakLogout(refreshToken) {
+  if (!refreshToken) {
+    return;
+  }
+
+  const logoutUrl = `${getAuthBaseUrl()}/realms/${REALM}/protocol/openid-connect/logout`;
+  const form = new URLSearchParams();
+  form.set('client_id', CLIENT_ID);
+  form.set('refresh_token', refreshToken);
+
+  await CapacitorHttp.post({
+    url: logoutUrl,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    data: form.toString(),
+  });
 }
 
 async function buildAuthorizeUrl(options = {}) {
@@ -247,6 +297,24 @@ function clearAuthStorage() {
   storageRemove(OIDC_STATE_KEY);
   storageRemove(OIDC_VERIFIER_KEY);
   storageRemove(OIDC_REDIRECT_KEY);
+  storageRemove(POST_AUTH_ROUTE_KEY);
+  storageRemove(LAST_AUTH_SUCCESS_AT_KEY);
+}
+
+export function getLoginAttemptCount() {
+  const rawValue = storageGet(LOGIN_ATTEMPT_COUNT_KEY);
+  const count = Number(rawValue);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+export function registerLoginAttempt() {
+  const nextCount = getLoginAttemptCount() + 1;
+  storageSet(LOGIN_ATTEMPT_COUNT_KEY, `${nextCount}`);
+  return nextCount;
+}
+
+export function resetLoginAttemptCounter() {
+  storageRemove(LOGIN_ATTEMPT_COUNT_KEY);
 }
 
 export function hasValidAccessToken() {
@@ -262,19 +330,76 @@ export function hasValidAccessToken() {
   return payload.exp > now + 10;
 }
 
+export function consumePendingPostAuthRoute() {
+  const pendingRoute = storageGet(POST_AUTH_ROUTE_KEY);
+  storageRemove(POST_AUTH_ROUTE_KEY);
+  return pendingRoute || '';
+}
+
+export function markAuthSuccess() {
+  storageSet(LAST_AUTH_SUCCESS_AT_KEY, `${Date.now()}`);
+}
+
+export function wasRecentAuthSuccess(windowMs = 8000) {
+  const rawValue = storageGet(LAST_AUTH_SUCCESS_AT_KEY);
+  const timestamp = Number(rawValue);
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return false;
+  }
+  return Date.now() - timestamp <= windowMs;
+}
+
 export async function redirectToLogin(options = {}) {
   const authUrl = await buildAuthorizeUrl(options);
   window.location.assign(authUrl);
 }
 
 export function logout() {
+  const refreshToken = storageGet(REFRESH_TOKEN_STORAGE_KEY);
   cancelPendingRequests('Logout in progress');
+
+  if (isMobileRuntime()) {
+    performMobileKeycloakLogout(refreshToken)
+      .catch((error) => {
+        console.error('Mobile Keycloak logout failed:', error);
+      })
+      .finally(() => {
+        clearAuthStorage();
+        resetLoginAttemptCounter();
+        window.location.replace(`${window.location.origin}/`);
+      });
+    return;
+  }
+
   clearAuthStorage();
-  const postLogoutRedirectUri = isMobileRuntime() ? MOBILE_REDIRECT_URI : `${window.location.origin}/`;
+  resetLoginAttemptCounter();
+
+  const postLogoutRedirectUri = isMobileRuntime()
+    ? `${MOBILE_REDIRECT_URI}?${MOBILE_LOGOUT_MARKER}=1`
+    : `${window.location.origin}/`;
   const logoutUrl = new URL(`${getAuthBaseUrl()}/realms/${REALM}/protocol/openid-connect/logout`);
   logoutUrl.searchParams.set('client_id', CLIENT_ID);
   logoutUrl.searchParams.set('post_logout_redirect_uri', postLogoutRedirectUri);
   window.location.assign(logoutUrl.toString());
+}
+
+function processMobileLogoutCallback(sourceUrl) {
+  if (!isMobileRuntime()) {
+    return false;
+  }
+
+  const url = new URL(sourceUrl);
+  if (url.searchParams.get(MOBILE_LOGOUT_MARKER) !== '1') {
+    return false;
+  }
+
+  clearAuthStorage();
+  resetLoginAttemptCounter();
+  storageSet(POST_AUTH_ROUTE_KEY, '/');
+  window.history.replaceState({}, document.title, '/');
+  window.dispatchEvent(new CustomEvent('qd-auth-route-resolved', { detail: { path: '/' } }));
+  window.dispatchEvent(new PopStateEvent('popstate'));
+  return true;
 }
 
 async function processAuthCallback(sourceUrl) {
@@ -309,20 +434,17 @@ async function processAuthCallback(sourceUrl) {
   form.set('redirect_uri', redirectUri);
   form.set('code_verifier', codeVerifier);
 
-  const response = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: form.toString()
-  });
-
-  if (!response.ok) {
-    throw new Error(`Token exchange failed with status ${response.status}`);
-  }
-
-  const json = await response.json();
+  const json = await exchangeAuthorizationCode(tokenUrl, form);
   const accessToken = json.access_token || '';
+  const refreshToken = json.refresh_token || '';
   storageSet(TOKEN_STORAGE_KEY, accessToken);
-  storageRemove(REFRESH_TOKEN_STORAGE_KEY);
+  if (refreshToken) {
+    storageSet(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
+  } else {
+    storageRemove(REFRESH_TOKEN_STORAGE_KEY);
+  }
+  resetLoginAttemptCounter();
+  markAuthSuccess();
 
   storageRemove(OIDC_STATE_KEY);
   storageRemove(OIDC_VERIFIER_KEY);
@@ -339,7 +461,9 @@ async function processAuthCallback(sourceUrl) {
   const landingPath = getLandingPathByRoles(roles);
   const finalPath = ALLOWED_REDIRECTS.has(landingPath) ? landingPath : '/';
   if (isMobileRuntime()) {
+    storageSet(POST_AUTH_ROUTE_KEY, finalPath);
     window.history.replaceState({}, document.title, finalPath);
+    window.dispatchEvent(new CustomEvent('qd-auth-route-resolved', { detail: { path: finalPath } }));
     window.dispatchEvent(new PopStateEvent('popstate'));
     return { handled: true, redirected: false };
   } else {
@@ -355,6 +479,9 @@ async function processAuthCallback(sourceUrl) {
 }
 
 export async function handleAuthCallback(sourceUrl = window.location.href) {
+  if (processMobileLogoutCallback(sourceUrl)) {
+    return { handled: true, redirected: false };
+  }
   return processAuthCallback(sourceUrl);
 }
 
@@ -366,6 +493,7 @@ export async function initializeMobileAuthCallbackListener() {
   const launchUrl = await CapacitorApp.getLaunchUrl();
   if (launchUrl?.url && launchUrl.url.startsWith(MOBILE_REDIRECT_URI)) {
     await processAuthCallback(launchUrl.url);
+    processMobileLogoutCallback(launchUrl.url);
   }
 
   await CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
@@ -373,6 +501,9 @@ export async function initializeMobileAuthCallbackListener() {
       return;
     }
     try {
+      if (processMobileLogoutCallback(url)) {
+        return;
+      }
       await processAuthCallback(url);
     } catch (error) {
       console.error('Mobile OIDC callback processing failed:', error);

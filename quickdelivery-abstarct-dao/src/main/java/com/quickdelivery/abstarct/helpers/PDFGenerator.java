@@ -74,7 +74,7 @@ public class PDFGenerator {
                 .setMarginBottom(6);
 
         top.addCell(noBorderCell()
-                .add(new Paragraph("QuickDelivery")
+                .add(new Paragraph(label(bundle, "pdf.brand", "QuickDelivery"))
                         .setFontSize(20)
                         .setBold()
                         .setFontColor(PRIMARY)
@@ -85,8 +85,8 @@ public class PDFGenerator {
                         .setMarginTop(2)
                         .setMarginBottom(0)));
 
-        top.addCell(metricCell(label(bundle, "package.service", "Service"), "J+2"));
-        top.addCell(metricCell(label(bundle, "package.domestic", "Zone"), "DOM"));
+        top.addCell(metricCell(label(bundle, "package.service", "Service"), label(bundle, "pdf.service.standard", "J+2")));
+        top.addCell(metricCell(label(bundle, "package.domestic", "Zone"), label(bundle, "pdf.zone.domestic", "DOM")));
         return top;
     }
 
@@ -150,13 +150,13 @@ public class PDFGenerator {
         Cell left = new Cell()
                 .setBorder(new SolidBorder(BORDER, 1f))
                 .setPadding(8);
-        left.add(infoLine(label(bundle, "package.id", "Tracking number"), packageDTO.getReference(), true));
-        left.add(infoLine(label(bundle, "package.date", "Created on"), formatDate(packageDTO), false));
+        left.add(infoLine(label(bundle, "package.id", "Tracking number"), packageDTO.getReference(), true, bundle));
+        left.add(infoLine(label(bundle, "package.date", "Created on"), formatDate(packageDTO), false, bundle));
         left.add(infoLine(label(bundle, "package.weightLabel", "Weight"),
-                MessageFormat.format(label(bundle, "package.weightValue", "{0} kg"), packageDTO.getWeight()), false));
+                MessageFormat.format(label(bundle, "package.weightValue", "{0} kg"), packageDTO.getWeight()), false, bundle));
         left.add(infoLine(label(bundle, "package.dimensions", "Dimensions"),
                 MessageFormat.format(label(bundle, "package.dimensionsValue", "{0} x {1} x {2} cm"),
-                        packageDTO.getHeight(), packageDTO.getWidth(), packageDTO.getDepth()), false));
+                        packageDTO.getHeight(), packageDTO.getWidth(), packageDTO.getDepth()), false, bundle));
         left.add(new Paragraph(label(bundle, "package.sender", "Sender"))
                 .setFontSize(8)
                 .setBold()
@@ -233,11 +233,11 @@ public class PDFGenerator {
         return section;
     }
 
-    private static Paragraph infoLine(String title, String value, boolean emphasized) {
+    private static Paragraph infoLine(String title, String value, boolean emphasized, ResourceBundle bundle) {
         Paragraph paragraph = new Paragraph()
                 .setMarginTop(0)
                 .setMarginBottom(4);
-        paragraph.add(new Text(title + ": ").setFontSize(8).setFontColor(MUTED).setBold());
+        paragraph.add(new Text(title + label(bundle, "pdf.separator", ": ")).setFontSize(8).setFontColor(MUTED).setBold());
         Text valueText = new Text(safe(value)).setFontSize(emphasized ? 11 : 9);
         if (emphasized) {
             valueText.setBold();

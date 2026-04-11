@@ -1,5 +1,7 @@
-const CACHE_NAME = 'quickdelivery-shell-v2';
+const CACHE_NAME = 'quickdelivery-shell-v3';
 const STATIC_ASSETS = [
+  '/',
+  '/index.html',
   '/manifest.json',
   '/icon-128.png',
   '/icon-192.png',
@@ -32,8 +34,14 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(event.request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isMapIframe = isSameOrigin && requestUrl.pathname.endsWith('/google-maps.html');
   const isNavigationRequest = event.request.mode === 'navigate'
     || (event.request.headers.get('accept') || '').includes('text/html');
+
+  if (isMapIframe) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
 
   if (isSameOrigin && isNavigationRequest) {
     event.respondWith(
@@ -43,7 +51,10 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => Promise.resolve());
           return networkResponse;
         })
-        .catch(() => caches.match(event.request).then((cachedResponse) => cachedResponse || caches.match('/')))
+        .catch(() => caches.match(event.request)
+          .then((cachedResponse) => cachedResponse
+            || caches.match('/index.html')
+            || caches.match('/')))
     );
     return;
   }
@@ -69,7 +80,10 @@ self.addEventListener('fetch', (event) => {
               statusText: 'Network request failed',
             });
           }
-          throw new TypeError(`Failed to fetch ${event.request.url}`);
+          return new Response('', {
+            status: 504,
+            statusText: `Failed to fetch ${event.request.url}`,
+          });
         });
     })
   );

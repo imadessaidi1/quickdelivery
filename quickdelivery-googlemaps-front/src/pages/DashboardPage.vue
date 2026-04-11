@@ -1,115 +1,159 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page" :class="`type-${dashboardType}`">
     <template v-if="isLoadingPage">
-      <section class="hero-card">
-        <div>
+      <header class="hero-section">
+        <div class="hero-content">
           <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
           <p>{{ dashboardSubtitle }}</p>
         </div>
-      </section>
-      <div class="page-state">{{ $t('stateLoading') }}</div>
+      </header>
+      <div class="page-state loading-state">
+        <div class="spinner"></div>
+        <span>{{ $t('stateLoading') }}</span>
+      </div>
     </template>
 
     <template v-else-if="loadError">
-      <section class="hero-card">
-        <div>
+      <header class="hero-section">
+        <div class="hero-content">
           <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
-          <p>{{ dashboardSubtitle }}</p>
         </div>
-      </section>
-      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+      </header>
+      <div class="page-state error-state">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ $t('stateLoadError') }}</p>
+      </div>
     </template>
 
     <template v-else>
-      <section class="hero-card">
-        <div>
-          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+      <header class="hero-section">
+        <div class="hero-content">
+          <span class="hero-chip pulse-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
           <p>{{ dashboardSubtitle }}</p>
         </div>
-        <div class="hero-account">
-          <strong>{{ connectedUserName }}</strong>
-          <span>{{ connectedUserRoleLabel }}</span>
+        <div class="hero-account-glass">
+          <div class="account-avatar">
+            {{ connectedUserName.charAt(0).toUpperCase() }}
+          </div>
+          <div class="account-info">
+            <strong>{{ connectedUserName }}</strong>
+            <span class="role-badge">{{ connectedUserRoleLabel }}</span>
+          </div>
         </div>
-      </section>
+      </header>
 
       <section class="stats-grid">
-        <article v-for="stat in statsCards" :key="stat.label" class="stat-card" :class="stat.tone">
-          <strong>{{ stat.value }}</strong>
-          <span>{{ stat.label }}</span>
-        </article>
+        <PremiumDashboardCard
+          v-for="stat in statsCards"
+          :key="stat.label"
+          variant="glass"
+          :tone="stat.tone.replace('tone-', '') || 'indigo'"
+          class="stat-premium-card"
+        >
+          <div class="stat-inner">
+            <span class="stat-value">{{ stat.value }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
+        </PremiumDashboardCard>
       </section>
 
-      <section class="dashboard-grid top-grid">
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('dashboardQuickActions') }}</h2>
-          </div>
-          <div class="action-grid">
-            <router-link
-              v-for="action in quickActions"
-              :key="action.to"
-              class="action-card"
-              :to="action.to"
-            >
-              <span class="material-symbols-outlined">{{ action.icon }}</span>
-              <strong>{{ action.label }}</strong>
-            </router-link>
-          </div>
-        </article>
-
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('dashboardTodo') }}</h2>
-          </div>
-          <ul class="todo-list">
-            <li v-for="item in todoItems" :key="item">{{ item }}</li>
-          </ul>
-        </article>
-      </section>
-
-      <section class="dashboard-grid">
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('dashboardActivity') }}</h2>
-          </div>
-          <div v-if="timelineItems.length" class="upcoming-list">
-            <div v-for="item in timelineItems" :key="item.key" class="upcoming-item recent-item">
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.subtitle }}</span>
+      <div class="dashboard-main-layout">
+        <!-- Section: Priorités et Actions -->
+        <section class="priority-actions-column">
+          <PremiumDashboardCard 
+            :title="$t('dashboardQuickActions')" 
+            variant="flat" 
+            class="action-panel"
+            no-padding
+          >
+            <div class="action-grid-premium">
+              <router-link
+                v-for="action in quickActions"
+                :key="action.to"
+                class="premium-action-tile"
+                :to="action.to"
+              >
+                <div class="tile-icon">
+                  <span class="material-symbols-outlined">{{ action.icon }}</span>
+                </div>
+                <strong>{{ action.label }}</strong>
+                <span class="material-symbols-outlined tile-arrow">chevron_right</span>
+              </router-link>
             </div>
-          </div>
-          <div v-else class="empty-state">{{ emptyTimelineLabel }}</div>
-        </article>
+          </PremiumDashboardCard>
 
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('dashboardUpcoming') }}</h2>
-          </div>
-          <div v-if="upcomingItems.length" class="upcoming-list">
-            <div v-for="item in upcomingItems" :key="item.key" class="upcoming-item">
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.subtitle }}</span>
+          <PremiumDashboardCard 
+            :title="$t('dashboardTodo')" 
+            variant="glass" 
+            tone="amber"
+            class="todo-panel"
+          >
+            <div class="todo-stack">
+              <div v-for="(item, index) in todoItems" :key="index" class="todo-pill">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>{{ item }}</span>
+              </div>
             </div>
-          </div>
-          <div v-else class="empty-state">{{ $t('dashboardNoData') }}</div>
-        </article>
-      </section>
+          </PremiumDashboardCard>
+        </section>
 
-      <section class="chart-grid">
-        <DashboardTrendChart
-          v-for="chart in chartCards"
-          :key="chart.key"
-          :title="chart.title"
-          :subtitle="chart.subtitle"
-          :points="chart.points"
-          :tone="chart.tone"
-          :formatter="chart.formatter"
-          :empty-label="$t('dashboardChartEmpty')"
-        />
-      </section>
+        <!-- Section: Activité et Charts -->
+        <section class="activity-history-column">
+          <PremiumDashboardCard 
+            v-if="chartCards.length" 
+            :title="chartCards[0].title" 
+            :subtitle="chartCards[0].subtitle"
+            class="chart-panel"
+          >
+            <DashboardTrendChart
+              :points="chartCards[0].points"
+              :tone="chartCards[0].tone"
+              :formatter="chartCards[0].formatter"
+              :empty-label="$t('dashboardChartEmpty')"
+              no-card
+            />
+          </PremiumDashboardCard>
+
+          <div class="dual-panel-row">
+            <PremiumDashboardCard :title="$t('dashboardActivity')" class="timeline-panel">
+              <div v-if="timelineItems.length" class="premium-timeline">
+                <div v-for="item in timelineItems" :key="item.key" class="timeline-entry">
+                  <div class="entry-dot"></div>
+                  <div class="entry-content">
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.subtitle }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-compact">
+                <span class="material-symbols-outlined">history</span>
+                <p>{{ emptyTimelineLabel }}</p>
+              </div>
+            </PremiumDashboardCard>
+
+            <PremiumDashboardCard :title="$t('dashboardUpcoming')" class="upcoming-panel">
+              <div v-if="upcomingItems.length" class="upcoming-stack">
+                <div v-for="item in upcomingItems" :key="item.key" class="upcoming-card-inner">
+                  <div class="inner-icon">
+                    <span class="material-symbols-outlined">event</span>
+                  </div>
+                  <div class="inner-copy">
+                    <strong>{{ item.title }}</strong>
+                    <span>{{ item.subtitle }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-compact">
+                <span class="material-symbols-outlined">schedule</span>
+                <p>{{ $t('dashboardNoData') }}</p>
+              </div>
+            </PremiumDashboardCard>
+          </div>
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -117,7 +161,9 @@
 <script>
 import http from '@/config/httpInterceptor';
 import { getCurrentUserRoles } from '@/config/auth';
+import { hydrateConnectedUser } from '@/config/session';
 import DashboardTrendChart from '../components/DashboardTrendChart.vue';
+import PremiumDashboardCard from '../components/PremiumDashboardCard.vue';
 
 const PACKAGE_ACTIVITY_ORDER = ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY', 'DELIVERED'];
 const MONTH_COUNT = 12;
@@ -128,6 +174,7 @@ const MONTH_GRAPH_HEIGHT = 180;
 export default {
   components: {
     DashboardTrendChart,
+    PremiumDashboardCard,
   },
   props: {
     dashboardType: {
@@ -139,6 +186,7 @@ export default {
     return {
       isLoadingPage: false,
       loadError: false,
+      hasLoadedDashboard: false,
       packagesByStatus: {},
       adminPackageCounts: {},
       adminMonthlyShipmentCounts: Array.from({ length: MONTH_COUNT }, () => 0),
@@ -163,39 +211,22 @@ export default {
       return [this.connectedUser.firstName, this.connectedUser.lastName].filter(Boolean).join(' ') || this.connectedUser.email || 'QuickDelivery';
     },
     connectedUserRoleLabel() {
-      if (this.dashboardType === 'admin') {
-        return this.$t('dashboardRoleAdmin');
-      }
-      if (this.dashboardType === 'courier') {
-        return this.$t('DELIVERY_PERSON');
-      }
-      if (this.connectedUser.type === 'DELIVERY_PERSON') {
-        return this.$t('DELIVERY_PERSON');
-      }
+      if (this.dashboardType === 'admin') return this.$t('dashboardRoleAdmin');
+      if (this.dashboardType === 'courier') return this.$t('DELIVERY_PERSON');
       return this.$t('CUSTOMER');
     },
     dashboardTitle() {
-      if (this.dashboardType === 'admin') {
-        return this.$t('dashboardAdminTitle');
-      }
-      if (this.dashboardType === 'courier') {
-        return this.$t('dashboardCourierTitle');
-      }
+      if (this.dashboardType === 'admin') return this.$t('dashboardAdminTitle');
+      if (this.dashboardType === 'courier') return this.$t('dashboardCourierTitle');
       return this.$t('dashboardClientTitle');
     },
     dashboardSubtitle() {
-      if (this.dashboardType === 'admin') {
-        return this.$t('dashboardAdminSubtitle');
-      }
-      if (this.dashboardType === 'courier') {
-        return this.$t('dashboardCourierSubtitle');
-      }
+      if (this.dashboardType === 'admin') return this.$t('dashboardAdminSubtitle');
+      if (this.dashboardType === 'courier') return this.$t('dashboardCourierSubtitle');
       return this.$t('dashboardClientSubtitle');
     },
     flattenedPackages() {
-      if (this.dashboardType === 'admin') {
-        return this.adminRecentPackages;
-      }
+      if (this.dashboardType === 'admin') return this.adminRecentPackages;
       return Object.values(this.packagesByStatus || {}).flatMap((group) => group || []);
     },
     currentLocale() {
@@ -208,94 +239,76 @@ export default {
       }).format(new Date(this.currentYear, monthIndex, 1)));
     },
     packageCounts() {
-      if (this.dashboardType === 'admin') {
-        return this.adminPackageCounts || {};
-      }
+      if (this.dashboardType === 'admin') return this.adminPackageCounts || {};
       return this.flattenedPackages.reduce((acc, pkg) => {
         const status = pkg.status || 'UNKNOWN';
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {});
     },
-    totalVehicleDocumentsToReview() {
-      return this.pendingVehicleDocumentsTotal;
-    },
-    courierEarningsChart() {
-      return this.createChartConfig({
-        key: 'courier-earnings',
-        title: this.$t('dashboardCourierChartTitle'),
-        subtitle: this.$t('dashboardCourierChartSubtitle', { year: this.currentYear }),
-        tone: '#ef7d32',
-        formatter: this.formatCurrency,
-        values: this.flattenedPackages
-          .filter((pkg) => pkg.status === 'DELIVERED')
-          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, Number(pkg.deliveryPrice || 0)), this.createMonthlyAccumulator()),
-      });
-    },
-    clientShipmentsChart() {
-      return this.createChartConfig({
-        key: 'client-shipments',
-        title: this.$t('dashboardClientChartTitle'),
-        subtitle: this.$t('dashboardClientChartSubtitle', { year: this.currentYear }),
-        tone: '#1f5fae',
-        formatter: this.formatInteger,
-        values: this.flattenedPackages
-          .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, 1), this.createMonthlyAccumulator()),
-      });
-    },
-    adminEarningsChart() {
-      return this.createChartConfig({
-        key: 'admin-earnings',
-        title: this.$t('dashboardAdminEarningsChartTitle'),
-        subtitle: this.$t('dashboardAdminEarningsChartSubtitle', { year: this.currentYear }),
-        tone: '#ef7d32',
-        formatter: this.formatCurrency,
-        values: this.adminMonthlyDeliveredRevenue,
-      });
-    },
-    adminShipmentsChart() {
-      return this.createChartConfig({
-        key: 'admin-shipments',
-        title: this.$t('dashboardAdminShipmentsChartTitle'),
-        subtitle: this.$t('dashboardAdminShipmentsChartSubtitle', { year: this.currentYear }),
-        tone: '#1f5fae',
-        formatter: this.formatInteger,
-        values: this.adminMonthlyShipmentCounts,
-      });
-    },
     chartCards() {
       if (this.dashboardType === 'admin') {
-        return [this.adminEarningsChart, this.adminShipmentsChart];
+        return [
+          this.createChartConfig({
+            key: 'admin-earnings',
+            title: this.$t('dashboardAdminEarningsChartTitle'),
+            subtitle: this.$t('dashboardAdminEarningsChartSubtitle', { year: this.currentYear }),
+            tone: '#ef7d32',
+            formatter: this.formatCurrency,
+            values: this.adminMonthlyDeliveredRevenue,
+          }),
+        ];
       }
       if (this.dashboardType === 'courier') {
-        return [this.courierEarningsChart];
+        return [
+          this.createChartConfig({
+            key: 'courier-earnings',
+            title: this.$t('dashboardCourierChartTitle'),
+            subtitle: this.$t('dashboardCourierChartSubtitle', { year: this.currentYear }),
+            tone: '#ef7d32',
+            formatter: this.formatCurrency,
+            values: this.flattenedPackages
+              .filter((pkg) => pkg.status === 'DELIVERED')
+              .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, Number(pkg.deliveryPrice || 0)), this.createMonthlyAccumulator()),
+          }),
+        ];
       }
-      return [this.clientShipmentsChart];
+      return [
+        this.createChartConfig({
+          key: 'client-shipments',
+          title: this.$t('dashboardClientChartTitle'),
+          subtitle: this.$t('dashboardClientChartSubtitle', { year: this.currentYear }),
+          tone: '#1f5fae',
+          formatter: this.formatInteger,
+          values: this.flattenedPackages
+            .reduce((months, pkg) => this.accumulateByMonth(months, pkg.creationDate, 1), this.createMonthlyAccumulator()),
+        }),
+      ];
     },
     statsCards() {
       if (this.dashboardType === 'admin') {
         return [
-          { label: this.$t('dashboardStatValidationQueue'), value: this.pendingUsersTotal, tone: 'tone-warn' },
-          { label: this.$t('validationVehiclesCount'), value: this.pendingVehiclesTotal, tone: 'tone-neutral' },
-          { label: this.$t('validationDocumentsCount'), value: this.pendingDocumentsTotal, tone: 'tone-dark' },
-          { label: this.$t('dashboardStatVehicleDocs'), value: this.totalVehicleDocumentsToReview, tone: 'tone-success' },
+          { label: this.$t('dashboardStatValidationQueue'), value: this.pendingUsersTotal, tone: 'tone-amber' },
+          { label: this.$t('validationVehiclesCount'), value: this.pendingVehiclesTotal, tone: 'tone-slate' },
+          { label: this.$t('validationDocumentsCount'), value: this.pendingDocumentsTotal, tone: 'tone-indigo' },
+          { label: this.$t('dashboardStatVehicleDocs'), value: this.pendingVehicleDocumentsTotal, tone: 'tone-emerald' },
         ];
       }
-
       if (this.dashboardType === 'courier') {
+        const onRoadCount = (this.packageCounts.PICKEDUP || 0) + (this.packageCounts.INDELIVERY || 0);
         return [
-          { label: this.$t('dashboardStatPackages'), value: this.flattenedPackages.length, tone: 'tone-dark' },
-          { label: this.$t('dashboardStatReserved'), value: this.packageCounts.RESERVED || 0, tone: 'tone-warn' },
-          { label: this.$t('dashboardStatOnRoad'), value: (this.packageCounts.PICKEDUP || 0) + (this.packageCounts.INDELIVERY || 0), tone: 'tone-success' },
-          { label: this.$t('dashboardStatDelivered'), value: this.packageCounts.DELIVERED || 0, tone: 'tone-neutral' },
+          { label: this.$t('dashboardStatPackages'), value: this.flattenedPackages.length, tone: 'tone-indigo' },
+          { label: this.$t('dashboardStatReserved'), value: this.packageCounts.RESERVED || 0, tone: 'tone-amber' },
+          { label: this.$t('dashboardStatOnRoad'), value: onRoadCount, tone: 'tone-emerald' },
+          { label: this.$t('dashboardStatDelivered'), value: this.packageCounts.DELIVERED || 0, tone: 'tone-slate' },
         ];
       }
-
+      const activeCount = (this.packageCounts.RESERVED || 0) + (this.packageCounts.PICKEDUP || 0) + (this.packageCounts.INDELIVERY || 0);
       return [
-        { label: this.$t('dashboardStatPackages'), value: this.flattenedPackages.length, tone: 'tone-dark' },
-        { label: this.$t('dashboardStatPending'), value: (this.packageCounts.NEW || 0) + (this.packageCounts.PAYMENTPENDING || 0), tone: 'tone-neutral' },
-        { label: this.$t('dashboardStatActive'), value: (this.packageCounts.RESERVED || 0) + (this.packageCounts.PICKEDUP || 0) + (this.packageCounts.INDELIVERY || 0), tone: 'tone-warn' },
-        { label: this.$t('dashboardStatDelivered'), value: this.packageCounts.DELIVERED || 0, tone: 'tone-success' },
+        { label: this.$t('dashboardStatPackages'), value: this.flattenedPackages.length, tone: 'tone-indigo' },
+        { label: this.$t('dashboardStatPending'), value: (this.packageCounts.NEW || 0) + (this.packageCounts.PAYMENTPENDING || 0), tone: 'tone-slate' },
+        { label: this.$t('dashboardStatActive'), value: activeCount, tone: 'tone-amber' },
+        { label: this.$t('dashboardStatDelivered'), value: this.packageCounts.DELIVERED || 0, tone: 'tone-emerald' },
       ];
     },
     quickActions() {
@@ -305,7 +318,6 @@ export default {
           { to: '/dashboard/metrics', icon: 'monitoring', label: this.$t('dashboardActionMetrics') },
           { to: '/userAccount', icon: 'person', label: this.$t('dashboardActionAccount') },
           { to: '/createPackage', icon: 'box_add', label: this.$t('dashboardActionCreatePackage') },
-          { to: '/myPackages', icon: 'inventory_2', label: this.$t('dashboardActionMyPackages') },
         ];
       }
       if (this.dashboardType === 'courier') {
@@ -322,28 +334,12 @@ export default {
       ];
     },
     todoItems() {
-      if (this.dashboardType === 'admin') {
-        return [
-          this.$t('dashboardAdminTodoValidation'),
-          this.$t('dashboardAdminTodoFollowup'),
-          this.$t('dashboardAdminTodoOps'),
-          this.$t('dashboardAdminTodoAccount'),
-        ];
-      }
-      if (this.dashboardType === 'courier') {
-        return [
-          this.$t('dashboardCourierTodoReserve'),
-          this.$t('dashboardCourierTodoPickup'),
-          this.$t('dashboardCourierTodoDeliver'),
-          this.$t('dashboardCourierTodoAccount'),
-        ];
-      }
-      return [
-        this.$t('dashboardClientTodoCreate'),
-        this.$t('dashboardClientTodoPayment'),
-        this.$t('dashboardClientTodoTrack'),
-        this.$t('dashboardClientTodoAccount'),
-      ];
+      const keys = this.dashboardType === 'admin' 
+        ? ['dashboardAdminTodoValidation', 'dashboardAdminTodoOps']
+        : this.dashboardType === 'courier'
+        ? ['dashboardCourierTodoPickup', 'dashboardCourierTodoDeliver']
+        : ['dashboardClientTodoPayment', 'dashboardClientTodoTrack'];
+      return keys.map(k => this.$t(k));
     },
     timelineItems() {
       if (this.dashboardType === 'admin') {
@@ -355,11 +351,10 @@ export default {
             subtitle: `${user.documentCount || 0} ${this.$t('validationDocumentsLabel')}`,
           }));
       }
-
       return this.flattenedPackages
         .slice()
-        .sort((a, b) => new Date(b.creationDate || b.createdDate || 0) - new Date(a.creationDate || a.createdDate || 0))
-        .slice(0, 6)
+        .sort((a, b) => new Date(b.creationDate || 0) - new Date(a.creationDate || 0))
+        .slice(0, 5)
         .map((pkg) => ({
           key: pkg.reference || `pkg-${pkg.id}`,
           title: `${this.$t(this.timelineLabelByStatus(pkg.status))} - ${pkg.reference || `PKG${pkg.id}`}`,
@@ -369,18 +364,17 @@ export default {
     upcomingItems() {
       if (this.dashboardType === 'admin') {
         return this.pendingUsers
-          .slice(0, 4)
+          .slice(0, 3)
           .map((user) => ({
             key: `review-${user.id}`,
             title: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.emailAddress,
             subtitle: `${user.documentCount || 0} ${this.$t('validationDocumentsLabel')}`,
           }));
       }
-
       return this.flattenedPackages
         .filter((pkg) => ['NEW', 'PAYMENTPENDING', 'RESERVED', 'PICKEDUP', 'INDELIVERY'].includes(pkg.status))
         .sort((a, b) => PACKAGE_ACTIVITY_ORDER.indexOf(a.status) - PACKAGE_ACTIVITY_ORDER.indexOf(b.status))
-        .slice(0, 4)
+        .slice(0, 3)
         .map((pkg) => ({
           key: `next-${pkg.reference || pkg.id}`,
           title: `${pkg.reference || `PKG${pkg.id}`} - ${this.$t(pkg.status || 'UNKNOWN')}`,
@@ -395,7 +389,17 @@ export default {
     this.loadDashboard();
   },
   methods: {
+    getResolvedConnectedUserId() {
+      return Number(this.connectedUser?.id) || null;
+    },
+    async ensureConnectedUserReady() {
+      if (this.getResolvedConnectedUserId()) return true;
+      const hydratedUser = await hydrateConnectedUser();
+      return Boolean(hydratedUser?.id);
+    },
     async loadDashboard() {
+      if (this.hasLoadedDashboard || !(await this.ensureConnectedUserReady())) return;
+      const connectedUserId = this.getResolvedConnectedUserId();
       this.isLoadingPage = true;
       this.loadError = false;
       try {
@@ -404,28 +408,24 @@ export default {
             http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUsersForValidation')}?page=0&size=5`),
             http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageDashboardSummary')}?year=${this.currentYear}`),
           ]);
-          this.pendingUsers = Array.isArray(usersResponse.data?.items) ? usersResponse.data.items : [];
+          this.pendingUsers = usersResponse.data?.items || [];
           this.pendingUsersTotal = usersResponse.data?.totalItems || 0;
           this.pendingVehiclesTotal = usersResponse.data?.totalVehicles || 0;
           this.pendingDocumentsTotal = usersResponse.data?.totalDocuments || 0;
           this.pendingVehicleDocumentsTotal = usersResponse.data?.totalVehicleDocuments || 0;
           const packageSummary = packageSummaryResponse.data || {};
           this.adminPackageCounts = packageSummary.statusCounts || {};
-          this.adminMonthlyShipmentCounts = Array.isArray(packageSummary.monthlyShipmentCounts)
-            ? packageSummary.monthlyShipmentCounts
-            : this.createMonthlyAccumulator();
-          this.adminMonthlyDeliveredRevenue = Array.isArray(packageSummary.monthlyDeliveredRevenue)
-            ? packageSummary.monthlyDeliveredRevenue
-            : this.createMonthlyAccumulator();
-          this.adminRecentPackages = Array.isArray(packageSummary.recentPackages) ? packageSummary.recentPackages : [];
-          return;
+          this.adminMonthlyShipmentCounts = packageSummary.monthlyShipmentCounts || this.createMonthlyAccumulator();
+          this.adminMonthlyDeliveredRevenue = packageSummary.monthlyDeliveredRevenue || this.createMonthlyAccumulator();
+          this.adminRecentPackages = packageSummary.recentPackages || [];
+        } else {
+          const endpoint = this.dashboardType === 'courier'
+            ? this.$i18n.t('getPackagesByDeliveryPersonUrl')
+            : this.$i18n.t('getPackagesBySenderUrl');
+          const response = await http.get(`${this.$i18n.t('rootURL')}${endpoint}${connectedUserId}`);
+          this.packagesByStatus = response.data || {};
         }
-
-        const endpoint = this.dashboardType === 'courier'
-          ? this.$i18n.t('getPackagesByDeliveryPersonUrl')
-          : this.$i18n.t('getPackagesBySenderUrl');
-        const response = await http.get(`${this.$i18n.t('rootURL')}${endpoint}${this.connectedUser.id}`);
-        this.packagesByStatus = response.data || {};
+        this.hasLoadedDashboard = true;
       } catch (error) {
         this.loadError = true;
         console.error('Unable to load dashboard data.', error);
@@ -442,23 +442,14 @@ export default {
     packageSubtitle(pkg) {
       const departure = this.formatAddress(this.getAddressByType(pkg, 'DEPARTURE'));
       const arrival = this.formatAddress(this.getAddressByType(pkg, 'ARRIVAL'));
-      return `${departure} -> ${arrival}`;
+      return `${departure} → ${arrival}`;
     },
     createMonthlyAccumulator() {
       return Array.from({ length: MONTH_COUNT }, () => 0);
     },
-    getMonthDate(value) {
-      if (!value) {
-        return null;
-      }
-      const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? null : date;
-    },
     accumulateByMonth(months, rawDate, value) {
-      const date = this.getMonthDate(rawDate);
-      if (!date || date.getFullYear() !== this.currentYear) {
-        return months;
-      }
+      const date = rawDate ? new Date(rawDate) : null;
+      if (!date || date.getFullYear() !== this.currentYear) return months;
       months[date.getMonth()] += value;
       return months;
     },
@@ -470,68 +461,22 @@ export default {
           label: this.chartMonthLabels[index],
           value,
           x: MONTH_GRAPH_START_X + (index * MONTH_GRAPH_STEP_X),
-          y: MONTH_GRAPH_HEIGHT - (ratio * (MONTH_GRAPH_HEIGHT - 28)),
+          y: MONTH_GRAPH_HEIGHT - (ratio * (MONTH_GRAPH_HEIGHT - 32)) - 12,
         };
       });
-      return {
-        key,
-        title,
-        subtitle,
-        tone,
-        formatter,
-        points,
-      };
+      return { key, title, subtitle, tone, formatter, points };
     },
     formatCurrency(value) {
-      return new Intl.NumberFormat(this.currentLocale, {
-        style: 'currency',
-        currency: 'EUR',
-        maximumFractionDigits: 0,
+      return new Intl.NumberFormat(this.currentLocale, { 
+        style: 'currency', currency: 'EUR', maximumFractionDigits: 0 
       }).format(Number(value || 0));
     },
     formatInteger(value) {
-      return new Intl.NumberFormat(this.currentLocale, {
-        maximumFractionDigits: 0,
-      }).format(Number(value || 0));
-    },
-    formatPercent(value) {
-      if (value == null) {
-        return '-';
-      }
-      return `${Number(value).toFixed(1)}%`;
-    },
-    formatHeap(used, max) {
-      if (used == null && max == null) {
-        return '-';
-      }
-      if (max == null) {
-        return `${Number(used || 0).toFixed(1)} MB`;
-      }
-      return `${Number(used || 0).toFixed(1)} / ${Number(max).toFixed(1)} MB`;
-    },
-    formatDuration(seconds) {
-      if (seconds == null) {
-        return '-';
-      }
-      const totalSeconds = Math.max(0, Math.round(Number(seconds)));
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-      }
-      return `${minutes}m ${totalSeconds % 60}s`;
+      return new Intl.NumberFormat(this.currentLocale, { maximumFractionDigits: 0 }).format(Number(value || 0));
     },
     timelineLabelByStatus(status) {
-      if (status === 'RESERVED') {
-        return 'dashboardTimelineReserved';
-      }
-      if (status === 'PICKEDUP' || status === 'INDELIVERY') {
-        return 'dashboardTimelinePickedUp';
-      }
-      if (status === 'DELIVERED') {
-        return 'dashboardTimelineDelivered';
-      }
-      return 'dashboardTimelineCreated';
+      const map = { RESERVED: 'dashboardTimelineReserved', PICKEDUP: 'dashboardTimelinePickedUp', INDELIVERY: 'dashboardTimelinePickedUp', DELIVERED: 'dashboardTimelineDelivered' };
+      return map[status] || 'dashboardTimelineCreated';
     },
   },
 };
@@ -540,306 +485,364 @@ export default {
 <style scoped>
 .dashboard-page {
   min-height: 100%;
-  padding: 28px;
-  background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 28%),
-    linear-gradient(180deg, #f4f7fb 0%, #eef3f8 100%);
-  box-sizing: border-box;
+  padding: 32px;
+  background: 
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.08), transparent 400px),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.hero-card,
-.panel-card,
-.stat-card {
-  border: 1px solid #dfe7f2;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
-}
-
-.hero-card {
+/* Hero Section */
+.hero-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
-  padding: 28px;
-  margin-bottom: 20px;
 }
 
 .hero-chip {
   display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
+  padding: 6px 14px;
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--qd-primary);
   border-radius: 999px;
-  background: #e6eefc;
-  color: #29548d;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
-.hero-card h1 {
-  margin: 12px 0 8px;
-  font-size: 2.8rem;
-  line-height: 1;
-  color: #0f172a;
+.pulse-chip {
+  animation: qd-pulse-soft 2s infinite;
 }
 
-.hero-card p {
+@keyframes qd-pulse-soft {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }
+  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+.hero-content h1 {
   margin: 0;
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.hero-content p {
+  margin: 8px 0 0;
   color: #64748b;
-  max-width: 760px;
-}
-
-.hero-account {
-  min-width: 220px;
-  padding: 18px;
-  border-radius: 18px;
-  background: #0f172a;
-  color: #ffffff;
-}
-
-.hero-account strong,
-.hero-account span {
-  display: block;
-}
-
-.hero-account strong {
-  margin-bottom: 6px;
   font-size: 1.1rem;
 }
 
-.hero-account span {
-  color: rgba(255, 255, 255, 0.72);
+.hero-account-glass {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 }
 
-.stats-grid,
-.metrics-grid,
-.chart-grid,
-.dashboard-grid {
-  display: grid;
-  gap: 18px;
+.account-avatar {
+  width: 44px;
+  height: 44px;
+  background: var(--qd-primary);
+  color: #fff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
 }
 
-.stats-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-bottom: 18px;
-}
-
-.chart-grid {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  align-items: start;
-  margin-bottom: 28px;
-}
-
-.metrics-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 18px;
-}
-
-.chart-grid + .dashboard-grid {
-  margin-top: 6px;
-}
-
-.dashboard-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 18px;
-}
-
-.top-grid {
-  align-items: start;
-}
-
-.stat-card,
-.panel-card {
-  padding: 22px;
-}
-
-.stat-card strong {
+.account-info strong {
   display: block;
-  margin-bottom: 8px;
-  font-size: 2rem;
+  font-size: 1rem;
   color: #0f172a;
 }
 
-.stat-card span {
+.role-badge {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-premium-card .stat-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Main Layout */
+.dashboard-main-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.priority-actions-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.action-grid-premium {
+  display: flex;
+  flex-direction: column;
+}
+
+.premium-action-tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  text-decoration: none;
+  transition: var(--qd-transition);
+}
+
+.premium-action-tile:last-child {
+  border-bottom: none;
+}
+
+.premium-action-tile:hover {
+  background: rgba(79, 70, 229, 0.03);
+}
+
+.tile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: var(--qd-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--qd-transition);
+}
+
+.premium-action-tile:hover .tile-icon {
+  background: var(--qd-primary);
+  color: #fff;
+}
+
+.premium-action-tile strong {
+  flex: 1;
+  color: #0f172a;
+  font-size: 0.9375rem;
+}
+
+.tile-arrow {
+  font-size: 18px;
+  color: #cbd5e1;
+  transition: transform 0.3s ease;
+}
+
+.premium-action-tile:hover .tile-arrow {
+  transform: translateX(4px);
+  color: var(--qd-primary);
+}
+
+.todo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.todo-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 12px;
+  color: #b45309;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.todo-pill span .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Activity Column */
+.activity-history-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dual-panel-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+}
+
+.premium-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.timeline-entry {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+
+.entry-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--qd-primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.entry-content strong {
+  display: block;
+  font-size: 0.9375rem;
+  color: #0f172a;
+}
+
+.entry-content span {
+  font-size: 0.8125rem;
   color: #64748b;
 }
 
-.tone-dark strong {
+.upcoming-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upcoming-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+}
+
+.inner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.inner-copy strong {
+  display: block;
+  font-size: 0.875rem;
   color: #0f172a;
 }
 
-.tone-warn strong {
-  color: #c77b00;
+.inner-copy span {
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
-.tone-success strong {
-  color: #15803d;
+.empty-compact {
+  padding: 32px 0;
+  text-align: center;
+  color: #94a3b8;
 }
 
-.tone-neutral strong {
-  color: #475569;
+.empty-compact span {
+  font-size: 32px;
+  margin-bottom: 8px;
 }
 
-.panel-head {
+.empty-compact p {
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+/* Page states */
+.loading-state, .error-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(79, 70, 229, 0.1);
+  border-top-color: var(--qd-primary);
+  border-radius: 50%;
+  animation: qd-spin 1s linear infinite;
   margin-bottom: 16px;
 }
 
-.panel-head h2 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 1.35rem;
+@keyframes qd-spin {
+  to { transform: rotate(360deg); }
 }
 
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.action-card {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid #e5ebf3;
-  border-radius: 18px;
-  background: #ffffff;
-  color: #0f172a;
-  text-decoration: none;
-}
-
-.action-card .material-symbols-outlined {
-  color: #24558f;
-}
-
-.todo-list,
-.timeline-list,
-.upcoming-list,
-.metrics-list {
-  display: grid;
-  gap: 12px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.metrics-panel {
-  padding: 22px;
-}
-
-.metric-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e7edf6;
-  color: #334155;
-}
-
-.metric-row strong {
-  color: #0f172a;
-}
-
-.metric-row span {
-  color: #475569;
-  text-align: right;
-}
-
-.todo-list li,
-.timeline-item,
-.upcoming-item {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  color: #334155;
-  border: 1px solid #e7edf6;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.timeline-item {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 12px;
-  align-items: center;
-  min-width: 0;
-}
-
-.timeline-dot {
-  width: 40px;
-  height: 40px;
-  margin-top: 0;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #24558f 0%, #38bdf8 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 8px 18px rgba(36, 85, 143, 0.18);
-}
-
-.timeline-item > div:last-child {
-  min-width: 0;
-}
-
-.timeline-item strong,
-.upcoming-item strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #0f172a;
-}
-
-.timeline-item p,
-.upcoming-item span {
-  margin: 0;
-  color: #64748b;
-}
-
-.page-state,
-.empty-state {
-  padding: 16px;
-  border-radius: 14px;
-  background: #edf2f7;
-  color: #334155;
-  text-align: center;
-}
-
-.page-state.error {
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-@media screen and (max-width: 1100px) {
-  .stats-grid,
-  .metrics-grid,
-  .chart-grid,
-  .dashboard-grid,
-  .action-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .hero-card {
-    flex-direction: column;
-  }
-
-  .hero-account {
-    min-width: 0;
-    width: 100%;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .dashboard-page {
-    padding: 16px;
-  }
-
-  .stats-grid,
-  .metrics-grid,
-  .chart-grid,
-  .dashboard-grid,
-  .action-grid {
+@media (max-width: 1200px) {
+  .dashboard-main-layout {
     grid-template-columns: 1fr;
   }
+}
 
-  .hero-card h1 {
-    font-size: 2.1rem;
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 20px;
+  }
+  .hero-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dual-panel-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>

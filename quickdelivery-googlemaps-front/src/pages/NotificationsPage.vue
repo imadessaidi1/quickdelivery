@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import http from '@/config/httpInterceptor';
+
 export default {
   computed: {
     notifications() {
@@ -54,8 +56,10 @@ export default {
   methods: {
     notificationTypeLabel(type) {
       const mapping = {
+        PACKAGE_CREATED_NOTIFICATION: 'notificationTypeCreated',
         NEW_PACKAGE_NOTIFICATION: 'notificationTypeNewPackage',
         PACKAGE_RESERVATION_OTP_NOTIFICATION: 'notificationTypeReservationOtp',
+        PACKAGE_COURIER_ARRIVED_FOR_PICKUP_NOTIFICATION: 'notificationTypeCourierArrivedForPickup',
         PACKAGE_PICKUP_NOTIFICATION: 'notificationTypePickup',
         PACKAGE_DELIVERY_NOTIFICATION: 'notificationTypeDelivery',
       };
@@ -73,10 +77,35 @@ export default {
       }).format(new Date(value));
     },
     markAllAsRead() {
-      this.$store.commit('markAllNotificationsRead');
+      const userId = this.$store.state.connectedUser?.id;
+      if (!userId) {
+        return;
+      }
+      http.post(`${this.$i18n.t('rootURL')}notifications/mark-all-read?userId=${encodeURIComponent(userId)}`, null, { silent: true })
+        .then(() => {
+          this.$store.commit('markAllNotificationsRead');
+        })
+        .catch((error) => {
+          console.warn('Unable to mark all notifications as read:', error);
+        });
     },
     openNotification(notification) {
-      this.$store.commit('markNotificationRead', notification.id);
+      const userId = this.$store.state.connectedUser?.id;
+      if (notification.id && userId && !notification.read) {
+        http.post(
+          `${this.$i18n.t('rootURL')}notifications/mark-read?notificationId=${encodeURIComponent(notification.id)}&userId=${encodeURIComponent(userId)}`,
+          null,
+          { silent: true },
+        )
+          .then(() => {
+            this.$store.commit('markNotificationRead', notification.id);
+          })
+          .catch((error) => {
+            console.warn('Unable to mark notification as read:', error);
+          });
+      } else if (notification.id && !notification.read) {
+        this.$store.commit('markNotificationRead', notification.id);
+      }
 
       if (!notification.url) {
         return;

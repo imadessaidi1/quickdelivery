@@ -60,12 +60,13 @@ public class MailHelper {
         return value.trim();
     }
 
-
-
     private static SpringTemplateEngine thymeleafTemplateEngine(ITemplateResolver templateResolver, ResourceBundleMessageSource messageSource) {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         templateEngine.setTemplateResolver(templateResolver);
-        templateEngine.setTemplateEngineMessageSource(messageSource);
+        if (messageSource != null) {
+            messageSource.setDefaultEncoding("UTF-8");
+            templateEngine.setTemplateEngineMessageSource(messageSource);
+        }
         return templateEngine;
     }
 

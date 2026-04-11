@@ -36,9 +36,20 @@
           </div>
         </div>
 
-        <div v-if="!documentSrc" class="page-state">{{ $t('packageDocumentMissing') }}</div>
+        <div v-if="!documentSrc && loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
+        <div v-else-if="!documentSrc" class="page-state">{{ $t('packageDocumentMissing') }}</div>
         <div v-else class="document-frame-shell">
-          <iframe :src="documentSrc" class="document-frame"></iframe>
+          <img v-if="isImageDocument" :src="documentSrc" class="document-image" :alt="documentTitle">
+          <div v-else-if="usePdfJsViewer && isPdfDocument && pdfPageImages.length" class="document-pdf-shell">
+            <img
+              v-for="(pageImage, index) in pdfPageImages"
+              :key="`${reference || packageReference}-${index + 1}`"
+              :src="pageImage"
+              :alt="`${documentTitle} - ${index + 1}`"
+              class="document-pdf-page-image"
+            >
+          </div>
+          <iframe v-else :src="documentSrc" class="document-frame"></iframe>
         </div>
       </template>
     </div>
@@ -47,6 +58,31 @@
 
 <script>
 import http from '@/config/httpInterceptor';
+import { createLoadingTask } from 'vue3-pdfjs/esm';
+import { blobToDataUrl, fetchProtectedBlob } from '@/config/binaryContent';
+import { shouldUseCapacitorSafeDocumentRendering } from '@/config/network';
+
+function inferMimeType(document, blob) {
+  const blobType = blob?.type || '';
+  if (blobType && blobType !== 'application/octet-stream') {
+    return blobType;
+  }
+
+  const source = `${document?.docURL || document?.fileName || ''}`.toLowerCase();
+  if (source.endsWith('.pdf')) {
+    return 'application/pdf';
+  }
+  if (source.endsWith('.png')) {
+    return 'image/png';
+  }
+  if (source.endsWith('.jpg') || source.endsWith('.jpeg')) {
+    return 'image/jpeg';
+  }
+  if (source.endsWith('.webp')) {
+    return 'image/webp';
+  }
+  return blobType;
+}
 
 export default {
   props: {
@@ -68,6 +104,10 @@ export default {
       isLoading: false,
       loadError: false,
       documentSrc: '',
+      documentMimeType: '',
+      pdfRenderSource: null,
+      pdfPageImages: [],
+      pdfPageCount: 0,
       currentDocumentUrl: '',
       packageReference: this.reference || '',
     };
@@ -75,6 +115,18 @@ export default {
   computed: {
     documentTitle() {
       return this.documentType ? this.$t(this.documentType) : this.$t('packagesArroundMArkerDetailActionsDetails');
+    },
+    isImageDocument() {
+      return typeof this.documentMimeType === 'string' && this.documentMimeType.startsWith('image/');
+    },
+    isPdfDocument() {
+      return this.documentMimeType === 'application/pdf';
+    },
+    useCapacitorSafeRendering() {
+      return shouldUseCapacitorSafeDocumentRendering();
+    },
+    usePdfJsViewer() {
+      return this.useCapacitorSafeRendering;
     },
   },
   mounted() {
@@ -91,6 +143,10 @@ export default {
       }
       this.isLoading = true;
       this.loadError = false;
+      this.documentMimeType = '';
+      this.pdfRenderSource = null;
+      this.pdfPageImages = [];
+      this.pdfPageCount = 0;
       try {
         const response = await http.get(this.$i18n.t('rootURL') + this.$i18n.t('getPackage') + this.reference);
         const docs = response.data?.documentS || {};
@@ -100,11 +156,22 @@ export default {
           return;
         }
         this.packageReference = response.data?.reference || this.reference;
-        const contentResponse = await http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(currentDocument.id)}`, {
-          responseType: 'blob',
-        });
+        const blob = await fetchProtectedBlob(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(currentDocument.id)}`);
         this.revokeDocumentUrl();
-        this.currentDocumentUrl = URL.createObjectURL(contentResponse.data);
+        this.documentMimeType = inferMimeType(currentDocument, blob);
+        if (this.documentMimeType === 'application/pdf' && this.usePdfJsViewer) {
+          const pdfData = new Uint8Array(await blob.arrayBuffer());
+          this.currentDocumentUrl = URL.createObjectURL(blob);
+          this.documentSrc = this.currentDocumentUrl;
+          this.pdfRenderSource = { data: pdfData };
+          await this.renderPdfPages(this.pdfRenderSource);
+          return;
+        }
+        if (this.useCapacitorSafeRendering) {
+          this.documentSrc = await blobToDataUrl(blob);
+          return;
+        }
+        this.currentDocumentUrl = URL.createObjectURL(blob);
         this.documentSrc = this.currentDocumentUrl;
       } catch (error) {
         this.loadError = true;
@@ -118,6 +185,23 @@ export default {
         URL.revokeObjectURL(this.currentDocumentUrl);
         this.currentDocumentUrl = '';
       }
+    },
+    async renderPdfPages(pdfSource) {
+      const loadingTask = createLoadingTask(pdfSource);
+      const pdfDocument = await loadingTask.promise;
+      this.pdfPageCount = pdfDocument?.numPages || 0;
+      const nextPageImages = [];
+      for (let pageNumber = 1; pageNumber <= this.pdfPageCount; pageNumber += 1) {
+        const page = await pdfDocument.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+        nextPageImages.push(canvas.toDataURL('image/png'));
+      }
+      this.pdfPageImages = nextPageImages;
     },
     goBack() {
       if (this.returnTo) {
@@ -195,6 +279,30 @@ export default {
   height: 100%;
   min-height: 70vh;
   border: none;
+}
+.document-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 70vh;
+  object-fit: contain;
+  background: #111827;
+}
+.document-pdf-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 70vh;
+  padding: 16px;
+  overflow: auto;
+  box-sizing: border-box;
+  background: #111827;
+}
+.document-pdf-page-image {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
 }
 
 .page-state {

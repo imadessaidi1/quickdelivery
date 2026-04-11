@@ -169,3 +169,25 @@ Chaque role lit par defaut son fichier:
 et le met a jour depuis:
 
 - `deploy/lightsail/<role>.env` localement si ce fichier existe.
+
+## Durcissement VM1
+
+Le role `vm1-gateway` supporte aussi des variables de durcissement `Nginx`:
+
+- `VM1_LIMIT_CONN_PER_IP`
+- `VM1_WS_LIMIT_CONN_PER_IP`
+- `VM1_API_PUBLIC_RATE`
+- `VM1_API_PUBLIC_BURST`
+- `VM1_AUTH_PUBLIC_RATE`
+- `VM1_AUTH_PUBLIC_BURST`
+- `VM1_TRACKING_PUBLIC_RATE`
+- `VM1_TRACKING_PUBLIC_BURST`
+- `VM1_STATIC_CACHE_EXPIRES`
+
+Ces variables se definissent dans:
+
+- `deploy/lightsail/vm1-gateway.env`
+
+Une checklist infra AWS/Lightsail associee est disponible dans:
+
+- [docs/aws-5vm-hardening.md](C:/Users/imess/Documents/WorkSpace/Projects/DEV_WorkSpace/quickdelivery-parent/docs/aws-5vm-hardening.md)

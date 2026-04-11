@@ -30,6 +30,7 @@ public class UserDTO {
     private Boolean activeAccount;
 
     private String password;
+    private String preferredLocale;
 
     private String addressAuto;
     private String deliveryMode;
@@ -180,6 +181,14 @@ public class UserDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPreferredLocale() {
+        return preferredLocale;
+    }
+
+    public void setPreferredLocale(String preferredLocale) {
+        this.preferredLocale = preferredLocale;
     }
 
     public String getPasswordConfirmation() {

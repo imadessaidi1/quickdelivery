@@ -85,12 +85,13 @@ $effectiveModules = if ($BackendModules.Count -gt 0) { $BackendModules } else { 
 
 if (-not $SkipBackendBuild -and $effectiveModules.Count -gt 0) {
     Write-Step "Preparing backend artifacts for $Role..."
+    $modulesStr = $effectiveModules -join ","
     $prepareArgs = @(
         "-NoProfile",
         "-ExecutionPolicy", "Bypass",
         "-File", (Join-Path $projectRoot "deploy\docker\prepare-artifacts.ps1"),
-        "-RequestedModules"
-    ) + $effectiveModules
+        "-RequestedModules", $modulesStr
+    )
     & powershell @prepareArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Backend artifact preparation failed with exit code $LASTEXITCODE"
@@ -114,7 +115,7 @@ if (($Role -eq "vm1-gateway") -and -not $SkipFrontendBuild) {
     }
 }
 
-Invoke-SshCommand "Ensuring remote directories" "sudo mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release $RemoteRoot/deploy/docker/5vm && sudo chown -R ${SshUser}:${SshUser} $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
+Invoke-SshCommand "Ensuring remote directories" "sudo mkdir -p $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release $RemoteRoot/deploy/docker/5vm/certs && sudo chown -R ${SshUser}:${SshUser} $RemoteRoot /tmp/quickdelivery-front-dist /tmp/quickdelivery-release"
 
 if (-not $SkipBackendUpload -and $effectiveModules.Count -gt 0) {
     Invoke-SshCommand "Preparing remote artifacts directory" "mkdir -p $RemoteRoot/artifacts"
@@ -133,8 +134,10 @@ if (-not $SkipBackendUpload -and $effectiveModules.Count -gt 0) {
     }
 }
 
-Write-Step "Uploading deploy scripts and configuration..."
+Write-Step "Uploading deploy scripts, configuration and certs..."
 Invoke-ScpUpload "Uploading deploy directory" @("-r", (Join-Path $projectRoot "deploy"), "${remoteTarget}:${RemoteRoot}/")
+Invoke-ScpUpload "Uploading certs directory (root)" @("-r", (Join-Path $projectRoot "certs"), "${remoteTarget}:${RemoteRoot}/")
+Invoke-ScpUpload "Uploading certs directory (docker-compose side)" @("-r", (Join-Path $projectRoot "certs"), "${remoteTarget}:${RemoteRoot}/deploy/docker/5vm/")
 
 if (($Role -in @("vm2-platform", "vm3-app", "vm4-app")) -and -not $SkipBackendUpload) {
     $configStageDir = Join-Path ([System.IO.Path]::GetTempPath()) ("quickdelivery-config-upload-" + [System.Guid]::NewGuid().ToString("N"))

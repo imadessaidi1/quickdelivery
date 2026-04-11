@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.PublicRegistrationStatusDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.ServiceLogInsightsDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
@@ -15,8 +16,10 @@ import com.quickdelivery.abstarct.dto.UserDTO;
 import com.quickdelivery.abstarct.dto.UserValidationPageDTO;
 import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
+import com.quickdelivery.abstarct.security.CaptchaVerificationService;
 import com.quickdelivery.observability.RuntimeLogMonitor;
 import com.quickdelivery.services.interfaces.IUserServices;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,8 @@ public class UsersController {
     private IUserServices userServices;
     @Autowired
     private RuntimeLogMonitor runtimeLogMonitor;
+    @Autowired
+    private CaptchaVerificationService captchaVerificationService;
     @Value("${quickdelivery.frontend.base-url:}")
     private String frontendBaseUrl;
     @PostMapping("/create")
@@ -65,7 +70,14 @@ public class UsersController {
         return userServices.createNewUser(userDTO, vehicleDTO, multipartRequest.getMultiFileMap(), locale);
     }
     @PostMapping("/create-account")
-    public UserDTO createAccount(@RequestBody UserAccountCreateRequestDTO request) {
+    public UserDTO createAccount(@RequestBody UserAccountCreateRequestDTO request,
+                                 @RequestHeader(value = "X-Captcha-Token", required = false) String captchaToken,
+                                 HttpServletRequest servletRequest) {
+        captchaVerificationService.validateOrThrow(
+                captchaToken,
+                captchaVerificationService.resolveClientIp(servletRequest.getHeader("X-Forwarded-For"), servletRequest.getRemoteAddr()),
+                "users-create-account"
+        );
         Locale locale = request.getLocale() == null ? Locale.getDefault() : request.getLocale();
         return userServices.createAccount(request.getUser(), locale);
     }
@@ -166,6 +178,10 @@ public class UsersController {
     @GetMapping("/userByEmail{email}")
     public UserDTO findUserByEmail(@RequestParam(name = "email", required = true) String email){
         return userServices.findByEmail(email);
+    }
+    @GetMapping("/public-registration-status")
+    public PublicRegistrationStatusDTO publicRegistrationStatus(@RequestParam(name = "email") String email) {
+        return userServices.loadPublicRegistrationStatus(email);
     }
     @GetMapping("/public-update-profile")
     public UserDTO findUserByUpdateToken(@RequestParam(name = "updateToken", required = true) String updateToken){

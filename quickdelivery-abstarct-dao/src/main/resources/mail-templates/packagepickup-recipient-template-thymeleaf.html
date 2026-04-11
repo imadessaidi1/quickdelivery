@@ -24,7 +24,15 @@
 </p>
 <p style="margin:0 0 16px;font-size:15px;line-height:1.7;" th:text="#{email.packagePickupDetails}">
     The delivery person is heading to the delivery point. Follow the progress from the app.
-</p><table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;background:#f8fafc;border:1px solid #e4e9f2;border-radius:12px;">
+</p><table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;background:#fff7ed;border:2px dashed #f97316;border-radius:12px;">
+    <tr>
+        <td style="padding:20px;text-align:center;">
+            <div style="font-size:14px;font-weight:600;color:#c2410c;margin-bottom:8px;" th:text="#{email.deliveryCodeLabel}">YOUR DELIVERY CODE</div>
+            <div style="font-size:32px;font-weight:800;color:#9a3412;letter-spacing:4px;" th:text="${deliveryOtp}">123456</div>
+            <div style="font-size:13px;color:#7c2d12;margin-top:8px;" th:text="#{email.deliveryCodeInstruction}">Show this code to the courier at delivery</div>
+        </td>
+    </tr>
+</table><table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:24px 0;background:#f8fafc;border:1px solid #e4e9f2;border-radius:12px;">
     <tr>
         <td style="padding:20px;">
             <div style="font-size:13px;color:#5d6a7f;margin-bottom:8px;" th:text="#{email.reference}">Reference</div>

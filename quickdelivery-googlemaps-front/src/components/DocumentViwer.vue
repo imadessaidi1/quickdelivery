@@ -22,7 +22,19 @@
             </div>
         </div>
         <div class="document_preview">
-            <iframe v-if="currentDocData" :src="currentDocData"></iframe>
+            <div v-if="isDocumentLoading" class="document-loading">{{ $t('stateLoading') }}</div>
+            <div v-else-if="loadError" class="document-empty">{{ $t('stateLoadError') }}</div>
+            <img v-else-if="isImageDocument" class="document_image" :src="currentDocData" :alt="currentDocInfo">
+            <div v-else-if="usePdfJsViewer && isPdfDocument && pdfPageImages.length" class="document_pdf">
+                <img
+                    v-for="(pageImage, index) in pdfPageImages"
+                    :key="`${currentDocument?.id || 'document'}-${index + 1}`"
+                    :src="pageImage"
+                    :alt="`${currentDocInfo} - ${index + 1}`"
+                    class="document_pdf_page_image"
+                >
+            </div>
+            <iframe v-else-if="currentDocData" :src="currentDocData"></iframe>
             <div v-else class="document-empty">{{ $t('packageDocumentMissing') }}</div>
         </div>
         <div v-if="currentDocument" class="document_state">
@@ -53,7 +65,32 @@
     </div>
 </template>
 <script>
-import http from '@/config/httpInterceptor';
+import { blobToDataUrl, fetchProtectedBlob } from '@/config/binaryContent';
+import { createLoadingTask } from 'vue3-pdfjs/esm';
+import { shouldUseCapacitorSafeDocumentRendering } from '@/config/network';
+import { normalizeDocumentCollection } from '@/config/documents';
+
+function inferMimeType(document, blob) {
+    const blobType = blob?.type || '';
+    if (blobType && blobType !== 'application/octet-stream') {
+        return blobType;
+    }
+
+    const source = `${document?.docURL || document?.fileName || ''}`.toLowerCase();
+    if (source.endsWith('.pdf')) {
+        return 'application/pdf';
+    }
+    if (source.endsWith('.png')) {
+        return 'image/png';
+    }
+    if (source.endsWith('.jpg') || source.endsWith('.jpeg')) {
+        return 'image/jpeg';
+    }
+    if (source.endsWith('.webp')) {
+        return 'image/webp';
+    }
+    return blobType;
+}
 
 export default {
     props: {
@@ -66,9 +103,14 @@ export default {
         return {
           currentDocIndex: 0,
           currentDocData: '',
+          currentDocMimeType: '',
           currentDocument: null,
           currentDocumentUrl: '',
+          pdfRenderSource: null,
+          pdfPageImages: [],
           isDocumentLoading: false,
+          loadError: false,
+          pdfPageCount: 0,
           documentRequestToken: 0,
         };
     },
@@ -80,7 +122,10 @@ export default {
     },
     computed: {
         documentKeys() {
-            return Object.keys(this.documents || {}).filter(key => key !== 'PICTURE');
+            return Object.keys(this.normalizedDocuments).filter(key => key !== 'PICTURE');
+        },
+        normalizedDocuments() {
+            return normalizeDocumentCollection(this.documents);
         },
         parsedMatchDetails() {
             if (!this.currentDocument?.matchDetails) {
@@ -172,6 +217,18 @@ export default {
                 name: documentName,
             });
         },
+        isImageDocument() {
+            return typeof this.currentDocMimeType === 'string' && this.currentDocMimeType.startsWith('image/');
+        },
+        isPdfDocument() {
+            return this.currentDocMimeType === 'application/pdf';
+        },
+        useCapacitorSafeRendering() {
+            return shouldUseCapacitorSafeDocumentRendering();
+        },
+        usePdfJsViewer() {
+            return this.useCapacitorSafeRendering;
+        },
     },
     watch: {
         'currentDocument.documentStatus'(status) {
@@ -208,7 +265,7 @@ export default {
         },
         syncCurrentDocument() {
             const documentType = this.documentKeys[this.currentDocIndex];
-            this.currentDocument = documentType ? this.documents[documentType] : null;
+            this.currentDocument = documentType ? this.normalizedDocuments[documentType] : null;
             this.loadCurrentDocumentContent();
         },
         async loadCurrentDocumentContent() {
@@ -216,23 +273,47 @@ export default {
             const requestToken = this.documentRequestToken;
             this.revokeCurrentDocumentUrl();
             const document = this.currentDocument;
-            if (!document?.id || !document?.docURL) {
+            this.pdfPageCount = 0;
+            this.pdfRenderSource = null;
+            this.pdfPageImages = [];
+            this.loadError = false;
+            if (!document?.id) {
                 this.currentDocData = '';
+                this.currentDocMimeType = '';
                 return;
             }
             this.isDocumentLoading = true;
-            try {
-                const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(document.id)}`, {
-                    responseType: 'blob',
-                });
+          try {
+                const blob = await fetchProtectedBlob(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(document.id)}`);
                 if (requestToken !== this.documentRequestToken) {
                     return;
                 }
-                this.currentDocumentUrl = URL.createObjectURL(response.data);
+                this.currentDocMimeType = inferMimeType(document, blob);
+                if (this.currentDocMimeType === 'application/pdf' && this.usePdfJsViewer) {
+                    const pdfData = new Uint8Array(await blob.arrayBuffer());
+                    if (requestToken !== this.documentRequestToken) {
+                        return;
+                    }
+                    this.currentDocumentUrl = URL.createObjectURL(blob);
+                    this.currentDocData = this.currentDocumentUrl;
+                    this.pdfRenderSource = { data: pdfData };
+                    await this.renderPdfPages(this.pdfRenderSource, requestToken);
+                    return;
+                }
+                if (this.useCapacitorSafeRendering) {
+                    this.currentDocData = await blobToDataUrl(blob);
+                    return;
+                }
+                this.currentDocumentUrl = URL.createObjectURL(blob);
                 this.currentDocData = this.currentDocumentUrl;
             } catch (_error) {
                 if (requestToken === this.documentRequestToken) {
                     this.currentDocData = '';
+                    this.currentDocMimeType = '';
+                    this.pdfPageCount = 0;
+                    this.pdfRenderSource = null;
+                    this.pdfPageImages = [];
+                    this.loadError = true;
                 }
             } finally {
                 if (requestToken === this.documentRequestToken) {
@@ -245,6 +326,29 @@ export default {
                 URL.revokeObjectURL(this.currentDocumentUrl);
                 this.currentDocumentUrl = '';
             }
+        },
+        async renderPdfPages(pdfSource, requestToken) {
+            const loadingTask = createLoadingTask(pdfSource);
+            const pdfDocument = await loadingTask.promise;
+            if (requestToken !== this.documentRequestToken) {
+                return;
+            }
+            this.pdfPageCount = pdfDocument?.numPages || 0;
+            const nextPageImages = [];
+            for (let pageNumber = 1; pageNumber <= this.pdfPageCount; pageNumber += 1) {
+                const page = await pdfDocument.getPage(pageNumber);
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = Math.ceil(viewport.width);
+                canvas.height = Math.ceil(viewport.height);
+                await page.render({ canvasContext: context, viewport }).promise;
+                nextPageImages.push(canvas.toDataURL('image/png'));
+            }
+            if (requestToken !== this.documentRequestToken) {
+                return;
+            }
+            this.pdfPageImages = nextPageImages;
         },
     },
 }
@@ -277,6 +381,32 @@ export default {
   min-height: 0;
   border: none;
 }
+.document_image{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #111827;
+}
+.document_pdf{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+  background: #111827;
+}
+.document_pdf_page_image{
+  display: block;
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+}
+.document-loading,
 .document-empty{
   display: flex;
   align-items: center;

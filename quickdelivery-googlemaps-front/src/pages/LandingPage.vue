@@ -3,7 +3,7 @@
     <nav class="navbar" :class="{ scrolled: isScrolled }">
       <div class="nav-content">
         <div class="logo">
-          <router-link to="/">QuickDelivery</router-link>
+          <router-link to="/">{{ $t('applicationName') }}</router-link>
         </div>
         <ul>
           <li><a href="#services">{{ $t('landingNavServices') }}</a></li>
@@ -274,7 +274,7 @@ export default {
 }
 
 .navbar.scrolled {
-  background-color: #003366;
+  background-color: var(--qd-primary-dark);
   padding: 1rem 0;
 }
 
@@ -310,7 +310,7 @@ export default {
 .navbar ul a {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
-  transition: all 0.3s;
+  transition: var(--qd-transition);
 }
 
 .navbar ul a:hover,
@@ -371,11 +371,30 @@ export default {
   min-height: 48px;
   padding: 0 22px;
   border-radius: 8px;
-  background: #fa6400;
+  background: var(--qd-accent);
   color: #fff;
   text-decoration: none;
   font-weight: 600;
-  transition: all 250ms;
+  transition: var(--qd-transition);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.hero-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: none;
+}
+
+.hero-btn:hover::after {
+  left: 100%;
+  transition: 0.7s;
 }
 
 .hero-btn.secondary {
@@ -389,7 +408,15 @@ export default {
 }
 
 .hero-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.03) translateZ(0);
+  filter: brightness(1.05);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero-btn:active {
+  transform: translateY(0) scale(0.96) translateZ(0);
+  filter: brightness(0.95);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .statistics_section,
@@ -398,13 +425,6 @@ export default {
 .users_feedback,
 .join-us {
   padding: 5rem 0;
-}
-
-.statistics_head,
-.services,
-.how-it-works,
-.users_feedback,
-.join-us {
   text-align: center;
 }
 
@@ -517,7 +537,7 @@ export default {
 }
 
 .join-us {
-  background: #003366;
+  background: var(--qd-primary-dark);
   color: #fff;
 }
 
@@ -544,7 +564,7 @@ export default {
   .navbar {
     position: static;
     padding: 1rem 0;
-    background: #003366;
+    background: var(--qd-primary-dark);
   }
 
   .nav-content,

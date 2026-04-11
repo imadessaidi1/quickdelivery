@@ -58,10 +58,12 @@ try {
         throw "No Maven projects resolved for requested modules."
     }
 
-    & mvn "-pl" $projectList "-am" "clean" "package" "-DskipTests"
+    $mvnArgs = @("-pl", $projectList, "-am", "clean", "package", "-DskipTests")
+    & mvn @mvnArgs
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "Clean package failed. Retrying without clean to avoid local file lock issues."
-        & mvn "-pl" $projectList "-am" "package" "-DskipTests"
+        $mvnArgs = @("-pl", $projectList, "-am", "package", "-DskipTests")
+        & mvn @mvnArgs
         if ($LASTEXITCODE -ne 0) {
             throw "Maven build failed with exit code $LASTEXITCODE"
         }

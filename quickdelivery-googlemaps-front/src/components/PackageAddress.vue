@@ -88,6 +88,8 @@
             id="dateTime"
             v-model="address.dateTime"
             time-picker-inline
+            :locale="datePickerLocale"
+            format="dd/MM/yyyy HH:mm"
             :min-date="minDate"
             :max-date="maxDate"
             :min-time="{ hours: 8, minutes: 0 }"
@@ -104,6 +106,7 @@
 import { ErrorMessage, Field } from 'vee-validate';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import { fr } from 'date-fns/locale';
 import AddressAutocomplete from './AddressAutocomplete.vue';
 import PhoneNumberField from './PhoneNumberField.vue';
 import { validateEmail, validateNumericFieldAcceptZero, validateString } from '@/config/comonFunction';
@@ -159,11 +162,20 @@ export default {
         minute: '2-digit',
       });
     },
+    datePickerLocale() {
+      return fr;
+    },
   },
   methods: {
     validateEmail,
     validateString,
     validateNumericFieldAcceptZero,
+    syncAddressAutocomplete() {
+      const autocompleteRef = Array.isArray(this.$refs.addressAutoComplete)
+        ? this.$refs.addressAutoComplete[0]
+        : this.$refs.addressAutoComplete;
+      autocompleteRef?.syncAutocompleteValue?.();
+    },
     handlePlaceSelected(place) {
       this.address.addressAuto = place?.formattedAddress || '';
       this.address.latitude = place?.latitude ?? null;
@@ -334,6 +346,11 @@ export default {
   border: 1px solid #ced7e4;
   border-radius: 14px;
   box-sizing: border-box;
+}
+
+.field-wrap :deep(.qd-place-autocomplete) {
+  width: 100%;
+  min-height: 48px;
 }
 
 .field-wrap :deep(.dp__main) {

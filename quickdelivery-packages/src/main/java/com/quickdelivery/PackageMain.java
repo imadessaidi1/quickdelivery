@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @ComponentScan("com.quickdelivery")
 @EnableTransactionManagement
+@EnableScheduling
 public class PackageMain {
     @Value("${googlemapsapi.key}")
     private String googleMapsApiKey;

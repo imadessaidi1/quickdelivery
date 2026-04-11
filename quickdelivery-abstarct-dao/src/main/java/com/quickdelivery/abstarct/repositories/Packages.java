@@ -42,6 +42,25 @@ public interface Packages extends JpaRepository<Package, Long> {
                                                             @Param("maxLat") double maxLat,
                                                             @Param("minLong") double minLong,
                                                             @Param("maxLong") double maxLong);
+
+    @Query(value = "SELECT a.package_id " +
+            "FROM address a " +
+            "INNER JOIN package p ON p.id = a.package_id " +
+            "WHERE p.status = 'NEW' " +
+            "AND a.type = 'DEPARTURE' " +
+            "AND a.latitude BETWEEN :minLat AND :maxLat " +
+            "AND a.longitude BETWEEN :minLong AND :maxLong " +
+            "AND ST_Distance_Sphere(POINT(a.longitude, a.latitude), POINT(:centerLng, :centerLat)) <= :rayonEnMetres " +
+            "ORDER BY ST_Distance_Sphere(POINT(a.longitude, a.latitude), POINT(:centerLng, :centerLat)) ASC " +
+            "LIMIT :limit", nativeQuery = true)
+    List<Long> findNearbyNewPackageIds(@Param("centerLat") double centerLat,
+                                       @Param("centerLng") double centerLng,
+                                       @Param("rayonEnMetres") double rayonEnMetres,
+                                       @Param("minLat") double minLat,
+                                       @Param("maxLat") double maxLat,
+                                       @Param("minLong") double minLong,
+                                       @Param("maxLong") double maxLong,
+                                       @Param("limit") int limit);
     @Query("SELECT p " +
             "FROM Package p JOIN FETCH p.addresses a " +
             "WHERE a.latitude > :departureLatitude AND a.latitude < :arrivalLatitude " +
@@ -65,15 +84,22 @@ public interface Packages extends JpaRepository<Package, Long> {
                                        @Param("endRadius") double endRadius);
 
     @Query("SELECT DISTINCT p FROM Package p " +
-            "INNER JOIN FETCH p.addresses adDep " +
-            "INNER JOIN FETCH p.addresses adArr " +
+            "LEFT JOIN FETCH p.addresses addresses " +
             "WHERE p.status = 'NEW' " +
-            "AND adDep.type = 'DEPARTURE' " +
-            "AND adArr.type = 'ARRIVAL' " +
-            "AND adDep.latitude BETWEEN :minLat AND :maxLat " +
-            "AND adDep.longitude BETWEEN :minLong AND :maxLong " +
-            "AND adArr.latitude BETWEEN :minLat AND :maxLat " +
-            "AND adArr.longitude BETWEEN :minLong AND :maxLong")
+            "AND EXISTS (" +
+            "   SELECT 1 FROM Address adDep " +
+            "   WHERE adDep.packaged = p " +
+            "   AND adDep.type = 'DEPARTURE' " +
+            "   AND adDep.latitude BETWEEN :minLat AND :maxLat " +
+            "   AND adDep.longitude BETWEEN :minLong AND :maxLong" +
+            ") " +
+            "AND EXISTS (" +
+            "   SELECT 1 FROM Address adArr " +
+            "   WHERE adArr.packaged = p " +
+            "   AND adArr.type = 'ARRIVAL' " +
+            "   AND adArr.latitude BETWEEN :minLat AND :maxLat " +
+            "   AND adArr.longitude BETWEEN :minLong AND :maxLong" +
+            ")")
     List<Package> findNewPackagesInBoundingBox(@Param("minLat") double minLat,
                                                @Param("maxLat") double maxLat,
                                                @Param("minLong") double minLong,
@@ -83,6 +109,12 @@ public interface Packages extends JpaRepository<Package, Long> {
             "LEFT JOIN FETCH p.addresses a " +
             "WHERE p.status = :status")
     List<Package> findPackagesByStatus(@Param("status") PACKAGE_STATUS status);
+
+    @Query("SELECT p.id " +
+            "FROM Package p " +
+            "WHERE p.status = :status " +
+            "ORDER BY p.creationDate DESC, p.id DESC")
+    Page<Long> findPackageIdsByStatus(@Param("status") PACKAGE_STATUS status, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Package p " +
@@ -102,6 +134,14 @@ public interface Packages extends JpaRepository<Package, Long> {
             "LEFT JOIN FETCH p.packageReservations reservations " +
             "WHERE p.id = :packageId")
     Package findPackageDetailsById(@Param("packageId") long packageId);
+
+    @Query("SELECT DISTINCT p " +
+            "FROM Package p " +
+            "LEFT JOIN FETCH p.addresses addresses " +
+            "LEFT JOIN FETCH p.packageSettlement settlement " +
+            "LEFT JOIN FETCH p.sender sender " +
+            "WHERE p.id IN :packageIds")
+    List<Package> findPackagesWithAddressesByIds(@Param("packageIds") List<Long> packageIds);
 
     @Query("SELECT DISTINCT p " +
             "FROM Package p " +

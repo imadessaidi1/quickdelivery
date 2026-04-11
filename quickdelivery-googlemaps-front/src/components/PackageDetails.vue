@@ -15,10 +15,10 @@
                 <div>
                     <strong>{{$t('packageWeight')}}:</strong> {{package_.weight}}
                 </div>
-                <div v-if="package_.deliveryPrice">
-                    <strong>{{$t('packagePrice')}}:</strong> {{package_.deliveryPrice}} {{$t('currency')}}
+                <div v-if="displayedPrice !== '-'">
+                    <strong>{{displayedPriceLabel}}:</strong> {{displayedPrice}}
                 </div>
-                <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']">
+                <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']" class="invoice_line">
                     <a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a>
                 </div>
             </div>
@@ -107,7 +107,8 @@
 </template>
 <script>
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
-import http from '@/config/httpInterceptor';
+import { fetchProtectedBlob } from '@/config/binaryContent';
+import { formatDisplayedPackageAmount, resolveDisplayedPackagePriceLabel } from '@/config/packagePricing';
 
 export default {
     computed: {
@@ -128,6 +129,12 @@ export default {
         },
         packagePictureAvailable() {
           return Boolean(this.packagePictureDocument?.id);
+        },
+        displayedPrice() {
+          return formatDisplayedPackageAmount(this.$i18n, this.package_);
+        },
+        displayedPriceLabel() {
+          return resolveDisplayedPackagePriceLabel(this.$i18n);
         },
     },
     data() {
@@ -161,12 +168,11 @@ export default {
           }
           this.isPictureLoading = true;
           try {
-            const response = await http.get(
-              `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(this.packagePictureDocument.id)}`,
-              { responseType: 'blob' }
+            const blob = await fetchProtectedBlob(
+              `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackageDocumentContent')}${encodeURIComponent(this.packagePictureDocument.id)}`
             );
             this.revokePicturePreview();
-            this.currentPictureObjectUrl = URL.createObjectURL(response.data);
+            this.currentPictureObjectUrl = URL.createObjectURL(blob);
             this.picturePreviewSrc = this.currentPictureObjectUrl;
           } catch (error) {
             this.revokePicturePreview();
@@ -228,6 +234,8 @@ export default {
   opacity: .65;
   cursor: pointer;
   transition: all .3s;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .custom-link:hover {
@@ -312,6 +320,8 @@ export default {
 .package_details_group .package_details .details div{
     font-size: 14px;
     padding: 3px 10px 3px 20px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .package_details_group .package_details{
     width: 100%;
@@ -372,26 +382,69 @@ export default {
     }
 }
 @media screen and (max-width: 500px){
-    .modal-content h2{
-        font-size: 1em;
-    }
-    .package_details_group .package_details{
-        width: 100%;
-    }
-    .package_overview .details{
-        display: block;
-    }
-    .package_photo_block{
-        padding: 4px 12px 16px;
-    }
-    .package_photo_preview{
-        min-height: 180px;
-        border-radius: 14px;
-    }
-    .package_photo_image{
-        max-height: 280px;
-        object-fit: contain;
-        background: #f8fafc;
-    }
+  .modal-content h2{
+      font-size: 1em;
+  }
+  .package_details_group{
+      gap: 12px;
+  }
+  .package_details_group .package_details{
+      width: 100%;
+      margin: 0;
+      padding: 14px 12px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  }
+  .package_details_group .package_details h3{
+      margin: 0 0 10px 0;
+      padding-left: 8px;
+      font-size: 0.98rem;
+      line-height: 1.15;
+  }
+  .package_details_group .package_details .details{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 0;
+  }
+  .package_details_group .package_details .details div{
+      padding: 0;
+      font-size: 0.98rem;
+      line-height: 1.35;
+  }
+  .package_details_group .package_details .details div strong{
+      display: inline;
+  }
+  .package_details_group .package_details .details .adresse_line,
+  .package_details_group .package_details .details .dateTime_line{
+      grid-column: auto;
+  }
+  .package_overview .details{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+  }
+  .package_overview .details .adresse_line,
+  .package_overview .details .dateTime_line,
+  .package_overview .details .invoice_line{
+      grid-column: 1 / -1;
+  }
+  .package_photo_block{
+      padding: 8px 0 0;
+      gap: 8px;
+  }
+  .package_photo_preview{
+      min-height: 220px;
+      border-radius: 16px;
+  }
+  .package_photo_image{
+      max-height: 320px;
+      object-fit: contain;
+      background: #f8fafc;
+  }
+  .package_photo_link{
+      font-size: 0.92rem;
+  }
 }
 </style>

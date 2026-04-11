@@ -1,10 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">quickdelivery-googlemaps-front</string>
-    <string name="title_activity_main">quickdelivery-googlemaps-front</string>
+    <string name="app_name">QuickDelivery</string>
+    <string name="title_activity_main">QuickDelivery</string>
     <string name="package_name">com.example.app</string>
     <string name="custom_url_scheme">com.example.app</string>
     <string name="capacitor_background_geolocation_notification_channel_name">QuickDelivery Tracking</string>
     <string name="capacitor_background_geolocation_notification_icon">mipmap/ic_launcher</string>
     <string name="capacitor_background_geolocation_notification_color">#0f172a</string>
+    <string name="quickdelivery_push_channel_id">quickdelivery-realtime</string>
+    <string name="quickdelivery_push_channel_name">QuickDelivery Notifications</string>
 </resources>

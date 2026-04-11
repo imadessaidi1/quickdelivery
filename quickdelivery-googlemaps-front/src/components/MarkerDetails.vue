@@ -1,19 +1,42 @@
-﻿<template>
-  <div class="marker-details" :class="{ selected: isSelected, compact: compact, dense: dense }">
+<template>
+  <div class="marker-details" :class="{ selected: isSelected, compact: compact, dense: dense, locked: package_.isSoftLockedBy }">
     <template v-if="compact">
       <div class="compact-head">
         <div class="compact-ref">#{{ package_.reference }}</div>
-        <div class="compact-price">{{ package_.deliveryPrice }}{{ $t('currency') }}</div>
+        <div class="compact-price">{{ displayedPrice() }}</div>
+      </div>
+      <div v-if="hasRouteSequence()" class="tour-sequence compact-sequence">
+        <span v-if="package_.routePickupOrder" class="tour-chip pickup">C{{ package_.routePickupOrder }}</span>
+        <span v-if="package_.routeDropoffOrder" class="tour-chip dropoff">L{{ package_.routeDropoffOrder }}</span>
       </div>
       <div class="compact-route">{{ departureAddress() }} -> {{ destinationAddress() }}</div>
+      <div v-if="package_.isSoftLockedBy" class="lock-banner">
+        <span class="material-symbols-outlined">lock</span> {{ $t('lockedByOther') }}
+      </div>
       <div class="actions-row">
         <button class="details-btn" ref="reserveButtons" @click.stop="details">
           {{ $t('packagesArroundMArkerDetailActionsDetails') }}
         </button>
-        <button v-if="canReserve()" class="reserve-btn" ref="detailsButtons" @click.stop="reserve">
+        <button
+          v-if="canOperateDelivery() && package_.status === 'NEW' && !package_.isSoftLockedBy"
+          class="reserve-btn"
+          :disabled="isReserveDisabled"
+          :title="reservationDisabledReason"
+          ref="detailsButtons"
+          @click.stop="reserve"
+        >
           {{ $t('packagesArroundMArkerDetailActionsReserve') }}
         </button>
+        <button
+          v-if="showCancelReservation"
+          class="cancel-reserve-btn"
+          type="button"
+          @click.stop="cancelReservation"
+        >
+          {{ $t('actionCancelReservation') }}
+        </button>
       </div>
+      <div v-if="showReservationBlockedHint" class="reservation-hint">{{ reservationDisabledReason }}</div>
     </template>
     <template v-else>
     <div class="card-header">
@@ -22,9 +45,16 @@
           <span class="material-symbols-outlined ref-icon">deployed_code</span>
           <span class="ref-text">#{{ package_.reference }}</span>
         </div>
-        <span class="status-chip">{{ $t('statusAvailable') }}</span>
+        <span v-if="package_.isSoftLockedBy" class="status-chip locked">{{ $t('statusLocked') }}</span>
+        <span v-else class="status-chip">{{ $t('statusAvailable') }}</span>
       </div>
-      <div class="price-wrap">{{ package_.deliveryPrice }}{{ $t('currency') }}</div>
+      <div class="price-wrap">{{ displayedPrice() }}</div>
+    </div>
+
+    <div v-if="package_.packageSizeCategory" class="smart-badges-row">
+      <span v-if="package_.packageSizeCategory" class="smart-flag neutral">{{ package_.packageSizeCategory }}</span>
+      <span v-if="package_.routePickupOrder" class="smart-flag pickup">Collecte {{ package_.routePickupOrder }}</span>
+      <span v-if="package_.routeDropoffOrder" class="smart-flag dropoff">Livraison {{ package_.routeDropoffOrder }}</span>
     </div>
 
     <div class="address-line">
@@ -44,17 +74,21 @@
     </div>
 
     <div class="metrics-row">
+      <div v-if="package_.detourMeters" class="metric detour">
+        <div class="metric-label">{{ $t('packageDetour') }}</div>
+        <div class="metric-value highlight">{{ formatDetour(package_.detourMeters) }}</div>
+      </div>
+      <div v-else class="metric">
+        <div class="metric-label">{{ $t('packageDistanceToDestination') }}</div>
+        <div class="metric-value">{{ package_.distanceToDestination || package_.fromYou || '-' }}</div>
+      </div>
       <div class="metric">
         <div class="metric-label">{{ $t('packageWeight') }}</div>
-        <div class="metric-value">{{ package_.weight || '-' }}</div>
+        <div class="metric-value">{{ package_.weight || '-' }} kg</div>
       </div>
       <div class="metric">
         <div class="metric-label">{{ $t('packageDimensions') }}</div>
         <div class="metric-value">{{ packageDimensions() }}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">{{ $t('packageDistanceToDestination') }}</div>
-        <div class="metric-value">{{ package_.distanceToDestination || package_.fromYou || '-' }}</div>
       </div>
     </div>
 
@@ -62,10 +96,26 @@
       <button class="details-btn" ref="reserveButtons" @click.stop="details">
         {{ $t('packagesArroundMArkerDetailActionsDetails') }}
       </button>
-      <button v-if="canReserve()" class="reserve-btn" ref="detailsButtons" @click.stop="reserve">
+      <button
+        v-if="canOperateDelivery() && package_.status === 'NEW' && !package_.isSoftLockedBy"
+        class="reserve-btn"
+        :disabled="isReserveDisabled"
+        :title="reservationDisabledReason"
+        ref="detailsButtons"
+        @click.stop="reserve"
+      >
         {{ $t('packagesArroundMArkerDetailActionsReserve') }}
       </button>
+      <button
+        v-if="showCancelReservation"
+        class="cancel-reserve-btn"
+        type="button"
+        @click.stop="cancelReservation"
+      >
+        {{ $t('actionCancelReservation') }}
+      </button>
     </div>
+    <div v-if="showReservationBlockedHint" class="reservation-hint">{{ reservationDisabledReason }}</div>
     </template>
   </div>
 </template>
@@ -73,6 +123,7 @@
 <script>
 import http from '@/config/httpInterceptor';
 import { getCurrentUserRoles } from '@/config/auth';
+import { formatDisplayedPackageAmount } from '@/config/packagePricing';
 
 export default {
   props: {
@@ -92,18 +143,70 @@ export default {
       default: false,
     },
   },
+  computed: {
+    reservationAvailability() {
+      return this.$store.state.reservationAvailability || {};
+    },
+    isReserveDisabled() {
+      return !this.reservationAvailability.canReserve
+        || this.reservationAvailability.activeRouteBlocking
+        || this.$store.state.isUserWithOngoingDelivery
+        || Boolean(this.$store.state.activeDeliveryRoute);
+    },
+    showReservationBlockedHint() {
+      return this.canOperateDelivery() && !this.package_?.isSoftLockedBy && this.isReserveDisabled;
+    },
+    showCancelReservation() {
+      return this.canOperateDelivery() && this.package_?.status === 'RESERVED';
+    },
+    canCancelReservation() {
+      return this.showCancelReservation;
+    },
+    reservationDisabledReason() {
+      if (this.reservationAvailability.activeRouteBlocking || this.$store.state.isUserWithOngoingDelivery) {
+        return this.$t('reservationBlockedActiveRoute');
+      }
+      if (this.reservationAvailability.capacityReached) {
+        const maxReservations = Number(this.reservationAvailability.maxReservations || 0);
+        const activeReservations = Number(this.reservationAvailability.activeReservations || 0);
+        const capacityLabel = maxReservations > 0
+          ? ` (${this.$t('reservationCapacityStatus', { active: activeReservations, max: maxReservations })})`
+          : '';
+        return `${this.$t('reservationBlockedCapacityReached')}${capacityLabel}`;
+      }
+      if (!this.reservationAvailability.canReserve) {
+        return this.$t('reservationBlockedGeneric');
+      }
+      return '';
+    },
+  },
   methods: {
-    canReserve() {
+    displayedPrice() {
+      return formatDisplayedPackageAmount(this.$i18n, this.package_);
+    },
+    hasRouteSequence() {
+      return Number.isFinite(this.package_?.routePickupOrder) || Number.isFinite(this.package_?.routeDropoffOrder);
+    },
+    canOperateDelivery() {
       const roles = getCurrentUserRoles();
       return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
     },
+    formatDetour(meters) {
+      if (!meters) return '-';
+      if (meters < 1000) return Math.round(meters) + ' m';
+      return (meters / 1000).toFixed(1) + ' km';
+    },
     async reserve() {
+      if (this.isReserveDisabled) {
+        return Promise.reject(new Error('Active delivery route blocks new reservations'));
+      }
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + 'packageID=' + this.package_.id + '&deliveryPersonID=' + this.$store.state.connectedUser.id + '&locale=' + userLanguage;
       window.top.postMessage('RefreshPackagesList ' + this.package_.id, '*');
       return new Promise((resolve, reject) => {
         http.put(url)
           .then((response) => {
+            window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
             resolve(response.data);
           })
           .catch((error) => {
@@ -111,6 +214,19 @@ export default {
             reject(error);
           });
       });
+    },
+    async cancelReservation() {
+      if (!this.canCancelReservation || !window.confirm(this.$t('reservationCancelConfirm'))) {
+        return;
+      }
+      const url = `${this.$i18n.t('rootURL')}${this.$i18n.t('cancelReservationUrl')}packageID=${encodeURIComponent(this.package_.id)}&deliveryPersonID=${encodeURIComponent(this.$store.state.connectedUser.id)}`;
+      try {
+        await http.put(url);
+        window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
+        window.top.postMessage(`RefreshPackagesList ${this.package_.id}`, '*');
+      } catch (error) {
+        console.error('Unable to cancel reservation.', error);
+      }
     },
     details() {
       this.$store.commit('updatePackage', this.package_);
@@ -174,19 +290,94 @@ export default {
   min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+}
+
+.marker-details.locked {
+  opacity: 0.85;
+  background: #fffafa;
+}
+
+.smart-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.smart-flag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.smart-flag.neutral {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.smart-flag.pickup {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.smart-flag.dropoff {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.tour-sequence {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.compact-sequence {
+  margin-bottom: 6px;
+}
+
+.tour-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tour-chip.pickup {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tour-chip.dropoff {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.lock-banner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .marker-details.selected {
   border-color: #93a7cf;
   box-shadow: 0 0 0 1px #93a7cf, 0 10px 24px rgba(15, 23, 42, 0.08);
-}
-
-.marker-details.compact {
-  padding: 10px;
-}
-
-.marker-details.dense {
-  padding: 10px;
 }
 
 .compact-head {
@@ -273,16 +464,18 @@ export default {
   margin-top: 5px;
 }
 
+.status-chip.locked {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
 .price-wrap {
   font-size: 20px;
   font-weight: 700;
   color: #111827;
   white-space: nowrap;
   flex: 0 0 auto;
-}
-
-.marker-details.dense .price-wrap {
-  font-size: 16px;
 }
 
 .address-line {
@@ -315,26 +508,16 @@ export default {
   font-size: 13px;
   color: #1f2937;
   line-height: 1.3;
-}
-
-.marker-details.dense .value {
-  font-size: 12px;
-  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .metrics-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin: 10px 0;
   padding-top: 8px;
   border-top: 1px solid #eef2f7;
-}
-
-.marker-details.dense .metrics-row {
-  gap: 6px;
-  margin: 8px 0;
-  padding-top: 6px;
 }
 
 .metric-label {
@@ -349,17 +532,20 @@ export default {
   color: #111827;
 }
 
-.marker-details.dense .metric-label {
-  font-size: 10px;
-}
-
-.marker-details.dense .metric-value {
-  font-size: 11px;
+.metric-value.highlight {
+  color: #059669;
 }
 
 .actions-row {
   display: flex;
   gap: 8px;
+  margin-top: 4px;
+}
+.reservation-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #b45309;
 }
 
 .details-btn,
@@ -373,19 +559,9 @@ export default {
   cursor: pointer;
 }
 
-.marker-details.dense .details-btn,
-.marker-details.dense .reserve-btn {
-  height: 34px;
-  font-size: 12px;
-}
-
 .details-btn {
   color: #ffffff;
   background: #020617;
-}
-
-.details-btn:hover {
-  background: #0f172a;
 }
 
 .reserve-btn {
@@ -393,21 +569,35 @@ export default {
   background: #e2e8f0;
 }
 
-.reserve-btn:hover {
+.cancel-reserve-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.cancel-reserve-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reserve-btn:hover:not(:disabled) {
   background: #cfd8e5;
+}
+.reserve-btn:disabled {
+  background: #e5e7eb;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 @media screen and (max-width: 767px) {
-  .card-header {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .price-wrap {
-    font-size: 18px;
-  }
-
-  .actions-row {
-    flex-direction: column;
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

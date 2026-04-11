@@ -10,37 +10,35 @@ import com.quickdelivery.abstarct.dto.AddressDTO;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 public class GeoHelper {
 
     public static void AddressGeoCoding(GeoApiContext  geoApiContext, AddressDTO addressDTO) throws IOException, InterruptedException, ApiException {
         GeocodingResult[] results =  GeocodingApi.geocode(geoApiContext,
                 addressDTO.toString()).await();
-        addressDTO.setLatitude((new BigDecimal(results[0].geometry.location.lat)).setScale(8, RoundingMode.CEILING));
-        addressDTO.setLongitude((new BigDecimal(results[0].geometry.location.lng)).setScale(8, RoundingMode.CEILING));
+        addressDTO.setLatitude(BigDecimal.valueOf(results[0].geometry.location.lat));
+        addressDTO.setLongitude(BigDecimal.valueOf(results[0].geometry.location.lng));
     }
 
-    public static DistanceMatrix getDistanceByCoordinates(GeoApiContext  geoApiContext, double departureLat, double departureLng, double arrivalLat, double arrivalLng){
+    public static DistanceMatrix getDistanceByCoordinates(GeoApiContext  geoApiContext, double departureLat, double departureLng, double arrivalLat, double arrivalLng) throws IOException, InterruptedException, ApiException {
         return DistanceMatrixApi.newRequest(geoApiContext)
                 .origins(new LatLng(departureLat, departureLng))
                 .destinations(new LatLng(arrivalLat, arrivalLng))
                 .mode(TravelMode.DRIVING)
-                .awaitIgnoreError();
+                .await();
     }
-    public static DistanceMatrix getDistanceByAddress(GeoApiContext  geoApiContext, String departure, String arrival){
+    public static DistanceMatrix getDistanceByAddress(GeoApiContext  geoApiContext, String departure, String arrival) throws IOException, InterruptedException, ApiException {
         return DistanceMatrixApi.newRequest(geoApiContext)
                 .origins(departure)
                 .destinations(arrival)
                 .mode(TravelMode.DRIVING)
-                .awaitIgnoreError();
+                .await();
     }
 
-    public static DirectionsResult getDirection(GeoApiContext  geoApiContext, String departure, String arrival){
+    public static DirectionsResult getDirection(GeoApiContext  geoApiContext, String departure, String arrival) throws IOException, InterruptedException, ApiException {
         return DirectionsApi.newRequest(geoApiContext)
                 .origin(departure)
                 .destination(arrival)
                 .mode(TravelMode.DRIVING)
-                .awaitIgnoreError();
+                .await();
     }
 }

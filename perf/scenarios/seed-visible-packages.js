@@ -1,14 +1,10 @@
 import http from 'k6/http';
 import { group, sleep } from 'k6';
 import { config } from '../lib/config.js';
-import { buildVisibleSeedPayload } from '../lib/package-payload.js';
+import { buildCuratedVisibleSeedPlan, getCuratedVisibleSeedCities } from '../lib/package-payload.js';
 import { asJson, ensureResponse, sleepRange } from '../lib/utils.js';
 
-const TARGET_RADII = [10, 20, 30];
-const PACKAGES_PER_RADIUS = Number(__ENV.VISIBLE_PACKAGES_PER_RADIUS || 3);
-
-function createSeedPackage(radiusKm, index) {
-  const payload = buildVisibleSeedPayload(radiusKm, index);
+function createSeedPackage(payload, metadata = {}) {
   let createResponse = null;
   let created = null;
 
@@ -57,21 +53,37 @@ function createSeedPackage(radiusKm, index) {
   return {
     id: created.id,
     reference: created.reference,
-    radiusKm,
+    ...metadata,
   };
 }
 
 export function runVisibleSeedPackages() {
   const created = [];
+  const cities = getCuratedVisibleSeedCities();
 
-  TARGET_RADII.forEach((radiusKm) => {
-    group(`visible-seed-${radiusKm}km`, () => {
-      for (let index = 0; index < PACKAGES_PER_RADIUS; index += 1) {
-        const seeded = createSeedPackage(radiusKm, index);
+  cities.forEach((city, cityIndex) => {
+    group(`visible-seed-curated-${city.name}`, () => {
+      const seedPlan = buildCuratedVisibleSeedPlan(cityIndex);
+      const anchor = createSeedPackage(seedPlan.anchorPayload, {
+        city: city.name,
+        clusterRole: 'anchor',
+      });
+
+      if (anchor) {
+        created.push(anchor);
+      }
+
+      seedPlan.nearbyPayloads.forEach((payload, payloadIndex) => {
+        const seeded = createSeedPackage(payload, {
+          city: city.name,
+          clusterRole: 'nearby',
+          anchorReference: anchor?.reference || null,
+          nearbyIndex: payloadIndex + 1,
+        });
         if (seeded) {
           created.push(seeded);
         }
-      }
+      });
     });
   });
 

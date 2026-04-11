@@ -9,6 +9,7 @@ import com.quickdelivery.abstarct.entities.User;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
@@ -89,7 +90,7 @@ public class UserOnboardingValidationService {
         }
 
         if (step >= 3) {
-            if (!hasValidPaymentMethod(user.getPaymentModes())) {
+            if (!hasValidPaymentMethod(user.getPaymentModes(), existingUser)) {
                 messages.add(localize("PAYMENT_REQUIRED", locale));
             }
             validateRequiredUserDocuments(deliveryMode, filesMap, existingUser, messages, locale);
@@ -174,7 +175,7 @@ public class UserOnboardingValidationService {
             return;
         }
 
-        if (!hasValidPaymentMethod(user.getPaymentModes())) {
+        if (!hasValidPaymentMethod(user.getPaymentModes(), existingUser)) {
             messages.add(localize("PAYMENT_REQUIRED", locale));
         }
 
@@ -182,16 +183,16 @@ public class UserOnboardingValidationService {
         validateRequiredVehicleDocuments(deliveryMode, filesMap, existingUser, messages, locale);
 
         if (requiresVehicleInfo(deliveryMode)) {
-            if (!hasText(vehicleDTO.getRegistrationNumber())) {
+            if (!hasVehicleField(vehicleDTO == null ? null : vehicleDTO.getRegistrationNumber(), existingUser, ExistingVehicleField.REGISTRATION_NUMBER)) {
                 messages.add(localize("VEHICLE_REGISTRATION_REQUIRED", locale));
             }
-            if (!hasText(vehicleDTO.getBrand())) {
+            if (!hasVehicleField(vehicleDTO == null ? null : vehicleDTO.getBrand(), existingUser, ExistingVehicleField.BRAND)) {
                 messages.add(localize("VEHICLE_BRAND_REQUIRED", locale));
             }
-            if (!hasText(vehicleDTO.getModel())) {
+            if (!hasVehicleField(vehicleDTO == null ? null : vehicleDTO.getModel(), existingUser, ExistingVehicleField.MODEL)) {
                 messages.add(localize("VEHICLE_MODEL_REQUIRED", locale));
             }
-            if (!hasText(vehicleDTO.getEnergyType())) {
+            if (!hasVehicleField(vehicleDTO == null ? null : vehicleDTO.getEnergyType(), existingUser, ExistingVehicleField.ENERGY_TYPE)) {
                 messages.add(localize("VEHICLE_ENERGY_REQUIRED", locale));
             }
         }
@@ -258,9 +259,9 @@ public class UserOnboardingValidationService {
         return Period.between(birthLocalDate, LocalDate.now()).getYears() >= MINIMUM_COURIER_AGE;
     }
 
-    private boolean hasValidPaymentMethod(Map<PAYMENT_TYPE, PaymentDTO> paymentModes) {
+    private boolean hasValidPaymentMethod(Map<PAYMENT_TYPE, PaymentDTO> paymentModes, User existingUser) {
         if (paymentModes == null || paymentModes.isEmpty()) {
-            return false;
+            return hasExistingPaymentMethod(existingUser);
         }
         PaymentDTO card = paymentModes.get(PAYMENT_TYPE.CREDIT_CARD);
         boolean cardValid = card != null
@@ -272,7 +273,17 @@ public class UserOnboardingValidationService {
         boolean ibanValid = iban != null
                 && hasText(iban.getIban())
                 && hasText(iban.getBic());
-        return cardValid || ibanValid;
+        if (cardValid || ibanValid) {
+            return true;
+        }
+        return hasExistingPaymentMethod(existingUser);
+    }
+
+    private boolean hasExistingPaymentMethod(User existingUser) {
+        return existingUser != null
+                && existingUser.getPayments() != null
+                && Hibernate.isInitialized(existingUser.getPayments())
+                && !existingUser.getPayments().isEmpty();
     }
 
     private boolean requiresVehicleInfo(String deliveryMode) {
@@ -344,6 +355,28 @@ public class UserOnboardingValidationService {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private boolean hasVehicleField(String incomingValue, User existingUser, ExistingVehicleField field) {
+        if (hasText(incomingValue)) {
+            return true;
+        }
+        if (existingUser == null || existingUser.getVehicles() == null) {
+            return false;
+        }
+        return existingUser.getVehicles().stream().anyMatch(vehicle -> switch (field) {
+            case REGISTRATION_NUMBER -> hasText(vehicle.getRegistrationNumber());
+            case BRAND -> hasText(vehicle.getBrand());
+            case MODEL -> hasText(vehicle.getModel());
+            case ENERGY_TYPE -> hasText(vehicle.getEnergyType());
+        });
+    }
+
+    private enum ExistingVehicleField {
+        REGISTRATION_NUMBER,
+        BRAND,
+        MODEL,
+        ENERGY_TYPE
     }
 
     public record ValidationResult(boolean valid, List<String> messages) {

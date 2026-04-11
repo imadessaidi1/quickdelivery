@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,8 @@ public class Package {
     private Float depth;
     @Column
     private Float weight;
+    @Column
+    private String packageSizeCategory;
     @Column
     private String pictureURL;
 
@@ -70,6 +73,12 @@ public class Package {
     @Column(precision = 11, scale = 8)
     private BigDecimal lastPositionLongitude;
 
+    @Column
+    private String isSoftLockedBy;
+
+    @Column
+    private LocalDateTime softLockExpiresAt;
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -104,6 +113,14 @@ public class Package {
 
     public void setPictureURL(String pictureURL) {
         this.pictureURL = pictureURL;
+    }
+
+    public String getPackageSizeCategory() {
+        return packageSizeCategory;
+    }
+
+    public void setPackageSizeCategory(String packageSizeCategory) {
+        this.packageSizeCategory = packageSizeCategory;
     }
 
     public PACKAGE_STATUS getStatus() {
@@ -264,5 +281,21 @@ public class Package {
 
     public void setReference(String reference) {
         this.reference = reference;
+    }
+
+    public String getIsSoftLockedBy() {
+        return isSoftLockedBy;
+    }
+
+    public void setIsSoftLockedBy(String isSoftLockedBy) {
+        this.isSoftLockedBy = isSoftLockedBy;
+    }
+
+    public LocalDateTime getSoftLockExpiresAt() {
+        return softLockExpiresAt;
+    }
+
+    public void setSoftLockExpiresAt(LocalDateTime softLockExpiresAt) {
+        this.softLockExpiresAt = softLockExpiresAt;
     }
 }

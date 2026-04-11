@@ -148,6 +148,11 @@ export default {
   box-sizing: border-box;
 }
 
+.field-wrap :deep(.qd-place-autocomplete) {
+  width: 100%;
+  min-height: 48px;
+}
+
 .errorMessage {
   display: block;
   margin-top: 6px;

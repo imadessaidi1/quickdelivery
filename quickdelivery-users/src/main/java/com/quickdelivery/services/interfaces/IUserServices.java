@@ -2,6 +2,7 @@ package com.quickdelivery.services.interfaces;
 
 import com.quickdelivery.abstarct.dto.AdminUserOverviewDTO;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
+import com.quickdelivery.abstarct.dto.PublicRegistrationStatusDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.dto.UserOnboardingDTO;
@@ -28,6 +29,7 @@ public interface IUserServices {
     void deleteUSer(UserDTO user);
     CHECK_STATUS validateUserEmail(Long id);
     UserDTO findByEmail(String email);
+    PublicRegistrationStatusDTO loadPublicRegistrationStatus(String email);
     UserValidationPageDTO findUsersForValidation(int page, int size);
     UserOnboardingDTO loadOnboardingStatus(String email);
     DocumentContentDTO loadDocumentContent(Long documentId);

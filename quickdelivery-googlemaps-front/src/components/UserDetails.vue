@@ -29,7 +29,8 @@
     </div>
 </template>
 <script>
-import http from '@/config/httpInterceptor';
+import { blobToDataUrl, fetchProtectedBlob } from '@/config/binaryContent';
+import { normalizeDocumentCollection } from '@/config/documents';
 
 export default {
     props: {
@@ -49,6 +50,9 @@ export default {
         };
     },
     computed: {
+        normalizedUserDocuments() {
+            return normalizeDocumentCollection(this.user?.document || this.userDocuments || this.user?.documents || {});
+        },
         initials() {
             const firstName = (this.user?.firstName || '').trim();
             const lastName = (this.user?.lastName || '').trim();
@@ -76,7 +80,7 @@ export default {
         },
     },
     watch: {
-        'user.document.PICTURE.id': {
+        normalizedUserDocuments: {
             immediate: true,
             handler() {
                 this.loadPicture();
@@ -91,20 +95,17 @@ export default {
             this.pictureRequestToken += 1;
             const requestToken = this.pictureRequestToken;
             this.revokePictureUrl();
-            const pictureId = this.user?.document?.PICTURE?.id;
+            const pictureId = this.normalizedUserDocuments?.PICTURE?.id;
             if (!pictureId) {
                 this.pictureSrc = '';
                 return;
             }
             try {
-                const response = await http.get(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(pictureId)}`, {
-                    responseType: 'blob',
-                });
+                const blob = await fetchProtectedBlob(`${this.$i18n.t('userRootURL')}${this.$i18n.t('getUserDocumentContent')}${encodeURIComponent(pictureId)}`);
                 if (requestToken !== this.pictureRequestToken) {
                     return;
                 }
-                this.pictureUrl = URL.createObjectURL(response.data);
-                this.pictureSrc = this.pictureUrl;
+                this.pictureSrc = await blobToDataUrl(blob);
             } catch (_error) {
                 if (requestToken === this.pictureRequestToken) {
                     this.pictureSrc = '';

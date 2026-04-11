@@ -55,10 +55,16 @@ spring:
               - GET
               - POST
               - PUT
+              - PATCH
               - DELETE
               - OPTIONS
             allowedHeaders:
-              - "*"
+              - Authorization
+              - Content-Type
+              - X-Requested-With
+              - Accept
+              - Origin
+              - X-Captcha-Token
             allowCredentials: true
       routes:
         - id: packages-stateful-service

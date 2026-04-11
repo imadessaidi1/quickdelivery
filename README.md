@@ -1,5 +1,12 @@
 # QuickDelivery - Guide De Demarrage
 
+## Documentation utile
+
+- vue d'ensemble projet: `docs/project-overview.md`
+- nouveautes fonctionnelles et techniques: `docs/nouveautes-projet.md`
+- securite et roles: `docs/security-matrix.md`
+- setup mobile push: `docs/mobile-push-setup.md`
+
 ## 1. Prerequis
 
 - Java 21

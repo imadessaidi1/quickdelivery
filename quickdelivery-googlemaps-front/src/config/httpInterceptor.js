@@ -1,10 +1,14 @@
 import axios from 'axios';
 import store from './store';
-import { getAccessToken, hasValidAccessToken, redirectToLogin } from './auth';
+import { getAccessToken, hasValidAccessToken, redirectToLogin, wasRecentAuthSuccess } from './auth';
+import { attachAbortController, releaseAbortController } from './requestControl';
 
 let authRedirectInProgress = false;
 function triggerLoginRedirect() {
   if (authRedirectInProgress) {
+    return;
+  }
+  if (wasRecentAuthSuccess()) {
     return;
   }
   authRedirectInProgress = true;
@@ -20,6 +24,7 @@ const instance = axios.create();
 
 instance.interceptors.request.use(
   function(config) {
+    config = attachAbortController(config);
     if (!config.silent) {
       store.commit('beginLoading');
     }
@@ -31,6 +36,13 @@ instance.interceptors.request.use(
     return config;
   },
   function(error) {
+    releaseAbortController(error?.config);
+    if (axios.isCancel(error) || error?.code === 'ERR_CANCELED') {
+      if (!error?.config?.silent) {
+        store.commit('endLoading');
+      }
+      return Promise.reject(error);
+    }
     if (!error?.config?.silent) {
       store.commit('endLoading');
     }
@@ -39,11 +51,7 @@ instance.interceptors.request.use(
     const skipAuth = !!error?.config?.skipAuth;
     const silent = !!error?.config?.silent;
     const isTokenRequest = requestUrl.includes('/protocol/openid-connect/token');
-    const isGatewayBusinessCall = requestUrl.includes('/users/v1/') || requestUrl.includes('/packages/v1/');
-    if (!skipAuth && !isTokenRequest && (status === 401 || status === 403)) {
-      triggerLoginRedirect();
-    } else if (!skipAuth && !isTokenRequest && !status && isGatewayBusinessCall) {
-      // Browser-side CORS/network failures on protected calls should also force auth flow.
+    if (!skipAuth && !isTokenRequest && status === 401) {
       triggerLoginRedirect();
     }
     if (!silent) {
@@ -61,6 +69,7 @@ instance.interceptors.request.use(
 // Ajouter un intercepteur pour les réponses
 instance.interceptors.response.use(
   function(response) {
+    releaseAbortController(response?.config);
     if (!response.config.silent) {
       store.commit('endLoading');
     }
@@ -75,6 +84,13 @@ instance.interceptors.response.use(
     return response;
   },
   function(error) {
+    releaseAbortController(error?.config);
+    if (axios.isCancel(error) || error?.code === 'ERR_CANCELED') {
+      if (!error?.config?.silent) {
+        store.commit('endLoading');
+      }
+      return Promise.reject(error);
+    }
     if (!error?.config?.silent) {
       store.commit('endLoading');
       store.commit('updateShowMessage', true);

@@ -21,6 +21,7 @@ public class PackageDTO {
     private Float width;
     private Float depth;
     private Float weight;
+    private String packageSizeCategory;
     private String pictureURL;
     private PACKAGE_STATUS status;
     private Double deliveryPrice;
@@ -54,6 +55,15 @@ public class PackageDTO {
     private String fromYou;
 
     private List<FileDTO> files = new ArrayList<>();
+
+    // Smart Search Metrics
+    private Double detourMeters;
+    private Double profitScore;
+
+    // Soft Lock State
+    private String isSoftLockedBy;
+    private Timestamp softLockExpiresAt;
+
     public PackageDTO(){}
     public Long getId() {
         return id;
@@ -93,6 +103,14 @@ public class PackageDTO {
 
     public void setPictureURL(String pictureURL) {
         this.pictureURL = pictureURL;
+    }
+
+    public String getPackageSizeCategory() {
+        return packageSizeCategory;
+    }
+
+    public void setPackageSizeCategory(String packageSizeCategory) {
+        this.packageSizeCategory = packageSizeCategory;
     }
 
     public PACKAGE_STATUS getStatus() {
@@ -231,8 +249,6 @@ public class PackageDTO {
         this.declaredValue = declaredValue;
     }
 
-
-
     public List<AddressDTO> getAddresses() {
         return addresses;
     }
@@ -351,5 +367,37 @@ public class PackageDTO {
 
     public void setReference(String reference) {
         this.reference = reference;
+    }
+
+    public Double getDetourMeters() {
+        return detourMeters;
+    }
+
+    public void setDetourMeters(Double detourMeters) {
+        this.detourMeters = detourMeters;
+    }
+
+    public Double getProfitScore() {
+        return profitScore;
+    }
+
+    public void setProfitScore(Double profitScore) {
+        this.profitScore = profitScore;
+    }
+
+    public String getIsSoftLockedBy() {
+        return isSoftLockedBy;
+    }
+
+    public void setIsSoftLockedBy(String isSoftLockedBy) {
+        this.isSoftLockedBy = isSoftLockedBy;
+    }
+
+    public Timestamp getSoftLockExpiresAt() {
+        return softLockExpiresAt;
+    }
+
+    public void setSoftLockExpiresAt(Timestamp softLockExpiresAt) {
+        this.softLockExpiresAt = softLockExpiresAt;
     }
 }

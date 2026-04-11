@@ -7,7 +7,19 @@
         <button class="close-btn" ref="closeModalButtons"
         @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
         <button class="btn primary_btn" ref="reserveButton" v-show="canOperateDelivery && package_.status === 'NEW'"
+        :disabled="isReserveDisabled"
         @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
+        <div v-if="canOperateDelivery && package_.status === 'NEW' && isReserveDisabled" class="reservation-hint">
+          {{ reservationDisabledReason }}
+        </div>
+        <button
+          class="btn cancel_btn"
+          type="button"
+          v-show="showCancelReservation"
+          @click="cancelReservation"
+        >
+          {{ $t('actionCancelReservation') }}
+        </button>
         <div v-show="canOperateDelivery && package_.status === 'RESERVED'">
           <div class="input_only">
             <label for="otp">{{$t('packagePickupPassword')}}:</label>
@@ -52,6 +64,33 @@ export default {
         canOperateDelivery() {
           const roles = getCurrentUserRoles();
           return roles.includes('ROLE_LIVREUR') || roles.includes('ROLE_ADMIN');
+        },
+        reservationAvailability() {
+          return this.$store.state.reservationAvailability || {};
+        },
+        isReserveDisabled() {
+          return !this.reservationAvailability.canReserve
+            || this.reservationAvailability.activeRouteBlocking
+            || this.$store.state.isUserWithOngoingDelivery
+            || Boolean(this.$store.state.activeDeliveryRoute);
+        },
+        reservationDisabledReason() {
+          if (this.reservationAvailability.activeRouteBlocking || this.$store.state.isUserWithOngoingDelivery) {
+            return this.$t('reservationBlockedActiveRoute');
+          }
+          if (this.reservationAvailability.capacityReached) {
+            return this.$t('reservationBlockedCapacityReached');
+          }
+          if (!this.reservationAvailability.canReserve) {
+            return this.$t('reservationBlockedGeneric');
+          }
+          return '';
+        },
+        showCancelReservation() {
+          return this.canOperateDelivery && this.package_?.status === 'RESERVED';
+        },
+        canCancelReservation() {
+          return this.showCancelReservation;
         },
   },
   data() {
@@ -109,8 +148,28 @@ export default {
     }
     };
   },
-  methods: {
+    methods: {
     validateNumericField,
+    async getCurrentLocationForStopValidation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported'));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (position) => resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }),
+          (error) => reject(error),
+          {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 10000,
+          },
+        );
+      });
+    },
     openModal() {
       this.isOpen = true;
     },
@@ -119,6 +178,9 @@ export default {
       this.isOpen = false;
     },
     reserve() {
+      if (this.isReserveDisabled) {
+        return Promise.resolve();
+      }
       const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
       const url = this.$i18n.t('rootURL') + this.$i18n.t('reservePackageUrl') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id+"&locale="+userLanguage;
       return http.put(url)
@@ -127,6 +189,7 @@ export default {
             window.top.postMessage("RefreshPackagesList "+this.package_.id, "*");
             this.isOpen = false;
           }
+          window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
           this.$store.commit('updatePackage', this.emptyPackage);
           this.$store.commit('updateDocuments', []);
           return response.data;
@@ -135,34 +198,60 @@ export default {
         });
     },
     pickup(){
+        return this.getCurrentLocationForStopValidation()
+        .then((position) => {
         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-        const url = this.$i18n.t('rootURL') + this.$i18n.t('pickup') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&pickUpOTP=" + this.otp + "&locale=" + userLanguage;
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('pickup') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&pickUpOTP=" + this.otp + "&currentLatitude=" + encodeURIComponent(position.latitude) + "&currentLongitude=" + encodeURIComponent(position.longitude) + "&locale=" + userLanguage;
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
             this.$store.commit('updatePackage', this.emptyPackage);
             this.$store.commit('updateDocuments', []);
+            window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
             this.$router.push('/');
           }
           return response.data;
         }).catch(() => {
           console.error("unable to process your request this time. please try again latter.");
         });
+      }).catch((error) => {
+        console.error('Unable to validate pickup location.', error);
+      });
+    },
+    async cancelReservation() {
+      if (!this.canCancelReservation || !window.confirm(this.$t('reservationCancelConfirm'))) {
+        return;
+      }
+      const url = `${this.$i18n.t('rootURL')}${this.$i18n.t('cancelReservationUrl')}packageID=${encodeURIComponent(this.package_.id)}&deliveryPersonID=${encodeURIComponent(this.$store.state.connectedUser.id)}`;
+      try {
+        const response = await http.put(url);
+        this.$store.commit('updatePackage', response.data || this.emptyPackage);
+        window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
+        this.isOpen = false;
+      } catch (error) {
+        console.error('Unable to cancel reservation.', error);
+      }
     },
     deliver(){
+        return this.getCurrentLocationForStopValidation()
+        .then((position) => {
         const userLanguage = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language || 'fr-FR';
-        const url = this.$i18n.t('rootURL') + this.$i18n.t('deliver') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&deliveryOTP=" + this.deliveryOtp + "&locale=" + userLanguage;
+        const url = this.$i18n.t('rootURL') + this.$i18n.t('deliver') + "packageID=" + this.package_.id + "&deliveryPersonID=" + this.$store.state.connectedUser.id + "&deliveryOTP=" + this.deliveryOtp + "&currentLatitude=" + encodeURIComponent(position.latitude) + "&currentLongitude=" + encodeURIComponent(position.longitude) + "&locale=" + userLanguage;
         return http.put(url)
         .then(response => {
           if(response.status == '200'){
             this.$store.commit('updatePackage', this.emptyPackage);
             this.$store.commit('updateDocuments', []);
+            window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
             this.$router.push('/');
           }
           return response.data;
         }).catch(() => {
           console.error("unable to process your request this time. please try again latter.");
         });
+      }).catch((error) => {
+        console.error('Unable to validate delivery location.', error);
+      });
     },
   },
 };
@@ -214,6 +303,14 @@ export default {
 }
 .input_only input{
   margin: 10px 0;
+}
+.reservation-hint {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  color: #b45309;
+}
+.cancel_btn {
+  margin-bottom: 12px;
 }
 @media screen and (max-width: 1100px){
   .modal {

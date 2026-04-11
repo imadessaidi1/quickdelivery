@@ -23,7 +23,7 @@ This folder contains a ready-to-run `k6` performance test kit for QuickDelivery.
   - `admin-dashboards.js`: admin metrics and finance dashboards
   - `courier-lifecycle.js`: reserve, pickup, deliver on prepared data
   - `tracking-live.js`: live tracking with websocket subscription and HTTP position updates
-  - `seed-visible-packages.js`: create paid `NEW` packages around Limeil-Brevannes or across France for map inspection
+  - `seed-visible-packages.js`: create paid `NEW` packages in a curated city set and across France, with 1 anchor package and 4 nearby packages per city for map inspection
 - `lib/`
   - shared config, thresholds, payload builders, helpers
 - `.env.example`

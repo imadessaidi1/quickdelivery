@@ -86,6 +86,15 @@
             :show-error="showLegalConsentError"
             @open-terms="saveDraftBeforeLegalConsultation"
           />
+          <TurnstileCaptcha
+            v-if="requiresGuestCaptcha"
+            ref="packageCaptcha"
+            action="package-create"
+            @verified="captchaToken = $event"
+            @expired="captchaToken = ''"
+            @error="captchaToken = ''"
+          />
+          <p v-if="captchaErrorMessage" class="captcha-error">{{ captchaErrorMessage }}</p>
         </div>
 
         <footer class="card-actions">
@@ -114,6 +123,8 @@ import { validateAddress, validateDeliveryDateTime } from '@/config/comonFunctio
 import { getCurrentUserIdentity, hasValidAccessToken } from '@/config/auth';
 import { hydrateConnectedUser } from '@/config/session';
 import { LEGAL_FLOW_PACKAGE_CREATION, clearLegalDraft, hasLegalPageBeenConsulted, loadLegalDraft, saveLegalDraft } from '@/config/legal';
+import { isMobileCapacitorRuntime } from '@/config/network';
+import TurnstileCaptcha from '../components/TurnstileCaptcha.vue';
 import LegalConsentCard from '../components/LegalConsentCard.vue';
 import PackageAddress from '../components/PackageAddress.vue';
 import PackageConfirmationSummary from '../components/PackageConfirmationSummary.vue';
@@ -129,6 +140,7 @@ const EMPTY_PACKAGE = {
   width: 0,
   depth: 0,
   weight: 0,
+  packageSizeCategory: 'MEDIUM',
   pictureURL: '',
   status: '',
   deliveryPrice: null,
@@ -179,9 +191,14 @@ const EMPTY_PACKAGE = {
   lastPositionLongitude: null,
 };
 
+function onboardingAddressStorageKey(emailAddress) {
+  return emailAddress ? `quickdelivery.onboarding.address.${emailAddress.toLowerCase()}` : null;
+}
+
 export default {
   components: {
     Form,
+    TurnstileCaptcha,
     LegalConsentCard,
     PackageAddress,
     PackageCreation,
@@ -207,6 +224,8 @@ export default {
       allowAnonymousCreation: false,
       legalConsentAccepted: false,
       showLegalConsentError: false,
+      captchaToken: '',
+      captchaErrorMessage: '',
     };
   },
   computed: {
@@ -230,6 +249,12 @@ export default {
     },
     canAccessWizard() {
       return this.isAuthenticated || this.allowAnonymousCreation;
+    },
+    requiresGuestCaptcha() {
+      return this.currentStep === 1
+        && !this.isAuthenticated
+        && !isMobileCapacitorRuntime()
+        && !!process.env.VUE_APP_TURNSTILE_SITE_KEY;
     },
     connectedUser() {
       return this.$store.state.connectedUser || {};
@@ -305,12 +330,16 @@ export default {
 
       try {
         const user = await hydrateConnectedUser();
-        const residence = Array.isArray(user?.personalAddress) ? user.personalAddress[0] : null;
+        const fallbackResidenceSnapshot = this.loadConnectedUserResidenceSnapshot(user);
+        const residence = Array.isArray(user?.personalAddress) && user.personalAddress.length
+          ? user.personalAddress[0]
+          : fallbackResidenceSnapshot?.personalAddress?.[0] || null;
         console.info('QuickDelivery connected user for package prefill:', user);
         console.info('QuickDelivery residence used for package prefill:', residence);
         if (!residence && !user?.firstName && !user?.lastName && !user?.email) {
           return;
         }
+        const resolvedAddressAuto = user?.addressAuto || fallbackResidenceSnapshot?.addressAuto || '';
         const formattedAddress = residence
           ? [residence.line1, residence.zipCode ? `${residence.zipCode} ${residence.town || ''}`.trim() : residence.town, residence.country]
               .filter((value) => !!value)
@@ -324,18 +353,44 @@ export default {
           email: user?.email || this.$store.state.connectedUser?.email || getCurrentUserIdentity()?.email || '',
           phone: user?.phone || '',
           floor: residence?.floor ?? departureAddress.floor,
-          addressAuto: formattedAddress || departureAddress.addressAuto,
+          addressAuto: resolvedAddressAuto || formattedAddress || departureAddress.addressAuto,
           line1: residence?.line1 || departureAddress.line1,
           line2: residence?.line2 || departureAddress.line2,
           town: residence?.town || departureAddress.town,
           zipCode: residence?.zipCode || departureAddress.zipCode,
           country: residence?.country || departureAddress.country,
           latitude: residence?.latitude ?? departureAddress.latitude,
-            longitude: residence?.longitude ?? departureAddress.longitude,
+          longitude: residence?.longitude ?? departureAddress.longitude,
         });
+        await this.$nextTick();
+        const departureAddressRef = Array.isArray(this.$refs.departureAddress)
+          ? this.$refs.departureAddress[0]
+          : this.$refs.departureAddress;
+        departureAddressRef?.syncAddressAutocomplete?.();
       } catch (error) {
         console.error('QuickDelivery failed to hydrate connected user for package prefill:', error);
         // Keep the wizard usable even if profile hydration fails.
+      }
+    },
+    loadConnectedUserResidenceSnapshot(user) {
+      const storageKey = onboardingAddressStorageKey(user?.email || user?.emailAddress || getCurrentUserIdentity()?.email || '');
+      if (!storageKey || typeof window === 'undefined') {
+        return null;
+      }
+
+      try {
+        const rawSnapshot = window.localStorage.getItem(storageKey);
+        if (!rawSnapshot) {
+          return null;
+        }
+        const snapshot = JSON.parse(rawSnapshot);
+        if (!snapshot || typeof snapshot !== 'object') {
+          return null;
+        }
+        return snapshot;
+      } catch (error) {
+        console.warn('Unable to load onboarding residence snapshot for package prefill:', error);
+        return null;
       }
     },
     hasLockedDepartureAddressData(address) {
@@ -377,12 +432,12 @@ export default {
     },
     async handleStepSubmit() {
       if (this.currentStep === 1) {
-        this.validateAndStoreAddress(this.$refs.departureAddress, 'DEPARTURE');
+        await this.validateAndStoreAddress(this.$refs.departureAddress, 'DEPARTURE');
         return;
       }
 
       if (this.currentStep === 2) {
-        this.validateAndStoreAddress(this.$refs.arrivalAddress, 'ARRIVAL', true);
+        await this.validateAndStoreAddress(this.$refs.arrivalAddress, 'ARRIVAL', true);
         return;
       }
 
@@ -409,7 +464,7 @@ export default {
 
       await this.submitPackage();
     },
-    validateAndStoreAddress(componentRef, type, validateDeliveryWindow = false) {
+    async validateAndStoreAddress(componentRef, type, validateDeliveryWindow = false) {
       const addressComponent = Array.isArray(componentRef) ? componentRef[0] : componentRef;
       const address = addressComponent.address;
       const addressAuto = addressComponent.$refs.addressAutoComplete.address || address.addressAuto;
@@ -446,12 +501,13 @@ export default {
       addressComponent.isElevatorError = false;
       addressComponent.errorElevatorMessage = null;
 
-      const chunks = address.addressAuto.split(',');
-      address.line1 = chunks[0]?.trim() || '';
-      address.zipCode = chunks[1]?.trim().split(' ')[0] || '';
-      const index = chunks[1]?.trim().indexOf(' ');
-      address.town = index !== -1 ? chunks[1].trim().substring(index + 1) : '';
-      address.country = chunks[2]?.trim() || '';
+      try {
+        await this.ensureAddressCoordinates(address);
+      } catch (_error) {
+        addressComponent.isAddressError = true;
+        addressComponent.errorAddressMessage = this.$i18n.t('mandatoryField') + this.$i18n.t('invalidAddress');
+        return;
+      }
 
       if (type === 'DEPARTURE') {
         this.$store.commit('updatePackageDepartureAddress', { ...address });
@@ -481,6 +537,73 @@ export default {
       const arrivalSignature = buildSignature(arrivalAddress);
       return departureSignature !== '||||' && departureSignature === arrivalSignature;
     },
+    hasUsableCoordinates(address) {
+      if (!Number.isFinite(Number(address?.latitude)) || !Number.isFinite(Number(address?.longitude))) {
+        return false;
+      }
+      const latitude = Number(address.latitude);
+      const longitude = Number(address.longitude);
+      return !(Math.abs(latitude) < 1e-9 && Math.abs(longitude) < 1e-9);
+    },
+    async ensureAddressCoordinates(address) {
+      if (this.hasUsableCoordinates(address)) {
+        address.latitude = Number(address.latitude);
+        address.longitude = Number(address.longitude);
+        this.populateAddressPartsFromFormattedAddress(address);
+        return;
+      }
+
+      const geocoder = await this.getGoogleGeocoder();
+      const result = await geocoder.geocode({ address: address.addressAuto });
+      const resolved = result?.results?.[0];
+      const location = resolved?.geometry?.location;
+      const latitude = location?.lat?.();
+      const longitude = location?.lng?.();
+
+      if (!resolved || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        throw new Error('Unable to geocode address');
+      }
+
+      address.addressAuto = resolved.formatted_address || address.addressAuto;
+      address.latitude = latitude;
+      address.longitude = longitude;
+      this.populateAddressPartsFromGeocoder(address, resolved.address_components || []);
+    },
+    async getGoogleGeocoder() {
+      if (!window.google?.maps?.Geocoder) {
+        throw new Error('Google Maps Geocoder unavailable');
+      }
+      return new window.google.maps.Geocoder();
+    },
+    populateAddressPartsFromFormattedAddress(address) {
+      if (!address?.addressAuto) {
+        return;
+      }
+      const chunks = `${address.addressAuto}`.split(',').map((chunk) => chunk.trim()).filter(Boolean);
+      if (!address.line1) {
+        address.line1 = chunks[0] || '';
+      }
+      if (!address.country) {
+        address.country = chunks[chunks.length - 1] || '';
+      }
+      const zipTownChunk = chunks.find((chunk) => /\b\d{4,5}\b/.test(chunk)) || '';
+      const zipMatch = zipTownChunk.match(/\b\d{4,5}\b/);
+      if (!address.zipCode && zipMatch) {
+        address.zipCode = zipMatch[0];
+      }
+      if (!address.town && zipTownChunk) {
+        address.town = zipTownChunk.replace(/\b\d{4,5}\b/, '').trim();
+      }
+    },
+    populateAddressPartsFromGeocoder(address, components) {
+      const byType = (type) => components.find((component) => component.types?.includes(type))?.long_name || '';
+      const streetNumber = byType('street_number');
+      const route = byType('route');
+      address.line1 = [streetNumber, route].filter(Boolean).join(' ').trim() || address.line1 || address.addressAuto || '';
+      address.zipCode = byType('postal_code') || address.zipCode || '';
+      address.town = byType('locality') || byType('postal_town') || byType('administrative_area_level_2') || address.town || '';
+      address.country = byType('country') || address.country || '';
+    },
     async submitPackage() {
       const hasConsulted = hasLegalPageBeenConsulted(this.legalFlow);
       if (!hasConsulted || !this.legalConsentAccepted) {
@@ -498,6 +621,10 @@ export default {
         return;
       }
       this.package_.senderID = this.isAuthenticated ? this.$store.state.connectedUser.id : null;
+      if (this.requiresGuestCaptcha && !this.captchaToken) {
+        this.captchaErrorMessage = this.$i18n.t('captchaRequiredMessage');
+        return;
+      }
       this.package_.status = 'PAYMENTPENDING';
       this.package_.deliverySpeed = this.wizardOptions.deliverySpeed || 'STANDARD';
       this.package_.insuranceSelected = !!this.wizardOptions.insurance;
@@ -515,9 +642,15 @@ export default {
 
       return http
         .post(this.$i18n.t('rootURL') + this.$i18n.t('createPackageUrl'), formData, {
-          headers: { acept: 'application/json', 'Content-type': 'multipart/form-data' },
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'multipart/form-data',
+            ...(this.captchaToken ? { 'X-Captcha-Token': this.captchaToken } : {}),
+          },
         })
         .then((response) => {
+          this.captchaToken = '';
+          this.captchaErrorMessage = '';
           this.$store.commit('updatePackage', response.data);
           if (`${response.status}` === '200') {
             clearLegalDraft(this.legalFlow);
@@ -532,7 +665,12 @@ export default {
             });
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          this.captchaToken = '';
+          this.$refs.packageCaptcha?.resetCaptcha?.();
+          if (error?.response?.status === 400) {
+            this.captchaErrorMessage = this.$i18n.t('captchaRetryMessage');
+          }
           console.error('Unable to process your request this time. Please try again later.');
         });
     },
@@ -589,13 +727,8 @@ export default {
   min-width: 210px;
   height: 42px;
   padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .page-chip,
@@ -736,20 +869,17 @@ export default {
   min-width: 152px;
   height: 42px;
   padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
-}
-
-.card-actions .wizard-action-btn:hover {
-  background: #0f172a;
 }
 
 .card-content :deep(.legal-consent-card) {
   margin-top: 18px;
+}
+
+.captcha-error {
+  margin-top: 12px;
+  color: #b42318;
+  font-size: 0.9rem;
 }
 
 @media screen and (max-width: 1180px) {

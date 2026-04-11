@@ -7,6 +7,7 @@ import com.quickdelivery.PublicUrlResolver;
 import com.quickdelivery.abstarct.dto.DocumentContentDTO;
 import com.quickdelivery.abstarct.dto.DocumentDTO;
 import com.quickdelivery.abstarct.dto.HttpEndpointMetricDTO;
+import com.quickdelivery.abstarct.dto.PaymentDTO;
 import com.quickdelivery.abstarct.dto.PublicRegistrationStatusDTO;
 import com.quickdelivery.abstarct.dto.ServiceMetricsDTO;
 import com.quickdelivery.abstarct.dto.ServiceHttpBreakdownDTO;
@@ -27,6 +28,7 @@ import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_VALIDATION_STATUS;
 import com.quickdelivery.abstarct.parameters.EMAIL_TEMPLATE_TYPE;
+import com.quickdelivery.abstarct.parameters.PAYMENT_TYPE;
 import com.quickdelivery.abstarct.parameters.USER_ONBOARDING_STATUS;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.UserOnboardings;
@@ -204,6 +206,7 @@ public class UserServices implements IUserServices {
             userEntity.setVehicles(new HashSet<>());
             userEntity.setDocument(new HashSet<>());
             userEntity.setPayments(new HashSet<>());
+            applyPreferredLocale(userEntity, locale);
 
             users.saveAndFlush(userEntity);
 
@@ -265,6 +268,7 @@ public class UserServices implements IUserServices {
 
             String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
             mergeUserProfile(userEntity, user);
+            applyPreferredLocale(userEntity, locale);
             geocodeAddressesIfPossible(user);
             if (requestedStep >= ONBOARDING_STEP_VEHICLE) {
                 mergeVehicle(userEntity, vehicleDTO == null ? new VehicleDTO() : vehicleDTO);
@@ -325,6 +329,7 @@ public class UserServices implements IUserServices {
             String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
 
             mergeUserProfile(userEntity, user);
+            applyPreferredLocale(userEntity, locale);
             if (deliveryPerson) {
                 geocodeAddressesIfPossible(user);
                 mergeVehicle(userEntity, vehicleDTO == null ? new VehicleDTO() : vehicleDTO);
@@ -378,6 +383,7 @@ public class UserServices implements IUserServices {
                 sanitizeAddresses(user, deliveryPerson);
                 validateOnboardingRequest(userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
                 User userEntity = modelMapper.map(user,User.class);
+                applyPreferredLocale(userEntity, locale);
                 if (deliveryPerson) {
                     geocodeAddressesIfPossible(user);
                     userEntity.getPersonalAddress().forEach(address -> address.setResidents(userEntity));
@@ -450,37 +456,21 @@ public class UserServices implements IUserServices {
     public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         return recordUserOperation("update", () -> {
             try {
-                User persistedUser = users.findProfileById(user.getId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(persistedUser.getType());
-                User userEntity = deliveryPerson
-                        ? users.findDetailedById(user.getId())
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"))
-                        : persistedUser;
-                preserveImmutableProfileFieldsForUpdate(user, userEntity, deliveryPerson);
-                sanitizeAddresses(user, deliveryPerson);
-                validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
-                String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
-
-                if (deliveryPerson) {
-                    mergeUserProfile(userEntity, user);
-                    geocodeAddressesIfPossible(user);
-                    mergeVehicle(userEntity, vehicleDTO);
-                    MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
-                    users.saveAndFlush(userEntity);
-                    if (!validFilesMap.isEmpty()) {
-                        userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
-                        triggerOcrForUploadedDocuments(userEntity, validFilesMap);
-                    }
-                    scheduleIdentityStateSync(userEntity);
-                    return toUserDetailDTO(users.findDetailedById(userEntity.getId())
+                User userEntity = resolveUserForAccountUpdate(user);
+                boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(userEntity.getType());
+                user.setId(userEntity.getId());
+                user.setVersion(userEntity.getVersion());
+                sanitizeAddresses(user, false);
+                geocodeAddressesIfPossible(user);
+                mergeCustomerContactProfile(userEntity, user);
+                applyPreferredLocale(userEntity, locale);
+                users.saveAndFlush(userEntity);
+                scheduleIdentityStateSync(userEntity);
+                return deliveryPerson
+                        ? toUserDetailDTO(users.findDetailedById(userEntity.getId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
+                        : toCustomerContactDTO(users.findProfileById(userEntity.getId())
                             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")));
-                } else {
-                    mergeCustomerContactProfile(userEntity, user);
-                    users.saveAndFlush(userEntity);
-                    scheduleIdentityStateSync(userEntity);
-                    return toCustomerContactDTO(userEntity);
-                }
             } catch (Exception exception) {
                 logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
                 throw exception;
@@ -901,6 +891,20 @@ public class UserServices implements IUserServices {
         }
     }
 
+    private User resolveUserForAccountUpdate(UserDTO user) {
+        if (user.getId() != null) {
+            return users.findDetailedById(user.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        }
+        if (hasText(user.getEmailAddress())) {
+            User existingUser = users.findDetailedByEmail(user.getEmailAddress());
+            if (existingUser != null) {
+                return existingUser;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+    }
+
     private void geocodeAddressesIfPossible(UserDTO user) {
         user.getPersonalAddress().forEach(address -> {
             try {
@@ -1013,10 +1017,26 @@ public class UserServices implements IUserServices {
         userDTO.setDeliveryMode(user.getDeliveryMode());
         userDTO.setPassword(null);
         userDTO.setPasswordConfirmation(null);
+        userDTO.setPaymentModes(toPaymentModeMap(user));
         userDTO.setPersonalAddress(user.getPersonalAddress() == null ? new ArrayList<>() : user.getPersonalAddress().stream()
                 .map(this::toAddressDTO)
                 .toList());
         return userDTO;
+    }
+
+    private Map<PAYMENT_TYPE, PaymentDTO> toPaymentModeMap(User user) {
+        Map<PAYMENT_TYPE, PaymentDTO> paymentModes = new LinkedHashMap<>();
+        if (user.getPayments() == null) {
+            return paymentModes;
+        }
+        user.getPayments().forEach(payment -> {
+            if (payment == null || payment.getPaymentType() == null) {
+                return;
+            }
+            PaymentDTO paymentDTO = modelMapper.map(payment, PaymentDTO.class);
+            paymentModes.put(payment.getPaymentType(), paymentDTO);
+        });
+        return paymentModes;
     }
 
     private UserOnboardingDTO toUserOnboardingDTO(UserOnboarding onboarding) {
@@ -1052,6 +1072,7 @@ public class UserServices implements IUserServices {
         VehicleDTO vehicleDTO = new VehicleDTO();
         vehicleDTO.setId(vehicle.getId());
         vehicleDTO.setVersion(vehicle.getVersion());
+        vehicleDTO.setType(vehicle.getType());
         vehicleDTO.setBrand(vehicle.getBrand());
         vehicleDTO.setModel(vehicle.getModel());
         vehicleDTO.setEnergyType(vehicle.getEnergyType());
@@ -1125,11 +1146,16 @@ public class UserServices implements IUserServices {
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         userEntity.setPersonalAddress(addresses);
-        Set<com.quickdelivery.abstarct.entities.Payment> payments = (user.getPaymentModes() == null ? Collections.<com.quickdelivery.abstarct.entities.Payment>emptySet() : user.getPaymentModes().values().stream()
-                .map(paymentDTO -> modelMapper.map(paymentDTO, com.quickdelivery.abstarct.entities.Payment.class))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
-        userEntity.setPayments(payments);
-        userEntity.getPayments().forEach(payment -> payment.setHolderInApp(userEntity));
+        boolean hasIncomingPaymentPayload = user.getPaymentModes() != null
+                && !user.getPaymentModes().isEmpty()
+                && user.getPaymentModes().values().stream().anyMatch(Objects::nonNull);
+        if (hasIncomingPaymentPayload) {
+            Set<com.quickdelivery.abstarct.entities.Payment> payments = user.getPaymentModes().values().stream()
+                    .map(paymentDTO -> modelMapper.map(paymentDTO, com.quickdelivery.abstarct.entities.Payment.class))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            userEntity.setPayments(payments);
+            userEntity.getPayments().forEach(payment -> payment.setHolderInApp(userEntity));
+        }
     }
 
     private void mergeCustomerContactProfile(User userEntity, UserDTO user) {
@@ -1146,6 +1172,22 @@ public class UserServices implements IUserServices {
         userEntity.setPersonalAddress(addresses);
     }
 
+    private void applyPreferredLocale(User userEntity, Locale locale) {
+        if (userEntity == null || locale == null || locale.getLanguage() == null || locale.getLanguage().isBlank()) {
+            return;
+        }
+        String normalizedLocale = locale.getLanguage().toLowerCase(Locale.ROOT);
+        if (normalizedLocale.startsWith("fr")) {
+            userEntity.setPreferredLocale("fr");
+            return;
+        }
+        if (normalizedLocale.startsWith("en")) {
+            userEntity.setPreferredLocale("en");
+            return;
+        }
+        userEntity.setPreferredLocale(normalizedLocale);
+    }
+
     private void mergeVehicle(User userEntity, VehicleDTO vehicleDTO) {
         Vehicle vehicle = userEntity.getVehicles().stream().findFirst().orElseGet(() -> {
             Vehicle newVehicle = new Vehicle();
@@ -1157,6 +1199,7 @@ public class UserServices implements IUserServices {
         vehicle.setRegistrationNumber(vehicleDTO.getRegistrationNumber());
         vehicle.setBrand(vehicleDTO.getBrand());
         vehicle.setModel(vehicleDTO.getModel());
+        vehicle.setType(vehicleDTO.getType());
         vehicle.setEnergyType(vehicleDTO.getEnergyType());
     }
 
@@ -1215,40 +1258,26 @@ public class UserServices implements IUserServices {
     }
 
     private String buildSuggestedReviewComment(DocumentDTO documentDTO, Locale locale) {
-        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
         List<String> reasons = new ArrayList<>();
 
         if (documentDTO.getOcrErrorCode() != null && !documentDTO.getOcrErrorCode().isBlank()) {
-            reasons.add(french
-                    ? "Le document n'a pas pu etre analyse automatiquement : " + documentDTO.getOcrErrorCode() + "."
-                    : "The document could not be analyzed automatically: " + documentDTO.getOcrErrorCode() + ".");
+            reasons.add(messageSource.getMessage("user.validation.review.ocrFailed", new Object[]{documentDTO.getOcrErrorCode()}, locale));
         }
 
         if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.MISMATCH) {
             List<String> mismatchedFields = extractMismatchedFields(documentDTO.getMatchDetails());
             if (mismatchedFields.isEmpty()) {
-                reasons.add(french
-                        ? "Les informations detectees ne correspondent pas au profil declare."
-                        : "The detected information does not match the declared profile.");
+                reasons.add(messageSource.getMessage("user.validation.review.mismatch", null, locale));
             } else {
-                reasons.add((french
-                        ? "Les informations suivantes ne correspondent pas au profil declare : "
-                        : "The following fields do not match the declared profile: ")
-                        + String.join(", ", mismatchedFields) + ".");
+                reasons.add(messageSource.getMessage("user.validation.review.fieldsMismatch", new Object[]{String.join(", ", mismatchedFields)}, locale));
             }
         } else if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.REVIEW_REQUIRED
                 || documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.UNAVAILABLE) {
-            reasons.add(french
-                    ? "La correspondance automatique est insuffisante pour valider ce document."
-                    : "Automatic matching is insufficient to validate this document.");
+            reasons.add(messageSource.getMessage("user.validation.review.lowTrust", null, locale));
         }
 
         if (documentDTO.getOcrConfidenceScore() != null && documentDTO.getOcrConfidenceScore() < 1d) {
-            reasons.add((french
-                    ? "La confiance OCR est inferieure a 100% ("
-                    : "OCR confidence is below 100% (")
-                    + Math.round(documentDTO.getOcrConfidenceScore() * 100d)
-                    + "%).");
+            reasons.add(messageSource.getMessage("user.validation.review.ocrConfidence", new Object[]{Math.round(documentDTO.getOcrConfidenceScore() * 100d)}, locale));
         }
 
         if (reasons.isEmpty()) {
@@ -1285,28 +1314,28 @@ public class UserServices implements IUserServices {
     }
 
     private String formatDocumentType(DOCUMENT_TYPE documentType, Locale locale) {
-        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
         if (documentType == null) {
-            return french ? "Document" : "Document";
+            return messageSource.getMessage("document.type.generic", null, locale);
         }
-        return switch (documentType) {
-            case ID -> french ? "Piece d'identite" : "Identity document";
-            case DRIVER_LICENCE -> french ? "Permis de conduire" : "Driver licence";
-            case GRAY_CARD -> french ? "Carte grise" : "Vehicle registration";
-            case INSURANCE -> french ? "Assurance" : "Insurance";
-            case USER_COMPANY_INSURANCE -> french ? "Assurance d'entreprise" : "Company insurance";
-            case USER_COMPANY_EXTRACT -> french ? "Extrait d'entreprise" : "Company extract";
-            case PICTURE -> french ? "Photo" : "Picture";
-            case RIB -> "RIB";
-            default -> documentType.name();
+        String key = switch (documentType) {
+            case ID -> "document.type.id";
+            case DRIVER_LICENCE -> "document.type.license";
+            case GRAY_CARD -> "document.type.registration";
+            case INSURANCE -> "document.type.insurance";
+            case USER_COMPANY_INSURANCE -> "document.type.companyInsurance";
+            case USER_COMPANY_EXTRACT -> "document.type.companyExtract";
+            case PICTURE -> "document.type.picture";
+            case RIB -> null;
+            default -> null;
         };
+        if (key == null) {
+            return DOCUMENT_TYPE.RIB.equals(documentType) ? "RIB" : documentType.name();
+        }
+        return messageSource.getMessage(key, null, locale);
     }
 
     private String localizedMissingReviewReason(Locale locale) {
-        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
-        return french
-                ? "Merci de renvoyer un document plus lisible et conforme."
-                : "Please upload a clearer and compliant document.";
+        return messageSource.getMessage("user.validation.review.missingReason", null, locale);
     }
 
     private String buildUserFilesPath(String emailAddress) {
@@ -1602,6 +1631,7 @@ public class UserServices implements IUserServices {
         existingUser.setPhone(incomingUser.getPhone());
         existingUser.setPassword(incomingUser.getPassword());
         existingUser.setDeliveryMode(incomingUser.getDeliveryMode());
+        applyPreferredLocale(existingUser, locale);
         users.saveAndFlush(existingUser);
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -1905,15 +1935,15 @@ public class UserServices implements IUserServices {
     }
 
     private String localizedValidationMessage(String code, Locale locale) {
-        boolean french = locale != null && "fr".equalsIgnoreCase(locale.getLanguage());
-        return switch (code) {
-            case "EMPTY_FILE" -> french ? "Fichier vide ou illisible." : "Empty or unreadable file.";
-            case "FILE_TOO_LARGE" -> french ? "Fichier trop volumineux. Taille maximale autorisée : 10 Mo." : "File too large. Maximum allowed size: 10 MB.";
-            case "MISSING_EXTENSION" -> french ? "Extension de fichier absente ou invalide." : "Missing or invalid file extension.";
-            case "INVALID_EXTENSION" -> french ? "Format de fichier non autorisé. Formats acceptés : PNG, JPG, JPEG, WEBP, PDF." : "Unsupported file format. Allowed formats: PNG, JPG, JPEG, WEBP, PDF.";
-            case "INVALID_CONTENT_TYPE" -> french ? "Type de fichier non autorisé." : "Unsupported file content type.";
-            default -> french ? "Document contrôlé automatiquement. En attente de revue manuelle." : "Document checked automatically. Pending manual review.";
+        String key = switch (code) {
+            case "EMPTY_FILE" -> "user.validation.doc.empty";
+            case "FILE_TOO_LARGE" -> "user.validation.doc.tooLarge";
+            case "MISSING_EXTENSION" -> "user.validation.doc.invalidExtension";
+            case "INVALID_EXTENSION" -> "user.validation.doc.invalidFormat";
+            case "INVALID_CONTENT_TYPE" -> "user.validation.doc.invalidType";
+            default -> "user.validation.doc.pendingReview";
         };
+        return messageSource.getMessage(key, null, locale);
     }
 
     private record DocumentValidationResult(boolean valid,

@@ -76,6 +76,7 @@
 import { getArrivalAddress, getDepartureAddress } from '@/config/comonFunction';
 import http from '@/config/httpInterceptor';
 import { hasValidAccessToken } from '@/config/auth';
+import { formatDisplayedPackageAmount } from '@/config/packagePricing';
 
 export default {
   props: {
@@ -126,10 +127,7 @@ export default {
       return this.$t(map[this.options.deliverySpeed] || map.STANDARD);
     },
     backendPriceLabel() {
-      if (this.package_.deliveryPrice == null) {
-        return '--';
-      }
-      return `${Number(this.package_.deliveryPrice).toFixed(2)} ${this.$t('currency')}`;
+      return formatDisplayedPackageAmount(this.$i18n, this.package_);
     },
     backendPriceHint() {
       if (this.estimateLoading) {

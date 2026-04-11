@@ -1,214 +1,182 @@
 <template>
   <div class="finance-dashboard-page">
     <template v-if="isLoading">
-      <section class="hero-card">
-        <div>
+      <header class="hero-section">
+        <div class="hero-content">
           <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
           <p>{{ $t('financePageSubtitle') }}</p>
         </div>
-      </section>
-      <div class="page-state">{{ $t('stateLoading') }}</div>
+      </header>
+      <div class="page-state loading-state">
+        <div class="spinner"></div>
+        <span>{{ $t('stateLoading') }}</span>
+      </div>
     </template>
 
     <template v-else-if="loadError && !dashboard">
-      <section class="hero-card">
-        <div>
+      <header class="hero-section">
+        <div class="hero-content">
           <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
-          <p>{{ $t('financePageSubtitle') }}</p>
         </div>
-      </section>
-      <div class="page-state error">{{ $t('stateLoadError') }}</div>
+      </header>
+      <div class="page-state error-state">
+        <span class="material-symbols-outlined">payments</span>
+        <p>{{ $t('stateLoadError') }}</p>
+      </div>
     </template>
 
     <template v-else-if="dashboard">
-      <section class="hero-card">
-        <div>
-          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+      <header class="hero-section premium-finance-hero">
+        <div class="hero-content">
+          <span class="hero-chip luxury-chip">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
           <p>{{ $t('financePageSubtitle') }}</p>
         </div>
-        <div class="hero-side">
-          <strong>{{ formatCurrency(safeDashboard.platformMargin) }}</strong>
-          <span>{{ $t('financeMarginLabel') }}</span>
-          <small>{{ $t('financePageLastRefresh') }}: {{ formatDateTime(safeDashboard.generatedAt) }}</small>
+        
+        <div class="hero-main-stat">
+          <div class="main-label">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+            {{ $t('financePlatformMargin') }}
+          </div>
+          <strong class="main-amount">{{ formatCurrency(safeDashboard.platformMargin) }}</strong>
+          <div class="main-subinfo">
+            {{ $t('financeTakeRate') }}: <strong>{{ formatPercent(safeDashboard.platformTakeRate) }}</strong>
+          </div>
         </div>
+      </header>
+
+      <section class="stats-premium-grid">
+        <PremiumDashboardCard
+          v-for="stat in financeStats"
+          :key="stat.label"
+          variant="glass"
+          :tone="stat.tone"
+          class="finance-stat-card"
+        >
+          <div class="f-stat-inner">
+            <span class="f-label">{{ stat.label }}</span>
+            <strong class="f-value">{{ formatCurrency(stat.value) }}</strong>
+          </div>
+        </PremiumDashboardCard>
       </section>
 
-      <section class="stats-grid">
-        <article class="stat-card tone-dark">
-          <strong>{{ formatCurrency(dashboard.customerRevenue) }}</strong>
-          <span>{{ $t('financeCustomerRevenue') }}</span>
-        </article>
-        <article class="stat-card tone-success">
-          <strong>{{ formatCurrency(dashboard.platformMargin) }}</strong>
-          <span>{{ $t('financePlatformMargin') }}</span>
-        </article>
-        <article class="stat-card tone-neutral">
-          <strong>{{ formatCurrency(dashboard.platformServiceFees) }}</strong>
-          <span>{{ $t('financeServiceFees') }}</span>
-        </article>
-        <article class="stat-card tone-warn">
-          <strong>{{ formatCurrency(dashboard.platformCommissionAmount) }}</strong>
-          <span>{{ $t('financeCommissionAmount') }}</span>
-        </article>
-        <article class="stat-card tone-dark">
-          <strong>{{ formatCurrency(dashboard.courierPayoutPendingAmount) }}</strong>
-          <span>{{ $t('financePendingPayoutAmount') }}</span>
-        </article>
-        <article class="stat-card tone-success">
-          <strong>{{ formatCurrency(dashboard.courierPayoutPaidAmount) }}</strong>
-          <span>{{ $t('financePaidPayoutAmount') }}</span>
-        </article>
-      </section>
+      <div class="finance-main-layout">
+        <section class="charts-column">
+          <div class="charts-row">
+            <DashboardTrendChart
+              :title="$t('financeRevenueChartTitle')"
+              :subtitle="$t('financeRevenueChartSubtitle')"
+              :points="customerRevenuePoints"
+              tone="#6366f1"
+              :formatter="formatCurrency"
+              :empty-label="$t('dashboardChartEmpty')"
+            />
+            <DashboardTrendChart
+              :title="$t('financeMarginChartTitle')"
+              :subtitle="$t('financeMarginChartSubtitle')"
+              :points="platformMarginPoints"
+              tone="#10b981"
+              :formatter="formatCurrency"
+              :empty-label="$t('dashboardChartEmpty')"
+            />
+          </div>
+          
+          <PremiumDashboardCard :title="$t('financeRecentSettlementsTitle')" variant="glass" class="table-card">
+            <div v-if="dashboard.recentSettlements.length" class="table-shell">
+              <table class="premium-table">
+                <thead>
+                  <tr>
+                    <th>{{ $t('financeTablePackage') }}</th>
+                    <th>{{ $t('financeTableStatus') }}</th>
+                    <th>{{ $t('financeTableCustomerTotal') }}</th>
+                    <th>{{ $t('financeTableServiceFee') }}</th>
+                    <th>{{ $t('financeTableCourierPayout') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in dashboard.recentSettlements" :key="item.packageReference">
+                    <td><span class="ref-badge">{{ item.packageReference }}</span></td>
+                    <td><span class="status-pill">{{ item.packageStatus }}</span></td>
+                    <td class="text-bold">{{ formatCurrency(item.customerTotalPrice) }}</td>
+                    <td class="text-indigo">{{ formatCurrency(item.platformServiceFee) }}</td>
+                    <td class="text-emerald">{{ formatCurrency(item.courierPayoutAmount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </PremiumDashboardCard>
+        </section>
 
-      <section class="dashboard-grid finance-overview-grid">
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('financeOverviewTitle') }}</h2>
-            <p>{{ $t('financeOverviewSubtitle') }}</p>
-          </div>
-          <div class="metric-list">
-            <div class="metric-row">
-              <strong>{{ $t('financeSettlementsCount') }}</strong>
-              <span>{{ formatInteger(dashboard.settlementCount) }}</span>
+        <section class="payout-column">
+          <PremiumDashboardCard :title="$t('financePayoutHealthTitle')" variant="flat" tone="amber" class="payout-summary">
+            <div class="payout-metrics">
+              <div class="p-row">
+                <span>{{ $t('financePendingPayoutCount') }}</span>
+                <strong>{{ formatInteger(dashboard.pendingPayoutCount) }}</strong>
+              </div>
+              <div class="p-row">
+                <span>{{ $t('financePaidPayoutCount') }}</span>
+                <strong>{{ formatInteger(dashboard.paidPayoutCount) }}</strong>
+              </div>
+              <div class="p-divider"></div>
+              <div class="p-row total">
+                <span>{{ $t('financeCourierShareLabel') }}</span>
+                <strong>{{ formatCurrency(totalCourierShare) }}</strong>
+              </div>
             </div>
-            <div class="metric-row">
-              <strong>{{ $t('financeDeliveredPackagesCount') }}</strong>
-              <span>{{ formatInteger(dashboard.deliveredPackageCount) }}</span>
-            </div>
-            <div class="metric-row">
-              <strong>{{ $t('financeAverageOrderValue') }}</strong>
-              <span>{{ formatCurrency(dashboard.averageOrderValue) }}</span>
-            </div>
-            <div class="metric-row">
-              <strong>{{ $t('financeAverageCourierPayout') }}</strong>
-              <span>{{ formatCurrency(dashboard.averageCourierPayout) }}</span>
-            </div>
-            <div class="metric-row">
-              <strong>{{ $t('financeTakeRate') }}</strong>
-              <span>{{ formatPercent(dashboard.platformTakeRate) }}</span>
-            </div>
-          </div>
-        </article>
+          </PremiumDashboardCard>
 
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('financePayoutHealthTitle') }}</h2>
-            <p>{{ $t('financePayoutHealthSubtitle') }}</p>
-          </div>
-          <div class="metric-list">
-            <div class="metric-row">
-              <strong>{{ $t('financePendingPayoutCount') }}</strong>
-              <span>{{ formatInteger(dashboard.pendingPayoutCount) }}</span>
+          <PremiumDashboardCard :title="$t('financePendingPayoutsTitle')" variant="glass" class="pending-table-card">
+            <div v-if="dashboard.pendingPayouts.length" class="pending-stack">
+              <div v-for="item in dashboard.pendingPayouts" :key="item.deliveryPersonId" class="pending-item">
+                <div class="p-item-info">
+                  <strong>{{ item.deliveryPersonName }}</strong>
+                  <span>{{ item.packageCount }} Colis</span>
+                </div>
+                <div class="p-item-amount">
+                  {{ formatCurrency(item.amount) }}
+                </div>
+              </div>
             </div>
-            <div class="metric-row">
-              <strong>{{ $t('financePaidPayoutCount') }}</strong>
-              <span>{{ formatInteger(dashboard.paidPayoutCount) }}</span>
+            <div v-else class="empty-compact">
+              <p>{{ $t('financeNoPendingPayouts') }}</p>
             </div>
-            <div class="metric-row">
-              <strong>{{ $t('financeCourierShareLabel') }}</strong>
-              <span>{{ formatCurrency(totalCourierShare) }}</span>
-            </div>
-            <div class="metric-row">
-              <strong>{{ $t('financePlatformShareLabel') }}</strong>
-              <span>{{ formatCurrency(dashboard.platformMargin) }}</span>
-            </div>
-          </div>
-        </article>
-      </section>
+          </PremiumDashboardCard>
 
-      <section class="chart-grid">
-        <DashboardTrendChart
-          :title="$t('financeRevenueChartTitle')"
-          :subtitle="$t('financeRevenueChartSubtitle')"
-          :points="customerRevenuePoints"
-          tone="#1f5fae"
-          :formatter="formatCurrency"
-          :empty-label="$t('dashboardChartEmpty')"
-        />
-        <DashboardTrendChart
-          :title="$t('financeMarginChartTitle')"
-          :subtitle="$t('financeMarginChartSubtitle')"
-          :points="platformMarginPoints"
-          tone="#ef7d32"
-          :formatter="formatCurrency"
-          :empty-label="$t('dashboardChartEmpty')"
-        />
-        <DashboardTrendChart
-          :title="$t('financePayoutChartTitle')"
-          :subtitle="$t('financePayoutChartSubtitle')"
-          :points="courierPayoutPoints"
-          tone="#159947"
-          :formatter="formatCurrency"
-          :empty-label="$t('dashboardChartEmpty')"
-        />
-      </section>
-
-      <section class="dashboard-grid finance-tables-grid">
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('financePendingPayoutsTitle') }}</h2>
-            <p>{{ $t('financePendingPayoutsSubtitle') }}</p>
-          </div>
-          <div v-if="dashboard.pendingPayouts.length" class="table-shell">
-            <table class="finance-table">
-              <thead>
-                <tr>
-                  <th>{{ $t('financeTableCourier') }}</th>
-                  <th>{{ $t('financeTablePackages') }}</th>
-                  <th>{{ $t('financeTableOldest') }}</th>
-                  <th>{{ $t('financeTableAmount') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in dashboard.pendingPayouts" :key="`${item.deliveryPersonId || 'unknown'}-${item.oldestCreatedAt}`">
-                  <td>{{ item.deliveryPersonName }}</td>
-                  <td>{{ formatInteger(item.packageCount) }}</td>
-                  <td>{{ formatDateTime(item.oldestCreatedAt) }}</td>
-                  <td>{{ formatCurrency(item.amount) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-else class="empty-state">{{ $t('financeNoPendingPayouts') }}</div>
-        </article>
-
-        <article class="panel-card">
-          <div class="panel-head">
-            <h2>{{ $t('financeRecentSettlementsTitle') }}</h2>
-            <p>{{ $t('financeRecentSettlementsSubtitle') }}</p>
-          </div>
-          <div v-if="dashboard.recentSettlements.length" class="table-shell">
-            <table class="finance-table">
-              <thead>
-                <tr>
-                  <th>{{ $t('financeTablePackage') }}</th>
-                  <th>{{ $t('financeTableStatus') }}</th>
-                  <th>{{ $t('financeTableCalculatedAt') }}</th>
-                  <th>{{ $t('financeTableCustomerTotal') }}</th>
-                  <th>{{ $t('financeTableServiceFee') }}</th>
-                  <th>{{ $t('financeTableCommission') }}</th>
-                  <th>{{ $t('financeTableCourierPayout') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in dashboard.recentSettlements" :key="`${item.packageReference}-${item.calculatedAt}`">
-                  <td>{{ item.packageReference }}</td>
-                  <td>{{ item.packageStatus }}</td>
-                  <td>{{ formatDateTime(item.calculatedAt) }}</td>
-                  <td>{{ formatCurrency(item.customerTotalPrice) }}</td>
-                  <td>{{ formatCurrency(item.platformServiceFee) }}</td>
-                  <td>{{ formatCurrency(item.platformCommissionAmount) }}</td>
-                  <td>{{ formatCurrency(item.courierPayoutAmount) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-else class="empty-state">{{ $t('financeNoSettlements') }}</div>
-        </article>
-      </section>
+          <PremiumDashboardCard :title="$t('financePenaltiesTitle')" variant="glass" class="penalty-table-card">
+            <div class="payout-metrics penalty-summary">
+              <div class="p-row">
+                <span>{{ $t('financePenaltyCount') }}</span>
+                <strong>{{ formatInteger(dashboard.courierPenaltyCount) }}</strong>
+              </div>
+              <div class="p-row">
+                <span>{{ $t('financeActiveSuspensions') }}</span>
+                <strong>{{ formatInteger(dashboard.courierActiveSuspensionCount) }}</strong>
+              </div>
+              <div class="p-row total">
+                <span>{{ $t('financeCourierPenaltiesAmount') }}</span>
+                <strong>{{ formatCurrency(dashboard.courierFinancialPenaltyAmount) }}</strong>
+              </div>
+            </div>
+            <div v-if="dashboard.recentCourierPenalties?.length" class="pending-stack">
+              <div v-for="item in dashboard.recentCourierPenalties" :key="item.id" class="pending-item penalty-item">
+                <div class="p-item-info">
+                  <strong>{{ item.deliveryPersonName || item.deliveryPersonEmail || '-' }}</strong>
+                  <span>{{ formatPenaltyType(item.type) }}</span>
+                </div>
+                <div class="p-item-amount text-rose">
+                  {{ formatCurrency(item.financialPenaltyAmount) }}
+                </div>
+              </div>
+            </div>
+            <router-link class="penalty-link" to="/dashboard/courier-penalties">
+              {{ $t('financeOpenPenaltiesPage') }}
+            </router-link>
+          </PremiumDashboardCard>
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -216,16 +184,19 @@
 <script>
 import http from '@/config/httpInterceptor';
 import DashboardTrendChart from '../components/DashboardTrendChart.vue';
+import PremiumDashboardCard from '../components/PremiumDashboardCard.vue';
 import { getAccessToken } from '../config/auth';
 
 const CHART_START_X = 32;
-const CHART_STEP_X = 55;
-const CHART_HEIGHT = 180;
-const CHART_TOP = 16;
+const CHART_STEP_X = 42;
+const CHART_HEIGHT = 160;
+const CHART_TOP = 20;
 
 export default {
+  name: 'FinanceDashboardPage',
   components: {
     DashboardTrendChart,
+    PremiumDashboardCard,
   },
   data() {
     return {
@@ -235,39 +206,25 @@ export default {
     };
   },
   computed: {
+    currentLocale() {
+      const locale = this.$i18n?.locale;
+      return typeof locale === 'string' ? locale : locale?.value || 'fr';
+    },
     safeDashboard() {
-      return this.dashboard || {
-        generatedAt: null,
-        currency: 'EUR',
-        settlementCount: 0,
-        deliveredPackageCount: 0,
-        pendingPayoutCount: 0,
-        paidPayoutCount: 0,
-        customerRevenue: 0,
-        platformServiceFees: 0,
-        platformCommissionAmount: 0,
-        platformMargin: 0,
-        courierPayoutPendingAmount: 0,
-        courierPayoutPaidAmount: 0,
-        averageOrderValue: 0,
-        averageCourierPayout: 0,
-        platformTakeRate: 0,
-        customerRevenueTrend: [],
-        platformMarginTrend: [],
-        courierPayoutTrend: [],
-        recentSettlements: [],
-        pendingPayouts: [],
-      };
+      return this.dashboard || { platformMargin: 0, platformTakeRate: 0, customerRevenueTrend: [], platformMarginTrend: [], recentSettlements: [], pendingPayouts: [] };
     },
-    customerRevenuePoints() {
-      return this.buildChartPoints(this.safeDashboard.customerRevenueTrend || []);
+    financeStats() {
+      const d = this.safeDashboard;
+      return [
+        { label: this.$t('financeCustomerRevenue'), value: d.customerRevenue, tone: 'indigo' },
+        { label: this.$t('financeServiceFees'), value: d.platformServiceFees, tone: 'slate' },
+        { label: this.$t('financeCommissionAmount'), value: d.platformCommissionAmount, tone: 'amber' },
+        { label: this.$t('financePaidPayoutAmount'), value: d.courierPayoutPaidAmount, tone: 'emerald' },
+        { label: this.$t('financeCourierPenaltiesAmount'), value: d.courierFinancialPenaltyAmount, tone: 'rose' },
+      ];
     },
-    platformMarginPoints() {
-      return this.buildChartPoints(this.safeDashboard.platformMarginTrend || []);
-    },
-    courierPayoutPoints() {
-      return this.buildChartPoints(this.safeDashboard.courierPayoutTrend || []);
-    },
+    customerRevenuePoints() { return this.buildChartPoints(this.safeDashboard.customerRevenueTrend || []); },
+    platformMarginPoints() { return this.buildChartPoints(this.safeDashboard.platformMarginTrend || []); },
     totalCourierShare() {
       return Number(this.safeDashboard.courierPayoutPendingAmount || 0) + Number(this.safeDashboard.courierPayoutPaidAmount || 0);
     },
@@ -278,305 +235,291 @@ export default {
   methods: {
     async fetchDashboard() {
       this.isLoading = true;
-      this.loadError = false;
       try {
-        const headers = {
-          Authorization: `Bearer ${getAccessToken()}`,
-        };
-        const response = await http.get(
-          `${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageFinancialDashboard')}`,
-          { headers },
-        );
+        const response = await http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getAdminPackageFinancialDashboard')}`, {
+          headers: { Authorization: `Bearer ${getAccessToken()}` }
+        });
         this.dashboard = response.data;
       } catch (error) {
         this.loadError = true;
-        console.error('Unable to load finance dashboard', error);
       } finally {
         this.isLoading = false;
       }
     },
     buildChartPoints(items) {
-      const values = items.map((item) => Number(item.value || 0));
-      const maxValue = Math.max(0, ...values);
-      return items.map((item, index) => {
-        const value = Number(item.value || 0);
-        return {
-          label: this.formatPeriod(item.periodKey),
-          value,
-          x: CHART_START_X + (index * CHART_STEP_X),
-          y: CHART_TOP + CHART_HEIGHT - (maxValue <= 0 ? 0 : ((value / maxValue) * CHART_HEIGHT)),
-        };
-      });
+      const values = items.map(item => Number(item.value || 0));
+      const max = Math.max(0.1, ...values);
+      return items.map((item, index) => ({
+        label: this.formatPeriod(item.periodKey),
+        value: item.value,
+        x: CHART_START_X + (index * CHART_STEP_X),
+        y: CHART_TOP + CHART_HEIGHT - ((Number(item.value || 0) / max) * CHART_HEIGHT)
+      }));
     },
-    formatPeriod(periodKey) {
-      if (!periodKey) {
-        return '-';
-      }
-      const [year, month] = periodKey.split('-').map((value) => Number(value));
-      if (!year || !month) {
-        return periodKey;
-      }
-      return new Intl.DateTimeFormat(this.currentLocale(), {
-        month: 'short',
-      }).format(new Date(year, month - 1, 1));
+    formatPeriod(pk) {
+      if (!pk) return '-';
+      const [y, m] = pk.split('-').map(Number);
+      return new Intl.DateTimeFormat(this.currentLocale, { month: 'short' }).format(new Date(y, m - 1, 1));
     },
-    currentLocale() {
-      const locale = this.$i18n?.locale;
-      return typeof locale === 'string' ? locale : locale?.value || 'fr';
+    formatCurrency(v) {
+      return new Intl.NumberFormat(this.currentLocale, { style: 'currency', currency: this.dashboard?.currency || 'EUR' }).format(v || 0);
     },
-    formatCurrency(value) {
-      return new Intl.NumberFormat(this.currentLocale(), {
-        style: 'currency',
-        currency: this.dashboard?.currency || 'EUR',
-        minimumFractionDigits: 2,
-      }).format(Number(value || 0));
+    formatPenaltyType(type) {
+      return this.$t(`courierPenaltyType_${type || 'UNKNOWN'}`);
     },
-    formatInteger(value) {
-      return new Intl.NumberFormat(this.currentLocale(), {
-        maximumFractionDigits: 0,
-      }).format(Number(value || 0));
-    },
-    formatPercent(value) {
-      return new Intl.NumberFormat(this.currentLocale(), {
-        style: 'percent',
-        maximumFractionDigits: 1,
-      }).format(Number(value || 0));
-    },
-    formatDateTime(value) {
-      if (!value) {
-        return '-';
-      }
-      return new Intl.DateTimeFormat(this.currentLocale(), {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }).format(new Date(value));
-    },
-  },
+    formatInteger(v) { return new Intl.NumberFormat(this.currentLocale).format(v || 0); },
+    formatPercent(v) { return new Intl.NumberFormat(this.currentLocale, { style: 'percent', maximumFractionDigits: 1 }).format(v || 0); },
+  }
 };
 </script>
 
 <style scoped>
 .finance-dashboard-page {
-  display: grid;
-  gap: 24px;
-  padding: 24px;
-  background:
-    radial-gradient(circle at top left, rgba(239, 125, 50, 0.12), transparent 28%),
-    linear-gradient(180deg, #f8fafc 0%, #eef3f9 100%);
-  min-height: calc(100vh - 62px);
+  min-height: 100vh;
+  padding: 32px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.hero-card,
-.panel-card,
-.stat-card {
-  border: 1px solid #dde3ec;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-}
-
-.hero-card {
+.premium-finance-hero {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  padding: 26px 28px;
-  align-items: flex-start;
+  align-items: center;
+  gap: 40px;
 }
 
-.hero-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: #f97316;
+.luxury-chip {
+  background: #0f172a;
   color: #fff;
-  font-size: 0.78rem;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  display: inline-block;
 }
 
-.hero-card h1 {
-  margin: 12px 0 10px;
-  font-size: clamp(2rem, 3vw, 2.7rem);
+.hero-content h1 {
+  font-size: 3rem;
+  font-weight: 800;
   color: #0f172a;
+  letter-spacing: -0.03em;
+  margin: 0;
 }
 
-.hero-card p,
-.hero-side span,
-.hero-side small {
-  color: #64748b;
-}
-
-.hero-side {
-  display: grid;
-  gap: 6px;
+.hero-main-stat {
+  padding: 32px 48px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
   text-align: right;
+  border: 1px solid rgba(15, 23, 42, 0.05);
 }
 
-.hero-side strong {
-  color: #159947;
-  font-size: 1.5rem;
-}
-
-.stats-grid,
-.chart-grid,
-.dashboard-grid {
-  display: grid;
-  gap: 18px;
-}
-
-.stats-grid {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-}
-
-.stat-card,
-.panel-card {
-  padding: 18px 20px;
-}
-
-.stat-card strong,
-.stat-card span {
-  display: block;
-}
-
-.stat-card strong {
-  margin-bottom: 8px;
-  color: #0f172a;
-  font-size: 1.4rem;
-}
-
-.stat-card span {
+.main-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 0.875rem;
   color: #64748b;
+  margin-bottom: 8px;
 }
 
-.tone-dark {
-  border-color: rgba(15, 23, 42, 0.12);
+.main-label span { color: #10b981; }
+
+.main-amount {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #0f172a;
+  display: block;
+  letter-spacing: -0.02em;
 }
 
-.tone-success {
-  border-color: rgba(21, 153, 71, 0.25);
+.main-subinfo {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin-top: 4px;
 }
 
-.tone-neutral {
-  border-color: rgba(31, 95, 174, 0.22);
+.main-subinfo strong { color: #0f172a; }
+
+/* Stats Grid */
+.stats-premium-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
-.tone-warn {
-  border-color: rgba(239, 125, 50, 0.28);
+.f-stat-inner {
+  display: flex;
+  flex-direction: column;
 }
 
-.finance-overview-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.f-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
 }
 
-.finance-tables-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.f-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
-.chart-grid {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+/* Layout */
+.finance-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
 }
 
-.panel-head {
+.charts-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.premium-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.premium-table th {
+  text-align: left;
+  padding: 16px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.premium-table td {
+  padding: 16px;
+  font-size: 0.9375rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ref-badge {
+  font-family: monospace;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #475569;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  background: #e4f4ea;
+  color: #15803d;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.text-bold { font-weight: 700; color: #0f172a; }
+.text-indigo { color: #6366f1; font-weight: 600; }
+.text-emerald { color: #10b981; font-weight: 600; }
+.text-rose { color: #e11d48; font-weight: 800; }
+
+.payout-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.payout-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.p-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9375rem;
+}
+
+.p-divider { height: 1px; background: rgba(0,0,0,0.05); margin: 4px 0; }
+
+.p-row.total {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.1rem;
+}
+
+.pending-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pending-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.03);
+  border-radius: 12px;
+}
+
+.p-item-info strong { display: block; font-size: 0.9375rem; color: #0f172a; }
+.p-item-info span { font-size: 0.75rem; color: #94a3b8; }
+.p-item-amount { font-weight: 800; color: #0f172a; }
+
+.penalty-summary {
   margin-bottom: 16px;
 }
 
-.panel-head h2 {
-  margin: 0 0 6px;
-  color: #0f172a;
+.penalty-item {
+  border-left: 3px solid #e11d48;
 }
 
-.panel-head p {
-  margin: 0;
-  color: #64748b;
+.penalty-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 16px;
+  font-weight: 800;
+  color: #be123c;
+  text-decoration: none;
 }
 
-.metric-list {
-  display: grid;
-  gap: 10px;
-}
-
-.metric-row {
+/* States */
+.loading-state, .error-state {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e5ebf3;
-}
-
-.metric-row strong {
-  color: #0f172a;
-}
-
-.metric-row span {
-  color: #1f5fae;
-  font-weight: 700;
-}
-
-.table-shell {
-  overflow-x: auto;
-}
-
-.finance-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 640px;
-}
-
-.finance-table th,
-.finance-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #e5ebf3;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.finance-table th {
-  color: #475569;
-  font-size: 0.82rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.finance-table td {
-  color: #0f172a;
-}
-
-.page-state,
-.empty-state {
-  padding: 18px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px;
   color: #64748b;
-  text-align: center;
 }
 
-.page-state.error {
-  color: #b91c1c;
+.spinner {
+  width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-top-color: #6366f1; border-radius: 50%; animation: qd-spin 1s linear infinite; margin-bottom: 16px;
 }
 
-@media (max-width: 1024px) {
-  .finance-overview-grid,
-  .finance-tables-grid {
-    grid-template-columns: 1fr;
-  }
+@keyframes qd-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1200px) {
+  .finance-main-layout { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 720px) {
-  .finance-dashboard-page {
-    padding: 16px;
-  }
-
-  .hero-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .hero-side {
-    text-align: left;
-  }
+@media (max-width: 768px) {
+  .premium-finance-hero { flex-direction: column; align-items: flex-start; }
+  .hero-main-stat { width: 100%; text-align: left; }
+  .main-label { justify-content: flex-start; }
+  .stats-premium-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
 }
 </style>

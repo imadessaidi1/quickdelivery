@@ -16,12 +16,43 @@
 </template>
 
 <script>
+import { getGatewayBaseUrl } from '@/config/network';
+
+const MAP_IFRAME_ASSET_VERSION = '20260411-no-route-zoom-v3';
+
 export default {
-  data() {
-      return {
-        googleMapPath: process.env.BASE_URL + 'google-maps.html',
-      };
+  emits: ['map-iframe-loaded'],
+  computed: {
+    googleMapPath() {
+      const deliveryMode = this.$store.state.connectedUser?.deliveryMode || '';
+      const vehicleType = this.$store.state.connectedUser?.primaryVehicleType
+        || this.$store.state.connectedUser?.vehicles?.find((vehicle) => vehicle?.type)?.type
+        || '';
+      const userId = this.$store.state.connectedUser?.id || '';
+      const gatewayBaseUrl = getGatewayBaseUrl();
+      const params = new URLSearchParams();
+      if (userId) {
+        params.set('userID', String(userId));
+      }
+      if (deliveryMode) {
+        params.set('deliveryMode', deliveryMode);
+      }
+      if (vehicleType) {
+        params.set('vehicleType', vehicleType);
+      }
+      if (gatewayBaseUrl) {
+        params.set('gatewayBaseUrl', gatewayBaseUrl);
+      }
+      params.set('mapAssetVersion', MAP_IFRAME_ASSET_VERSION);
+      const query = params.toString();
+      return `${process.env.BASE_URL}google-maps.html${query ? `?${query}` : ''}`;
     },
+  },
+  methods: {
+    onLoadIframe() {
+      this.$emit('map-iframe-loaded');
+    },
+  },
 };
 </script>
 

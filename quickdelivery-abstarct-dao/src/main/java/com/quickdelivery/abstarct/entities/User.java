@@ -40,6 +40,8 @@ public class User {
     private String password;
     @Column
     private String deliveryMode;
+    @Column(length = 10)
+    private String preferredLocale;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "residents", cascade = CascadeType.ALL)
     private Set<Address> personalAddress = new HashSet<>();
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "holderInApp", cascade = CascadeType.ALL)
@@ -219,5 +221,13 @@ public class User {
 
     public void setDeliveryMode(String deliveryMode) {
         this.deliveryMode = deliveryMode;
+    }
+
+    public String getPreferredLocale() {
+        return preferredLocale;
+    }
+
+    public void setPreferredLocale(String preferredLocale) {
+        this.preferredLocale = preferredLocale;
     }
 }

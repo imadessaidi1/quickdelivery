@@ -103,9 +103,13 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY}
       MAPQUEST_KEY: ${MAPQUEST_KEY}
+      PACKAGES_PUSH_FIREBASE_ENABLED: ${PACKAGES_PUSH_FIREBASE_ENABLED:-true}
+      PACKAGES_PUSH_FIREBASE_PROJECT_ID: ${PACKAGES_PUSH_FIREBASE_PROJECT_ID}
+      PACKAGES_PUSH_FIREBASE_CREDENTIALS_PATH: /app/certs/service-account.json
       JAVA_TOOL_OPTIONS: ${PACKAGES_SERVICE_JAVA_TOOL_OPTIONS}
     volumes:
       - packages-docs:/data/packages-docs
+      - ./certs:/app/certs:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8082/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s

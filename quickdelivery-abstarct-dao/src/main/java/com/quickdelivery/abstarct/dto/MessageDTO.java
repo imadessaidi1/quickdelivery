@@ -1,6 +1,7 @@
 package com.quickdelivery.abstarct.dto;
 
 public class MessageDTO {
+    private Long id;
     private String type;
     private String from;
     private String to;
@@ -8,8 +9,20 @@ public class MessageDTO {
     private String url;
     private String packageReference;
     private String guestAccessToken;
+    private String title;
+    private String payloadJson;
+    private String receivedAt;
+    private Long packageId;
 
     private PositionDTO positionDTO;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getType() {
         return type;
@@ -65,6 +78,38 @@ public class MessageDTO {
 
     public void setGuestAccessToken(String guestAccessToken) {
         this.guestAccessToken = guestAccessToken;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getPayloadJson() {
+        return payloadJson;
+    }
+
+    public void setPayloadJson(String payloadJson) {
+        this.payloadJson = payloadJson;
+    }
+
+    public String getReceivedAt() {
+        return receivedAt;
+    }
+
+    public void setReceivedAt(String receivedAt) {
+        this.receivedAt = receivedAt;
+    }
+
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
     }
 
     public PositionDTO getPositionDTO() {

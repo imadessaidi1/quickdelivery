@@ -19,6 +19,8 @@ import DashboardPage from '../pages/DashboardPage.vue';
 import NotificationsPage from '../pages/NotificationsPage.vue';
 import MetricsDashboardPage from '../pages/MetricsDashboardPage.vue';
 import FinanceDashboardPage from '../pages/FinanceDashboardPage.vue';
+import CourierPenaltiesPage from '../pages/CourierPenaltiesPage.vue';
+import ActiveRoutePage from '../pages/ActiveRoutePage.vue';
 import { hasValidAccessToken, redirectToLogin, resolveLandingPathForCurrentUser, userHasAnyRole } from '../config/auth';
 
 const routes = [
@@ -66,6 +68,12 @@ const routes = [
         meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
         },
         {
+        path: '/dashboard/courier-penalties',
+        name: 'adminCourierPenaltiesPage',
+        component: CourierPenaltiesPage,
+        meta: { requiresAuth: true, roles: ['ROLE_ADMIN'] }
+        },
+        {
         path: '/dashboard/courier',
         name: 'courierDashboardPage',
         component: DashboardPage,
@@ -78,6 +86,12 @@ const routes = [
         component: DashboardPage,
         props: { dashboardType: 'client' },
         meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO'] }
+        },
+        {
+        path: '/myRoute',
+        name: 'activeRoutePage',
+        component: ActiveRoutePage,
+        meta: { requiresAuth: true, roles: ['ROLE_LIVREUR', 'ROLE_ADMIN'] }
         },
         {
         path: '/terms-of-use',
@@ -108,13 +122,13 @@ const routes = [
         name: 'userSignInPageUpdate',
         component:UserSignInPage,
         props: (route) => ({ id: route.query.id, updateToken: route.query.updateToken }),
-        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
+        meta: { public: true }
         },
         {
         path: '/userSignInPage',
         name: 'userSignInPage',
         component:UserSignInPage,
-        meta: { requiresAuth: true, roles: ['ROLE_CLIENT', 'ROLE_CLIENT_PRO', 'ROLE_LIVREUR', 'ROLE_ADMIN'] }
+        meta: { public: true }
         },
         {
         path: '/package',
@@ -190,6 +204,9 @@ const router = VueRouter.createRouter({
 router.beforeEach(async (to) => {
     if (to.path === '/userSignInPage' && to.query.updateToken) {
         return true;
+    }
+    if (to.name === 'landingPage' && hasValidAccessToken()) {
+        return resolveLandingPathForCurrentUser();
     }
     if (to.meta?.publicOnly && hasValidAccessToken()) {
         return resolveLandingPathForCurrentUser();

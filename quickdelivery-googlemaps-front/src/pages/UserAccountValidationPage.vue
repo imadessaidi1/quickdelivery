@@ -111,7 +111,7 @@ export default {
         this.totalDocumentsCount = payload.totalDocuments || 0;
       } catch (error) {
         this.loadError = true;
-        console.error('Unable to process your request this time. Please try again later.', error);
+        console.error(this.$t('requestErrorGeneric'), error);
       } finally {
         this.isLoadingPage = false;
       }
@@ -220,10 +220,6 @@ export default {
   min-width: 110px;
   height: 40px;
   padding: 0 16px;
-  border: 1px solid #dbe1ea;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #0f172a;
   font-weight: 600;
 }
 .pagination-btn:disabled {

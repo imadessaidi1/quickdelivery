@@ -25,7 +25,7 @@ public interface Users extends JpaRepository<User, Long> {
             "FROM User u WHERE u.emailAddress = :email")
     User findByEmail(@Param("email") String email);
 
-    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress", "payments"})
     @Query("SELECT u FROM User u WHERE u.emailAddress = :email")
     User findDetailedByEmail(@Param("email") String email);
 
@@ -34,10 +34,10 @@ public interface Users extends JpaRepository<User, Long> {
     User findProfileByEmail(@Param("email") String email);
 
     @Override
-    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress", "payments"})
     Optional<User> findById(Long id);
 
-    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress", "payments"})
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findDetailedById(@Param("id") Long id);
 
@@ -56,7 +56,7 @@ public interface Users extends JpaRepository<User, Long> {
             "FROM User u WHERE u.activeAccount = false")
     List<User> findUsersForValidation();
 
-    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress"})
+    @EntityGraph(attributePaths = {"document", "vehicles", "personalAddress", "payments"})
     @Query("SELECT u FROM User u WHERE u.id IN :ids")
     List<User> findUsersForValidationByIds(@Param("ids") Collection<Long> ids);
 

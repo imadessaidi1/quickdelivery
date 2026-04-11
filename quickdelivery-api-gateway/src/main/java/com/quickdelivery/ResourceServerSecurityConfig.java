@@ -42,8 +42,15 @@ public class ResourceServerSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.copyOf(PublicEndpointResolver.resolveFrontendOrigins(frontendBaseUrls)));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "X-Captcha-Token"
+        ));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -94,7 +101,7 @@ public class ResourceServerSecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/users/v1/save-onboarding-draft").permitAll()
                         .pathMatchers(HttpMethod.POST, "/users/v1/complete-onboarding").permitAll()
                         .pathMatchers(HttpMethod.GET, "/users/v1/onboarding-status**").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/users/v1/userByEmail**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/users/v1/public-registration-status**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/users/v1/public-update-profile**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/users/v1/public-update**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/users/v1/validateEmail**").permitAll()

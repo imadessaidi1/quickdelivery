@@ -154,6 +154,19 @@ function Invoke-JsonGet {
     return Invoke-RestMethod -Method Get -Uri $Url -Headers $headers
 }
 
+function Invoke-JsonPut {
+    param(
+        [string]$Url,
+        [string]$Token
+    )
+
+    $headers = @{
+        Authorization = "Bearer $Token"
+    }
+
+    return Invoke-RestMethod -Method Put -Uri $Url -Headers $headers
+}
+
 function Prompt-IfEmpty {
     param(
         [string]$Value,
@@ -314,8 +327,10 @@ try {
     Write-Host "Fetching first NEW package for courier lifecycle"
     $newPackages = Invoke-JsonGet -Url "$baseUrl/packages/v1/package-by-status?status=NEW" -Token $adminToken
     $courierPackageId = ""
+    $courierPackageReference = ""
     if ($newPackages -and $newPackages.Count -gt 0) {
         $courierPackageId = [string]$newPackages[0].id
+        $courierPackageReference = [string]$newPackages[0].reference
     }
 
     Write-Host "Fetching packages already attached to courier for tracking"
@@ -325,6 +340,29 @@ try {
         $trackingPackageReference = [string]$courierPackages.PICKEDUP[0].reference
     } elseif ($courierPackages.INDELIVERY -and $courierPackages.INDELIVERY.Count -gt 0) {
         $trackingPackageReference = [string]$courierPackages.INDELIVERY[0].reference
+    }
+
+    if (-not $trackingPackageReference -and $courierPackageId -and $courierPackageReference -and $courierToken) {
+        Write-Host "No tracked package found, preparing one from the first NEW package"
+        try {
+            $encodedPackageId = [uri]::EscapeDataString($courierPackageId)
+            $encodedCourierId = [uri]::EscapeDataString($courierId)
+            $encodedLocale = [uri]::EscapeDataString($defaultLocale)
+
+            $reserveResponse = Invoke-JsonPut -Url "$baseUrl/packages/v1/reserve?packageID=$encodedPackageId&deliveryPersonID=$encodedCourierId&locale=$encodedLocale" -Token $courierToken
+            $pickUpOtp = [string]$reserveResponse.pickUpOTP
+
+            if ($pickUpOtp) {
+                $encodedPickupOtp = [uri]::EscapeDataString($pickUpOtp)
+                $pickupResponse = Invoke-JsonPut -Url "$baseUrl/packages/v1/pickup?packageID=$encodedPackageId&deliveryPersonID=$encodedCourierId&pickUpOTP=$encodedPickupOtp&locale=$encodedLocale" -Token $courierToken
+                if ($pickupResponse) {
+                    $trackingPackageReference = $courierPackageReference
+                    Write-Host "Prepared tracking package: $trackingPackageReference"
+                }
+            }
+        } catch {
+            Write-Warning "Unable to prepare a PICKEDUP package for tracking automatically: $($_.Exception.Message)"
+        }
     }
 
     $orderedValues = [ordered]@{

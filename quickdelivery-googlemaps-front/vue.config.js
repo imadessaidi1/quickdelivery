@@ -11,6 +11,10 @@ module.exports = defineConfig({
     plugins: [
       new webpack.DefinePlugin({
         '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': true,
+        '__VUE_I18N_FULL_INSTALL__': true,
+        '__VUE_I18N_LEGACY_API__': true,
+        '__INTLIFY_JIT_COMPILATION__': true,
+        '__INTLIFY_DROP_MESSAGE_COMPILER__': false,
       }),
     ],
   },

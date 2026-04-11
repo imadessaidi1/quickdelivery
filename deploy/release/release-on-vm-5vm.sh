@@ -10,12 +10,22 @@ FRONT_PUBLIC_DIR="${FRONT_PUBLIC_DIR:-/var/www/quickdelivery-front}"
 CERTBOT_WEBROOT="${CERTBOT_WEBROOT:-/var/www/certbot}"
 NGINX_TEMPLATE="${NGINX_TEMPLATE:-/tmp/quickdelivery.5vm.conf}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/quickdelivery.conf}"
+NGINX_WS_UPSTREAMS_CONF="${NGINX_WS_UPSTREAMS_CONF:-/etc/nginx/quickdelivery/quickdelivery-ws-upstreams.inc}"
 APP_DOMAIN="${APP_DOMAIN:-app.quickdelivery.fr}"
 API_DOMAIN="${API_DOMAIN:-api.quickdelivery.fr}"
 AUTH_DOMAIN="${AUTH_DOMAIN:-auth.quickdelivery.fr}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 SWAP_FILE="${SWAP_FILE:-/swapfile}"
 SWAP_SIZE="${SWAP_SIZE:-2G}"
+VM1_LIMIT_CONN_PER_IP="${VM1_LIMIT_CONN_PER_IP:-40}"
+VM1_WS_LIMIT_CONN_PER_IP="${VM1_WS_LIMIT_CONN_PER_IP:-6}"
+VM1_API_PUBLIC_RATE="${VM1_API_PUBLIC_RATE:-20r/s}"
+VM1_API_PUBLIC_BURST="${VM1_API_PUBLIC_BURST:-40}"
+VM1_AUTH_PUBLIC_RATE="${VM1_AUTH_PUBLIC_RATE:-10r/s}"
+VM1_AUTH_PUBLIC_BURST="${VM1_AUTH_PUBLIC_BURST:-20}"
+VM1_TRACKING_PUBLIC_RATE="${VM1_TRACKING_PUBLIC_RATE:-15r/s}"
+VM1_TRACKING_PUBLIC_BURST="${VM1_TRACKING_PUBLIC_BURST:-30}"
+VM1_STATIC_CACHE_EXPIRES="${VM1_STATIC_CACHE_EXPIRES:-7d}"
 COMPOSE_BIN=""
 
 if [[ -z "$RELEASE_ROLE" ]]; then
@@ -107,6 +117,7 @@ install_role_prerequisites() {
     ensure_apt_package nginx
     ensure_apt_package certbot
     ensure_apt_package python3-certbot-nginx
+    ensure_apt_package python3
     systemctl enable --now nginx
   fi
 }
@@ -161,6 +172,108 @@ install_front() {
   rm -rf "$FRONT_PUBLIC_DIR"/*
   cp -R "$FRONT_TMP_DIR"/. "$FRONT_PUBLIC_DIR"/
   chown -R www-data:www-data "$FRONT_PUBLIC_DIR"
+}
+
+configure_vm1_limits() {
+  install -d -m 0755 /etc/systemd/system/nginx.service.d
+
+  cat > /etc/systemd/system/nginx.service.d/override.conf <<'EOF'
+[Service]
+LimitNOFILE=65535
+EOF
+
+  cat > /etc/security/limits.d/99-quickdelivery.conf <<'EOF'
+* soft nofile 65535
+* hard nofile 65535
+root soft nofile 65535
+root hard nofile 65535
+www-data soft nofile 65535
+www-data hard nofile 65535
+EOF
+
+  cat > /etc/sysctl.d/99-quickdelivery-vm1.conf <<'EOF'
+net.core.somaxconn = 4096
+net.core.netdev_max_backlog = 16384
+net.ipv4.tcp_max_syn_backlog = 4096
+net.ipv4.ip_local_port_range = 10240 65535
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_tw_reuse = 1
+net.netfilter.nf_conntrack_max = 1048576
+EOF
+
+  sysctl --system >/dev/null
+  systemctl daemon-reload
+}
+
+configure_vm1_nginx_base() {
+  python3 - <<'PY'
+from pathlib import Path
+
+path = Path("/etc/nginx/nginx.conf")
+text = path.read_text()
+
+if "worker_rlimit_nofile 65535;" not in text:
+    text = text.replace("worker_processes auto;\n", "worker_processes auto;\nworker_rlimit_nofile 65535;\n", 1)
+
+text = text.replace("worker_connections 768;", "worker_connections 4096;")
+text = text.replace("\t# multi_accept on;", "\tmulti_accept on;")
+text = text.replace("ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;", "ssl_protocols TLSv1.2 TLSv1.3;")
+
+path.write_text(text)
+PY
+
+  cat > /etc/nginx/conf.d/quickdelivery-log-format.conf <<'EOF'
+log_format quickdelivery_upstream
+  '$remote_addr - $remote_user [$time_local] '
+  '"$request" $status $body_bytes_sent '
+  '"$http_referer" "$http_user_agent" '
+  'rt=$request_time urt=$upstream_response_time '
+  'uaddr=$upstream_addr ustatus=$upstream_status';
+EOF
+
+  cat > /etc/nginx/conf.d/quickdelivery-http-tuning.conf <<'EOF'
+keepalive_timeout 65;
+keepalive_requests 10000;
+reset_timedout_connection on;
+client_body_timeout 15s;
+client_header_timeout 15s;
+send_timeout 30s;
+proxy_socket_keepalive on;
+EOF
+
+  cat > /etc/nginx/conf.d/quickdelivery-protection.conf <<EOF
+limit_conn_zone \$binary_remote_addr zone=conn_per_ip:10m;
+limit_conn_zone \$binary_remote_addr zone=ws_conn_per_ip:10m;
+limit_req_zone \$binary_remote_addr zone=api_public_ip:10m rate=$VM1_API_PUBLIC_RATE;
+limit_req_zone \$binary_remote_addr zone=auth_public_ip:10m rate=$VM1_AUTH_PUBLIC_RATE;
+limit_req_zone \$binary_remote_addr zone=tracking_public_ip:10m rate=$VM1_TRACKING_PUBLIC_RATE;
+EOF
+}
+
+render_ws_upstreams_conf() {
+  local raw_backends="${PACKAGES_WS_BACKENDS:-}"
+  local fallback_hostport
+  local backend
+  local has_backend=0
+
+  mkdir -p "$(dirname "$NGINX_WS_UPSTREAMS_CONF")"
+  rm -f /etc/nginx/conf.d/quickdelivery-ws-upstreams.conf
+  : > "$NGINX_WS_UPSTREAMS_CONF"
+
+  if [[ -n "$raw_backends" ]]; then
+    IFS=',' read -r -a backend_list <<< "$raw_backends"
+    for backend in "${backend_list[@]}"; do
+      backend="$(printf '%s' "$backend" | xargs)"
+      [[ -z "$backend" ]] && continue
+      echo "server $backend max_fails=3 fail_timeout=10s;" >> "$NGINX_WS_UPSTREAMS_CONF"
+      has_backend=1
+    done
+  fi
+
+  if [[ "$has_backend" -eq 0 ]]; then
+    fallback_hostport="$(url_to_hostport "${PACKAGES_WS_PINNED_URL:-ws://10.0.3.10:8082}")"
+    echo "server $fallback_hostport max_fails=3 fail_timeout=10s;" >> "$NGINX_WS_UPSTREAMS_CONF"
+  fi
 }
 
 bootstrap_nginx() {
@@ -219,11 +332,13 @@ install_final_nginx() {
   require_file "$NGINX_TEMPLATE"
   local auth_backend_hostport
   local gateway_internal_token_escaped
-  local packages_ws_backend_hostport
 
   auth_backend_hostport="$(url_to_hostport "${KEYCLOAK_INTERNAL_URL:-http://10.0.2.10:18443/auth}")"
-  packages_ws_backend_hostport="$(url_to_hostport "${PACKAGES_WS_PINNED_URL:-ws://10.0.3.10:8082}")"
   gateway_internal_token_escaped="$(printf '%s' "${GATEWAY_INTERNAL_TOKEN:-}" | sed 's/[\\/&]/\\&/g')"
+
+  configure_vm1_limits
+  configure_vm1_nginx_base
+  render_ws_upstreams_conf
 
   cp "$NGINX_TEMPLATE" "$NGINX_CONF"
   sed -i \
@@ -231,7 +346,12 @@ install_final_nginx() {
     -e "s/api.quickdelivery.tld/$API_DOMAIN/g" \
     -e "s/auth.quickdelivery.tld/$AUTH_DOMAIN/g" \
     -e "s#10.0.2.10:18443#$auth_backend_hostport#g" \
-    -e "s#10.0.3.10:8082#$packages_ws_backend_hostport#g" \
+    -e "s/static_cache_expires_placeholder/$VM1_STATIC_CACHE_EXPIRES/g" \
+    -e "s/ws_limit_conn_per_ip_placeholder/$VM1_WS_LIMIT_CONN_PER_IP/g" \
+    -e "s/limit_conn_per_ip_placeholder/$VM1_LIMIT_CONN_PER_IP/g" \
+    -e "s/api_burst_placeholder/$VM1_API_PUBLIC_BURST/g" \
+    -e "s/auth_burst_placeholder/$VM1_AUTH_PUBLIC_BURST/g" \
+    -e "s/tracking_burst_placeholder/$VM1_TRACKING_PUBLIC_BURST/g" \
     -e "s/gateway_internal_token_placeholder/$gateway_internal_token_escaped/g" \
     "$NGINX_CONF"
 
@@ -311,6 +431,11 @@ compose_up_services() {
     chmod -R a+rX "$PROJECT_ROOT/config"
     find "$PROJECT_ROOT/config" -type f -exec chmod 644 {} \;
     find "$PROJECT_ROOT/config" -type d -exec chmod 755 {} \;
+  fi
+  if [[ -d "$PROJECT_ROOT/deploy/docker/5vm/certs" ]]; then
+    chmod -R a+rX "$PROJECT_ROOT/deploy/docker/5vm/certs"
+    find "$PROJECT_ROOT/deploy/docker/5vm/certs" -type f -exec chmod 644 {} \;
+    find "$PROJECT_ROOT/deploy/docker/5vm/certs" -type d -exec chmod 755 {} \;
   fi
   cd "$PROJECT_ROOT"
   if [[ "$COMPOSE_BIN" == "docker compose" ]]; then

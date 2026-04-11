@@ -13,7 +13,7 @@
             {{package_.depth}}</p>
         <p>{{$t('packageWeight')}}:
             {{package_.weight}}</p>-->
-        <p><strong>{{$t('packagePrice')}} : </strong>{{package_.deliveryPrice}}&nbsp;{{ $t('currency') }}</p>
+        <p><strong>{{displayedPriceLabel}} : </strong>{{displayedPrice}}</p>
         <p><strong>{{$t('packageDeparture')}} : </strong>
         {{departureAddress.firstName}} {{departureAddress.lastName}} {{departureAddress.line1}} {{departureAddress.zipCode}} {{departureAddress.town}} {{departureAddress.country}}</p>
         <!--<p>{{departureAddress.phone}}</p>-->
@@ -29,6 +29,7 @@
     </div>
 </template>
 <script>
+import { formatDisplayedPackageAmount, resolveDisplayedPackagePriceLabel } from '@/config/packagePricing';
 
 export default{
     props: {
@@ -36,6 +37,12 @@ export default{
     modal: Object,
   },
   computed: {
+    displayedPrice() {
+      return formatDisplayedPackageAmount(this.$i18n, this.package_);
+    },
+    displayedPriceLabel() {
+      return resolveDisplayedPackagePriceLabel(this.$i18n);
+    },
     departureAddress() {
       return this.departureAddress_();
     },

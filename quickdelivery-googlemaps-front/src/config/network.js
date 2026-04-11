@@ -28,6 +28,26 @@ export function isMobileCapacitorRuntime() {
   return platform === 'android' || platform === 'ios';
 }
 
+export function isMobileBrowser() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches;
+  const narrowViewport = window.innerWidth <= 900;
+  const userAgent = (window.navigator?.userAgent || '').toLowerCase();
+  const mobileUserAgent = /android|iphone|ipad|ipod|mobile/.test(userAgent);
+  return Boolean(mobileUserAgent || (coarsePointer && narrowViewport));
+}
+
+export function shouldUseMobileSafeDocumentRendering() {
+  return isMobileCapacitorRuntime() || isMobileBrowser();
+}
+
+export function shouldUseCapacitorSafeDocumentRendering() {
+  return isMobileCapacitorRuntime();
+}
+
 function getStoredHostOverride() {
   try {
     const stored = localStorage.getItem(MOBILE_BACKEND_HOST_OVERRIDE_KEY) || '';
@@ -59,26 +79,9 @@ export function getBackendHostOverrideKey() {
 }
 
 export function ensureMobileBackendHostConfigured() {
-  if (!isMobileCapacitorRuntime()) {
-    return;
-  }
-
-  const existingHost = getStoredHostOverride();
-  if (existingHost) {
-    return;
-  }
-
-  const suggestedHost = getCapacitorPlatform() === 'android' ? '10.0.2.2' : '';
-  const enteredHost = window.prompt(
-    "Saisis l'IP de la machine qui execute le backend (ex: 192.168.1.25). Sur emulateur Android, tu peux aussi utiliser 10.0.2.2.",
-    suggestedHost
-  );
-
-  if (typeof enteredHost === 'string' && enteredHost.trim()) {
-    setBackendHostOverride(enteredHost);
-  } else if (suggestedHost) {
-    setBackendHostOverride(suggestedHost);
-  }
+  // Mobile builds must rely on explicit env URLs or existing overrides.
+  // Never prompt end users for a backend IP in production.
+  return;
 }
 
 export function resolveBackendHost() {

@@ -9,18 +9,15 @@
   <head>
     <title>🌏 Packages Map</title>
 	  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 	  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous" async defer></script>
 	  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer/dist/index.min.js"></script>
     <script>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
 	   let userID;
+       let deliveryMode = '';
 	   let map
-	   let directionsRenderer;
-       let directionsService;
+	   let routeLibrary;
 	   let packagesArround=[];
 	   let packagesOnMyRoad=[];
 	   let packagesSimpleDirection = [];
@@ -32,34 +29,56 @@
        let highlightedPackageIds = null;
        let routeStartMarker = null;
        let routeEndMarker = null;
-       let geocoder;
+       let routeStopMarkers = [];
+       let routePackagePolylines = [];
+       let activeRoutePolyline = null;
+       let activeCorridorPolyline = null;
+       let markerCluster = null;
+       let currentOptimizedRoutePayload = null;
+	   let geocoder;
 	   let initialLocation;
 	   let actualPosition;
-	   const gatewayBaseUrl = 'http://localhost:8087';
-       const ACTIVE_MARKER_ICON = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
-       const SELECTED_MARKER_ICON = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-       const INACTIVE_MARKER_ICON = 'https://maps.google.com/mapfiles/ms/icons/ltblue-dot.png';
+       let lastViewportMessage = '';
+       let suppressViewportPublishUntil = 0;
+       let AdvancedMarkerElement;
+       let PinElement;
+	   let gatewayBaseUrl = window.location.origin;
+       let vehicleType = '';
+       let radiusMeters = '';
+       
+       const ACTIVE_MARKER_COLOR = '#4f46e5';
+       const SELECTED_MARKER_COLOR = '#10b981';
+       const SOFT_LOCKED_MARKER_COLOR = '#f59e0b';
+       const INACTIVE_MARKER_COLOR = '#94a3b8';
+       const PACKAGE_ROUTE_COLORS = ['#2563eb', '#16a34a', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#be185d', '#4f46e5', '#65a30d', '#0f766e'];
+       
 	   function getAccessToken() {
 		   try {
-			   return localStorage.getItem('qd_access_token') || '';
+			   return sessionStorage.getItem('qd_access_token') || localStorage.getItem('qd_access_token') || '';
 		   } catch (_) {
 			   return '';
 		   }
 	   }
-	   function initMap() {
-          window.top.postMessage('StartLoading', '*');
+
+	   async function initMap() {
+          const markerLibrary = await google.maps.importLibrary('marker');
+          routeLibrary = await google.maps.importLibrary('routes');
+          
+          AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement;
+          PinElement = markerLibrary.PinElement;
+          
           var url_string = window.location.href;
           var url = new URL(url_string);
           userID = url.searchParams.get("userID");
-          directionsRenderer = new google.maps.DirectionsRenderer({
-              suppressMarkers: true,
-              polylineOptions:{strokeColor: '#525CEB'}
+          deliveryMode = url.searchParams.get("deliveryMode") || '';
+          vehicleType = url.searchParams.get("vehicleType") || '';
+          radiusMeters = url.searchParams.get("radiusMeters") || '';
+          gatewayBaseUrl = url.searchParams.get("gatewayBaseUrl") || window.location.origin;
+          
+          infowindow = new google.maps.InfoWindow({
+              size: new google.maps.Size(150,50)
           });
-          directionsService = new google.maps.DirectionsService();
-          infowindow = new google.maps.InfoWindow(
-              {
-                  size: new google.maps.Size(150,50)
-              });
+          
           map = new google.maps.Map(document.getElementById("map"), {
               zoom: 13,
               disableDefaultUI: true,
@@ -67,406 +86,592 @@
               scaleControl: true,
               mapId: "PACKAGES_AROUND",
           });
+          
+          markerCluster = new markerClusterer.MarkerClusterer({ map, markers: [] });
+          
           geocoder = new google.maps.Geocoder();
-
           const transitLayer = new google.maps.TransitLayer();
           transitLayer.setMap(map);
-
-          directionsRenderer.setMap(map);
-          const control = document.getElementById("floating-panel");
-          map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
-
+          map.addListener('idle', publishViewportState);
       }
+
+      function clearRenderedRoute() {
+          if (activeRoutePolyline) {
+              activeRoutePolyline.setMap(null);
+              activeRoutePolyline = null;
+          }
+          if (activeCorridorPolyline) {
+              activeCorridorPolyline.setMap(null);
+              activeCorridorPolyline = null;
+          }
+      }
+
+      function clearRouteStopMarkers() {
+          routeStopMarkers.forEach((marker) => marker.setMap(null));
+          routeStopMarkers = [];
+      }
+
+      function clearPackageRoutePolylines() {
+          routePackagePolylines.forEach((line) => line.setMap(null));
+          routePackagePolylines = [];
+      }
+
+      function clearPackageMarkers() {
+          for (let i = 0; i < markers.length; i += 1) {
+              markers[i].setMap(null);
+          }
+          markers = [];
+          markersByPackageId = {};
+          if (markerCluster) {
+              markerCluster.clearMarkers();
+          }
+      }
+
+      function renderRoute(route, showCorridor = false) {
+          clearRenderedRoute();
+          if (!route?.path || route.path.length === 0) return;
+          
+          if (showCorridor) {
+             activeCorridorPolyline = new google.maps.Polyline({
+                path: route.path,
+                strokeColor: '#6366f1',
+                strokeOpacity: 0.1,
+                strokeWeight: 40,
+                map: map,
+                zIndex: 1
+             });
+          }
+
+          activeRoutePolyline = new google.maps.Polyline({
+              path: route.path,
+              strokeColor: '#4f46e5',
+              strokeOpacity: 0.9,
+              strokeWeight: 6,
+              map: map,
+              zIndex: 2
+          });
+      }
+
+      async function computeDrivingRoute(start, end, intermediates = []) {
+          const { Route } = routeLibrary || await google.maps.importLibrary('routes');
+          const result = await Route.computeRoutes({
+              origin: start,
+              destination: end,
+              intermediates,
+              travelMode: 'DRIVING',
+              fields: ['path', 'distanceMeters', 'durationMillis'],
+          });
+          return result.routes?.[0] || null;
+      }
+
+      async function computeDrivingRouteInChunks(nodes) {
+          if (!Array.isArray(nodes) || nodes.length < 2) {
+              return null;
+          }
+          const maxIntermediatesPerCall = 23;
+          const combinedPath = [];
+          let totalDistanceMeters = 0;
+          let totalDurationMillis = 0;
+          let index = 0;
+
+          while (index < nodes.length - 1) {
+              const destinationIndex = Math.min(nodes.length - 1, index + maxIntermediatesPerCall + 1);
+              const origin = { lat: nodes[index].lat, lng: nodes[index].lng };
+              const destination = { lat: nodes[destinationIndex].lat, lng: nodes[destinationIndex].lng };
+              const intermediates = nodes
+                  .slice(index + 1, destinationIndex)
+                  .map((node) => ({ location: { lat: node.lat, lng: node.lng } }));
+              const segment = await computeDrivingRoute(origin, destination, intermediates);
+              if (!segment?.path?.length) {
+                  throw new Error('No route returned for chunk');
+              }
+              const path = [...segment.path];
+              if (combinedPath.length > 0) {
+                  path.shift();
+              }
+              combinedPath.push(...path);
+              totalDistanceMeters += segment.distanceMeters || 0;
+              totalDurationMillis += segment.durationMillis || 0;
+              index = destinationIndex;
+          }
+
+          return {
+              path: combinedPath,
+              distanceMeters: totalDistanceMeters,
+              durationMillis: totalDurationMillis,
+          };
+      }
+
+      function publishViewportState() {
+          if (!map) return;
+          if (Date.now() < suppressViewportPublishUntil) return;
+          const bounds = map.getBounds();
+          const center = map.getCenter();
+          if (!bounds || !center) return;
+          const payload = {
+              type: 'QD_MAP_VIEWPORT',
+              zoom: map.getZoom(),
+              center: { lat: Number(center.lat().toFixed(4)), lng: Number(center.lng().toFixed(4)) },
+              bounds: {
+                  minLat: Number(bounds.getSouthWest().lat().toFixed(4)),
+                  maxLat: Number(bounds.getNorthEast().lat().toFixed(4)),
+                  minLng: Number(bounds.getSouthWest().lng().toFixed(4)),
+                  maxLng: Number(bounds.getNorthEast().lng().toFixed(4))
+              }
+          };
+          const serialized = JSON.stringify(payload);
+          if (serialized === lastViewportMessage) return;
+          lastViewportMessage = serialized;
+          window.top.postMessage(serialized, '*');
+      }
+
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
 	        window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;
-			const filterSipleDirection = (simpleDirection) => (
-				simpleDirection.packageStart.lat === start.lat &&
-				simpleDirection.packageStart.lng === start.lng &&
-				simpleDirection.packageEnd.lat === end.lat &&
-				simpleDirection.packageEnd.lng === end.lng
-			);
-
-			const filteredSimpleDirection = packagesSimpleDirection.filter(filterSipleDirection);
-
-			if (filteredSimpleDirection.length > 0) {
-				directionsRenderer.setDirections(filteredSimpleDirection[0].response);
-                updateRouteEndpointMarkers(start, end);
-			} else {
-				const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
-				directionsService
-					.route({
-						origin: start,
-						destination: end,
-						travelMode: google.maps.TravelMode[selectedMode],
-					})
-					.then((response) => {
-						directionsRenderer.setDirections(response);
-						packagesSimpleDirection.push({ packageStart: start, packageEnd: end, response: response });
-                        updateRouteEndpointMarkers(start, end);
-					})
-					.catch((e) =>
-						window.alert("Directions request failed due to " + status)
-					);
-			}
+			computeDrivingRoute(start, end)
+				.then((response) => {
+					if (!response) throw new Error('No route returned');
+					renderRoute(response, true);
+					updateRouteEndpointMarkers(start, end);
+                    window.top.postMessage('EndLoading', '*');
+				})
+				.catch((e) => {
+                    window.top.postMessage('EndLoading', '*');
+					console.error("Directions request failed due to " + e)
+                });
 			highlightedPackageIds = null;
 			refreshMarkersVisualState();
-			window.top.postMessage('EndLoading', '*');
 		}
 
 	  function calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, packageStart, packageEnd) {
 			window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;
-			const filterOnMyRoadDirection = (simpleDirection) => (
-				simpleDirection.packageStart.lat === start.lat &&
-				simpleDirection.packageStart.lng === start.lng &&
-				simpleDirection.packageEnd.lat === end.lat &&
-				simpleDirection.packageEnd.lng === end.lng
-			);
-
-			const filteredOnMyRoadDirection = packagesOnMyRoadDirection.filter(filterOnMyRoadDirection);
-
-			if (filteredOnMyRoadDirection.length > 0) {
-				directionsRenderer.setDirections(filteredOnMyRoadDirection[0].response);
-                updateRouteEndpointMarkers(start, end);
-                const cachedPackageIds = filteredOnMyRoadDirection[0].packageIds || [];
-                if (Array.isArray(cachedPackageIds) && cachedPackageIds.length > 0) {
-                    highlightedPackageIds = new Set(cachedPackageIds.map((id) => String(id)));
-                    refreshMarkersVisualState();
-                    window.top.postMessage(`OnMyRoadPackages:${JSON.stringify(Array.from(highlightedPackageIds))}`, '*');
-                }
-			}else{
-				const selectedMode = google.maps.DirectionsTravelMode.DRIVING;
-				getPackagesOnMyRoad(packageStart, packageEnd)
-					.then(result => {
-						directionsService
-							.route({
-								origin: start,
-								destination: end,
-								waypoints: result.waypts,
-								travelMode: google.maps.TravelMode[selectedMode],
-							})
-							.then((response) => {
-								directionsRenderer.setDirections(response);
-								packagesOnMyRoadDirection.push({ packageStart: start, packageEnd: end, response: response, packageIds: result.packageIds || [] });
-                                updateRouteEndpointMarkers(start, end);
-								highlightedPackageIds = new Set(result.packageIds || []);
-								refreshMarkersVisualState();
-                                window.top.postMessage(`OnMyRoadPackages:${JSON.stringify(Array.from(highlightedPackageIds))}`, '*');
-							})
-							.catch((e) =>
-								window.alert("Directions request failed due to " + status)
-							);
-					})
-					.catch(error => {
-						// Gérer les erreurs ici si nécessaire
-						console.error(error);
-					});
-				}
-			window.top.postMessage('EndLoading', '*');
+			getPackagesOnMyRoad(packageStart, packageEnd)
+				.then(result => {
+					computeDrivingRoute(start, end)
+						.then((response) => {
+							if (!response) throw new Error('No route returned');
+							renderRoute(response, true);
+							updateRouteEndpointMarkers(start, end);
+							highlightedPackageIds = new Set(result.packageIds || []);
+							refreshMarkersVisualState();
+                            window.top.postMessage(`OnMyRoadPackages:${JSON.stringify(Array.from(highlightedPackageIds))}`, '*');
+                            window.top.postMessage('EndLoading', '*');
+						})
+						.catch((e) => {
+                            window.top.postMessage('EndLoading', '*');
+							console.error("Directions request failed due to " + e)
+                        });
+				})
+				.catch(error => {
+					window.top.postMessage('EndLoading', '*');
+					console.error(error);
+				});
 		}
+
+      function buildTourStopMarkerContent(stop, isSelected) {
+          const wrapper = document.createElement('div');
+          wrapper.style.display = 'flex';
+          wrapper.style.alignItems = 'center';
+          wrapper.style.justifyContent = 'center';
+          wrapper.style.width = '34px';
+          wrapper.style.height = '34px';
+          wrapper.style.borderRadius = '50%';
+          wrapper.style.background = stop.kind === 'pickup' ? '#2563eb' : '#16a34a';
+          wrapper.style.border = isSelected ? '3px solid #0f172a' : '2px solid #ffffff';
+          wrapper.style.color = '#ffffff';
+          wrapper.style.fontSize = '12px';
+          wrapper.style.fontWeight = '700';
+          wrapper.style.boxShadow = isSelected ? '0 0 0 4px rgba(15,23,42,0.18)' : '0 6px 16px rgba(15,23,42,0.18)';
+          wrapper.textContent = String(stop.order || '');
+          return wrapper;
+      }
+
+      function renderOptimizedRouteStopMarkers(stops) {
+          clearRouteStopMarkers();
+          if (!Array.isArray(stops)) {
+              return;
+          }
+          stops.forEach((stop) => {
+              const marker = new AdvancedMarkerElement({
+                  position: { lat: stop.lat, lng: stop.lng },
+                  map,
+                  title: `${stop.kind === 'pickup' ? 'Collecte' : 'Livraison'} ${stop.order || ''}`,
+                  content: buildTourStopMarkerContent(stop, String(stop.packageId) === selectedPackageId),
+                  zIndex: String(stop.packageId) === selectedPackageId ? 10003 : 10001,
+              });
+              marker.gmpClickable = true;
+              marker.addEventListener('gmp-click', function() {
+                  const roleLabel = stop.kind === 'pickup' ? 'Collecte' : 'Livraison';
+                  infowindow.setContent(`<div style="padding:10px;font-family:sans-serif;"><strong>${roleLabel} ${stop.order || ''}</strong><br/>#${stop.packageReference || ''}<br/>${stop.addressLabel || ''}</div>`);
+                  infowindow.open({ map, anchor: marker });
+                  if (stop.packageId) {
+                      window.top.postMessage(`SelectedPackage:${stop.packageId}`, '*');
+                  }
+              });
+              routeStopMarkers.push(marker);
+          });
+      }
+
+      function renderPackageConnectionLines(stops) {
+          clearPackageRoutePolylines();
+          if (!Array.isArray(stops) || !stops.length) {
+              return;
+          }
+          const groupedStops = new Map();
+          stops.forEach((stop) => {
+              if (!groupedStops.has(String(stop.packageId))) {
+                  groupedStops.set(String(stop.packageId), {});
+              }
+              const bucket = groupedStops.get(String(stop.packageId));
+              bucket[stop.kind] = stop;
+          });
+          Array.from(groupedStops.entries()).forEach(([packageId, pair], index) => {
+              if (!pair.pickup || !pair.dropoff) {
+                  return;
+              }
+              const color = PACKAGE_ROUTE_COLORS[index % PACKAGE_ROUTE_COLORS.length];
+              const line = new google.maps.Polyline({
+                  path: [
+                      { lat: pair.pickup.lat, lng: pair.pickup.lng },
+                      { lat: pair.dropoff.lat, lng: pair.dropoff.lng },
+                  ],
+                  strokeColor: color,
+                  strokeOpacity: String(packageId) === selectedPackageId ? 0.95 : 0.72,
+                  strokeWeight: String(packageId) === selectedPackageId ? 5 : 3,
+                  map,
+                  zIndex: String(packageId) === selectedPackageId ? 4 : 3,
+              });
+              routePackagePolylines.push(line);
+          });
+      }
+
+      async function renderOptimizedPersonalRoute(payload) {
+          if (!payload?.start || !payload?.end) {
+              return;
+          }
+          currentOptimizedRoutePayload = payload;
+          clearPackageMarkers();
+          const routeNodes = [
+              { lat: payload.start.lat, lng: payload.start.lng },
+              ...((payload.stops || []).map((stop) => ({ lat: stop.lat, lng: stop.lng }))),
+              { lat: payload.end.lat, lng: payload.end.lng }
+          ];
+          window.top.postMessage('StartLoading', '*');
+          try {
+              const route = await computeDrivingRouteInChunks(routeNodes);
+              if (!route) {
+                  throw new Error('No optimized route returned');
+              }
+              renderRoute(route, true);
+              updateRouteEndpointMarkers(payload.start, payload.end);
+              highlightedPackageIds = new Set((payload.packageIds || []).map((id) => String(id)));
+              refreshMarkersVisualState();
+              renderOptimizedRouteStopMarkers(payload.stops || []);
+              renderPackageConnectionLines(payload.stops || []);
+              window.top.postMessage(`OnMyRoadPackages:${JSON.stringify(Array.from(highlightedPackageIds))}`, '*');
+          } catch (error) {
+              console.error('Optimized route rendering failed', error);
+          } finally {
+              window.top.postMessage('EndLoading', '*');
+          }
+      }
 
 		async function getPackagesOnMyRoad(departurePosition, arrivalPosition) {
 			return new Promise(async (resolve, reject) => {
 				try {
 					var xhr = new XMLHttpRequest();
-					const waypts = [];
                     const onRoadPackageIds = [];
-					var url = `${gatewayBaseUrl}/packages/v1/packages-on-my-road?departureLatitude=${departurePosition.lat}&departureLongitude=${departurePosition.lng}&arrivalLatitude=${arrivalPosition.lat}&arrivalLongitude=${arrivalPosition.lng}`;
+					const params = new URLSearchParams({
+						departureLatitude: String(departurePosition.lat),
+						departureLongitude: String(departurePosition.lng),
+						arrivalLatitude: String(arrivalPosition.lat),
+						arrivalLongitude: String(arrivalPosition.lng),
+						deliveryMode: deliveryMode || '',
+						vehicleType: vehicleType || '',
+						radiusMeters: radiusMeters || '',
+					});
+					var url = `${gatewayBaseUrl}/packages/v1/packages-on-my-road?${params.toString()}`;
 					xhr.open("GET", url, true);
                     const accessToken = getAccessToken();
-                    if (accessToken) {
-                        xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
-                    }
+                    if (accessToken) xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
 
 					xhr.onload = function () {
 						if (xhr.status >= 200 && xhr.status < 300) {
 							packagesOnMyRoad = JSON.parse(xhr.responseText);
 							packagesOnMyRoad.forEach(function (package_) {
                                 onRoadPackageIds.push(String(package_.id));
-								var addressToAdd;
-								package_.addresses.forEach(function (adresse) {
-									addressToAdd = { lat: adresse.latitude, lng: adresse.longitude };
-									waypts.push({
-										location: addressToAdd,
-										stopover: true,
-									});
-								});
 							});
-							waypts.sort((a, b) => a.location.lat - b.location.lat);
-							resolve({ waypts: waypts, packageIds: onRoadPackageIds });
-						} else {
-							console.error("Erreur de l'API :", xhr.statusText);
-							reject(new Error(xhr.statusText));
-						}
+							resolve({ packageIds: onRoadPackageIds });
+						} else reject(new Error(xhr.statusText));
 					};
-
-					xhr.onerror = function () {
-						console.error("Erreur de réseau lors de la requête vers l'API.");
-						reject(new Error("Erreur de réseau lors de la requête vers l'API."));
-					};
-
+					xhr.onerror = function () { reject(new Error("Erreur de réseau lors de la requête vers l'API.")); };
 					xhr.send();
-				} catch (error) {
-					reject(error);
-				}
+				} catch (error) { reject(error); }
 			});
 		}
 
-	  function addMarker(departureAddress, arrivalAddress, map) {
-		  if(departureAddress != undefined){
-				  var markerInfo;
-				  if(arrivalAddress != undefined){
-				    if(arrivalAddress.line2 != null){
-					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.line2} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p>`;
-					}else{
-					  markerInfo = `<p>${arrivalAddress.line1} ${arrivalAddress.zipCode} ${arrivalAddress.town}</p>`;
-					}
+      function buildPinMarkerContent(labelText, background) {
+          return new PinElement({
+              glyphText: labelText,
+              glyphColor: '#ffffff',
+              background,
+              borderColor: background,
+          });
+      }
 
-				  }
+      function buildPackageMarkerContent(background, isSelected, isLocked = false) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'package-marker-v2' + (isLocked ? ' locked' : '');
+          wrapper.style.width = '36px';
+          wrapper.style.height = '36px';
+          wrapper.style.display = 'flex';
+          wrapper.style.alignItems = 'center';
+          wrapper.style.justifyContent = 'center';
+          wrapper.style.borderRadius = '12px';
+          wrapper.style.background = background;
+          wrapper.style.border = isSelected ? '3px solid #ffffff' : '2px solid rgba(255,255,255,0.8)';
+          wrapper.style.boxShadow = isSelected
+              ? '0 0 0 3px rgba(16,185,129,0.3), 0 8px 24px rgba(0,0,0,0.25)' : '0 4px 12px rgba(0,0,0,0.15)';
+          wrapper.style.transform = isSelected ? 'scale(1.1)' : 'scale(1)';
+          wrapper.style.transition = 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
-				  var marker = new google.maps.Marker({
-					  position: departureAddress,
-					  title: arrivalAddress.packageID+"",
-                      icon: ACTIVE_MARKER_ICON,
-					  map:map,
-					  zIndex: Math.round(departureAddress.lat*-100000)<<5
-				  });
-				  marker.myname = arrivalAddress.packageID;
-				google.maps.event.addListener(marker, 'click', function() {
-					infowindow.setContent(markerInfo);
-					infowindow.open(map,marker);
-					window.top.postMessage("SelectedPackage:"+arrivalAddress.packageID, '*');
-				});
-				markers.push(marker);
-                markersByPackageId[String(arrivalAddress.packageID)] = marker;
-			}
-		}
-	  function setMarkerVisualState(marker, isActive, isSelected) {
-          if (!marker) {
-              return;
-          }
-          if (isSelected) {
-              marker.setIcon(SELECTED_MARKER_ICON);
-              marker.setOpacity(1);
-              marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
-              return;
-          }
-          marker.setIcon(isActive ? ACTIVE_MARKER_ICON : INACTIVE_MARKER_ICON);
-          marker.setOpacity(isActive ? 1 : 0.35);
-          marker.setZIndex(isActive ? google.maps.Marker.MAX_ZINDEX : 0);
+          const icon = document.createElement('span');
+          icon.className = 'material-symbols-outlined';
+          icon.textContent = isLocked ? 'lock' : 'deployed_code';
+          icon.style.fontSize = '20px';
+          icon.style.color = '#ffffff';
+
+          wrapper.appendChild(icon);
+          return wrapper;
       }
-      function clearRouteEndpointMarkers() {
-          if (routeStartMarker) {
-              routeStartMarker.setMap(null);
-              routeStartMarker = null;
-          }
-          if (routeEndMarker) {
-              routeEndMarker.setMap(null);
-              routeEndMarker = null;
-          }
-      }
-      function updateRouteEndpointMarkers(start, end) {
-          clearRouteEndpointMarkers();
-          routeStartMarker = new google.maps.Marker({
-              position: start,
-              map: map,
-              label: { text: 'A', color: '#ffffff', fontWeight: '700' },
-              icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-              zIndex: google.maps.Marker.MAX_ZINDEX + 2
-          });
-          routeEndMarker = new google.maps.Marker({
-              position: end,
-              map: map,
-              label: { text: 'B', color: '#ffffff', fontWeight: '700' },
-              icon: 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png',
-              zIndex: google.maps.Marker.MAX_ZINDEX + 2
-          });
-      }
-      function refreshMarkersVisualState() {
-          markers.forEach((marker) => {
-              const packageId = String(marker.myname);
-              const isSelected = selectedPackageId !== null && packageId === selectedPackageId;
-              const isHighlighted = highlightedPackageIds ? highlightedPackageIds.has(packageId) : false;
-              const isActive = highlightedPackageIds ? isHighlighted || isSelected : isSelected || selectedPackageId === null;
-              setMarkerVisualState(marker, isActive, isSelected);
-          });
-      }
-      window.initMap = initMap;
-      function centerMapByAddress(addressText) {
-          if (!addressText || !geocoder || !map) {
-              return;
-          }
-          geocoder.geocode({ address: addressText }, (results, status) => {
-              if (status === "OK" && results && results[0] && results[0].geometry && results[0].geometry.location) {
-                  map.setCenter(results[0].geometry.location);
+
+      function buildRouteAddresses(packageData) {
+          let arrivalAddress, departureAddress;
+          (packageData?.addresses || []).forEach(function(address) {
+              if (address.type === "ARRIVAL") {
+                  arrivalAddress = { packageID: packageData.id, line1: address.line1, zipCode: address.zipCode, town: address.town, lat: Number(address.latitude), lng: Number(address.longitude) };
+              } else if (address.type === "DEPARTURE") {
+                  departureAddress = { lat: Number(address.latitude), lng: Number(address.longitude) };
               }
           });
+          return { arrivalAddress, departureAddress };
       }
+
+	  function addMarker(package_, departureAddress, arrivalAddress, map) {
+		  if(departureAddress != undefined){
+				  var markerInfo = `<div style="padding: 10px; font-family: sans-serif;"><strong>#${package_.reference}</strong><br/>Collecte ${package_.routePickupOrder || '-'} / Livraison ${package_.routeDropoffOrder || '-'}<br/>${arrivalAddress.line1}<br/>${arrivalAddress.zipCode} ${arrivalAddress.town}</div>`;
+                  const isLocked = !!package_.isSoftLockedBy;
+                  let color = ACTIVE_MARKER_COLOR;
+                  if (package_.id === parseInt(selectedPackageId)) color = SELECTED_MARKER_COLOR;
+                  else if (isLocked) color = SOFT_LOCKED_MARKER_COLOR;
+
+				  var marker = new AdvancedMarkerElement({
+					  position: departureAddress,
+					  title: String(package_.id),
+                      content: buildPackageMarkerContent(color, package_.id === parseInt(selectedPackageId), isLocked),
+					  map:map,
+				  });
+				marker.packageId = String(package_.id);
+				marker.gmpClickable = true;
+				marker.addEventListener('gmp-click', function() {
+					infowindow.setContent(markerInfo);
+					infowindow.open({ map, anchor: marker });
+					window.top.postMessage("SelectedPackage:"+package_.id, '*');
+				});
+				markers.push(marker);
+                markersByPackageId[String(package_.id)] = marker;
+			}
+		}
+
+	  function setMarkerVisualState(marker, isActive, isSelected, isLocked = false) {
+          if (!marker) return;
+          let color = INACTIVE_MARKER_COLOR;
+          if (isSelected) color = SELECTED_MARKER_COLOR;
+          else if (isLocked) color = SOFT_LOCKED_MARKER_COLOR;
+          else if (isActive) color = ACTIVE_MARKER_COLOR;
+          marker.content = buildPackageMarkerContent(color, isSelected, isLocked);
+          marker.zIndex = isSelected ? 1000 : (isActive ? 100 : 10);
+      }
+
+      function clearRouteEndpointMarkers() {
+          if (routeStartMarker) routeStartMarker.setMap(null);
+          if (routeEndMarker) routeEndMarker.setMap(null);
+          routeStartMarker = null;
+          routeEndMarker = null;
+      }
+
+      function updateRouteEndpointMarkers(start, end) {
+          clearRouteEndpointMarkers();
+          routeStartMarker = new AdvancedMarkerElement({ position: start, map, title: 'A', content: buildPinMarkerContent('A', '#4f46e5'), zIndex: 10002 });
+          routeEndMarker = new AdvancedMarkerElement({ position: end, map, title: 'B', content: buildPinMarkerContent('B', '#10b981'), zIndex: 10002 });
+      }
+
+      function refreshMarkersVisualState() {
+          markers.forEach((marker) => {
+              const pkg = packagesArround.find(p => String(p.id) === marker.packageId);
+              const isSelected = selectedPackageId !== null && marker.packageId === selectedPackageId;
+              const isHighlighted = highlightedPackageIds ? highlightedPackageIds.has(marker.packageId) : false;
+              const isActive = highlightedPackageIds ? isHighlighted || isSelected : isSelected || selectedPackageId === null;
+              const isLocked = pkg ? !!pkg.isSoftLockedBy : false;
+              setMarkerVisualState(marker, isActive, isSelected, isLocked);
+          });
+          if (currentOptimizedRoutePayload?.stops) {
+              renderOptimizedRouteStopMarkers(currentOptimizedRoutePayload.stops);
+              renderPackageConnectionLines(currentOptimizedRoutePayload.stops);
+          }
+      }
+
+      window.initMap = initMap;
+
+      function recenterOnUser() {
+         if (actualPosition && map) {
+            map.panTo(actualPosition);
+         }
+      }
+
+      function parseDirectionMessage(message, prefix) {
+        if (typeof message !== 'string' || !message.startsWith(prefix)) {
+          return null;
+        }
+
+        const parts = message.substring(prefix.length).split(';');
+        if (parts.length !== 2) {
+          return null;
+        }
+
+        const start = parts[0].split(',').map(Number);
+        const end = parts[1].split(',').map(Number);
+        if (start.some(Number.isNaN) || end.some(Number.isNaN)) {
+          return null;
+        }
+
+        return {
+          start: { lat: start[0], lng: start[1] },
+          end: { lat: end[0], lng: end[1] },
+        };
+      }
+
       window.onmessage = (e) => {
         let parsedData = e.data;
         if (typeof e.data === 'string') {
-          try {
-            parsedData = JSON.parse(e.data);
-          } catch (_ignore) {
-            parsedData = e.data;
-          }
+          try { parsedData = JSON.parse(e.data); } catch (_) { parsedData = e.data; }
         }
-        if (!window.google || !window.google.maps || !map) {
-          return;
-        }
-        if (parsedData && parsedData.centerAddress) {
-           centerMapByAddress(parsedData.centerAddress);
-        } else if (parsedData && parsedData.actuallongitude && parsedData.actuallatitude) {
-           initialLocation = new google.maps.LatLng(parsedData.actuallatitude, parsedData.actuallongitude);
-           map.setCenter(initialLocation);
-        }else if (Array.isArray(parsedData)) {
+        if (!window.google?.maps || !map) return;
+
+        if (parsedData?.centerAddress) {
+           geocoder.geocode({ address: parsedData.centerAddress }, (results, status) => {
+              if (status === "OK" && results?.[0]?.geometry?.location) {
+                 suppressViewportPublishUntil = Date.now() + 1200;
+                 map.setCenter(results[0].geometry.location);
+              }
+           });
+        } else if (parsedData?.actuallongitude && parsedData?.actuallatitude) {
+           actualPosition = new google.maps.LatLng(parsedData.actuallatitude, parsedData.actuallongitude);
+           suppressViewportPublishUntil = Date.now() + 1200;
+           map.setCenter(actualPosition);
+           document.getElementById('recentrer-btn').style.display = 'flex';
+        } else if (Array.isArray(parsedData)) {
           removeAllMarkers();
-          const rawData = parsedData;
-          packagesArround = JSON.parse(JSON.stringify(rawData));
-		  packagesArround.forEach(function(package_) {
-		  	var arrivalAddress;
-		  	var departureAddress;
-		  	package_.addresses.forEach(function(adresse) {
-		  		if(adresse.type === "ARRIVAL"){
-		  			arrivalAddress = {packageID: package_.id,line1: adresse.line1, line2: adresse.line2, zipCode: adresse.zipCode, town: adresse.town, lat: adresse.latitude, lng: adresse.longitude};
-		  		}else{
-		  			departureAddress = {lat: adresse.latitude, lng: adresse.longitude};
-		  		}
-		  	});
-			addMarker(departureAddress, arrivalAddress, map);
-			});
+          packagesArround = JSON.parse(JSON.stringify(parsedData));
+          if (!currentOptimizedRoutePayload?.stops) {
+		      packagesArround.forEach(function(package_) {
+		      	const { arrivalAddress, departureAddress } = buildRouteAddresses(package_);
+			      addMarker(package_, departureAddress, arrivalAddress, map);
+			    });
+          }
+          if (markerCluster) {
+             markerCluster.clearMarkers();
+             if (markers.length > 0) {
+               markerCluster.addMarkers(markers);
+             }
+          }
           refreshMarkersVisualState();
+          if (currentOptimizedRoutePayload?.stops) {
+              renderOptimizedRouteStopMarkers(currentOptimizedRoutePayload.stops);
+              renderPackageConnectionLines(currentOptimizedRoutePayload.stops);
+          }
         } else if (typeof e.data === 'string' && e.data.includes('SelectedPackage:')) {
             selectedPackageId = String(e.data.split(':')[1]);
             highlightedPackageIds = null;
             refreshMarkersVisualState();
-        } else if (typeof e.data === 'string' && e.data.includes('SelectedDirection:')) {
-			let dataArray = e.data.split(';');
-			let departure = dataArray[0].split(':')[1];
-			let arrival = dataArray[1];
-			let departureArray = departure.split(',');
-			let arrivalArray = arrival.split(',');
-			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
-			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
-			calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, departurePosition, arrivalPosition);
-        }else if (typeof e.data === 'string' && e.data.includes('OnMyDirection:')) {
-			let dataArray = e.data.split(';');
-			let departure = dataArray[0].split(':')[1];
-			let arrival = dataArray[1];
-			let departureArray = departure.split(',');
-			let arrivalArray = arrival.split(',');
-			let departurePosition = {lat: Number(departureArray[0]), lng: Number(departureArray[1])}
-			let arrivalPosition = {lat: Number(arrivalArray[0]), lng: Number(arrivalArray[1])}
-			calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, departurePosition, arrivalPosition);
+        } else if (typeof e.data === 'string' && e.data.startsWith('OptimizedPersonalRoute:')) {
+            try {
+              const payload = JSON.parse(e.data.substring('OptimizedPersonalRoute:'.length));
+              selectedPackageId = payload?.selectedPackageId != null ? String(payload.selectedPackageId) : selectedPackageId;
+              renderOptimizedPersonalRoute(payload);
+            } catch (error) {
+              console.error('Invalid optimized personal route payload', error);
+            }
+        } else if (typeof e.data === 'string' && e.data.startsWith('SelectedDirection:')) {
+            const parsedDirection = parseDirectionMessage(e.data, 'SelectedDirection:');
+            if (parsedDirection) {
+              currentOptimizedRoutePayload = null;
+              clearRouteStopMarkers();
+              clearPackageRoutePolylines();
+              calculateAndDisplayRouteForPackage(null, null, parsedDirection.start, parsedDirection.end);
+            }
+        } else if (typeof e.data === 'string' && e.data.startsWith('OnMyRoadSearchContext:')) {
+            try {
+              const payload = JSON.parse(e.data.substring('OnMyRoadSearchContext:'.length));
+              deliveryMode = payload?.deliveryMode || deliveryMode;
+              vehicleType = payload?.vehicleType || vehicleType;
+              radiusMeters = payload?.radiusMeters || radiusMeters;
+            } catch (_ignored) {
+              // Ignore malformed context updates from parent.
+            }
+        } else if (typeof e.data === 'string' && e.data.includes('OnMyDirection:')) {
+            const parsedDirection = parseDirectionMessage(e.data, 'OnMyDirection:');
+            if (parsedDirection) {
+			  currentOptimizedRoutePayload = null;
+			  clearRouteStopMarkers();
+			  clearPackageRoutePolylines();
+			  calculateAndDisplayRouteForPackageOnMyRoad(null, null, parsedDirection.start, parsedDirection.end);
+            }
+        } else if (parsedData?.type === 'PACKAGE_SOFT_LOCKED') {
+            // Update the markers with the new soft lock state
+            const pkg = packagesArround.find(p => p.id === parsedData.packageId);
+            if (pkg) {
+               pkg.isSoftLockedBy = parsedData.from;
+               refreshMarkersVisualState();
+            }
         }
       }
-	  function refreshPackagesList(){
-	    window.top.postMessage('StartLoading', '*');
-		removeAllMarkers();
-	    window.top.postMessage('EndLoading', '*');
-	  }
+
       function removeAllMarkers() {
-		for (let i = 0; i < markers.length; i++) {
-			markers[i].setMap(null);
-		}
-		markers.splice(0, markers.length);
-        markersByPackageId = {};
+        clearPackageMarkers();
+        clearRenderedRoute();
+        clearRouteStopMarkers();
+        clearPackageRoutePolylines();
         clearRouteEndpointMarkers();
 	  }
     </script>
     <style>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
-      /* Optional: Makes the sample page fill the window. */
-      html,
-      body {
-        height: 100vh;
-        margin: 0;
-        padding: 0;
+      html, body { height: 100vh; margin: 0; padding: 0; background: #f8fafc; }
+      #map { height: 100%; width: 100%; }
+      .package-marker-v2.locked { animation: pulse-orange 2s infinite; }
+      @keyframes pulse-orange {
+        0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
       }
-
-      #container {
-        height: 100%;
-        display: flex;
-		padding: 0;
+      #recentrer-btn {
+        position: absolute; bottom: 24px; right: 24px; z-index: 10;
+        width: 48px; height: 48px; background: #ffffff; border: none; border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; justify-content: center;
+        cursor: pointer; transition: transform 0.2s;
       }
-
-      #sidebar {
-        flex-basis: 15rem;
-        flex-grow: 1;
-        padding: 1rem;
-        max-width: 30rem;
-        height: 100%;
-        box-sizing: border-box;
-        overflow: auto;
-      }
-
-      #map {
-        flex-basis: 0;
-        flex-grow: 4;
-        height: 100%;
-      }
-
-      #floating-panel {
-        position: absolute;
-        top: 10px;
-        left: 25%;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-        text-align: center;
-        font-family: "Roboto", "sans-serif";
-        line-height: 30px;
-        padding-left: 10px;
-      }
-
-      #floating-panel {
-        background-color: #fff;
-        border: 0;
-        border-radius: 2px;
-        box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
-        margin: 10px;
-        padding: 0 0.5em;
-        font: 400 18px Roboto, Arial, sans-serif;
-        overflow: hidden;
-        padding: 5px;
-        font-size: 14px;
-        text-align: center;
-        line-height: 30px;
-        height: auto;
-      }
-
-      #map {
-        flex: auto;
-      }
-
-      #sidebar {
-        flex: 0 1 auto;
-        padding: 0;
-      }
-      #sidebar > div {
-        padding: 0.5rem;
-      }
+      #recentrer-btn:hover { transform: scale(1.1); background: #f1f5f9; }
+      #recentrer-btn span { font-size: 24px; color: #4f46e5; }
     </style>
   </head>
   <body>
-    <div id="container" class="container-fluid">
-      <div id="map" class="col-md-8"></div>
-    </div>
-    <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U&callback=initMap&v=weekly"
-            loading="async"
-    >
-    /*   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?key=AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U&callback=initMap&v=weekly`;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-    key: "AIzaSyCaxhp9_GMSkdHTlv23mIVVlO_mq17Yn6U",});*/
-    </script>
+    <div id="map"></div>
+    <button id="recentrer-btn" onclick="recenterOnUser()" title="Recentrer">
+       <span class="material-symbols-outlined">my_location</span>
+    </button>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=<%= VUE_APP_GOOGLE_MAPS_KEY %>&callback=initMap&v=weekly&loading=async"></script>
   </body>
 </html>
-    

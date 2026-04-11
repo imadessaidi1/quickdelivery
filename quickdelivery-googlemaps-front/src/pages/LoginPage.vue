@@ -18,6 +18,17 @@
           <label for="login-email">{{ $t('packageAddressEmail') }}</label>
           <input id="login-email" v-model.trim="loginHint" type="email" autocomplete="email">
 
+          <p v-if="requiresCaptcha" class="security-note captcha-note">{{ $t('captchaSecurityHint') }}</p>
+          <TurnstileCaptcha
+            v-if="requiresCaptcha"
+            ref="loginCaptcha"
+            action="login"
+            @verified="captchaToken = $event"
+            @expired="captchaToken = ''"
+            @error="captchaToken = ''"
+          />
+          <p v-if="captchaError" class="captcha-error">{{ captchaError }}</p>
+
           <button class="login-btn" type="submit">{{ $t('landingLoginAction') }}</button>
         </form>
 
@@ -33,26 +44,41 @@
 </template>
 
 <script>
-import { redirectToLogin } from '@/config/auth';
+import TurnstileCaptcha from '@/components/TurnstileCaptcha.vue';
+import { getLoginAttemptCount, redirectToLogin, registerLoginAttempt } from '@/config/auth';
 
 export default {
+  components: {
+    TurnstileCaptcha,
+  },
   data() {
     return {
       loginHint: '',
+      captchaToken: '',
+      captchaError: '',
     };
   },
-  methods: {
-    async startLogin() {
-      await redirectToLogin({
-        loginHint: this.loginHint,
-      });
-    },
-  },
   computed: {
+    requiresCaptcha() {
+      return !!process.env.VUE_APP_TURNSTILE_SITE_KEY && getLoginAttemptCount() >= 3;
+    },
     heroStyle() {
       return {
         backgroundImage: "linear-gradient(rgba(0, 51, 102, 0.58), rgba(0, 51, 102, 0.82)), url('/landing/img/call-agent.jpg')",
       };
+    },
+  },
+  methods: {
+    async startLogin() {
+      if (this.requiresCaptcha && !this.captchaToken) {
+        this.captchaError = this.$t('captchaRequiredMessage');
+        return;
+      }
+      this.captchaError = '';
+      registerLoginAttempt();
+      await redirectToLogin({
+        loginHint: this.loginHint,
+      });
     },
   },
 };
@@ -182,6 +208,16 @@ export default {
   margin-top: 18px !important;
   font-size: 0.9rem;
   line-height: 1.6;
+}
+
+.captcha-note {
+  margin-top: 8px !important;
+}
+
+.captcha-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.9rem;
 }
 
 .login-links {

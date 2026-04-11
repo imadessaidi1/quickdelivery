@@ -10,23 +10,19 @@ import com.quickdelivery.abstarct.dto.PackageDTO;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 public class PackageDeliveryPriceCalculator {
-    private static final double MINIMUM_PRICE = 6.90;
-    private static final double STANDARD_BASE_PRICE = 4.90;
-    private static final double EXPRESS_BASE_PRICE = 7.90;
-    private static final double SAME_DAY_BASE_PRICE = 10.90;
-    private static final double STANDARD_DISTANCE_FACTOR = 1.00;
-    private static final double EXPRESS_DISTANCE_FACTOR = 1.15;
-    private static final double SAME_DAY_DISTANCE_FACTOR = 1.30;
-    private static final double INSURANCE_MINIMUM_FEE = 1.50;
+    private static final double LONG_DISTANCE_THRESHOLD_KM = 100.0;
+    private static final double INSURANCE_MINIMUM_FEE = 1.00;
     private static final double INSURANCE_RATE = 0.02;
-    private static final double PLATFORM_SERVICE_MINIMUM_FEE = 0.90;
-    private static final double PLATFORM_SERVICE_RATE = 0.08;
+    private static final double PLATFORM_SERVICE_MINIMUM_FEE = 1.20;
+    private static final double SHORT_DISTANCE_PLATFORM_SERVICE_RATE = 0.06;
+    private static final double LONG_DISTANCE_PLATFORM_SERVICE_RATE = 0.06;
     private static final double PLATFORM_COMMISSION_RATE = 0.25;
     private static final double COURIER_PAYOUT_RATE = 0.75;
     private static final String DEFAULT_CURRENCY = "EUR";
-    private static final String PRICING_VERSION = "v1";
+    private static final String PRICING_VERSION = "v4";
 
     public static double calculateDeliveryPrice(GeoApiContext context, PackageDTO packageDTO) {
         double distance = calculateDistance(context, packageDTO.getAddresses());
@@ -43,29 +39,28 @@ public class PackageDeliveryPriceCalculator {
     }
 
     public static PackagePricingBreakdown calculatePricingBreakdown(double distance, PackageDTO packageDTO) {
-        double chargeableWeight = calculateChargeableWeight(packageDTO.getDepth(), packageDTO.getWidth(), packageDTO.getHeight(), packageDTO.getWeight());
-        double basePrice = resolveBasePrice(packageDTO.getDeliverySpeed());
-        double distanceFees = calculateDistanceFees(distance, packageDTO.getDeliverySpeed());
-        double weightFees = calculateWeightFees(chargeableWeight);
-        double floorFees = calculateFloorFees(
-                chargeableWeight,
-                packageDTO.getAddresses().get(0).getFloor(),
-                packageDTO.getAddresses().get(0).getHasElevator(),
-                packageDTO.getAddresses().get(1).getFloor(),
-                packageDTO.getAddresses().get(1).getHasElevator()
-        );
-        double insuranceFees = calculateInsuranceFees(packageDTO.getInsuranceSelected(), packageDTO.getDeclaredValue());
-        double deliveryBaseAmount = basePrice + distanceFees + weightFees + floorFees;
-        double deliveryPrice = deliveryBaseAmount + insuranceFees;
-        double serviceFees = roundToCents(calculatePlatformServiceFees(deliveryPrice));
-        double customerTotalPrice = roundUpToNearestTenth(Math.max(MINIMUM_PRICE, deliveryPrice + serviceFees));
+        validateInputs(distance, packageDTO);
+        boolean longDistance = Math.max(0, distance) > LONG_DISTANCE_THRESHOLD_KM;
+        double basePrice = resolveCategoryBase(packageDTO.getPackageSizeCategory());
+        double weightFees = calculateWeightSurcharge(packageDTO.getWeight());
+        double distanceFees = longDistance
+                ? calculateLongDistanceFees(distance)
+                : calculateShortAndMediumDistanceFees(distance);
+        double rawSubtotal = roundToCents(basePrice + weightFees + distanceFees);
+        double modeCoefficient = resolveDeliveryModeCoefficient(packageDTO.getDeliverySpeed(), longDistance);
+        double logisticPrice = roundToCents(rawSubtotal * modeCoefficient);
+        double insuranceFees = roundToCents(calculateInsuranceFees(packageDTO.getInsuranceSelected(), packageDTO.getDeclaredValue()));
+        double serviceFees = roundToCents(calculatePlatformServiceFees(logisticPrice + insuranceFees, longDistance));
+        double rawFinalPrice = logisticPrice + insuranceFees + serviceFees;
+        double flooredPrice = longDistance ? rawFinalPrice : Math.max(rawFinalPrice, resolveShortDistanceMinimumPrice(distance));
+        double customerTotalPrice = roundUpToNearestTenth(flooredPrice);
         double deliveryRevenueExcludingServiceFee = roundToCents(Math.max(0, customerTotalPrice - serviceFees));
         double platformCommissionAmount = roundToCents(deliveryRevenueExcludingServiceFee * PLATFORM_COMMISSION_RATE);
         double courierPayoutAmount = roundToCents(deliveryRevenueExcludingServiceFee * COURIER_PAYOUT_RATE);
         return new PackagePricingBreakdown(
                 customerTotalPrice,
-                roundToCents(deliveryBaseAmount),
-                roundToCents(insuranceFees),
+                logisticPrice,
+                insuranceFees,
                 serviceFees,
                 deliveryRevenueExcludingServiceFee,
                 PLATFORM_COMMISSION_RATE,
@@ -91,93 +86,132 @@ public class PackageDeliveryPriceCalculator {
         }
     }
 
-    private static double calculateChargeableWeight(Float length, Float width, Float height, Float actualWeight) {
-        double realWeight = Math.max(0.5, actualWeight == null ? 0 : actualWeight);
-        double volumetricWeight = calculateVolumetricWeight(length, width, height);
-        return Math.max(realWeight, volumetricWeight);
+    private static double resolveCategoryBase(String packageSizeCategory) {
+        String normalizedCategory = normalizeCategory(packageSizeCategory);
+        return switch (normalizedCategory) {
+            case "SMALL" -> 4.50;
+            case "MEDIUM" -> 6.50;
+            case "LARGE" -> 8.50;
+            case "EXTRA_LARGE" -> 11.00;
+            default -> throw new IllegalArgumentException("Unknown package category: " + packageSizeCategory);
+        };
     }
 
-    private static double calculateVolumetricWeight(Float length, Float width, Float height) {
-        double resolvedLength = Math.max(0, length == null ? 0 : length);
-        double resolvedWidth = Math.max(0, width == null ? 0 : width);
-        double resolvedHeight = Math.max(0, height == null ? 0 : height);
-        if (resolvedLength == 0 || resolvedWidth == 0 || resolvedHeight == 0) {
+    private static String normalizeCategory(String packageSizeCategory) {
+        if (packageSizeCategory == null || packageSizeCategory.isBlank()) {
+            throw new IllegalArgumentException("Package category is required.");
+        }
+        String normalized = packageSizeCategory.trim().toUpperCase(Locale.ROOT);
+        if ("XLARGE".equals(normalized) || "X_LARGE".equals(normalized) || "X-LARGE".equals(normalized)) {
+            return "EXTRA_LARGE";
+        }
+        if ("EXTRALARGE".equals(normalized) || "EXTRA-LARGE".equals(normalized)) {
+            return "EXTRA_LARGE";
+        }
+        return normalized;
+    }
+
+    private static double calculateWeightSurcharge(Float weight) {
+        double realWeight = Math.max(0, weight == null ? 0 : weight);
+        if (realWeight <= 0) {
+            throw new IllegalArgumentException("Weight must be greater than zero.");
+        }
+        if (realWeight <= 2) {
             return 0;
         }
-        return (resolvedLength * resolvedWidth * resolvedHeight) / 5000.0;
+        if (realWeight <= 5) {
+            return 1.50;
+        }
+        if (realWeight <= 10) {
+            return 3.00;
+        }
+        if (realWeight <= 15) {
+            return 5.00;
+        }
+        return 8.00;
     }
 
-    private static double calculateDistanceFees(double distance, String deliverySpeed) {
-        double rawDistanceFees;
-        if (distance <= 3) {
-            rawDistanceFees = 1.20 * distance;
-        } else if (distance <= 10) {
-            rawDistanceFees = 3.60 + (0.95 * (distance - 3));
-        } else {
-            rawDistanceFees = 10.25 + (0.80 * (distance - 10));
-        }
-        return rawDistanceFees * resolveDistanceFactor(deliverySpeed);
+    private static double calculateShortAndMediumDistanceFees(double distance) {
+        double normalizedDistance = Math.max(0, distance);
+        double firstTier = Math.min(normalizedDistance, 10.0);
+        double secondTier = Math.min(Math.max(normalizedDistance - 10.0, 0), 20.0);
+        double thirdTier = Math.min(Math.max(normalizedDistance - 30.0, 0), 20.0);
+        double fourthTier = Math.min(Math.max(normalizedDistance - 50.0, 0), 50.0);
+        return roundToCents((firstTier * 0.45) + (secondTier * 0.28) + (thirdTier * 0.18) + (fourthTier * 0.12));
     }
 
-    private static double calculateWeightFees(double chargeableWeight) {
-        if (chargeableWeight <= 2) {
-            return 0;
-        }
-        if (chargeableWeight <= 10) {
-            return 0.60 * (chargeableWeight - 2);
-        }
-        return 4.80 + (0.90 * (chargeableWeight - 10));
+    private static double calculateLongDistanceFees(double distance) {
+        double normalizedDistance = Math.max(0, distance);
+        double firstTier = Math.min(normalizedDistance, 20.0);
+        double secondTier = Math.min(Math.max(normalizedDistance - 20.0, 0), 80.0);
+        double thirdTier = Math.max(normalizedDistance - 100.0, 0);
+        return roundToCents((firstTier * 0.35) + (secondTier * 0.08) + (thirdTier * 0.02));
     }
 
-    private static double calculateFloorFees(double chargeableWeight,
-                                             Integer departureFloor,
-                                             Boolean departureHasElevator,
-                                             Integer arrivalFloor,
-                                             Boolean arrivalHasElevator) {
-        double departureFees = calculateOneAddressFloorFees(chargeableWeight, departureFloor, departureHasElevator);
-        double arrivalFees = calculateOneAddressFloorFees(chargeableWeight, arrivalFloor, arrivalHasElevator);
-        return Math.min(6.00, departureFees + arrivalFees);
-    }
-
-    private static double calculateOneAddressFloorFees(double chargeableWeight, Integer floor, Boolean hasElevator) {
-        int normalizedFloor = Math.max(0, floor == null ? 0 : floor);
-        if (normalizedFloor == 0) {
-            return 0;
+    private static double resolveDeliveryModeCoefficient(String deliverySpeed, boolean longDistance) {
+        if (deliverySpeed == null || deliverySpeed.isBlank()) {
+            throw new IllegalArgumentException("Delivery mode is required.");
         }
-        boolean elevator = Boolean.TRUE.equals(hasElevator);
-        double noElevatorFee = chargeableWeight <= 5 ? 0.80 : 1.20;
-        double elevatorFee = chargeableWeight <= 5 ? 0.35 : 0.55;
-        return normalizedFloor * (elevator ? elevatorFee : noElevatorFee);
+        String speed = deliverySpeed.trim().toUpperCase(Locale.ROOT);
+        if (longDistance) {
+            return switch (speed) {
+                case "STANDARD" -> 0.80;
+                case "EXPRESS" -> 1.00;
+                case "SAME_DAY", "SAMEDAY" -> 1.20;
+                default -> throw new IllegalArgumentException("Unknown delivery mode: " + deliverySpeed);
+            };
+        }
+        return switch (speed) {
+            case "STANDARD" -> 1.00;
+            case "EXPRESS" -> 1.15;
+            case "SAME_DAY", "SAMEDAY" -> 1.30;
+            default -> throw new IllegalArgumentException("Unknown delivery mode: " + deliverySpeed);
+        };
     }
 
     private static double calculateInsuranceFees(Boolean insuranceSelected, Double declaredValue) {
         if (!Boolean.TRUE.equals(insuranceSelected)) {
             return 0;
         }
-        double insuredValue = Math.max(0, declaredValue == null ? 0 : declaredValue);
+        if (declaredValue == null || declaredValue <= 0) {
+            throw new IllegalArgumentException("Declared value must be greater than zero when insurance is selected.");
+        }
+        double insuredValue = declaredValue;
         return Math.max(INSURANCE_MINIMUM_FEE, insuredValue * INSURANCE_RATE);
     }
 
-    private static double calculatePlatformServiceFees(double deliveryPrice) {
-        return Math.max(PLATFORM_SERVICE_MINIMUM_FEE, deliveryPrice * PLATFORM_SERVICE_RATE);
+    private static double calculatePlatformServiceFees(double deliveryPriceWithInsurance, boolean longDistance) {
+        double rate = longDistance ? LONG_DISTANCE_PLATFORM_SERVICE_RATE : SHORT_DISTANCE_PLATFORM_SERVICE_RATE;
+        return Math.max(PLATFORM_SERVICE_MINIMUM_FEE, deliveryPriceWithInsurance * rate);
     }
 
-    private static double resolveBasePrice(String deliverySpeed) {
-        String speed = deliverySpeed == null ? "STANDARD" : deliverySpeed.trim().toUpperCase();
-        return switch (speed) {
-            case "EXPRESS" -> EXPRESS_BASE_PRICE;
-            case "SAMEDAY" -> SAME_DAY_BASE_PRICE;
-            default -> STANDARD_BASE_PRICE;
-        };
+    private static double resolveShortDistanceMinimumPrice(double distance) {
+        if (distance <= 10.0) {
+            return 9.90;
+        }
+        if (distance <= 30.0) {
+            return 12.90;
+        }
+        if (distance <= 50.0) {
+            return 15.90;
+        }
+        return 19.90;
     }
 
-    private static double resolveDistanceFactor(String deliverySpeed) {
-        String speed = deliverySpeed == null ? "STANDARD" : deliverySpeed.trim().toUpperCase();
-        return switch (speed) {
-            case "EXPRESS" -> EXPRESS_DISTANCE_FACTOR;
-            case "SAMEDAY" -> SAME_DAY_DISTANCE_FACTOR;
-            default -> STANDARD_DISTANCE_FACTOR;
-        };
+    private static void validateInputs(double distance, PackageDTO packageDTO) {
+        if (distance <= 0) {
+            throw new IllegalArgumentException("Distance must be greater than zero.");
+        }
+        if (packageDTO == null) {
+            throw new IllegalArgumentException("Package payload is required.");
+        }
+        normalizeCategory(packageDTO.getPackageSizeCategory());
+        calculateWeightSurcharge(packageDTO.getWeight());
+        resolveDeliveryModeCoefficient(packageDTO.getDeliverySpeed(), distance > LONG_DISTANCE_THRESHOLD_KM);
+        if (Boolean.TRUE.equals(packageDTO.getInsuranceSelected())
+                && (packageDTO.getDeclaredValue() == null || packageDTO.getDeclaredValue() <= 0)) {
+            throw new IllegalArgumentException("Declared value must be greater than zero when insurance is selected.");
+        }
     }
 
     private static double roundUpToNearestTenth(double value) {

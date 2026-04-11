@@ -2,6 +2,24 @@
 
 Ce guide donne l'ordre exact de premier deploiement pour la nouvelle architecture.
 
+## Inventaire Des VMs
+
+- `qd-vm1-gateway`
+  - IP publique: `15.224.36.99`
+  - IP privee: `172.26.1.114`
+- `qd-vm2-platform`
+  - IP publique: `35.181.210.112`
+  - IP privee: `172.26.4.12`
+- `qd-vm3-app`
+  - IP publique: `15.224.39.34`
+  - IP privee: `172.26.1.120`
+- `qd-vm4-app`
+  - IP publique: `13.36.9.2`
+  - IP privee: `172.26.12.25`
+- `qd-vm5-mysql`
+  - IP publique: `15.188.208.12`
+  - IP privee: `172.26.10.139`
+
 ## 1. Remplir Les Fichiers `.env`
 
 Completer localement:

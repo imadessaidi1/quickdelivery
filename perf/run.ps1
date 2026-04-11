@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("smoke", "nominal", "stress", "crash", "vm1-frontdoor", "packages-write-heavy", "db-pressure", "public-realistic", "regression", "security-pentest", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live", "customer-onboarding", "courier-onboarding", "e2e-delivery", "seed-visible-packages")]
+    [ValidateSet("smoke", "nominal", "stress", "crash", "vm1-frontdoor", "packages-write-heavy", "db-pressure", "public-realistic", "regression", "security-pentest", "guest-checkout", "admin-dashboards", "courier-lifecycle", "tracking-live", "customer-onboarding", "courier-onboarding", "e2e-delivery", "seed-visible-packages", "seed-sucy-creteil-package")]
     [string]$Suite = "smoke",
 
     [string]$EnvFile = "",
@@ -123,6 +123,7 @@ function Resolve-TargetScript {
         "courier-onboarding" = "scenarios/courier-onboarding.js"
         "e2e-delivery" = "scenarios/e2e-delivery.js"
         "seed-visible-packages" = "scenarios/seed-visible-packages.js"
+        "seed-sucy-creteil-package" = "scenarios/seed-sucy-creteil-package.js"
     }
 
     $relativePath = $mapping[$SelectedSuite]

@@ -1,6 +1,6 @@
 <template>
   <div class="fullPage">
-    <loading v-model:active="isLoading"
+    <loading v-model:active="showGlobalLoader"
              :can-cancel="true"
              :is-full-page="true"/>
     <SearchBar v-if="showSearchBar" />
@@ -35,36 +35,57 @@ import 'vue-loading-overlay/dist/css/index.css';
 import http from '@/config/httpInterceptor';
 import { getAccessToken, hasValidAccessToken } from '@/config/auth';
 import { getGatewayBaseUrl, isMobileCapacitorRuntime } from '@/config/network';
-import { CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Geolocation } from '@capacitor/geolocation';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 
-const NEARBY_PACKAGE_RECOVERY_RADIUS = 20000;
 const POSITION_UPDATE_INTERVAL_MS = 10000;
 const POSITION_UPDATE_MIN_DISTANCE_METERS = 25;
 const TRACKING_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/position`;
 const TRACKING_PACKAGE_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/package-position`;
 const TRACKING_ACTIVE_PACKAGE_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/active-package`;
+const MOBILE_DEVICE_STORAGE_KEY = 'quickdelivery.mobileDeviceId';
 const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
+const FirebaseStatus = registerPlugin('FirebaseStatus');
 
 export default {
   computed: {
     isLoading() {
       return this.$store.state.isLoading;
     },
+    showGlobalLoader() {
+      return this.isLoading && this.$route.name !== 'homePage';
+    },
     showSearchBar() {
-      if (this.$route.name === 'landingPage') {
+      if (this.$route.name === 'landingPage' || this.$route.meta?.publicOnly) {
         return false;
       }
       if (!this.$route.meta?.public) {
         return true;
       }
-      return hasValidAccessToken();
+      return false;
     },
     connectedUserId() {
       return this.$store.state.connectedUser?.id || null;
     },
     connectedUserRoles() {
       return this.$store.state.connectedUser?.roles || [];
+    },
+    currentLocaleCode() {
+      const currentLocale = this.$i18n?.locale || this.$i18n?.global?.locale || 'en';
+      const normalizedLocale = String(currentLocale).replace('_', '-').toLowerCase();
+      if (normalizedLocale.startsWith('fr')) {
+        return 'fr';
+      }
+      if (normalizedLocale.startsWith('en')) {
+        return 'en';
+      }
+      return normalizedLocale;
+    },
+    isNearbyCourierRole() {
+      return this.connectedUserRoles.includes('ROLE_LIVREUR');
     },
   },
   data() {
@@ -82,6 +103,21 @@ export default {
       showScrollTopButton: false,
       scrollWatcherTimer: null,
       deferredInstallPrompt: null,
+      lastNearbyRecoveryKey: '',
+      lastNearbyRecoveryAt: 0,
+      localNotificationActionListener: null,
+      nextLocalNotificationId: 1,
+      localNotificationChannelsReady: false,
+      mobilePushToken: '',
+      pushRegistrationPromise: null,
+      pushRegistrationListener: null,
+      recentlySeenNotificationIds: [],
+      pushRegistrationErrorListener: null,
+      pushNotificationReceivedListener: null,
+      pushNotificationActionListener: null,
+      appStateListener: null,
+      isNativeAppForeground: true,
+      firebasePushAvailable: null,
     };
   },
   watch: {
@@ -92,28 +128,352 @@ export default {
           this.destroyRealtime();
         }
         this.syncRealtimeConnection();
+        this.registerRealtimeNotificationSession();
+        this.syncNotificationLocalePreference();
+        this.syncMobileDeviceRegistration();
+        this.syncNotificationsFromBackend();
+        if (newValue && hasValidAccessToken()) {
+          this.refreshOngoingDeliveryStatus();
+          return;
+        }
+        this.$store.commit('setReservationAvailability', {
+          canReserve: true,
+          activeRouteBlocking: false,
+          capacityReached: false,
+          activeReservations: 0,
+          maxReservations: 0,
+          reason: 'available',
+        });
       },
+    },
+    '$route.fullPath'() {
+      this.syncRealtimeConnection();
+    },
+    currentLocaleCode() {
+      this.syncNotificationLocalePreference();
+      this.syncMobileDeviceRegistration();
     },
   },
   mounted() {
     window.addEventListener('qd-track-package-subscribe', this.handleTrackingSubscriptionEvent);
+    window.addEventListener('qd-package-soft-lock', this.handleSoftLockEvent);
     window.addEventListener('qd-track-package-unsubscribe', this.handleTrackingUnsubscriptionEvent);
+    window.addEventListener('qd-refresh-reservation-availability', this.refreshReservationAvailability);
     window.addEventListener('beforeinstallprompt', this.handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', this.handleAppInstalled);
     window.addEventListener('qd-install-pwa', this.handleInstallRequest);
+    this.registerLocalNotificationListener();
+    this.registerPushNotificationListeners();
+    this.ensureRealtimeLocalNotificationPermission();
     this.bindGlobalScrollWatchers();
     this.refreshPwaInstallState();
   },
   beforeUnmount() {
     window.removeEventListener('qd-track-package-subscribe', this.handleTrackingSubscriptionEvent);
+    window.removeEventListener('qd-package-soft-lock', this.handleSoftLockEvent);
     window.removeEventListener('qd-track-package-unsubscribe', this.handleTrackingUnsubscriptionEvent);
+    window.removeEventListener('qd-refresh-reservation-availability', this.refreshReservationAvailability);
     window.removeEventListener('beforeinstallprompt', this.handleBeforeInstallPrompt);
     window.removeEventListener('appinstalled', this.handleAppInstalled);
     window.removeEventListener('qd-install-pwa', this.handleInstallRequest);
+    this.unregisterLocalNotificationListener();
+    this.unregisterPushNotificationListeners();
     this.unbindGlobalScrollWatchers();
     this.destroyRealtime();
   },
   methods: {
+    buildNotificationTargetUrl(rawUrl) {
+      if (!rawUrl) {
+        return '';
+      }
+      return rawUrl.startsWith('/')
+        ? `${window.location.origin}${rawUrl}`
+        : rawUrl;
+    },
+    openNotificationTarget(rawUrl) {
+      const normalizedUrl = this.buildNotificationTargetUrl(rawUrl);
+      if (!normalizedUrl) {
+        return;
+      }
+      window.location.href = normalizedUrl;
+    },
+    registerLocalNotificationListener() {
+      if (!isMobileCapacitorRuntime() || this.localNotificationActionListener) {
+        return;
+      }
+      this.localNotificationActionListener = LocalNotifications.addListener(
+        'localNotificationActionPerformed',
+        (event) => {
+          const targetUrl = event?.notification?.extra?.targetUrl;
+          this.openNotificationTarget(targetUrl);
+        },
+      );
+    },
+    async ensureLocalNotificationChannels() {
+      if (!isMobileCapacitorRuntime()) {
+        return false;
+      }
+      if (this.localNotificationChannelsReady) {
+        return true;
+      }
+
+      try {
+        console.info('QuickDelivery: creating/ensuring local notification channel');
+        await LocalNotifications.createChannel({
+          id: 'quickdelivery-realtime',
+          name: 'QuickDelivery Notifications',
+          description: 'Notifications de service QuickDelivery',
+          importance: 5,
+          visibility: 1,
+          sound: 'default',
+          vibration: true,
+          lights: true,
+        });
+        this.localNotificationChannelsReady = true;
+        return true;
+      } catch (error) {
+        console.error('QuickDelivery: Unable to create local notification channel:', error);
+        return false;
+      }
+    },
+    async ensureRealtimeLocalNotificationPermission() {
+      if (!isMobileCapacitorRuntime()) {
+        return false;
+      }
+
+      try {
+        const permissions = await LocalNotifications.checkPermissions();
+        if (permissions.display === 'granted') {
+          return true;
+        }
+        const requestResult = await LocalNotifications.requestPermissions();
+        return requestResult.display === 'granted';
+      } catch (error) {
+        console.warn('Unable to request realtime local notification permission:', error);
+        return false;
+      }
+    },
+    getRealtimeNotificationTitle(jsonData) {
+      if (!jsonData || !jsonData.type) {
+        return this.$t('notificationTitle');
+      }
+
+      switch (jsonData.type) {
+        case 'PACKAGE_SOFT_LOCKED':
+          this.forwardSoftLockToMap(jsonData);
+          break;
+        case 'NEW_PACKAGE_NOTIFICATION':
+          return this.$t('notificationTypeNewPackage');
+        case 'PACKAGE_CREATED_NOTIFICATION':
+          return this.$t('notificationTypeCreated');
+        case 'PACKAGE_RESERVATION_OTP_NOTIFICATION':
+          return this.$t('notificationTypeReservationOtp');
+        case 'PACKAGE_RESERVED_NOTIFICATION':
+          return this.$t('notificationTypeReserved');
+        case 'PACKAGE_COURIER_ARRIVED_FOR_PICKUP_NOTIFICATION':
+          return this.$t('notificationTypeCourierArrivedForPickup');
+        case 'PACKAGE_PICKUP_STOP_ARRIVAL_NOTIFICATION':
+          return this.$t('notificationTypePickupArrival');
+        case 'PACKAGE_DELIVERY_STOP_ARRIVAL_NOTIFICATION':
+          return this.$t('notificationTypeDeliveryArrival');
+        case 'PACKAGE_PICKUP_NOTIFICATION':
+          return this.$t('notificationTypePickup');
+        case 'PACKAGE_DELIVERY_NOTIFICATION':
+          return this.$t('notificationTypeDelivery');
+        default:
+          return this.$t('notificationTitle');
+      }
+    },
+    resolveCurrentLocaleCode() {
+      return this.currentLocaleCode;
+    },
+    mapBackendEventTypeToFrontendType(eventType) {
+      switch (eventType) {
+        case 'PACKAGE_CREATED':
+          return 'PACKAGE_CREATED_NOTIFICATION';
+        case 'PACKAGE_NEARBY':
+          return 'NEW_PACKAGE_NOTIFICATION';
+        case 'PACKAGE_RESERVATION_OTP':
+          return 'PACKAGE_RESERVATION_OTP_NOTIFICATION';
+        case 'PACKAGE_COURIER_ARRIVED_FOR_PICKUP':
+          return 'PACKAGE_COURIER_ARRIVED_FOR_PICKUP_NOTIFICATION';
+        case 'PACKAGE_PICKUP_STOP_ARRIVAL':
+          return 'PACKAGE_PICKUP_STOP_ARRIVAL_NOTIFICATION';
+        case 'PACKAGE_DELIVERY_STOP_ARRIVAL':
+          return 'PACKAGE_DELIVERY_STOP_ARRIVAL_NOTIFICATION';
+        case 'PACKAGE_PICKED_UP':
+          return 'PACKAGE_PICKUP_NOTIFICATION';
+        case 'PACKAGE_DELIVERED':
+          return 'PACKAGE_DELIVERY_NOTIFICATION';
+        default:
+          return 'GENERIC_NOTIFICATION';
+      }
+    },
+    async unregisterLocalNotificationListener() {
+      if (!this.localNotificationActionListener) {
+        return;
+      }
+      try {
+        const listener = await this.localNotificationActionListener;
+        await listener.remove();
+      } catch (error) {
+        console.warn('Unable to remove local notification listener:', error);
+      } finally {
+        this.localNotificationActionListener = null;
+      }
+    },
+    registerPushNotificationListeners() {
+      if (!isMobileCapacitorRuntime() || this.pushRegistrationListener) {
+        return;
+      }
+      this.pushRegistrationListener = PushNotifications.addListener('registration', (token) => {
+        this.mobilePushToken = token?.value || '';
+        this.syncMobileDeviceRegistration();
+      });
+      this.pushRegistrationErrorListener = PushNotifications.addListener('registrationError', (error) => {
+        console.warn('Push registration error:', error);
+      });
+      this.pushNotificationReceivedListener = PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+        if (!this.isNativeAppForeground) {
+          return;
+        }
+        const notificationsAllowed = await this.ensureRealtimeLocalNotificationPermission();
+        if (!notificationsAllowed) {
+          return;
+        }
+        try {
+          const jsonData = notification?.data || {};
+          const rawId = jsonData.notificationId || jsonData.id || notification.id;
+          if (rawId && this.recentlySeenNotificationIds.includes(String(rawId))) {
+            console.info('QuickDelivery: Ignoring duplicate foreground push:', rawId);
+            return;
+          }
+          if (rawId) {
+            this.recentlySeenNotificationIds.push(String(rawId));
+            setTimeout(() => {
+              this.recentlySeenNotificationIds = this.recentlySeenNotificationIds.filter(id => id !== String(rawId));
+            }, 10000);
+          }
+
+          await this.ensureLocalNotificationChannels();
+          const notificationId = (Number(jsonData.notificationId || jsonData.id) || this.nextLocalNotificationId++) % 2147483647;
+          
+          console.info('QuickDelivery: Scheduling foreground push mirror:', notificationId);
+          const targetUrl = this.buildNotificationTargetUrl(jsonData.targetUrl || jsonData.url);
+          
+          await LocalNotifications.schedule({
+            notifications: [
+              {
+                id: notificationId,
+                title: this.getRealtimeNotificationTitle(jsonData),
+                body: jsonData.message || notification?.body || notification?.data?.body || '',
+                schedule: { at: new Date(Date.now() + 500), allowWhileIdle: true },
+                channelId: 'quickdelivery-realtime',
+                smallIcon: 'ic_stat_notification',
+                importance: 5,
+                priority: 2,
+                extra: {
+                  targetUrl,
+                  type: jsonData.type || '',
+                  packageReference: jsonData.packageReference || '',
+                },
+              },
+            ],
+          });
+          console.info('QuickDelivery: Foreground mirror scheduled');
+        } catch (error) {
+          console.error('QuickDelivery: Error mirroring foreground push:', error);
+        }
+      });
+      this.pushNotificationActionListener = PushNotifications.addListener('pushNotificationActionPerformed', (event) => {
+        const targetUrl = event?.notification?.data?.targetUrl || event?.notification?.data?.url || '';
+        this.openNotificationTarget(targetUrl);
+      });
+      this.appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+        this.isNativeAppForeground = Boolean(isActive);
+        if (isActive) {
+          this.syncMobileDeviceRegistration();
+        }
+      });
+    },
+    async unregisterPushNotificationListeners() {
+      const listeners = [
+        this.pushRegistrationListener,
+        this.pushRegistrationErrorListener,
+        this.pushNotificationReceivedListener,
+        this.pushNotificationActionListener,
+        this.appStateListener,
+      ];
+      await Promise.all(listeners.map(async (listenerPromise) => {
+        if (!listenerPromise) {
+          return;
+        }
+        try {
+          const listener = await listenerPromise;
+          await listener.remove();
+        } catch (error) {
+          console.warn('Unable to remove push/app listener:', error);
+        }
+      }));
+      this.pushRegistrationListener = null;
+      this.pushRegistrationErrorListener = null;
+      this.pushNotificationReceivedListener = null;
+      this.pushNotificationActionListener = null;
+      this.appStateListener = null;
+    },
+    async ensurePushRegistration() {
+      if (!isMobileCapacitorRuntime()) {
+        return;
+      }
+      const firebasePushAvailable = await this.checkFirebasePushAvailability();
+      if (!firebasePushAvailable) {
+        return;
+      }
+      if (this.pushRegistrationPromise) {
+        await this.pushRegistrationPromise;
+        return;
+      }
+      this.pushRegistrationPromise = (async () => {
+        try {
+          const permissionStatus = await PushNotifications.checkPermissions();
+          let receivePermission = permissionStatus.receive;
+          if (receivePermission !== 'granted') {
+            const permissionRequest = await PushNotifications.requestPermissions();
+            receivePermission = permissionRequest.receive;
+          }
+          if (receivePermission !== 'granted') {
+            return;
+          }
+          await PushNotifications.register();
+        } catch (error) {
+          console.warn('Unable to register push notifications:', error);
+        }
+      })();
+      try {
+        await this.pushRegistrationPromise;
+      } finally {
+        this.pushRegistrationPromise = null;
+      }
+    },
+    async checkFirebasePushAvailability() {
+      if (!isMobileCapacitorRuntime()) {
+        return false;
+      }
+      if (this.firebasePushAvailable !== null) {
+        return this.firebasePushAvailable;
+      }
+      try {
+        const result = await FirebaseStatus.isAvailable();
+        this.firebasePushAvailable = Boolean(result?.available);
+        if (!this.firebasePushAvailable) {
+          console.info('Firebase push unavailable on this build, skipping native push registration.');
+        }
+      } catch (error) {
+        this.firebasePushAvailable = false;
+        console.warn('Unable to determine Firebase availability, skipping native push registration:', error);
+      }
+      return this.firebasePushAvailable;
+    },
     isStandaloneMode() {
       return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
     },
@@ -234,6 +594,57 @@ export default {
         this.activeTrackingPackageReference = '';
       }
     },
+    async refreshActiveDeliveryRoute() {
+      if (!this.connectedUserId || !hasValidAccessToken()) {
+        this.$store.commit('setActiveDeliveryRoute', null);
+        return null;
+      }
+      try {
+        const response = await http.get(
+          `${this.$i18n.t('rootURL')}${this.$i18n.t('activeDeliveryRouteUrl')}${encodeURIComponent(this.connectedUserId)}`,
+          { silent: true },
+        );
+        const activeRoute = response?.data || null;
+        this.$store.commit('setActiveDeliveryRoute', activeRoute);
+        return activeRoute;
+      } catch {
+        this.$store.commit('setActiveDeliveryRoute', null);
+        return null;
+      }
+    },
+    async refreshReservationAvailability() {
+      if (!this.connectedUserId || !hasValidAccessToken()) {
+        this.$store.commit('setReservationAvailability', {
+          canReserve: true,
+          activeRouteBlocking: false,
+          capacityReached: false,
+          activeReservations: 0,
+          maxReservations: 0,
+          reason: 'available',
+        });
+        return null;
+      }
+      try {
+        const response = await http.get(
+          `${this.$i18n.t('rootURL')}${this.$i18n.t('reservationAvailabilityUrl')}${encodeURIComponent(this.connectedUserId)}`,
+          { silent: true },
+        );
+        const reservationAvailability = response?.data || null;
+        this.$store.commit('setReservationAvailability', reservationAvailability);
+        await this.refreshActiveDeliveryRoute();
+        return reservationAvailability;
+      } catch {
+        this.$store.commit('setReservationAvailability', {
+          canReserve: true,
+          activeRouteBlocking: false,
+          capacityReached: false,
+          activeReservations: 0,
+          maxReservations: 0,
+          reason: 'available',
+        });
+        return null;
+      }
+    },
     async refreshOngoingDeliveryStatus() {
       try {
         const response = await http.get(this.$i18n.t('rootURL') + this.$i18n.t('userWithOngoingDelivery') + this.connectedUserId);
@@ -241,8 +652,13 @@ export default {
       } catch {
         this.isUserWithOngoingDelivery = false;
       }
+      const activeDeliveryRoute = await this.refreshActiveDeliveryRoute();
+      this.$store.commit('setOngoingDeliveryState', {
+        isUserWithOngoingDelivery: this.isUserWithOngoingDelivery,
+        activeDeliveryRoute,
+      });
+      await this.refreshReservationAvailability();
       await this.refreshActiveTrackingPackage();
-      console.info('QuickDelivery WS ongoing delivery status:', this.isUserWithOngoingDelivery);
       this.startLocationTrackingIfNeeded();
     },
     startLocationTrackingIfNeeded() {
@@ -297,6 +713,92 @@ export default {
         console.warn('Unable to request notification permission for background tracking:', error);
       }
     },
+    async handleSoftLockEvent(event) {
+      if (!this.socketReady) return;
+      this.sendSocketMessage({
+        type: 'PACKAGE_SOFT_LOCK',
+        from: String(event.detail.userId),
+        packageId: event.detail.packageId,
+        to: 'PACKAGE_SERVICE'
+      });
+    },
+    forwardSoftLockToMap(jsonData) {
+      this.$store.commit('patchPackageSoftLock', {
+        packageId: jsonData.packageId,
+        lockedBy: jsonData.from,
+      });
+      window.dispatchEvent(new CustomEvent('qd-package-soft-lock-updated', {
+        detail: {
+          packageId: jsonData.packageId,
+          lockedBy: jsonData.from,
+        },
+      }));
+      // Find the map ref and send message
+      // Note: HomePage.vue has the ref. We can dispatch a global event or just expect the component to handle it if we broadcast globally.
+      // But map expects messages via its window.
+      const iframes = document.getElementsByTagName('iframe');
+      for (let i = 0; i < iframes.length; i++) {
+        if (iframes[i].name === 'map') {
+          iframes[i].contentWindow.postMessage(JSON.stringify(jsonData), '*');
+        }
+      }
+    },
+    async pushNativeRealtimeNotification(jsonData) {
+      if (!isMobileCapacitorRuntime()) {
+        return false;
+      }
+
+      try {
+        const rawId = jsonData.notificationId || jsonData.id;
+        if (rawId && this.recentlySeenNotificationIds.includes(String(rawId))) {
+          console.info('QuickDelivery: Ignoring duplicate realtime notification:', rawId);
+          return true;
+        }
+        if (rawId) {
+          this.recentlySeenNotificationIds.push(String(rawId));
+          setTimeout(() => {
+            this.recentlySeenNotificationIds = this.recentlySeenNotificationIds.filter(id => id !== String(rawId));
+          }, 10000);
+        }
+
+        const notificationsAllowed = await this.ensureRealtimeLocalNotificationPermission();
+        if (!notificationsAllowed) {
+          console.warn('QuickDelivery: Local notification permission NOT granted');
+          return false;
+        }
+
+        await this.ensureLocalNotificationChannels();
+        const notificationId = (this.nextLocalNotificationId++) % 2147483647;
+        const targetUrl = this.buildNotificationTargetUrl(jsonData.url);
+        
+        console.info('QuickDelivery: Scheduling realtime local notification:', notificationId);
+        
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: notificationId,
+              title: this.getRealtimeNotificationTitle(jsonData),
+              body: jsonData.message || this.$t('notificationTitle'),
+              schedule: { at: new Date(Date.now() + 500), allowWhileIdle: true },
+              channelId: 'quickdelivery-realtime',
+              smallIcon: 'ic_stat_notification',
+              importance: 5,
+              priority: 2,
+              extra: {
+                targetUrl,
+                type: jsonData.type || '',
+                packageReference: jsonData.packageReference || '',
+              },
+            },
+          ],
+        });
+        console.info('QuickDelivery: Realtime local notification scheduled successfully');
+        return true;
+      } catch (error) {
+        console.error('QuickDelivery: Unable to publish native realtime notification:', error);
+        return false;
+      }
+    },
     async startBackgroundLocationTracking() {
       if (this.backgroundWatcherId !== null || !this.connectedUserId) {
         return;
@@ -310,8 +812,8 @@ export default {
             requestPermissions: true,
             stale: false,
             distanceFilter: POSITION_UPDATE_MIN_DISTANCE_METERS,
-            backgroundMessage: 'Le suivi QuickDelivery reste actif pendant la livraison.',
-            backgroundTitle: 'Tracking livraison actif',
+            backgroundMessage: this.$t('backgroundTrackingMessage'),
+            backgroundTitle: this.$t('backgroundTrackingTitle'),
           },
           async (location, error) => {
             if (error) {
@@ -368,6 +870,123 @@ export default {
       this.socket.send(JSON.stringify(payload));
       return true;
     },
+    registerRealtimeNotificationSession() {
+      if (!this.connectedUserId) {
+        return;
+      }
+      this.sendSocketMessage({
+        type: 'REGISTER_NOTIFICATION_SESSION',
+        from: String(this.connectedUserId),
+        to: 'PACKAGE_SERVICE',
+      });
+    },
+    getOrCreateMobileDeviceId() {
+      if (typeof window === 'undefined') {
+        return '';
+      }
+      const existingId = window.localStorage.getItem(MOBILE_DEVICE_STORAGE_KEY);
+      if (existingId) {
+        return existingId;
+      }
+      const generatedId = window.crypto?.randomUUID?.() || `qd-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      window.localStorage.setItem(MOBILE_DEVICE_STORAGE_KEY, generatedId);
+      return generatedId;
+    },
+    resolveMobilePlatform() {
+      const platform = Capacitor.getPlatform?.();
+      if (platform === 'android') {
+        return 'ANDROID';
+      }
+      if (platform === 'ios') {
+        return 'IOS';
+      }
+      return 'WEB';
+    },
+    async resolveNearbyCourierLocation() {
+      if (!isMobileCapacitorRuntime() || !this.isNearbyCourierRole) {
+        return null;
+      }
+      try {
+        const permissionStatus = await Geolocation.checkPermissions();
+        let locationPermission = permissionStatus.location || permissionStatus.coarseLocation;
+        if (locationPermission !== 'granted') {
+          const requestedPermissions = await Geolocation.requestPermissions();
+          locationPermission = requestedPermissions.location || requestedPermissions.coarseLocation;
+        }
+        if (locationPermission !== 'granted') {
+          return null;
+        }
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+        return {
+          latitude: position?.coords?.latitude ?? null,
+          longitude: position?.coords?.longitude ?? null,
+        };
+      } catch (error) {
+        console.warn('Unable to resolve nearby courier location:', error);
+        return null;
+      }
+    },
+    async syncMobileDeviceRegistration() {
+      if (!isMobileCapacitorRuntime() || !this.connectedUserId || !hasValidAccessToken()) {
+        return;
+      }
+      await this.ensurePushRegistration();
+      const currentLocation = await this.resolveNearbyCourierLocation();
+      try {
+        await http.post(`${this.$i18n.t('rootURL')}devices/register`, {
+          userId: this.connectedUserId,
+          deviceId: this.getOrCreateMobileDeviceId(),
+          pushToken: this.mobilePushToken || '',
+          locale: this.resolveCurrentLocaleCode(),
+          platform: this.resolveMobilePlatform(),
+          active: true,
+          latitude: currentLocation?.latitude,
+          longitude: currentLocation?.longitude,
+        }, { silent: true });
+      } catch (error) {
+        console.warn('Unable to register mobile device for notifications:', error);
+      }
+    },
+    async syncNotificationLocalePreference() {
+      if (!this.connectedUserId || !hasValidAccessToken()) {
+        return;
+      }
+      try {
+        await http.post(
+          `${this.$i18n.t('rootURL')}notifications/preferences?userId=${encodeURIComponent(this.connectedUserId)}&locale=${encodeURIComponent(this.resolveCurrentLocaleCode())}`,
+          null,
+          { silent: true },
+        );
+      } catch (error) {
+        console.warn('Unable to synchronize notification locale preference:', error);
+      }
+    },
+    async syncNotificationsFromBackend() {
+      if (!this.connectedUserId || !hasValidAccessToken()) {
+        this.$store.commit('setNotifications', []);
+        return;
+      }
+      try {
+        const response = await http.get(`${this.$i18n.t('rootURL')}notifications?userId=${encodeURIComponent(this.connectedUserId)}`, { silent: true });
+        const backendNotifications = Array.isArray(response?.data) ? response.data.map((notification) => ({
+          id: notification.id,
+          type: this.mapBackendEventTypeToFrontendType(notification.eventType),
+          title: notification.title || '',
+          message: notification.body || '',
+          url: notification.targetUrl || '',
+          payloadJson: notification.payloadJson || '',
+          receivedAt: notification.createdAt || new Date().toISOString(),
+          read: Boolean(notification.read),
+        })) : [];
+        this.$store.commit('setNotifications', backendNotifications);
+      } catch (error) {
+        console.warn('Unable to synchronize notifications from backend:', error);
+      }
+    },
     handleTrackingSubscriptionEvent(event) {
       const packageReference = event?.detail?.packageReference;
       const guestAccessToken = event?.detail?.guestAccessToken || '';
@@ -399,6 +1018,11 @@ export default {
       this.syncRealtimeConnection();
     },
     shouldMaintainRealtimeConnection() {
+      const publicRouteAllowsRealtime = this.$route.name === 'PackageTrackingPage'
+        || this.$route.name === 'PackageTrackingSummaryPage';
+      if (this.$route.meta?.public && !publicRouteAllowsRealtime) {
+        return false;
+      }
       return Boolean(this.connectedUserId) || Object.keys(this.trackingSubscriptions).length > 0;
     },
     syncRealtimeConnection() {
@@ -450,61 +1074,22 @@ export default {
     canRecoverNearbyPackageNotifications() {
       return this.connectedUserRoles.includes('ROLE_LIVREUR') || this.connectedUserRoles.includes('ROLE_ADMIN');
     },
+    normalizeNearbyCoordinate(value) {
+      return Number.parseFloat(Number(value).toFixed(4));
+    },
     async recoverNearbyPackageNotifications() {
-      if (this.$route?.name !== 'homePage' || !this.canRecoverNearbyPackageNotifications() || !navigator.geolocation) {
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        const seenReferences = this.loadSeenNearbyPackages();
-
-        try {
-          const response = await http.get(
-            `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesAroundMe')}${latitude}&longitude=${longitude}&rayonEnMetres=${NEARBY_PACKAGE_RECOVERY_RADIUS}`
-          );
-
-          const packages = Array.isArray(response?.data) ? response.data : [];
-          const newPackages = packages.filter((aPackage) => aPackage?.reference && !seenReferences.includes(aPackage.reference));
-
-          if (!newPackages.length) {
-            return;
-          }
-
-          const updatedReferences = [...seenReferences];
-          newPackages.forEach((aPackage) => {
-            updatedReferences.push(aPackage.reference);
-            const notificationPayload = {
-              type: 'NEW_PACKAGE_NOTIFICATION',
-              from: 'PACKAGE_SERVICE',
-              to: String(this.connectedUserId),
-              message: 'There is a new package around you :)',
-              url: `/package?id=${aPackage.reference}`,
-              receivedAt: new Date().toISOString(),
-            };
-            this.$store.commit('pushNotification', notificationPayload);
-            this.showRealtimeNotification(notificationPayload);
-          });
-
-          this.saveSeenNearbyPackages(updatedReferences);
-        } catch (error) {
-          console.warn('Unable to recover nearby package notifications:', error);
-        }
-      }, (error) => {
-        console.warn('Unable to recover nearby package notifications without location:', error);
-      });
+      return;
     },
     async initializeRealtime() {
       if (this.socket || !this.shouldMaintainRealtimeConnection()) {
         return;
       }
 
-      console.info('QuickDelivery WS initializing for user:', this.connectedUserId, 'url:', this.$i18n.t('wsURL'));
-
       this.socket = new WebSocket(this.$i18n.t('wsURL'));
       this.socket.onopen = () => {
-        console.info('QuickDelivery WS connected');
         this.socketReady = true;
+        this.registerRealtimeNotificationSession();
+        this.syncMobileDeviceRegistration();
         this.recoverNearbyPackageNotifications();
         this.flushTrackingSubscriptions();
         if (this.connectedUserId && hasValidAccessToken()) {
@@ -513,14 +1098,10 @@ export default {
       };
 
       this.socket.onmessage = (event) => {
-        console.info('QuickDelivery WS received raw:', event.data);
         const jsonData = JSON.parse(event.data);
-        const isTargetedNotification = [
-          'NEW_PACKAGE_NOTIFICATION',
-          'PACKAGE_RESERVATION_OTP_NOTIFICATION',
-          'PACKAGE_PICKUP_NOTIFICATION',
-          'PACKAGE_DELIVERY_NOTIFICATION',
-        ].includes(jsonData.type) && this.connectedUserId === parseInt(jsonData.to);
+        const isTargetedNotification = typeof jsonData?.type === 'string'
+          && jsonData.type.endsWith('_NOTIFICATION')
+          && this.connectedUserId === parseInt(jsonData.to, 10);
 
         if (isTargetedNotification) {
             if (jsonData.type === 'NEW_PACKAGE_NOTIFICATION' && jsonData.url) {
@@ -544,7 +1125,6 @@ export default {
       };
 
       this.socket.onclose = () => {
-        console.info('QuickDelivery WS closed');
         this.socketReady = false;
         this.stopLocationTracking();
         this.socket = null;
@@ -599,24 +1179,25 @@ export default {
       }, 9000);
 
       const openTarget = () => {
-        if (jsonData.url) {
-          const normalizedUrl = jsonData.url.startsWith('/')
-            ? `${window.location.origin}${jsonData.url}`
-            : jsonData.url;
-          window.location.href = normalizedUrl;
-        }
+        this.openNotificationTarget(jsonData.url);
       };
 
+      if (isMobileCapacitorRuntime()) {
+        console.info('QuickDelivery: triggering native system notification for', jsonData.type);
+        void this.pushNativeRealtimeNotification(jsonData);
+        return;
+      }
+
       if (Notification.permission === 'granted') {
-        const notification = new Notification(this.$t('notificationTitle'), {
-          body: jsonData.message
+        const notification = new Notification(this.getRealtimeNotificationTitle(jsonData), {
+          body: jsonData.message || this.$t('notificationTitle')
         });
         notification.onclick = openTarget;
       } else if (Notification.permission !== 'denied') {
         Notification.requestPermission().then((permission) => {
           if (permission === 'granted') {
-            const notification = new Notification(this.$t('notificationTitle'), {
-              body: jsonData.message
+            const notification = new Notification(this.getRealtimeNotificationTitle(jsonData), {
+              body: jsonData.message || this.$t('notificationTitle')
             });
             notification.onclick = openTarget;
           }
@@ -650,6 +1231,13 @@ export default {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+}
+@supports (padding-top: env(safe-area-inset-top)) {
+  .fullPage {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 .global-scroll-top {
   position: fixed;

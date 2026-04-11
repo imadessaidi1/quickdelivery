@@ -28,6 +28,7 @@
 <script>
 import http from '@/config/httpInterceptor';
 import CreditCard from './CreditCard.vue';
+import { formatDisplayedPackageAmount } from '@/config/packagePricing';
 
 const EMPTY_PACKAGE = {
   id: null,
@@ -93,10 +94,7 @@ export default {
     },
     amountToPay() {
       const currentPackage = this.resolveCurrentPackage();
-      if (currentPackage.deliveryPrice == null) {
-        return '--';
-      }
-      return `${Number(currentPackage.deliveryPrice).toFixed(2)} ${this.$t('currency')}`;
+      return formatDisplayedPackageAmount(this.$i18n, currentPackage);
     },
   },
   components :{

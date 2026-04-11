@@ -11,6 +11,7 @@ public class PackageReservationDTO {
     private String pickUpOTP;
     private String deliveryOTP;
     private PACKAGE_RESERVATION_STATUS status;
+    private Long deliveryPersonId;
 
     public Long getId() {
         return id;
@@ -58,5 +59,13 @@ public class PackageReservationDTO {
 
     public void setStatus(PACKAGE_RESERVATION_STATUS status) {
         this.status = status;
+    }
+
+    public Long getDeliveryPersonId() {
+        return deliveryPersonId;
+    }
+
+    public void setDeliveryPersonId(Long deliveryPersonId) {
+        this.deliveryPersonId = deliveryPersonId;
     }
 }

@@ -19,27 +19,23 @@ final class PublicEndpointResolver {
     }
 
     static Set<String> resolveFrontendOrigins(String configuredBaseUrls) {
-        Set<String> configuredOrigins = normalizeBaseUrls(parseCsv(configuredBaseUrls));
-        if (!configuredOrigins.isEmpty()) {
-            configuredOrigins.add("capacitor://localhost");
-            configuredOrigins.add("ionic://localhost");
-            return configuredOrigins;
-        }
-
         Set<String> origins = new LinkedHashSet<>();
+        origins.addAll(normalizeBaseUrls(parseCsv(configuredBaseUrls)));
+        addDefaultFrontendOrigins(origins);
+        return origins;
+    }
+
+    private static void addDefaultFrontendOrigins(Set<String> origins) {
         origins.add("http://localhost");
         origins.add("https://localhost");
         origins.add("http://localhost:" + FRONTEND_PORT);
         origins.add("https://localhost:" + FRONTEND_PORT);
-
         for (String host : discoverLocalHosts()) {
             origins.add("http://" + host + ":" + FRONTEND_PORT);
             origins.add("https://" + host + ":" + FRONTEND_PORT);
         }
-
         origins.add("capacitor://localhost");
         origins.add("ionic://localhost");
-        return origins;
     }
 
     static Set<String> resolveIssuerUris(String primaryIssuerUri, String additionalIssuerUris) {

@@ -1,75 +1,77 @@
 <template>
-  <div class="finance-dashboard-page">
+  <div class="finance-dashboard-page qd-page">
     <template v-if="isLoading">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip info uppercase">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
           <p>{{ $t('financePageSubtitle') }}</p>
         </div>
       </header>
       <div class="page-state loading-state">
-        <div class="spinner"></div>
+        <div class="premium-spinner"></div>
         <span>{{ $t('stateLoading') }}</span>
       </div>
     </template>
 
     <template v-else-if="loadError && !dashboard">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('menuAdminFinance') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip info uppercase">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
         </div>
       </header>
       <div class="page-state error-state">
-        <span class="material-symbols-outlined">payments</span>
+        <span class="material-symbols-outlined large-icon">payments</span>
         <p>{{ $t('stateLoadError') }}</p>
       </div>
     </template>
 
     <template v-else-if="dashboard">
-      <header class="hero-section premium-finance-hero">
-        <div class="hero-content">
-          <span class="hero-chip luxury-chip">{{ $t('menuAdminFinance') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip info uppercase" style="margin-bottom: 8px;">{{ $t('menuAdminFinance') }}</span>
           <h1>{{ $t('financePageTitle') }}</h1>
           <p>{{ $t('financePageSubtitle') }}</p>
         </div>
         
-        <div class="hero-main-stat">
-          <div class="main-label">
-            <span class="material-symbols-outlined">account_balance_wallet</span>
-            {{ $t('financePlatformMargin') }}
-          </div>
-          <strong class="main-amount">{{ formatCurrency(safeDashboard.platformMargin) }}</strong>
-          <div class="main-subinfo">
-            {{ $t('financeTakeRate') }}: <strong>{{ formatPercent(safeDashboard.platformTakeRate) }}</strong>
+        <div class="qd-page-header-actions">
+          <div class="hero-main-card glass-pane" style="padding: 16px 24px; min-width: 260px; text-align: right;">
+            <div class="main-stat-label" style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--qd-muted); font-weight: 700; margin-bottom: 4px; font-size: 0.85rem;">
+              <span class="material-symbols-outlined success-text" style="color: var(--qd-success); font-size: 1.2rem;">account_balance_wallet</span>
+              {{ $t('financePlatformMargin') }}
+            </div>
+            <strong class="main-stat-value text-gradient-indigo" style="font-size: 2rem; font-weight: 900; display: block;">{{ formatCurrency(safeDashboard.platformMargin) }}</strong>
+            <div class="main-stat-meta" style="font-size: 0.75rem; color: var(--qd-muted);">
+              {{ $t('financeTakeRate') }}: <span class="page-chip info" style="font-size: 0.65rem; padding: 2px 8px;">{{ formatPercent(safeDashboard.platformTakeRate) }}</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <section class="stats-premium-grid">
+      <section class="premium-stats-grid">
         <PremiumDashboardCard
           v-for="stat in financeStats"
           :key="stat.label"
           variant="glass"
           :tone="stat.tone"
-          class="finance-stat-card"
+          class="f-stat-card"
         >
-          <div class="f-stat-inner">
-            <span class="f-label">{{ stat.label }}</span>
-            <strong class="f-value">{{ formatCurrency(stat.value) }}</strong>
+          <div class="f-stat-body">
+            <span class="f-stat-label">{{ stat.label }}</span>
+            <strong class="f-stat-value">{{ formatCurrency(stat.value) }}</strong>
           </div>
         </PremiumDashboardCard>
       </section>
 
-      <div class="finance-main-layout">
-        <section class="charts-column">
-          <div class="charts-row">
+      <div class="finance-content-layout">
+        <section class="main-column">
+          <div class="charts-grid">
             <DashboardTrendChart
               :title="$t('financeRevenueChartTitle')"
               :subtitle="$t('financeRevenueChartSubtitle')"
               :points="customerRevenuePoints"
-              tone="#6366f1"
+              tone="var(--qd-primary)"
               :formatter="formatCurrency"
               :empty-label="$t('dashboardChartEmpty')"
             />
@@ -77,14 +79,14 @@
               :title="$t('financeMarginChartTitle')"
               :subtitle="$t('financeMarginChartSubtitle')"
               :points="platformMarginPoints"
-              tone="#10b981"
+              tone="var(--qd-success)"
               :formatter="formatCurrency"
               :empty-label="$t('dashboardChartEmpty')"
             />
           </div>
           
-          <PremiumDashboardCard :title="$t('financeRecentSettlementsTitle')" variant="glass" class="table-card">
-            <div v-if="dashboard.recentSettlements.length" class="table-shell">
+          <PremiumDashboardCard :title="$t('financeRecentSettlementsTitle')" variant="glass" class="full-width-card mt-4">
+            <div v-if="dashboard.recentSettlements.length" class="premium-table-shell">
               <table class="premium-table">
                 <thead>
                   <tr>
@@ -97,11 +99,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in dashboard.recentSettlements" :key="item.packageReference">
-                    <td><span class="ref-badge">{{ item.packageReference }}</span></td>
-                    <td><span class="status-pill">{{ item.packageStatus }}</span></td>
-                    <td class="text-bold">{{ formatCurrency(item.customerTotalPrice) }}</td>
-                    <td class="text-indigo">{{ formatCurrency(item.platformServiceFee) }}</td>
-                    <td class="text-emerald">{{ formatCurrency(item.courierPayoutAmount) }}</td>
+                    <td><code class="ref-id">{{ item.packageReference }}</code></td>
+                    <td><span class="badge success outline">{{ item.packageStatus }}</span></td>
+                    <td class="fw-bold">{{ formatCurrency(item.customerTotalPrice) }}</td>
+                    <td class="text-indigo fw-bold">{{ formatCurrency(item.platformServiceFee) }}</td>
+                    <td class="text-success fw-bold">{{ formatCurrency(item.courierPayoutAmount) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -109,70 +111,61 @@
           </PremiumDashboardCard>
         </section>
 
-        <section class="payout-column">
-          <PremiumDashboardCard :title="$t('financePayoutHealthTitle')" variant="flat" tone="amber" class="payout-summary">
+        <section class="side-column">
+          <PremiumDashboardCard :title="$t('financePayoutHealthTitle')" variant="flat" tone="amber" class="side-panel">
             <div class="payout-metrics">
-              <div class="p-row">
+              <div class="m-row">
                 <span>{{ $t('financePendingPayoutCount') }}</span>
                 <strong>{{ formatInteger(dashboard.pendingPayoutCount) }}</strong>
               </div>
-              <div class="p-row">
+              <div class="m-row">
                 <span>{{ $t('financePaidPayoutCount') }}</span>
                 <strong>{{ formatInteger(dashboard.paidPayoutCount) }}</strong>
               </div>
-              <div class="p-divider"></div>
-              <div class="p-row total">
+              <div class="m-divider"></div>
+              <div class="m-row total">
                 <span>{{ $t('financeCourierShareLabel') }}</span>
-                <strong>{{ formatCurrency(totalCourierShare) }}</strong>
+                <strong class="text-indigo">{{ formatCurrency(totalCourierShare) }}</strong>
               </div>
             </div>
           </PremiumDashboardCard>
 
-          <PremiumDashboardCard :title="$t('financePendingPayoutsTitle')" variant="glass" class="pending-table-card">
-            <div v-if="dashboard.pendingPayouts.length" class="pending-stack">
-              <div v-for="item in dashboard.pendingPayouts" :key="item.deliveryPersonId" class="pending-item">
-                <div class="p-item-info">
+          <PremiumDashboardCard :title="$t('financePendingPayoutsTitle')" variant="glass" class="side-panel">
+            <div v-if="dashboard.pendingPayouts.length" class="mini-stack">
+              <div v-for="item in dashboard.pendingPayouts" :key="item.deliveryPersonId" class="mini-item">
+                <div class="mini-item-info">
                   <strong>{{ item.deliveryPersonName }}</strong>
-                  <span>{{ item.packageCount }} Colis</span>
+                  <small>{{ item.packageCount }} {{ $t('totalPackages') }}</small>
                 </div>
-                <div class="p-item-amount">
-                  {{ formatCurrency(item.amount) }}
-                </div>
+                <div class="mini-item-amount">{{ formatCurrency(item.amount) }}</div>
               </div>
             </div>
-            <div v-else class="empty-compact">
-              <p>{{ $t('financeNoPendingPayouts') }}</p>
-            </div>
+            <div v-else class="empty-compact">{{ $t('financeNoPendingPayouts') }}</div>
           </PremiumDashboardCard>
 
-          <PremiumDashboardCard :title="$t('financePenaltiesTitle')" variant="glass" class="penalty-table-card">
-            <div class="payout-metrics penalty-summary">
-              <div class="p-row">
+          <PremiumDashboardCard :title="$t('financePenaltiesTitle')" variant="glass" class="side-panel">
+            <div class="payout-metrics mb-4">
+              <div class="m-row">
                 <span>{{ $t('financePenaltyCount') }}</span>
                 <strong>{{ formatInteger(dashboard.courierPenaltyCount) }}</strong>
               </div>
-              <div class="p-row">
-                <span>{{ $t('financeActiveSuspensions') }}</span>
-                <strong>{{ formatInteger(dashboard.courierActiveSuspensionCount) }}</strong>
-              </div>
-              <div class="p-row total">
+              <div class="m-row total">
                 <span>{{ $t('financeCourierPenaltiesAmount') }}</span>
-                <strong>{{ formatCurrency(dashboard.courierFinancialPenaltyAmount) }}</strong>
+                <strong class="text-danger">{{ formatCurrency(dashboard.courierFinancialPenaltyAmount) }}</strong>
               </div>
             </div>
-            <div v-if="dashboard.recentCourierPenalties?.length" class="pending-stack">
-              <div v-for="item in dashboard.recentCourierPenalties" :key="item.id" class="pending-item penalty-item">
-                <div class="p-item-info">
+            <div v-if="dashboard.recentCourierPenalties?.length" class="mini-stack border-danger">
+              <div v-for="item in dashboard.recentCourierPenalties" :key="item.id" class="mini-item danger">
+                <div class="mini-item-info">
                   <strong>{{ item.deliveryPersonName || item.deliveryPersonEmail || '-' }}</strong>
-                  <span>{{ formatPenaltyType(item.type) }}</span>
+                  <small>{{ formatPenaltyType(item.type) }}</small>
                 </div>
-                <div class="p-item-amount text-rose">
-                  {{ formatCurrency(item.financialPenaltyAmount) }}
-                </div>
+                <div class="mini-item-amount text-danger">{{ formatCurrency(item.financialPenaltyAmount) }}</div>
               </div>
             </div>
-            <router-link class="penalty-link" to="/dashboard/courier-penalties">
+            <router-link class="qd-btn-secondary full-width mt-3" to="/dashboard/courier-penalties" style="justify-content: center; height: 42px; border-radius: 12px;">
               {{ $t('financeOpenPenaltiesPage') }}
+              <span class="material-symbols-outlined">trending_flat</span>
             </router-link>
           </PremiumDashboardCard>
         </section>
@@ -274,169 +267,64 @@ export default {
 </script>
 
 <style scoped>
-.finance-dashboard-page {
-  min-height: 100vh;
-  padding: 32px;
-  background: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+.text-gradient-indigo {
+  background: linear-gradient(135deg, var(--qd-primary-dark), var(--qd-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.premium-finance-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 40px;
-}
-
-.luxury-chip {
-  background: #0f172a;
-  color: #fff;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  display: inline-block;
-}
-
-.hero-content h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.03em;
-  margin: 0;
-}
-
-.hero-main-stat {
-  padding: 32px 48px;
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
-  text-align: right;
-  border: 1px solid rgba(15, 23, 42, 0.05);
-}
-
-.main-label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 8px;
-}
-
-.main-label span { color: #10b981; }
-
-.main-amount {
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: #0f172a;
-  display: block;
-  letter-spacing: -0.02em;
-}
-
-.main-subinfo {
-  font-size: 0.8125rem;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.main-subinfo strong { color: #0f172a; }
-
-/* Stats Grid */
-.stats-premium-grid {
+.premium-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-.f-stat-inner {
+.f-stat-body {
   display: flex;
   flex-direction: column;
 }
 
-.f-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 4px;
+.f-stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--qd-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
-.f-value {
-  font-size: 1.5rem;
+.f-stat-value {
+  font-size: 1.6rem;
   font-weight: 800;
-  color: #0f172a;
 }
 
-/* Layout */
-.finance-main-layout {
+.finance-content-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 32px;
 }
 
-.charts-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.charts-row {
+.charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
-.premium-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.premium-table th {
-  text-align: left;
-  padding: 16px;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.premium-table td {
-  padding: 16px;
-  font-size: 0.9375rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.ref-badge {
+.ref-id {
   font-family: monospace;
-  background: #f1f5f9;
-  padding: 4px 8px;
-  border-radius: 6px;
-  color: #475569;
-}
-
-.status-pill {
+  background: var(--qd-bg);
   padding: 4px 10px;
-  background: #e4f4ea;
-  color: #15803d;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  border-radius: 6px;
   font-weight: 700;
 }
 
-.text-bold { font-weight: 700; color: #0f172a; }
-.text-indigo { color: #6366f1; font-weight: 600; }
-.text-emerald { color: #10b981; font-weight: 600; }
-.text-rose { color: #e11d48; font-weight: 800; }
+.text-indigo { color: var(--qd-primary); }
+.text-success { color: var(--qd-success); }
+.text-danger { color: var(--qd-danger); }
+.fw-bold { font-weight: 800; }
 
-.payout-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.side-panel {
+  margin-bottom: 24px;
 }
 
 .payout-metrics {
@@ -445,81 +333,103 @@ export default {
   gap: 12px;
 }
 
-.p-row {
+.m-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9375rem;
 }
 
-.p-divider { height: 1px; background: rgba(0,0,0,0.05); margin: 4px 0; }
+.m-row span { color: var(--qd-muted); font-weight: 600; }
+.m-row strong { color: var(--qd-text); }
 
-.p-row.total {
-  font-weight: 700;
-  color: #0f172a;
-  font-size: 1.1rem;
-}
+.m-divider { height: 1px; background: var(--qd-border); margin: 4px 0; }
 
-.pending-stack {
+.m-row.total span { color: var(--qd-text); font-weight: 800; }
+.m-row.total strong { font-size: 1.2rem; }
+
+.mini-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-.pending-item {
+.mini-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: rgba(15, 23, 42, 0.03);
-  border-radius: 12px;
+  background: var(--qd-bg);
+  border-radius: 14px;
+  border: 1px solid var(--qd-border);
 }
 
-.p-item-info strong { display: block; font-size: 0.9375rem; color: #0f172a; }
-.p-item-info span { font-size: 0.75rem; color: #94a3b8; }
-.p-item-amount { font-weight: 800; color: #0f172a; }
+.mini-item-info strong { display: block; font-size: 0.95rem; }
+.mini-item-info small { font-size: 0.75rem; color: var(--qd-muted); }
+.mini-item-amount { font-weight: 800; font-size: 1rem; }
 
-.penalty-summary {
-  margin-bottom: 16px;
+.mini-item.danger {
+  border-left: 3px solid var(--qd-danger);
 }
 
-.penalty-item {
-  border-left: 3px solid #e11d48;
-}
+.full-width { width: 100%; justify-content: center; }
 
-.penalty-link {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 16px;
-  font-weight: 800;
-  color: #be123c;
-  text-decoration: none;
-}
+.large-icon { font-size: 4rem; color: var(--qd-primary-soft); margin-bottom: 16px; }
 
-/* States */
-.loading-state, .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 100px;
-  color: #64748b;
-}
-
-.spinner {
-  width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-top-color: #6366f1; border-radius: 50%; animation: qd-spin 1s linear infinite; margin-bottom: 16px;
+.premium-spinner {
+  width: 40px; height: 40px; border: 4px solid var(--qd-primary-soft); border-top-color: var(--qd-primary); border-radius: 50%; animation: qd-spin 1s linear infinite; margin-bottom: 16px;
 }
 
 @keyframes qd-spin { to { transform: rotate(360deg); } }
 
+@media (max-width: 1400px) {
+  .premium-stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 1200px) {
-  .finance-main-layout { grid-template-columns: 1fr; }
+  .finance-content-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-  .premium-finance-hero { flex-direction: column; align-items: flex-start; }
-  .hero-main-stat { width: 100%; text-align: left; }
-  .main-label { justify-content: flex-start; }
-  .stats-premium-grid { grid-template-columns: repeat(2, 1fr); }
-  .charts-row { grid-template-columns: 1fr; }
+  .finance-dashboard-page { padding: 12px; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+  .finance-hero { flex-direction: column; align-items: stretch; text-align: center; gap: 14px; max-width: 100%; }
+  .hero-left h1 { font-size: 1.55rem; line-height: 1.1; overflow-wrap: break-word; }
+  .hero-left p { margin-left: auto; margin-right: auto; font-size: 0.88rem; line-height: 1.35; }
+  
+  .hero-main-card { 
+    text-align: center; 
+    white-space: normal; 
+    padding: 12px !important;
+    min-width: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .main-stat-label { justify-content: center; }
+  .main-stat-value { font-size: 1.35rem !important; line-height: 1.1; }
+  
+  .premium-stats-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px;
+    width: 100%;
+  }
+  .f-stat-value { font-size: 1.25rem; }
+  .f-stat-label { font-size: 0.65rem; }
+  
+  .charts-grid { grid-template-columns: 1fr; gap: 12px; width: 100%; }
+  .finance-content-layout { grid-template-columns: 1fr; gap: 14px; width: 100%; }
+  .main-column, .side-column { width: 100%; min-width: 0; }
+  
+  .premium-table-shell {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+  .premium-table {
+    min-width: 550px;
+  }
+  .large-icon { font-size: 2.25rem; margin-bottom: 8px; }
+}
+
+@media (max-width: 480px) {
+  .hero-left h1 { font-size: 1.6rem; }
 }
 </style>

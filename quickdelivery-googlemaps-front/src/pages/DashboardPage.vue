@@ -1,9 +1,9 @@
 <template>
-  <div class="dashboard-page" :class="`type-${dashboardType}`">
+  <div class="dashboard-page qd-page" :class="`type-${dashboardType}`">
     <template v-if="isLoadingPage">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
           <p>{{ dashboardSubtitle }}</p>
         </div>
@@ -15,9 +15,9 @@
     </template>
 
     <template v-else-if="loadError">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('dashboardWelcomeBack') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
         </div>
       </header>
@@ -28,19 +28,21 @@
     </template>
 
     <template v-else>
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip pulse-chip">{{ $t('dashboardWelcomeBack') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip pulse-chip">{{ $t('dashboardWelcomeBack') }}</span>
           <h1>{{ dashboardTitle }}</h1>
           <p>{{ dashboardSubtitle }}</p>
         </div>
-        <div class="hero-account-glass">
-          <div class="account-avatar">
-            {{ connectedUserName.charAt(0).toUpperCase() }}
-          </div>
-          <div class="account-info">
-            <strong>{{ connectedUserName }}</strong>
-            <span class="role-badge">{{ connectedUserRoleLabel }}</span>
+        <div class="qd-page-header-actions">
+          <div class="hero-account-glass">
+            <div class="account-avatar">
+              {{ connectedUserName.charAt(0).toUpperCase() }}
+            </div>
+            <div class="account-info">
+              <strong>{{ connectedUserName }}</strong>
+              <span class="role-badge">{{ connectedUserRoleLabel }}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -102,20 +104,23 @@
 
         <!-- Section: Activité et Charts -->
         <section class="activity-history-column">
-          <PremiumDashboardCard 
-            v-if="chartCards.length" 
-            :title="chartCards[0].title" 
-            :subtitle="chartCards[0].subtitle"
-            class="chart-panel"
-          >
-            <DashboardTrendChart
-              :points="chartCards[0].points"
-              :tone="chartCards[0].tone"
-              :formatter="chartCards[0].formatter"
-              :empty-label="$t('dashboardChartEmpty')"
-              no-card
-            />
-          </PremiumDashboardCard>
+          <div class="charts-container" v-if="chartCards.length">
+            <PremiumDashboardCard 
+              v-for="chart in chartCards"
+              :key="chart.key"
+              :title="chart.title" 
+              :subtitle="chart.subtitle"
+              class="chart-panel"
+            >
+              <DashboardTrendChart
+                :points="chart.points"
+                :tone="chart.tone"
+                :formatter="chart.formatter"
+                :empty-label="$t('dashboardChartEmpty')"
+                no-card
+              />
+            </PremiumDashboardCard>
+          </div>
 
           <div class="dual-panel-row">
             <PremiumDashboardCard :title="$t('dashboardActivity')" class="timeline-panel">
@@ -249,6 +254,14 @@ export default {
     chartCards() {
       if (this.dashboardType === 'admin') {
         return [
+          this.createChartConfig({
+            key: 'admin-shipments',
+            title: this.$t('dashboardAdminShipmentsChartTitle'),
+            subtitle: this.$t('dashboardAdminShipmentsChartSubtitle', { year: this.currentYear }),
+            tone: '#1f5fae',
+            formatter: this.formatInteger,
+            values: this.adminMonthlyShipmentCounts,
+          }),
           this.createChartConfig({
             key: 'admin-earnings',
             title: this.$t('dashboardAdminEarningsChartTitle'),
@@ -525,55 +538,42 @@ export default {
   100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
 }
 
-.hero-content h1 {
-  margin: 0;
-  font-size: 2.75rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
-.hero-content p {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 1.1rem;
-}
-
 .hero-account-glass {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.6);
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(8px);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 }
 
 .account-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   background: var(--qd-primary);
   color: #fff;
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
 }
 
 .account-info strong {
   display: block;
-  font-size: 1rem;
-  color: #0f172a;
+  font-size: 0.95rem;
+  color: var(--qd-primary-dark);
 }
 
 .role-badge {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 0.72rem;
+  color: var(--qd-muted);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 /* Stats */
@@ -695,7 +695,12 @@ export default {
   font-size: 20px;
 }
 
-/* Activity Column */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
 .activity-history-column {
   display: flex;
   flex-direction: column;
@@ -827,21 +832,136 @@ export default {
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-page {
-    padding: 20px;
+@media screen and (max-width: 1024px) {
+  .dashboard-main-layout {
+    grid-template-columns: 1fr;
   }
+}
+
+@media screen and (max-width: 768px) {
+  .dashboard-page {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .dashboard-page .qd-page-header {
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .dashboard-page .qd-page-header .header-main {
+    width: 100%;
+  }
+
+  .dashboard-page .qd-page-header h1 {
+    margin: 6px 0 4px !important;
+    font-size: clamp(1.25rem, 5.5vw, 1.45rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  .dashboard-page .qd-page-header p {
+    margin: 0 !important;
+    font-size: 0.82rem !important;
+    line-height: 1.28 !important;
+    max-width: 42rem;
+  }
+
+  .dashboard-page .page-chip {
+    min-height: 26px !important;
+    padding: 4px 8px !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .dashboard-page .qd-page-header-actions {
+    width: 100%;
+  }
+
   .hero-section {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .hero-content h1 {
-    font-size: 2rem;
+    font-size: 1.45rem;
+    line-height: 1.1;
   }
+
+  .hero-account-glass {
+    width: 100%;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+
+  .account-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+
+  .account-info strong {
+    font-size: 0.86rem;
+  }
+
+  .role-badge {
+    font-size: 0.66rem;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
+
+  .stat-value {
+    font-size: 1.18rem;
+    line-height: 1.08;
+  }
+
+  .stat-label {
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .dashboard-main-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .priority-actions-column {
+    gap: 10px;
+  }
+
+  .premium-action-tile {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .tile-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+  }
+
+  .premium-action-tile strong {
+    font-size: 0.84rem;
+    line-height: 1.2;
+  }
+
+  .tile-arrow {
+    font-size: 16px;
+  }
+
   .dual-panel-row {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-container {
     grid-template-columns: 1fr;
   }
 }

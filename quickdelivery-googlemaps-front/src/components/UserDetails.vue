@@ -25,7 +25,7 @@
                 <div><strong>{{$t('userVehicleEnergy')}}:</strong> {{ vehicle.energyType }}</div>
             </div>
         </div>
-        <button v-if="showUpdateButton" class="btn primary_btn" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
+        <button v-if="showUpdateButton" class="qd-btn-primary" @click="toUpdate">{{$t('userAccountUpdate')}}</button>
     </div>
 </template>
 <script>
@@ -190,18 +190,26 @@ export default {
     color: #334155;
     line-height: 1.35;
 }
+.user_details_group_ .user_details .details{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+}
 .user_details_group_ .user_details:first-child{
     border-bottom: 1px solid #eef2f7;
 }
 .user_details_group_ button{
     display: inline-block;
     margin: 12px 16px 16px;
+    width: calc(100% - 32px);
+    border-radius: 999px !important;
 }
 @media screen and (max-width: 1100px){
     .user_details_group_ .user_details .details{
         width: 100%;
         display: grid;
-        grid-template-columns: auto auto;
+        grid-template-columns: 1fr;
         gap: 0 12px;
     }
     .user_details_group_ .user_details .details div{
@@ -220,7 +228,7 @@ export default {
     .user_details_group_ .user_details .details .long_text,
     .user_details_group_ .user_details .details .picture{
         grid-column-start: 1;
-        grid-column-end: 3;
+        grid-column-end: 2;
     }
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
-  <div class="metrics-dashboard-page" :class="{ 'is-loading': isLoading && !currentSnapshot }">
+  <div class="metrics-dashboard-page qd-page" :class="{ 'is-loading': isLoading && !currentSnapshot }">
     <template v-if="isLoading && !currentSnapshot">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip pulse-chip">{{ $t('menuAdminMetrics') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip pulse-chip">{{ $t('menuAdminMetrics') }}</span>
           <h1>{{ $t('metricsPageTitle') }}</h1>
           <p>{{ $t('metricsPageSubtitle') }}</p>
         </div>
@@ -15,9 +15,9 @@
     </template>
 
     <template v-else-if="loadError && !currentSnapshot">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('menuAdminMetrics') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip">{{ $t('menuAdminMetrics') }}</span>
           <h1>{{ $t('metricsPageTitle') }}</h1>
         </div>
       </header>
@@ -28,14 +28,14 @@
     </template>
 
     <template v-else>
-      <header class="hero-section premium-hero">
-        <div class="hero-content">
-          <div class="hero-header-row">
-            <span class="hero-chip status-chip" :class="overallStatus.tone.replace('tone-', '')">
+      <header class="qd-page-header">
+        <div class="header-main">
+          <div class="hero-header-row" style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+            <span class="page-chip status-chip" :class="overallStatus.tone.replace('tone-', '')">
               <span class="status-pulse"></span>
               {{ overallStatus.label }}
             </span>
-            <span class="refresh-time">
+            <span class="refresh-time" style="font-size: 0.8rem; color: var(--qd-muted);">
               {{ $t('metricsPageLastRefresh') }}: {{ formatDateTime(lastRefreshAt) }}
             </span>
           </div>
@@ -43,18 +43,20 @@
           <p>{{ $t('metricsPageSubtitle') }}</p>
         </div>
         
-        <div class="hero-system-stats">
-          <div class="system-stat-item">
-            <span class="item-label">{{ $t('metricsOverallHealthy') }}</span>
-            <strong class="item-value">{{ healthyModuleCount }}/{{ moduleCards.length }}</strong>
-          </div>
-          <div class="system-stat-item warn">
-            <span class="item-label">{{ $t('metricsOverallIncidents') }}</span>
-            <strong class="item-value">{{ currentAlerts.length }}</strong>
-          </div>
-          <div class="system-stat-item">
-            <span class="item-label">{{ $t('metricsOverallTraffic') }}</span>
-            <strong class="item-value">{{ formatInteger(lastHourTrafficTotal) }}</strong>
+        <div class="qd-page-header-actions">
+          <div class="hero-system-stats">
+            <div class="system-stat-item">
+              <span class="item-label">{{ $t('metricsOverallHealthy') }}</span>
+              <strong class="item-value">{{ healthyModuleCount }}/{{ moduleCards.length }}</strong>
+            </div>
+            <div class="system-stat-item warn">
+              <span class="item-label">{{ $t('metricsOverallIncidents') }}</span>
+              <strong class="item-value">{{ currentAlerts.length }}</strong>
+            </div>
+            <div class="system-stat-item">
+              <span class="item-label">{{ $t('metricsOverallTraffic') }}</span>
+              <strong class="item-value">{{ formatInteger(lastHourTrafficTotal) }}</strong>
+            </div>
           </div>
         </div>
       </header>
@@ -656,23 +658,6 @@ export default {
 </script>
 
 <style scoped>
-.metrics-dashboard-page {
-  min-height: 100vh;
-  padding: 32px;
-  background: #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  font-family: 'Inter', system-ui, sans-serif;
-}
-
-.premium-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-}
-
 .hero-header-row {
   display: flex;
   align-items: center;
@@ -685,10 +670,6 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .status-pulse {
@@ -705,27 +686,14 @@ export default {
   100% { opacity: 1; transform: scale(1); }
 }
 
-.refresh-time {
-  font-size: 0.8125rem;
-  color: #64748b;
-}
-
-.hero-content h1 {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.03em;
-  margin: 0;
-}
-
 .hero-system-stats {
   display: flex;
-  gap: 48px;
-  padding: 24px 32px;
-  background: #0f172a;
-  border-radius: 24px;
+  gap: 32px;
+  padding: 16px 24px;
+  background: var(--qd-primary-dark);
+  border-radius: 20px;
   color: #fff;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
 }
 
 .system-stat-item {
@@ -734,16 +702,16 @@ export default {
 }
 
 .item-label {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .item-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
 }
 
 .system-stat-item.warn .item-value {
@@ -1058,5 +1026,135 @@ export default {
   .intelligence-column { grid-template-columns: 1fr; }
   .logs-technical-card { grid-column: span 1; }
   .charts-premium-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .hero-system-stats { gap: 12px; padding: 12px; }
+  .item-value { font-size: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .metrics-dashboard-page { 
+    padding: 12px; 
+    gap: 14px; 
+    width: 100%; 
+    max-width: 100vw !important;
+    box-sizing: border-box; 
+    overflow-x: hidden !important; 
+  }
+  
+  .premium-hero { flex-direction: column; align-items: stretch; gap: 12px; width: 100%; }
+  .hero-content h1 { font-size: 1.75rem; overflow-wrap: break-word; line-height: 1.1; }
+  
+  .hero-system-stats { 
+    flex-direction: column; 
+    gap: 12px; 
+    padding: 12px;
+    align-items: stretch;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 14px;
+    min-width: 0;
+  }
+  .system-stat-item { width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 10px; }
+  .system-stat-item:last-child { border-bottom: none; padding-bottom: 0; }
+  
+  .population-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 8px; 
+    width: 100%; 
+    display: grid !important; 
+    min-width: 0;
+  }
+  .pop-card { min-width: 0; }
+  .stat-container { gap: 8px; flex-direction: column; text-align: center; justify-content: center; min-width: 0; }
+  .stat-copy { min-width: 0; width: 100%; }
+  .stat-value { font-size: 1.1rem; }
+  .stat-label { font-size: 0.65rem; word-break: break-word; white-space: normal; }
+  .stat-icon { font-size: 20px; padding: 6px; margin-bottom: 4px; }
+  
+  .module-cards-container { 
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%; 
+    grid-template-columns: 1fr; 
+  }
+  
+  .metrics-main-grid { 
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px; 
+    width: 100%; 
+    grid-template-columns: 1fr;
+  }
+  
+  .intelligence-column { 
+    display: flex !important; 
+    flex-direction: column; 
+    gap: 12px; 
+    width: 100%; 
+  }
+  
+  .module-premium-card, .alerts-card, .recommendations-card, .logs-technical-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  
+  .services-column { width: 100%; min-width: 0; max-width: 100%; }
+  
+  .module-card-header h3 { font-size: 0.95rem; }
+  .main-metrics-row { grid-template-columns: 1fr; gap: 12px; }
+  .detailed-metrics-grid { grid-template-columns: 1fr; gap: 8px; }
+  
+  .technical-log-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+  .log-row-item {
+    word-break: break-all !important;
+    white-space: normal !important;
+  }
+  .log-msg { word-break: break-all !important; white-space: normal !important; flex: 1; min-width: 0; }
+  
+  .charts-premium-grid { 
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .hero-system-stats {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .population-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .module-cards-container {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-premium-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .population-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-content h1 { font-size: 1.5rem; }
+  .hero-header-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .refresh-time { font-size: 0.7rem; }
 }
 </style>

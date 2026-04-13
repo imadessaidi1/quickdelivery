@@ -1,106 +1,151 @@
 <template>
-    <div class="package_details_group">
-            <div class="package_details package_overview">
-            <h3>{{$t('createNewPackage')}}</h3>
-            <div class="details">
-                <div>
-                    <strong>{{$t('packageHeight')}}:</strong> {{package_.height}}
-                </div>
-                <div>
-                    <strong>{{$t('packageWidth')}}:</strong> {{package_.width}}
-                </div>
-                <div>
-                    <strong>{{$t('packageDepth')}}:</strong> {{package_.depth}}
-                </div>
-                <div>
-                    <strong>{{$t('packageWeight')}}:</strong> {{package_.weight}}
-                </div>
-                <div v-if="displayedPrice !== '-'">
-                    <strong>{{displayedPriceLabel}}:</strong> {{displayedPrice}}
-                </div>
-                <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']" class="invoice_line">
-                    <a @click="openDocumentPDFModal" class="custom-link">{{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}</a>
-                </div>
-            </div>
-            <div v-if="packagePictureAvailable" class="package_photo_block">
-                <button type="button" class="package_photo_preview" @click="openDocumentIMGModal">
-                    <img
-                        v-if="picturePreviewSrc"
-                        :src="picturePreviewSrc"
-                        :alt="$t('PACKAGE_PICTURE')"
-                        class="package_photo_image"
-                    >
-                    <div v-else-if="isPictureLoading" class="package_photo_state">
-                        {{ $t('stateLoading') }}
-                    </div>
-                    <div v-else class="package_photo_state package_photo_state_error">
-                        {{ $t('stateLoadError') }}
-                    </div>
-                </button>
-                <button type="button" class="package_photo_link" @click="openDocumentIMGModal">
-                    {{ $t('PACKAGE_PICTURE') }}
-                </button>
-            </div>
-            <!--<div v-if="documentS">
-                <div>
-                    {{$t('packagePicture')}}: {{documentS[0].name}}
-                </div>
-                <div>
-                    {{$t('packageInvoice')}}: {{documentS[1].name}}
-                </div>
-            </div>-->
-        </div>
-        <div class="package_details">
-            <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
-            <div class="details">
-                <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{departureAddress.firstName}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{departureAddress.lastName}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{departureAddress.email}}
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{departureAddress.phone}}
-                </div>
-                <div class="adresse_line">
-                    <strong>{{departureAddress.addressAuto}}</strong>
-                </div>
-                <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{departureAddress.floor}}
-                </div>
-                <div class="dateTime_line" v-show="departureAddress.dateTime">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStatePickup') })}}:</strong> {{ formatDate(departureAddress.dateTime) }}
-                </div>
+    <div class="package-details-v3">
+        <!-- Overview Section: Metadata Chips -->
+        <div class="details-section overview-card">
+            <div class="section-header">
+                <span class="material-symbols-outlined icon-main">inventory_2</span>
+                <h3>{{$t('createNewPackage')}}</h3>
             </div>
             
+            <div class="metadata-grid">
+                <div class="meta-chip">
+                    <span class="material-symbols-outlined">height</span>
+                    <div class="meta-info">
+                        <label>{{$t('packageHeight')}}</label>
+                        <span>{{package_.height}} cm</span>
+                    </div>
+                </div>
+                <div class="meta-chip">
+                    <span class="material-symbols-outlined">width</span>
+                    <div class="meta-info">
+                        <label>{{$t('packageWidth')}}</label>
+                        <span>{{package_.width}} cm</span>
+                    </div>
+                </div>
+                <div class="meta-chip">
+                    <span class="material-symbols-outlined">straighten</span>
+                    <div class="meta-info">
+                        <label>{{$t('packageDepth')}}</label>
+                        <span>{{package_.depth}} cm</span>
+                    </div>
+                </div>
+                <div class="meta-chip">
+                    <span class="material-symbols-outlined">weight</span>
+                    <div class="meta-info">
+                        <label>{{$t('packageWeight')}}</label>
+                        <span>{{package_.weight}} kg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="displayedPrice !== '-'" class="price-banner">
+                <div class="price-content">
+                    <span class="material-symbols-outlined">payments</span>
+                    <span class="price-label">{{displayedPriceLabel}}</span>
+                </div>
+                <span class="price-value">{{displayedPrice}}</span>
+            </div>
+
+            <div v-if="package_.documentS && package_.documentS['PACKAGE_INVOICE']" class="invoice-box">
+                <span class="material-symbols-outlined">description</span>
+                <a @click="openDocumentPDFModal" class="invoice-link">
+                    {{ $t(package_.documentS['PACKAGE_INVOICE'].fileName) }}
+                </a>
+            </div>
+
+            <div v-if="packagePictureAvailable" class="photo-section">
+                <button type="button" class="photo-preview-btn" @click="openDocumentIMGModal">
+                    <img v-if="picturePreviewSrc" :src="picturePreviewSrc" :alt="$t('PACKAGE_PICTURE')" class="photo-image">
+                    <div v-else-if="isPictureLoading" class="photo-loader">
+                        <div class="spinner"></div>
+                        <span>{{ $t('stateLoading') }}</span>
+                    </div>
+                    <div v-else class="photo-error">
+                        <span class="material-symbols-outlined">broken_image</span>
+                        <span>{{ $t('stateLoadError') }}</span>
+                    </div>
+                </button>
+            </div>
         </div>
-        <div class="package_details">
-            <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
-            <div class="details">
-                <div>
-                    <strong>{{$t('packageAddressFirstName')}}:</strong> {{arrivalAddress.firstName}}
+
+        <!-- Departure Section -->
+        <div v-if="showDepartureAddress" class="details-section address-card departure">
+            <div class="section-header">
+                <span class="material-symbols-outlined icon-main">location_on</span>
+                <h3>{{$t('packageAddressDepartureAddresses')}}</h3>
+            </div>
+            
+            <div class="address-content">
+                <div class="user-info-row">
+                    <div class="user-main">
+                        <span class="material-symbols-outlined">person</span>
+                        <span class="user-name">{{departureAddress.firstName}} {{departureAddress.lastName}}</span>
+                    </div>
                 </div>
-                <div>
-                    <strong>{{$t('packageAddressLastName')}}:</strong> {{arrivalAddress.lastName}}
+                
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <span class="material-symbols-outlined">mail</span>
+                        <span>{{departureAddress.email}}</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="material-symbols-outlined">call</span>
+                        <span>{{departureAddress.phone}}</span>
+                    </div>
                 </div>
-                <div>
-                    <strong>{{$t('packageAddressEmail')}}:</strong> {{arrivalAddress.email}}
+
+                <div class="full-address-box">
+                    <span class="material-symbols-outlined address-pin">map</span>
+                    <div class="address-text">
+                        <div class="main-address">{{departureAddress.addressAuto}}</div>
+                        <div class="sub-address">
+                            <span class="floor-tag">{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStatePickup') })}}: {{departureAddress.floor}}</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <strong>{{$t('packageAddressPhone')}}:</strong> {{arrivalAddress.phone}}
+
+                <div v-if="departureAddress.dateTime" class="time-callout">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <span>{{ formatDate(departureAddress.dateTime) }}</span>
                 </div>
-                <div class="adresse_line">
-                    <strong>{{arrivalAddress.addressAuto}}</strong>
+            </div>
+        </div>
+
+        <!-- Arrival Section -->
+        <div v-if="showArrivalAddress" class="details-section address-card arrival">
+            <div class="section-header">
+                <span class="material-symbols-outlined icon-main">flag</span>
+                <h3>{{$t('packageAddressArrivalAddresses')}}</h3>
+            </div>
+
+            <div class="address-content">
+                <div class="user-info-row">
+                    <div class="user-main">
+                        <span class="material-symbols-outlined">person</span>
+                        <span class="user-name">{{arrivalAddress.firstName}} {{arrivalAddress.lastName}}</span>
+                    </div>
                 </div>
-                <div>
-                    <strong>{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{arrivalAddress.floor}}
+
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <span class="material-symbols-outlined">mail</span>
+                        <span>{{arrivalAddress.email}}</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="material-symbols-outlined">call</span>
+                        <span>{{arrivalAddress.phone}}</span>
+                    </div>
                 </div>
-                <!--<div class="dateTime_line">
-                    <strong>{{$t('packageAddressDepartureTime',{ state: $t('packageAddressFloorStateDelivery') })}}:</strong> {{ formatDate(getArrivalAddress(this.package_.addresses).dateTime) }}
-                </div>-->
+
+                <div class="full-address-box">
+                    <span class="material-symbols-outlined address-pin">navigation</span>
+                    <div class="address-text">
+                        <div class="main-address">{{arrivalAddress.addressAuto}}</div>
+                        <div class="sub-address">
+                            <span class="floor-tag">{{$t('packageAddressFloor',{ state: $t('packageAddressFloorStateDelivery') })}}: {{arrivalAddress.floor}}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -123,6 +168,18 @@ export default {
         },
         arrivalAddress() {
           return getArrivalAddress(this.package_?.addresses || []) || {};
+        },
+        normalizedStatus() {
+          return (this.package_?.status || '').toUpperCase();
+        },
+        showDepartureAddress() {
+          return ['NEW', 'DELIVERED', 'RESERVED'].includes(this.normalizedStatus) || this.showAllAddressesForUnknownStatus;
+        },
+        showArrivalAddress() {
+          return ['NEW', 'DELIVERED', 'PICKEDUP', 'INDELIVERY'].includes(this.normalizedStatus) || this.showAllAddressesForUnknownStatus;
+        },
+        showAllAddressesForUnknownStatus() {
+          return !['NEW', 'DELIVERED', 'RESERVED', 'PICKEDUP', 'INDELIVERY'].includes(this.normalizedStatus);
         },
         packagePictureDocument() {
           return this.package_?.documentS?.PACKAGE_PICTURE || null;
@@ -224,227 +281,248 @@ export default {
 }
 </script>
 <style>
-.tracking_summary_component h2{
-  margin-left: 20px;
-}
-.custom-link {
-  text-decoration: none;
-  color: black;
-  border-bottom: solid 1px black;
-  opacity: .65;
-  cursor: pointer;
-  transition: all .3s;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+.package-details-v3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
 }
 
-.custom-link:hover {
-  opacity: 1;
-}
-.package_photo_block{
+.details-section {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 20px 14px;
+  gap: 20px;
+  border: 1px solid #f1f5f9;
 }
-.package_photo_preview{
-  width: 100%;
-  min-height: 220px;
-  border: 1px solid #d9dee8;
-  border-radius: 18px;
-  padding: 0;
-  overflow: hidden;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  cursor: pointer;
-}
-.package_photo_image{
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-height: 420px;
-  object-fit: cover;
-}
-.package_photo_state{
+
+.section-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 220px;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.icon-main {
+  color: #4f46e5;
+  font-variation-settings: 'FILL' 1;
+}
+
+.departure .icon-main { color: #6366f1; }
+.arrival .icon-main { color: #10b981; }
+
+/* Metadata Grid */
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.meta-chip .material-symbols-outlined {
+  font-size: 1.25rem;
+  color: #64748b;
+}
+
+.meta-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-info label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.meta-info span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Price Banner */
+.price-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 16px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-radius: 16px;
+  border: 1px solid #bbfcce;
+}
+
+.price-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #15803d;
+}
+
+.price-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.price-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #166534;
+}
+
+/* Invoice & Photo */
+.invoice-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #f1f5f9;
+  border-radius: 12px;
+}
+
+.invoice-link {
+  font-size: 0.85rem;
   color: #475569;
   font-weight: 600;
-}
-.package_photo_state_error{
-  color: #b91c1c;
-}
-.package_photo_link{
-  align-self: flex-start;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #0f172a;
-  border-bottom: 1px solid #0f172a;
-  opacity: .75;
+  text-decoration: underline;
   cursor: pointer;
-  transition: opacity .3s;
 }
-.package_photo_link:hover{
-  opacity: 1;
+
+.photo-preview-btn {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  padding: 0;
 }
-.conditionCheckbox{
+
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Address Card Inner */
+.address-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-main {
   display: flex;
   align-items: center;
-  padding: 0 0 0 20px;
+  gap: 8px;
+  color: #0f172a;
 }
-.conditionCheckbox span{
-    font-size: 12px;
+
+.user-name {
+  font-weight: 800;
+  font-size: 1.05rem;
 }
-.package_details_group{
-    width: 100%;
-    display: flex;
-    justify-content: space-evenly;
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
-.package_details_group .package_details{
-    width: 30%;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #f5f5f5ca;
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
 }
-.package_details_group .package_details h3{
-    margin-left: 15px;
-    padding-left: 6px;
-    border-left: solid 3px #42ba96;
-} 
-.package_details_group .package_details .details{
-    padding: 6px 0 6.5px 0;
+
+.contact-item .material-symbols-outlined {
+  font-size: 1.15rem;
+  color: #cbd5e1;
 }
-.package_details_group .package_details .details div{
-    font-size: 14px;
-    padding: 3px 10px 3px 20px;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+
+.full-address-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
 }
-.package_details_group .package_details{
-    width: 100%;
-    padding: 10px;
-    border-radius: 0;
-    background-color: #f5f5f5a8;
+
+.address-pin {
+  color: #94a3b8;
+  font-variation-settings: 'FILL' 1;
 }
-.tracking_summary_component .package_details_group .package_details .details div{
-    font-size: 15px;
+
+.main-address {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.4;
 }
-.tracking_summary_component .package_details_group .package_details h3{
-    margin-left: 15px;
-    padding-left: 6px;
-    border-left: solid 3px #10b3ff;
-} 
-.tracking_summary_component .package_details_group{
-    flex-direction: column;
-    box-sizing: border-box;
-    padding: 10px;
+
+.floor-tag {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
 }
-.tracking_summary_component .package_details_group .package_details{
-    box-sizing: border-box;
-    width: 100%;
-    padding: 10px;
-    background-color: #fff;
+
+.time-callout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-weight: 700;
+  font-size: 0.85rem;
 }
-.tracking_summary_component .package_details_group .package_details:first-child{
-    border-bottom: 1px solid #e7e7e7;
-    border-radius: 10px 10px 0 0;
+
+/* Mobile Adjustments */
+@media screen and (max-width: 1100px) {
+  .package-details-v3 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
-.tracking_summary_component .package_details_group .package_details:last-child{
-    border-top: 1px solid #e7e7e7;
-    border-radius: 0 0 10px 10px;
-}
-@media screen and (max-width: 1100px){
-    .package_details_group {
-        flex-direction: column;
-    }
-    .package_details_group .package_details{
-        width: 95%;
-        margin: 5px 0;
-    }
-    .package_details_group .package_details .details{
-        width: 100%;
-        display: inline-grid;
-        grid-template-columns: auto auto;
-    }
-    .package_details_group .package_details .details .adresse_line,
-    .dateTime_line{
-        grid-column-start: 1;
-        grid-column-end: 3;
-    }
-    .package_details_group .package_details .details div{
-        font-size: 13px;
-    }
-    .package_photo_preview{
-        min-height: 260px;
-    }
-}
-@media screen and (max-width: 500px){
-  .modal-content h2{
-      font-size: 1em;
-  }
-  .package_details_group{
-      gap: 12px;
-  }
-  .package_details_group .package_details{
-      width: 100%;
-      margin: 0;
-      padding: 14px 12px;
-      border-radius: 16px;
-      background: #ffffff;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  }
-  .package_details_group .package_details h3{
-      margin: 0 0 10px 0;
-      padding-left: 8px;
-      font-size: 0.98rem;
-      line-height: 1.15;
-  }
-  .package_details_group .package_details .details{
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 0;
-  }
-  .package_details_group .package_details .details div{
-      padding: 0;
-      font-size: 0.98rem;
-      line-height: 1.35;
-  }
-  .package_details_group .package_details .details div strong{
-      display: inline;
-  }
-  .package_details_group .package_details .details .adresse_line,
-  .package_details_group .package_details .details .dateTime_line{
-      grid-column: auto;
-  }
-  .package_overview .details{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px 16px;
-  }
-  .package_overview .details .adresse_line,
-  .package_overview .details .dateTime_line,
-  .package_overview .details .invoice_line{
-      grid-column: 1 / -1;
-  }
-  .package_photo_block{
-      padding: 8px 0 0;
-      gap: 8px;
-  }
-  .package_photo_preview{
-      min-height: 220px;
-      border-radius: 16px;
-  }
-  .package_photo_image{
-      max-height: 320px;
-      object-fit: contain;
-      background: #f8fafc;
-  }
-  .package_photo_link{
-      font-size: 0.92rem;
+
+@media screen and (max-width: 500px) {
+  .details-section {
+    padding: 18px;
   }
 }
 </style>

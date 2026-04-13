@@ -1,39 +1,39 @@
 <template>
-  <div class="tracking-summary-page">
+  <div class="tracking-summary-page qd-page">
     <template v-if="isLoadingPage">
-      <div class="page-head">
-        <button class="btn primary_btn back-btn" type="button" @click="goBack">
-          {{ $t('actionBack') }}
-        </button>
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px; height: 36px; padding: 0 16px; border-radius: 10px; font-size: 0.85rem;">
+            <span class="icon">←</span> {{ $t('actionBack') }}
+          </button>
           <h1>{{ $t('trackingSummaryTitle') }}</h1>
           <p>{{ packageReference }}</p>
         </div>
-      </div>
+      </header>
       <div class="page-state">{{ $t('stateLoading') }}</div>
     </template>
     <template v-else-if="loadError">
-      <div class="page-head">
-        <button class="btn primary_btn back-btn" type="button" @click="goBack">
-          {{ $t('actionBack') }}
-        </button>
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px; height: 36px; padding: 0 16px; border-radius: 10px; font-size: 0.85rem;">
+            <span class="icon">←</span> {{ $t('actionBack') }}
+          </button>
           <h1>{{ $t('trackingSummaryTitle') }}</h1>
           <p>{{ packageReference }}</p>
         </div>
-      </div>
+      </header>
       <div class="page-state error">{{ $t('stateLoadError') }}</div>
     </template>
     <template v-else>
-      <div class="page-head">
-        <button class="btn primary_btn back-btn" type="button" @click="goBack">
-          {{ $t('actionBack') }}
-        </button>
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px; height: 36px; padding: 0 16px; border-radius: 10px; font-size: 0.85rem;">
+            <span class="icon">←</span> {{ $t('actionBack') }}
+          </button>
           <h1>{{ $t('trackingSummaryTitle') }}</h1>
           <p>{{ packageReference }}</p>
         </div>
-      </div>
+      </header>
 
       <div class="summary-shell">
         <VerticalPackageDetails />
@@ -104,47 +104,39 @@ export default {
 
 <style scoped>
 .tracking-summary-page {
-  min-height: 100%;
-  padding: 24px;
-  background: #f6f7f9;
-  box-sizing: border-box;
+  padding-bottom: 40px;
 }
 
 .page-head {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .page-head h1 {
   margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: #0f172a;
 }
 
 .page-head p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: #64748b;
+  font-size: 1.125rem;
 }
 
-.back-btn {
-  min-width: 110px;
+.back-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 42px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  gap: 8px;
+  font-weight: 700;
 }
 
 .summary-shell {
   border: 1px solid #e5e7eb;
-  border-radius: 18px;
+  border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
   overflow: hidden;
@@ -152,7 +144,7 @@ export default {
 
 @media screen and (max-width: 767px) {
   .tracking-summary-page {
-    padding: 16px;
+    padding: 12px;
   }
 
   .page-head {

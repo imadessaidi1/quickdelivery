@@ -14,12 +14,12 @@
         <span class="material-symbols-outlined">lock</span> {{ $t('lockedByOther') }}
       </div>
       <div class="actions-row">
-        <button class="details-btn" ref="reserveButtons" @click.stop="details">
+        <button class="qd-btn-primary" ref="reserveButtons" @click.stop="details">
           {{ $t('packagesArroundMArkerDetailActionsDetails') }}
         </button>
         <button
           v-if="canOperateDelivery() && package_.status === 'NEW' && !package_.isSoftLockedBy"
-          class="reserve-btn"
+          class="qd-btn-secondary"
           :disabled="isReserveDisabled"
           :title="reservationDisabledReason"
           ref="detailsButtons"
@@ -29,7 +29,7 @@
         </button>
         <button
           v-if="showCancelReservation"
-          class="cancel-reserve-btn"
+          class="qd-btn-danger"
           type="button"
           @click.stop="cancelReservation"
         >
@@ -93,12 +93,12 @@
     </div>
 
     <div class="actions-row">
-      <button class="details-btn" ref="reserveButtons" @click.stop="details">
+      <button class="qd-btn-primary" ref="reserveButtons" @click.stop="details">
         {{ $t('packagesArroundMArkerDetailActionsDetails') }}
       </button>
       <button
         v-if="canOperateDelivery() && package_.status === 'NEW' && !package_.isSoftLockedBy"
-        class="reserve-btn"
+        class="qd-btn-secondary"
         :disabled="isReserveDisabled"
         :title="reservationDisabledReason"
         ref="detailsButtons"
@@ -108,7 +108,7 @@
       </button>
       <button
         v-if="showCancelReservation"
-        class="cancel-reserve-btn"
+        class="qd-btn-danger"
         type="button"
         @click.stop="cancelReservation"
       >
@@ -537,10 +537,22 @@ export default {
 }
 
 .actions-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 4px;
 }
+
+.actions-row > button {
+  width: 100%;
+  min-width: 0;
+}
+
+.actions-row > button:only-child,
+.actions-row > .qd-btn-danger {
+  grid-column: 1 / -1;
+}
+
 .reservation-hint {
   margin-top: 8px;
   font-size: 11px;
@@ -548,46 +560,10 @@ export default {
   color: #b45309;
 }
 
-.details-btn,
-.reserve-btn {
-  flex: 1;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.details-btn {
-  color: #ffffff;
-  background: #020617;
-}
-
-.reserve-btn {
-  color: #0f172a;
-  background: #e2e8f0;
-}
-
-.cancel-reserve-btn {
-  flex: 1;
-  height: 36px;
-  border-radius: 10px;
-  border: none;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  color: #991b1b;
-  background: #fee2e2;
-}
-
-.cancel-reserve-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.reserve-btn:hover:not(:disabled) {
-  background: #cfd8e5;
+/* .details-btn, .reserve-btn, .cancel-reserve-btn handled by design-system.css qd-btn-* classes */
+.qd-btn-primary, .qd-btn-secondary, .qd-btn-danger {
+  height: 40px !important; /* Slightly more compact for carousel cards */
+  font-size: 0.85rem !important;
 }
 .reserve-btn:disabled {
   background: #e5e7eb;

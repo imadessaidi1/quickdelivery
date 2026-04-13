@@ -1,10 +1,13 @@
 export function validateNumericField(value) {
-    if (!value) {
-      return this.$i18n.t('mandatoryField');
-    }else if(value <= 0){
-       return this.$i18n.t('nonNegativeField');
-    }
-    return true;
+  const valStr = (value === undefined || value === null) ? '' : String(value).trim();
+  if (valStr === '') {
+    return this.$i18n.t('mandatoryField');
+  }
+  const regex = /^\d+$/;
+  if (!regex.test(valStr)) {
+    return this.$i18n.t('nonNegativeField');
+  }
+  return true;
 }
 
 export function validateRequired(value) {
@@ -15,7 +18,7 @@ export function validateRequired(value) {
 }
 
 export function validateNumericFieldAcceptZero(value) {
-    if(value === 0){
+    if(value === 0 || value === '0'){
         return true;
     }
     else if (!value) {

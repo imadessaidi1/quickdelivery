@@ -1,49 +1,113 @@
 <!-- Modal.vue -->
 <template>
-  <div v-if="isOpen" class="modal">
-    <div class="modal-content">
-      <PackageSummary />
-      <br/>
-        <button class="close-btn" ref="closeModalButtons"
-        @click="closeModal"><span class="material-symbols-outlined size-24">cancel</span></button>
-        <button class="btn primary_btn" ref="reserveButton" v-show="canOperateDelivery && package_.status === 'NEW'"
-        :disabled="isReserveDisabled"
-        @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-        <div v-if="canOperateDelivery && package_.status === 'NEW' && isReserveDisabled" class="reservation-hint">
+  <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-premium glass-pane">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="header-content">
+          <span class="material-symbols-outlined header-icon">package_2</span>
+          <div class="header-titles">
+            <h2>{{ $t('packagesArroundMArkerDetailActionsDetails') }}</h2>
+            <p class="package-ref">{{ package_.reference }}</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div :class="['status-badge', package_.status.toLowerCase()]">
+            {{ $t(`packageStatus_${package_.status}`) || package_.status }}
+          </div>
+          <button class="icon-close-btn" @click="closeModal">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body-scroll">
+        <PackageSummary />
+      </div>
+
+      <!-- Modal Footer (Actions) -->
+      <div class="modal-footer">
+        <!-- New Package Actions -->
+        <button 
+          v-if="canOperateDelivery && package_.status === 'NEW'"
+          class="qd-btn-primary" 
+          :disabled="isReserveDisabled"
+          @click="reserve"
+          style="width: 100%;"
+        >
+          <span class="material-symbols-outlined">add_task</span>
+          {{ $t('packagesArroundMArkerDetailActionsReserve') }}
+        </button>
+        
+        <div v-if="canOperateDelivery && package_.status === 'NEW' && isReserveDisabled" class="reservation-alert">
+          <span class="material-symbols-outlined">info</span>
           {{ reservationDisabledReason }}
         </div>
-        <button
-          class="btn cancel_btn"
-          type="button"
-          v-show="showCancelReservation"
-          @click="cancelReservation"
-        >
-          {{ $t('actionCancelReservation') }}
-        </button>
-        <div v-show="canOperateDelivery && package_.status === 'RESERVED'">
-          <div class="input_only">
-            <label for="otp">{{$t('packagePickupPassword')}}:</label>
-            <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
+
+        <!-- Reserved Actions -->
+        <div v-if="canOperateDelivery && package_.status === 'RESERVED'" class="auth-action-block">
+          <div class="otp-input-group">
+            <label>{{$t('packagePickupPassword')}}</label>
+            <div class="input-with-icon">
+              <span class="material-symbols-outlined">key</span>
+              <Field 
+                id="otp" 
+                type="tel" 
+                inputmode="numeric"
+                v-model="otp" 
+                name="otp" 
+                :rules="validateNumericField" 
+                placeholder="0000"
+                @keypress="$event.key >= '0' && $event.key <= '9' ? true : $event.preventDefault()"
+                @input="otp = (otp || '').toString().replace(/\D/g, '')"
+              />
+            </div>
             <ErrorMessage class="errorMessage" name="otp" />
           </div>
-          <button class="btn confirm_btn" ref="detailsButtons"
-          @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
+          
+          <div class="action-row">
+            <button class="qd-btn-secondary" @click="cancelReservation" style="flex: 1;">
+              {{ $t('actionCancelReservation') }}
+            </button>
+            <button class="qd-btn-primary" @click="pickup" style="flex: 1;">
+              <span class="material-symbols-outlined">local_shipping</span>
+              {{ $t('packagesArroundMArkerDetailActionsPickUp') }}
+            </button>
+          </div>
         </div>
-        <div v-show="canOperateDelivery && package_.status === 'PICKEDUP'">
-          <div class="input_only">
-            <label for="deliveryOtp">{{$t('packageDeliveryPassword')}}:</label>
-            <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
+
+        <!-- PickedUp Actions -->
+        <div v-if="canOperateDelivery && package_.status === 'PICKEDUP'" class="auth-action-block">
+          <div class="otp-input-group">
+            <label>{{$t('packageDeliveryPassword')}}</label>
+            <div class="input-with-icon">
+              <span class="material-symbols-outlined">verified_user</span>
+              <Field 
+                id="deliveryOtp" 
+                type="tel" 
+                inputmode="numeric"
+                v-model="deliveryOtp" 
+                name="deliveryOtp" 
+                :rules="validateNumericField" 
+                placeholder="0000"
+                @keypress="$event.key >= '0' && $event.key <= '9' ? true : $event.preventDefault()"
+                @input="deliveryOtp = (deliveryOtp || '').toString().replace(/\D/g, '')"
+              />
+            </div>
             <ErrorMessage class="errorMessage" name="deliveryOtp" />
           </div>
-          <button class="btn confirm_btn" ref="detailsButtons"
-          @click="deliver">{{ $t('packagesArroundMArkerDetailActionsDeliver') }}</button>
+          <button class="qd-btn-primary" @click="deliver" style="width: 100%;">
+            <span class="material-symbols-outlined">task_alt</span>
+            {{ $t('packagesArroundMArkerDetailActionsDeliver') }}
+          </button>
         </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-//import SummarizedPackageDetail from './SummarizedPackageDetail.vue';
 import PackageSummary from '../components/PackageDetails.vue';
 import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
@@ -52,7 +116,6 @@ import { getCurrentUserRoles } from '@/config/auth';
 
 export default {
   components: {
-      //SummarizedPackageDetail,
       PackageSummary,
       Field,
       ErrorMessage,
@@ -258,72 +321,208 @@ export default {
 </script>
 
 <style scoped>
-/* Styles CSS pour votre modal */
-.modal {
+.modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.25);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 2000;
+  padding: 20px;
 }
 
-.modal-content {
-  width: 70%;
-  padding: 0 20px 20px 20px;
-  border-radius: 10px;
-  position: relative;
-  /* From https://css.glass */
-  background: rgba(255, 255, 255, 0.5);
+.modal-premium {
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.modal-header {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.header-content {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.header-icon {
+  font-size: 2.5rem;
+  color: #4f46e5;
+  background: #f1f5f9;
+  padding: 12px;
   border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(6.6px);
-  -webkit-backdrop-filter: blur(6.6px);
 }
 
-.close-btn {
-  /* Styles pour le bouton de fermeture (position absolue en haut à droite, couleur, curseur, etc.) */
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  color: #555;
-  border: none;
-  background: none;
-  transition: all .3s;
-}
-.close-btn:hover{
-  color: #000000;
-}
-.input_only label{
+.header-titles h2 {
   margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
 }
-.input_only input{
-  margin: 10px 0;
+
+.package-ref {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  font-family: monospace;
 }
-.reservation-hint {
-  margin: 8px 0 12px;
-  font-size: 12px;
-  color: #b45309;
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-.cancel_btn {
-  margin-bottom: 12px;
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-@media screen and (max-width: 1100px){
-  .modal {
-    align-items: baseline;
-    overflow: scroll;
+
+.status-badge.new { background: #dcfce7; color: #166534; }
+.status-badge.reserved { background: #fef9c3; color: #854d0e; }
+.status-badge.pickedup { background: #dbeafe; color: #1e40af; }
+
+.icon-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.icon-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: rotate(90deg);
+}
+
+.modal-body-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.modal-footer {
+  padding: 24px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-radius: 0 0 24px 24px;
+}
+
+/* .action-btn handled by design-system.css qd-btn-* */
+
+.reservation-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fffbeb;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.auth-action-block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.otp-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.otp-input-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .material-symbols-outlined {
+  position: absolute;
+  left: 16px;
+  color: #94a3b8;
+}
+
+.input-with-icon input {
+  padding: 0 16px 0 48px;
+  height: 52px;
+  width: 100%;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  transition: border-color 0.2s;
+}
+
+.input-with-icon input:focus {
+  border-color: #4f46e5;
+  outline: none;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.action-row .action-btn {
+  flex: 1;
+}
+
+@media screen and (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
   }
-  .modal-content{
-    margin: 60px 0;
+  
+  .modal-premium {
+    max-height: 95vh;
+    border-radius: 32px 32px 0 0;
   }
-}
-@media screen and (max-width: 600px){
-  .modal-content{
-    width: 85%;
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .header-icon {
+    display: none;
   }
 }
 </style>

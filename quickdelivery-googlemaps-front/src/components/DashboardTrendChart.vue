@@ -1,6 +1,6 @@
 <template>
   <PremiumDashboardCard :title="title" :subtitle="subtitle" variant="glass" :tone="toneClass" class="trend-card">
-    <div v-if="points.length && maxValue > 0" class="chart-content">
+    <div v-if="points.length" class="chart-content">
       <div class="chart-shell">
         <svg viewBox="0 0 340 220" class="trend-svg" preserveAspectRatio="xMidYMid meet">
           <defs>
@@ -154,11 +154,12 @@ export default {
       return 'slate';
     },
     maxValue() {
-      return Math.max(0, ...this.points.map((point) => Number(point.value || 0)));
+      const max = Math.max(0, ...this.points.map((point) => Number(point.value || 0)));
+      return max;
     },
     ticks() {
-      if (!this.maxValue) return [];
-      const tickValues = [1, 0.66, 0.33, 0].map((ratio) => this.maxValue * ratio);
+      const scaleMax = this.maxValue === 0 ? 10 : this.maxValue;
+      const tickValues = [1, 0.66, 0.33, 0].map((ratio) => scaleMax * ratio);
       return tickValues.map((value, index) => ({
         value,
         displayValue: this.normalizeTickValue(value),

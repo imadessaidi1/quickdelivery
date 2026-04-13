@@ -26,11 +26,12 @@
         </div>
 
         <div class="card-actions">
-          <button class="details-btn" @click="showDetails(user)">{{ $t('packagesArroundMArkerDetailActionsDetails') }}</button>
+          <button class="qd-btn-primary" @click="showDetails(user)" style="width: 100%;">
+            {{ $t('packagesArroundMArkerDetailActionsDetails') }}
+          </button>
         </div>
       </article>
     </div>
-
   </div>
 </template>
 
@@ -142,19 +143,7 @@ export default {
   overflow-wrap: anywhere;
 }
 
-.details-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 132px;
-  height: 40px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 600;
-}
+/* .details-btn handled by design-system.css qd-btn-primary */
 
 .card-actions {
   display: flex;

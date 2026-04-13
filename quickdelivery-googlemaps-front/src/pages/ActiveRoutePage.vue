@@ -1,18 +1,18 @@
 <template>
-  <div class="active-route-page">
-    <div class="page-header">
-      <div>
-        <div class="page-chip">{{ $t('activeRouteChip') }}</div>
+  <div class="active-route-page qd-page">
+    <header class="qd-page-header">
+      <div class="header-main">
+        <span class="page-chip info uppercase">{{ $t('activeRouteChip') }}</span>
         <h1>{{ $t('activeRouteTitle') }}</h1>
         <p>{{ $t('activeRouteSubtitle') }}</p>
       </div>
-      <div class="header-actions">
-        <router-link to="/app" class="secondary-action">
+      <div class="qd-page-header-actions">
+        <router-link to="/app" class="qd-btn-secondary">
           {{ $t('activeRouteBackToMap') }}
         </router-link>
         <button
           v-if="activeRoute"
-          class="primary-action"
+          class="qd-btn-primary"
           type="button"
           :disabled="!canStartRoute"
           :title="canStartRoute ? '' : $t('activeRouteStartDisabled')"
@@ -21,16 +21,17 @@
           {{ $t('actionStartRoute') }}
         </button>
         <button
-          class="primary-action"
+          class="qd-btn-primary"
           type="button"
           :disabled="!nextNavigationUrl"
           @click="openNextNavigationSegment"
         >
+          <span class="material-symbols-outlined">explore</span>
           {{ $t('activeRouteOpenInGoogleMaps') }}
         </button>
         <button
           v-if="activeRoute"
-          class="danger-action"
+          class="qd-btn-danger"
           type="button"
           :disabled="!canCancelRoute"
           :title="canCancelRoute ? '' : $t('activeRouteCancelDisabled')"
@@ -39,98 +40,139 @@
           {{ $t('actionCancelRoute') }}
         </button>
       </div>
-    </div>
+    </header>
 
     <template v-if="isLoadingPage">
-      <div class="page-state">{{ $t('stateLoading') }}</div>
+      <div class="page-state">
+        <div class="premium-spinner"></div>
+        <span>{{ $t('stateLoading') }}</span>
+      </div>
     </template>
 
     <template v-else-if="!activeRoute">
-      <div class="page-state">{{ $t('activeRouteEmpty') }}</div>
+      <div class="page-state empty-mission">
+        <span class="material-symbols-outlined large-icon">route</span>
+        <p>{{ $t('activeRouteEmpty') }}</p>
+        <router-link to="/app" class="qd-btn-primary">{{ $t('activeRouteBackToMap') }}</router-link>
+      </div>
     </template>
 
     <template v-else>
       <section class="summary-grid">
-        <article class="summary-card accent-primary">
-          <small>{{ $t('activeRouteStatusLabel') }}</small>
-          <strong>{{ routeStatusLabel }}</strong>
-        </article>
-        <article class="summary-card">
-          <small>{{ $t('activeRoutePackagesLabel') }}</small>
-          <strong>{{ packageCount }}</strong>
-        </article>
-        <article class="summary-card">
-          <small>{{ $t('activeRouteDistanceLabel') }}</small>
-          <strong>{{ totalDistanceLabel }}</strong>
-        </article>
-        <article class="summary-card">
-          <small>{{ $t('activeRouteDurationLabel') }}</small>
-          <strong>{{ durationLabel }}</strong>
-        </article>
-        <article class="summary-card">
-          <small>{{ displayedPriceLabel }}</small>
-          <strong>{{ totalAmountLabel }}</strong>
-        </article>
-        <article class="summary-card">
-          <small>{{ $t('activeRouteProgressLabel') }}</small>
-          <strong>{{ completedStops }}/{{ totalStops }}</strong>
-        </article>
+        <PremiumDashboardCard tone="indigo" variant="glass">
+          <div class="stat-content">
+            <small>{{ $t('activeRouteStatusLabel') }}</small>
+            <strong>{{ routeStatusLabel }}</strong>
+          </div>
+        </PremiumDashboardCard>
+        <PremiumDashboardCard tone="slate" variant="glass">
+          <div class="stat-content">
+            <small>{{ $t('activeRoutePackagesLabel') }}</small>
+            <strong>{{ packageCount }}</strong>
+          </div>
+        </PremiumDashboardCard>
+        <PremiumDashboardCard tone="cyan" variant="glass">
+          <div class="stat-content">
+            <small>{{ $t('activeRouteDistanceLabel') }}</small>
+            <strong>{{ totalDistanceLabel }}</strong>
+          </div>
+        </PremiumDashboardCard>
+        <PremiumDashboardCard tone="amber" variant="glass">
+          <div class="stat-content">
+            <small>{{ $t('activeRouteDurationLabel') }}</small>
+            <strong>{{ durationLabel }}</strong>
+          </div>
+        </PremiumDashboardCard>
+        <PremiumDashboardCard tone="emerald" variant="glass">
+          <div class="stat-content">
+            <small>{{ displayedPriceLabel }}</small>
+            <strong>{{ totalAmountLabel }}</strong>
+          </div>
+        </PremiumDashboardCard>
+        <PremiumDashboardCard tone="indigo" variant="glass">
+          <div class="stat-content">
+            <small>{{ $t('activeRouteProgressLabel') }}</small>
+            <strong>{{ completedStops }}/{{ totalStops }}</strong>
+          </div>
+        </PremiumDashboardCard>
       </section>
 
-      <section class="route-layout">
-        <article class="route-panel progress-panel">
-          <div class="panel-header">
-            <h2>{{ $t('activeRouteCurrentSegmentTitle') }}</h2>
-            <span class="segment-pill">{{ currentSegmentLabel }}</span>
-          </div>
-          <p class="panel-subtitle">{{ $t('activeRouteCurrentSegmentSubtitle') }}</p>
-          <div class="progress-track">
-            <div class="progress-fill" :style="{ width: `${progressPercent}%` }"></div>
-          </div>
-          <div class="progress-meta">
-            <span>{{ progressPercent }}%</span>
-            <span>{{ nextStopLabel }}</span>
-          </div>
-          <div v-if="segmentSummaries.length" class="segment-list">
-            <button
-              v-for="segment in segmentSummaries"
-              :key="segment.index"
-              type="button"
-              class="segment-card"
-              :class="{ active: segment.index === currentSegmentIndex }"
-              @click="openNavigationSegment(segment.index)"
-            >
-              <strong>{{ segment.label }}</strong>
-              <span>{{ segment.stopRange }}</span>
-            </button>
-          </div>
-        </article>
-
-        <article class="route-panel steps-panel">
-          <div class="panel-header">
-            <h2>{{ $t('activeRouteStopsTitle') }}</h2>
-            <span class="segment-pill neutral">{{ totalStops }}</span>
-          </div>
-          <div class="stops-list">
-            <div
-              v-for="stop in decoratedStops"
-              :key="`${stop.packageId}-${stop.kind}-${stop.order}`"
-              class="stop-row"
-              :class="{ done: stop.isDone, active: stop.order === nextStopOrder }"
-            >
-              <div class="stop-order">{{ stop.order }}</div>
-              <div class="stop-body">
-                <div class="stop-topline">
-                  <span class="stop-kind" :class="stop.kind">{{ stop.kindLabel }}</span>
-                  <strong>{{ stop.packageReference }}</strong>
-                </div>
-                <div class="stop-address">{{ stop.addressLabel || '-' }}</div>
-              </div>
-              <div class="stop-status">{{ stop.statusLabel }}</div>
+      <div class="mission-layout">
+        <section class="mission-navigation">
+          <article class="panel-card glass-pane">
+            <div class="panel-head">
+              <h2>{{ $t('activeRouteCurrentSegmentTitle') }}</h2>
+              <span class="badge info">{{ currentSegmentLabel }}</span>
             </div>
-          </div>
-        </article>
-      </section>
+            <p class="panel-desc">{{ $t('activeRouteCurrentSegmentSubtitle') }}</p>
+            
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-value" :style="{ width: `${progressPercent}%` }"></div>
+              </div>
+              <div class="progress-labels">
+                <span>{{ progressPercent }}% {{ $t('activeRouteCompleted') }}</span>
+                <strong>{{ nextStopLabel }}</strong>
+              </div>
+            </div>
+
+            <div v-if="segmentSummaries.length" class="segment-stack">
+              <button
+                v-for="segment in segmentSummaries"
+                :key="segment.index"
+                type="button"
+                class="segment-item tone-indigo"
+                :class="{ active: segment.index === currentSegmentIndex }"
+                @click="openNavigationSegment(segment.index)"
+              >
+                <div class="seg-info">
+                  <strong>{{ segment.label }}</strong>
+                  <small>{{ segment.stopRange }}</small>
+                </div>
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <section class="mission-timeline">
+          <article class="panel-card">
+            <div class="panel-head">
+              <h2>{{ $t('activeRouteStopsTitle') }}</h2>
+              <span class="badge info outline">{{ totalStops }} {{ $t('activeRouteStopsLabel') }}</span>
+            </div>
+            
+            <div class="timeline-stack">
+              <div
+                v-for="stop in decoratedStops"
+                :key="`${stop.packageId}-${stop.kind}-${stop.order}`"
+                class="timeline-node"
+                :class="{ done: stop.isDone, current: stop.order === nextStopOrder }"
+              >
+                <div class="node-indicator">
+                  <div class="node-dot">
+                    <span v-if="stop.isDone" class="material-symbols-outlined">check</span>
+                    <span v-else>{{ stop.order }}</span>
+                  </div>
+                  <div class="node-line"></div>
+                </div>
+                <div class="node-card" :class="stop.kind === 'pickup' ? 'tone-emerald' : 'tone-indigo'">
+                  <div class="node-header">
+                    <span class="badge" :class="stop.kind === 'pickup' ? 'success' : 'info'">
+                      {{ stop.kindLabel }}
+                    </span>
+                    <span class="ref-id">{{ stop.packageReference }}</span>
+                  </div>
+                  <div class="node-address">{{ stop.addressLabel || '-' }}</div>
+                  <div class="node-footer">
+                    <span class="status-label">{{ stop.statusLabel }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -138,10 +180,15 @@
 <script>
 import http from '@/config/httpInterceptor';
 import { resolveDisplayedPackagePriceLabel } from '@/config/packagePricing';
+import PremiumDashboardCard from '@/components/PremiumDashboardCard.vue';
 
 const MAX_INTERMEDIATE_WAYPOINTS = 8;
 
 export default {
+  name: 'ActiveRoutePage',
+  components: {
+    PremiumDashboardCard,
+  },
   data() {
     return {
       isLoadingPage: false,
@@ -340,382 +387,275 @@ export default {
 
 <style scoped>
 .active-route-page {
-  min-height: 100%;
-  padding: 28px;
-  background: #f6f7f9;
-  box-sizing: border-box;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.page-chip {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 10px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #fff2e8;
-  color: #c9651a;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 3rem;
-  line-height: 1;
-  color: #0f172a;
-}
-
-.page-header p {
-  margin: 8px 0 0;
-  color: #64748b;
-  max-width: 720px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.primary-action,
-.secondary-action,
-.danger-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 168px;
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 14px;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.secondary-action {
-  border: 1px solid #d5d9e2;
-  background: #fff;
-  color: #334155;
-}
-
-.primary-action {
-  border: 1px solid #cf6320;
-  background: #ef7d32;
-  color: #fff;
-}
-
-.danger-action {
-  border: 1px solid #fecaca;
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.primary-action:disabled,
-.danger-action:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  padding-bottom: 40px;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-content small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--qd-muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stat-content strong {
+  font-size: 1.25rem;
+  color: var(--qd-text);
+  font-weight: 800;
+}
+
+.mission-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.panel-head h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.panel-desc {
+  color: var(--qd-muted);
+  font-size: 0.9rem;
   margin-bottom: 20px;
 }
 
-.summary-card {
-  padding: 18px;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+.progress-container {
+  margin-bottom: 24px;
 }
 
-.summary-card small {
-  display: block;
-  margin-bottom: 8px;
-  color: #64748b;
+.progress-bar {
+  height: 10px;
+  background: var(--qd-bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
 }
 
-.summary-card strong {
-  color: #0f172a;
-  font-size: 1.1rem;
+.progress-value {
+  height: 100%;
+  background: linear-gradient(90deg, var(--qd-primary), var(--qd-accent));
+  border-radius: inherit;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.summary-card.accent-primary {
-  background: linear-gradient(135deg, #fff7ef, #fff);
-  border-color: #f6d7bb;
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
 }
 
-.route-layout {
-  display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-  gap: 18px;
+.segment-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.route-panel {
-  border: 1px solid #e5e7eb;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
-  padding: 22px;
-}
-
-.panel-header {
+.segment-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  padding: 16px;
+  background: var(--qd-surface-strong);
+  border: 1px solid var(--qd-border);
+  border-radius: var(--qd-radius);
+  cursor: pointer;
+  transition: var(--qd-transition);
+  text-align: left;
+}
+
+.segment-item:hover {
+  border-color: var(--qd-primary);
+  transform: translateX(4px);
+}
+
+.segment-item.active {
+  background: var(--qd-primary-soft);
+  border-color: var(--qd-primary);
+}
+
+.seg-info strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.seg-info small {
+  color: var(--qd-muted);
+}
+
+/* Timeline */
+.timeline-stack {
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+}
+
+.timeline-node {
+  display: flex;
+  gap: 20px;
+}
+
+.node-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.node-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--qd-bg);
+  border: 3px solid var(--qd-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: var(--qd-muted);
+  flex-shrink: 0;
+  transition: var(--qd-transition);
+  z-index: 2;
+}
+
+.node-line {
+  width: 3px;
+  flex-grow: 1;
+  background: var(--qd-border);
+  margin: 4px 0;
+}
+
+.timeline-node:last-child .node-line {
+  display: none;
+}
+
+.node-card {
+  flex-grow: 1;
+  background: var(--qd-surface-strong);
+  border: 1px solid var(--qd-border);
+  border-radius: var(--qd-radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  transition: var(--qd-transition);
+}
+
+/* Timeline States */
+.timeline-node.done .node-dot {
+  background: var(--qd-success);
+  border-color: var(--qd-success);
+  color: #fff;
+}
+
+.timeline-node.done .node-line {
+  background: var(--qd-success);
+}
+
+.timeline-node.done .node-card {
+  opacity: 0.7;
+}
+
+.timeline-node.current .node-dot {
+  background: var(--qd-primary);
+  border-color: var(--qd-primary);
+  color: #fff;
+  box-shadow: 0 0 0 5px var(--qd-primary-soft);
+}
+
+.timeline-node.current .node-card {
+  border-color: var(--qd-primary);
+  box-shadow: var(--qd-shadow);
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 8px;
 }
 
-.panel-header h2 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 1.2rem;
+.ref-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--qd-muted);
 }
 
-.panel-subtitle {
-  margin: 0 0 18px;
-  color: #64748b;
+.node-address {
+  font-size: 0.95rem;
+  color: var(--qd-text);
+  line-height: 1.4;
+  margin-bottom: 12px;
 }
 
-.segment-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 52px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #fff2e8;
-  color: #c9651a;
+.node-footer .status-label {
   font-size: 0.8rem;
   font-weight: 700;
+  color: var(--qd-muted);
 }
 
-.segment-pill.neutral {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.progress-track {
-  width: 100%;
-  height: 12px;
-  border-radius: 999px;
-  background: #edf2f7;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ef7d32, #cf6320);
-}
-
-.progress-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
-  color: #475569;
-  font-size: 0.92rem;
-}
-
-.segment-list {
+.empty-mission {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.segment-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: #fff;
-  color: #334155;
-}
-
-.segment-card.active {
-  border-color: #ef7d32;
-  background: #fff7ef;
-}
-
-.segment-card strong,
-.stop-topline strong,
-.stop-address,
-.stop-status,
-.progress-meta span {
-  overflow-wrap: anywhere;
-}
-
-.stops-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 72vh;
-  overflow: auto;
-}
-
-.stop-row {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 120px;
-  gap: 14px;
-  align-items: center;
-  padding: 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  background: #fff;
-}
-
-.stop-row.done {
-  background: #f8fafc;
-  opacity: 0.74;
-}
-
-.stop-row.active {
-  border-color: #ef7d32;
-  box-shadow: 0 10px 22px rgba(239, 125, 50, 0.12);
-}
-
-.stop-order {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  background: #0f172a;
-  color: #fff;
-  font-weight: 700;
+  padding: 80px;
+  color: var(--qd-muted);
 }
 
-.stop-topline {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+.large-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
-.stop-kind {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
+.premium-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--qd-primary-soft);
+  border-top-color: var(--qd-primary);
+  border-radius: 50%;
+  animation: qd-spin 1s linear infinite;
+  margin: 0 auto 16px;
 }
 
-.stop-kind.pickup {
-  background: #ecfccb;
-  color: #4d7c0f;
-}
+@keyframes qd-spin { to { transform: rotate(360deg); } }
 
-.stop-kind.dropoff {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.stop-address {
-  margin-top: 6px;
-  color: #475569;
-  line-height: 1.4;
-}
-
-.stop-status {
-  justify-self: end;
-  color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.page-state {
-  padding: 16px;
-  border-radius: 14px;
-  background: #eef3f9;
-  color: #334155;
-  text-align: center;
-}
-
-@media screen and (max-width: 1200px) {
+@media (max-width: 1280px) {
   .summary-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, 1fr);
   }
+}
 
-  .route-layout {
+@media (max-width: 1024px) {
+  .mission-layout {
     grid-template-columns: 1fr;
   }
 }
 
-@media screen and (max-width: 767px) {
-  .active-route-page {
-    padding: 16px;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .page-header h1 {
-    font-size: 2.25rem;
-  }
-
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .header-actions {
-    flex-direction: column;
-  }
-
-  .primary-action,
-  .secondary-action,
-  .danger-action {
-    width: 100%;
-  }
-
-  .stop-row {
-    grid-template-columns: 42px minmax(0, 1fr);
-  }
-
-  .stop-order {
-    width: 42px;
-    height: 42px;
-  }
-
-  .stop-status {
-    grid-column: 2;
-    justify-self: start;
-  }
-
-  .segment-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media screen and (max-width: 460px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .panel-header,
-  .progress-meta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+@media (max-width: 768px) {
+  .active-route-page { padding: 12px; gap: 14px; }
+  .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-content small { font-size: 0.68rem; line-height: 1.2; }
+  .stat-content strong { font-size: 1.15rem; line-height: 1.1; overflow-wrap: anywhere; }
+  .empty-mission { padding: 24px 12px; }
+  .large-icon { font-size: 2.25rem; margin-bottom: 8px; }
+  .qd-page-header-actions { width: 100%; flex-direction: column; }
+  .qd-page-header-actions > * { width: 100%; }
 }
 </style>

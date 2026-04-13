@@ -1,22 +1,22 @@
 <template>
-  <div class="create-package-page">
-    <header class="page-header">
-      <div>
+  <div class="create-package-page qd-page">
+    <header class="qd-page-header">
+      <div class="header-main">
         <span class="page-chip">{{ $t('menuNewPackage') }}</span>
         <h1>{{ $t('createPackagePageTitle') }}</h1>
         <p>{{ $t('createPackagePageSubtitle') }}</p>
       </div>
     </header>
 
-    <section v-if="showGuestChoice" class="guest-entry-card">
+    <section v-if="showGuestChoice" class="guest-entry-card glass-pane">
       <span class="page-chip">{{ $t('guestCreatePackageChip') }}</span>
       <h2>{{ $t('guestCreatePackageTitle') }}</h2>
       <p>{{ $t('guestCreatePackageSubtitle') }}</p>
       <div class="guest-entry-actions">
-        <router-link class="btn primary_btn guest-entry-btn" to="/register">
+        <router-link class="qd-btn-primary guest-entry-btn" to="/register">
           {{ $t('guestCreatePackageRegisterAction') }}
         </router-link>
-        <button class="btn primary_btn guest-entry-btn" type="button" @click="continueAsGuest">
+        <button class="qd-btn-secondary guest-entry-btn" type="button" @click="continueAsGuest">
           {{ $t('guestCreatePackageAnonymousAction') }}
         </button>
       </div>
@@ -100,14 +100,14 @@
         <footer class="card-actions">
           <button
             v-if="currentStep > 1"
-            class="btn primary_btn wizard-action-btn"
+            class="qd-btn-secondary wizard-action-btn"
             type="button"
             @click="previousStep"
           >
             {{ $t('createPackageBackAction') }}
           </button>
 
-          <button class="btn primary_btn wizard-action-btn" type="submit">
+          <button class="qd-btn-primary wizard-action-btn" type="submit">
             {{ currentStep === steps.length ? $t('createPackageSubmitAction') : $t('packageNextAction') }}
           </button>
         </footer>
@@ -680,81 +680,26 @@ export default {
 
 <style scoped>
 .create-package-page {
-  min-height: 100%;
-  padding: 24px;
-  background: linear-gradient(180deg, #f3f6fb 0%, #eef3f9 100%);
-}
-
-.page-header {
-  margin-bottom: 18px;
-  padding: 24px 28px;
-  border: 1px solid #dde5f0;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
+  padding-bottom: 40px;
 }
 
 .guest-entry-card {
-  margin-bottom: 24px;
-  padding: 28px 30px;
-  border: 1px solid #dde5f0;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
-}
-
-.guest-entry-card h2 {
-  margin: 10px 0 8px;
-  color: #14213d;
-}
-
-.guest-entry-card p {
-  margin: 0;
-  color: #617086;
+  margin-bottom: 32px;
+  padding: 32px;
+  border-radius: 24px;
 }
 
 .guest-entry-actions {
   display: flex;
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 20px;
 }
 
 .guest-entry-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 210px;
-  height: 42px;
-  padding: 0 18px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.page-chip,
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #e7eefb;
-  color: #28558c;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.page-header h1,
-.card-header h2 {
-  margin: 8px 0;
-  color: #14213d;
-}
-
-.page-header p,
-.card-header p {
-  margin: 0;
-  color: #617086;
+  flex: 1 1 0;
+  width: 50%;
+  min-width: 0;
+  border-radius: 999px !important;
 }
 
 .wizard-shell {
@@ -766,10 +711,10 @@ export default {
 
 .wizard-sidebar,
 .wizard-card {
-  border: 1px solid #dde5f0;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 44px rgba(24, 39, 75, 0.08);
+  border: 1px solid var(--qd-border);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.06);
 }
 
 .wizard-sidebar {
@@ -853,6 +798,7 @@ export default {
 .card-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 18px 30px 28px;
   border-top: 1px solid #e6edf6;
@@ -866,10 +812,22 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 152px;
+  width: calc(50% - 6px);
+  min-width: 132px;
+  max-width: 220px;
   height: 42px;
   padding: 0 18px;
   font-weight: 600;
+}
+
+.card-actions .wizard-action-btn[type="submit"] {
+  order: 1;
+  margin-right: auto;
+}
+
+.card-actions .wizard-action-btn[type="button"] {
+  order: 2;
+  margin-left: auto;
 }
 
 .card-content :deep(.legal-consent-card) {
@@ -904,7 +862,7 @@ export default {
 
 @media screen and (max-width: 720px) {
   .create-package-page {
-    padding: 16px;
+    padding: 12px;
   }
 
   .wizard-card {
@@ -913,22 +871,22 @@ export default {
 
   .wizard-sidebar {
     gap: 8px;
-    padding: 12px;
+    padding: 8px;
   }
 
   .wizard-step {
     min-width: 72px;
     grid-template-columns: 1fr;
     justify-items: center;
-    gap: 6px;
-    padding: 10px 8px;
-    border-radius: 16px;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 12px;
   }
 
   .step-index {
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.72rem;
   }
 
   .step-copy {
@@ -937,7 +895,7 @@ export default {
   }
 
   .step-copy strong {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     line-height: 1.1;
     max-width: 100%;
     overflow: hidden;
@@ -950,34 +908,43 @@ export default {
   }
 
   .guest-entry-card {
-    padding: 22px 18px;
+    padding: 16px 12px;
   }
 
   .page-header {
-    padding: 20px 18px;
+    padding: 14px 12px;
   }
 
   .card-header,
   .card-content,
   .card-actions {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .card-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
   }
 
-  .card-actions .btn {
-    width: 100%;
+  .card-actions .wizard-action-btn {
+    width: calc(50% - 4px);
+    min-width: 0;
+    max-width: none;
   }
 
   .guest-entry-actions {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
   }
 
   .guest-entry-btn {
-    width: 100%;
+    flex: 1 1 0;
+    width: 50%;
+    min-width: 0;
+    border-radius: 999px !important;
   }
 }
 

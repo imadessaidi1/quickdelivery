@@ -139,11 +139,46 @@ export default {
 
 @media screen and (max-width: 720px) {
   .terms-page {
-    padding: 16px;
+    padding: 12px;
+  }
+
+  .terms-hero {
+    margin-bottom: 12px;
+  }
+
+  .terms-hero h1 {
+    margin: 8px 0 6px;
+    font-size: 1.45rem;
+    line-height: 1.12;
+  }
+
+  .terms-hero p {
+    font-size: 0.82rem;
+    line-height: 1.3;
   }
 
   .terms-card {
-    padding: 22px 18px;
+    padding: 16px 12px;
+  }
+
+  .terms-section + .terms-section {
+    margin-top: 14px;
+  }
+
+  .terms-section h2 {
+    margin-bottom: 6px;
+    font-size: 0.98rem;
+    line-height: 1.18;
+  }
+
+  .terms-section p {
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .terms-actions {
+    margin-top: 14px;
+    padding-top: 12px;
   }
 
   .terms-action-btn {

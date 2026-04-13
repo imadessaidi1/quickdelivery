@@ -1,30 +1,88 @@
 <template>
     <div class="carousel-wrapper">
-    <div v-if="isMobile" class="mobile-mode-switch">
-      <button class="mode-btn" :class="{ active: mobileViewMode === 'map' }" @click="mobileViewMode = 'map'">{{ $t('mobileModeMap') }}</button>
-      <button class="mode-btn" :class="{ active: mobileViewMode === 'list' }" @click="mobileViewMode = 'list'">{{ $t('mobileModeList') }}</button>
+    <div v-if="isMobile" class="segmented-control mobile-toggle">
+      <div class="segmented-control-bg" :class="{ 'at-right': mobileViewMode === 'list' }"></div>
+      <button class="segment-btn" :class="{ active: mobileViewMode === 'map' }" @click="mobileViewMode = 'map'">
+        <span class="material-symbols-outlined">map</span>
+        {{ $t('mobileModeMap') }}
+      </button>
+      <button class="segment-btn" :class="{ active: mobileViewMode === 'list' }" @click="mobileViewMode = 'list'">
+        <span class="material-symbols-outlined">format_list_bulleted</span>
+        {{ $t('mobileModeList') }}
+      </button>
     </div>
     <template v-if="isLoadingPackages"></template>
     <div v-else-if="loadError" class="carousel-state error">{{ $t('stateLoadError') }}</div>
     <div v-else-if="packagesList.length === 0" class="carousel-state">{{ $t('stateEmptyPackagesAround') }}</div>
     <template v-else>
-      <div v-if="activeRouteNavigationUrl" class="carousel-state active-route-banner">
-        <span>{{ $t('activeRouteReservationLocked') }}</span>
-        <router-link class="btn primary_btn batch-reserve-btn secondary" to="/myRoute">
-          {{ $t('menuMyRoute') }}
-        </router-link>
-        <button class="btn primary_btn batch-reserve-btn" type="button" @click="openActiveRouteInGoogleMaps()">
-          {{ $t('activeRouteOpenInGoogleMaps') }}
-        </button>
+      <div v-if="activeRouteNavigationUrl" class="mission-status-card">
+        <div class="mission-info">
+          <div class="mission-badge">
+            <span class="pulse-dot"></span>
+            <span class="badge-text">{{ $t('activeRouteReservationLocked') }}</span>
+          </div>
+        </div>
+        <div class="mission-actions">
+          <router-link class="mission-btn secondary" to="/myRoute">
+            <span class="material-symbols-outlined">route</span>
+            {{ $t('menuMyRoute') }}
+          </router-link>
+          <button class="mission-btn primary" type="button" @click="openActiveRouteInGoogleMaps()">
+            <span class="material-symbols-outlined">explore</span>
+            {{ $t('activeRouteOpenInGoogleMaps') }}
+          </button>
+        </div>
       </div>
       <div v-if="!isMobile" class="packages-panel">
-        <div class="panel-header">
-          <div>
-            <h3>{{ $t('availablePackagesTitle') }}</h3>
+        <div class="panel-header horizontal-stack">
+          <div class="header-main-info vertical-header">
+            <div class="title-row">
+              <h3>{{ $t('availablePackagesTitle') }}</h3>
+              <div class="count-chip">{{ $t('totalPackagesCount', { count: packagesList.length }) }}</div>
+            </div>
             <p>{{ $t('availablePackagesSubtitle') }}</p>
           </div>
-          <div class="panel-actions">
-            <div v-if="showBatchReserveAction" class="batch-action-stack">
+          
+          <div v-if="showBatchReserveAction" class="batch-control-card glass-pane">
+            <div class="batch-config">
+              <div class="batch-slider-wrap">
+                <div class="slider-labels">
+                  <label>{{ $t('mapSearchBatchSelectionLabel') }}</label>
+                  <span class="selection-count"><strong>{{ batchPackageCount }}</strong>/{{ batchPackageMax }}</span>
+                </div>
+                <input type="range" min="1" :max="batchPackageMax" step="1" v-model.number="batchPackageCount" @change="rebuildBatchRoutePlan" />
+              </div>
+
+              <div class="metrics-grid">
+                <div class="metric-item">
+                  <span class="material-symbols-outlined">distance</span>
+                  <span>{{ totalPlannedDistanceLabel }}</span>
+                </div>
+                <div class="metric-item highlight success">
+                  <span class="material-symbols-outlined">payments</span>
+                  <span>{{ totalPlannedGainLabel }}</span>
+                </div>
+                <div v-if="routeAddedMinutesLabel" class="metric-item highlight warning">
+                  <span class="material-symbols-outlined">schedule</span>
+                  <span>{{ routeAddedMinutesLabel }}</span>
+                </div>
+                <div v-if="routePayoutPerKmLabel" class="metric-item highlight info">
+                  <span class="material-symbols-outlined">trending_up</span>
+                  <span>{{ routePayoutPerKmLabel }}</span>
+                </div>
+                <div v-if="routeQualityScoreLabel" class="metric-item highlight success">
+                  <span class="material-symbols-outlined">stars</span>
+                  <span>{{ routeQualityScoreLabel }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="batch-actions-side">
+              <div v-if="!canBatchReserve" class="batch-alert">
+                <span class="material-symbols-outlined">warning</span>
+                <p>{{ batchReserveDisabledReason }}</p>
+              </div>
+              
               <button
                 class="btn primary_btn batch-reserve-btn"
                 type="button"
@@ -32,22 +90,10 @@
                 :title="batchReserveDisabledReason"
                 @click.stop="reserveOnMyRoad()"
               >
+                <span class="material-symbols-outlined">auto_awesome</span>
                 {{ $t('packagesArroundMArkerDetailActionsReserveOnMyRoad') }}
               </button>
-              <div v-if="!canBatchReserve" class="batch-disabled-hint">{{ batchReserveDisabledReason }}</div>
-              <div class="batch-range-control">
-                <label>{{ $t('mapSearchBatchSelectionLabel') }} <strong>{{ $t('mapSearchBatchSelectionValue', { selected: batchPackageCount, total: batchPackageMax }) }}</strong></label>
-                <input type="range" min="1" :max="batchPackageMax" step="1" v-model.number="batchPackageCount" @change="rebuildBatchRoutePlan" />
-              </div>
-              <div class="batch-route-summary">
-                <span>{{ totalPlannedDistanceLabel }}</span>
-                <span>{{ totalPlannedGainLabel }}</span>
-                <span v-if="routeAddedMinutesLabel">{{ routeAddedMinutesLabel }}</span>
-                <span v-if="routePayoutPerKmLabel">{{ routePayoutPerKmLabel }}</span>
-                <span v-if="routeQualityScoreLabel">{{ routeQualityScoreLabel }}</span>
-              </div>
             </div>
-            <div class="count-chip">{{ packagesList.length }}</div>
           </div>
         </div>
         <div class="vertical-carousel">
@@ -58,7 +104,7 @@
             <div
               v-for="(package_, visibleIndex) in visibleDesktopPackages"
               :key="package_.id || visibleIndex"
-              class="package-item"
+              class="package-item tone-indigo"
               :class="{ selected: selectedPackageId === package_.id }"
               @click="displayDirection(desktopSlideIndex + visibleIndex, { preserveDesktopWindow: true })"
             >
@@ -78,23 +124,40 @@
         </div>
       </div>
       <template v-else>
-        <div v-if="showBatchReserveAction" class="mobile-batch-bar">
-          <div class="batch-action-stack mobile">
-            <button class="btn primary_btn batch-reserve-btn" type="button" :disabled="!canBatchReserve" :title="batchReserveDisabledReason" @click.stop="reserveOnMyRoad()">
-              {{ $t('packagesArroundMArkerDetailActionsReserveOnMyRoad') }}
-            </button>
-            <div v-if="!canBatchReserve" class="batch-disabled-hint">{{ batchReserveDisabledReason }}</div>
-            <div class="batch-range-control mobile">
-              <label>{{ $t('mapSearchBatchSelectionLabel') }} <strong>{{ $t('mapSearchBatchSelectionValue', { selected: batchPackageCount, total: batchPackageMax }) }}</strong></label>
-              <input type="range" min="1" :max="batchPackageMax" step="1" v-model.number="batchPackageCount" @change="rebuildBatchRoutePlan" />
-            </div>
-            <div class="batch-route-summary">
-              <span>{{ totalPlannedDistanceLabel }}</span>
-              <span>{{ totalPlannedGainLabel }}</span>
-              <span v-if="routeAddedMinutesLabel">{{ routeAddedMinutesLabel }}</span>
-              <span v-if="routePayoutPerKmLabel">{{ routePayoutPerKmLabel }}</span>
-              <span v-if="routeQualityScoreLabel">{{ routeQualityScoreLabel }}</span>
-            </div>
+        <div v-if="showBatchReserveAction" class="mobile-batch-bar glass-pane">
+          <div class="batch-config mobile">
+             <div class="batch-slider-wrap">
+                <div class="slider-labels">
+                  <label>{{ $t('mapSearchBatchSelectionLabel') }}</label>
+                  <span class="selection-count"><strong>{{ batchPackageCount }}</strong>/{{ batchPackageMax }}</span>
+                </div>
+                <input type="range" min="1" :max="batchPackageMax" step="1" v-model.number="batchPackageCount" @change="rebuildBatchRoutePlan" />
+              </div>
+              
+              <div class="metrics-grid">
+                <div class="metric-item">
+                  <span class="material-symbols-outlined">distance</span>
+                  <span>{{ totalPlannedDistanceLabel }}</span>
+                </div>
+                <div class="metric-item success">
+                  <span class="material-symbols-outlined">payments</span>
+                  <span>{{ totalPlannedGainLabel }}</span>
+                </div>
+                <div v-if="routeAddedMinutesLabel" class="metric-item warning">
+                  <span class="material-symbols-outlined">schedule</span>
+                  <span>{{ routeAddedMinutesLabel }}</span>
+                </div>
+              </div>
+
+              <div v-if="!canBatchReserve" class="batch-alert">
+                <span class="material-symbols-outlined">warning</span>
+                <p>{{ batchReserveDisabledReason }}</p>
+              </div>
+
+              <button class="btn primary_btn batch-reserve-btn" type="button" :disabled="!canBatchReserve" :title="batchReserveDisabledReason" @click.stop="reserveOnMyRoad()">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                {{ $t('packagesArroundMArkerDetailActionsReserveOnMyRoad') }}
+              </button>
           </div>
         </div>
         <div v-if="mobileViewMode === 'map'" class="mobile-map-card">
@@ -110,7 +173,7 @@
             class="mobile-map-carousel"
           >
             <slide v-for="(package_, index) in packagesList" :key="package_.id || index">
-              <div class="mobile-map-item" :class="{ selected: selectedPackageId === package_.id }" @click="displayDirection(index)">
+              <div class="mobile-map-item tone-indigo" :class="{ selected: selectedPackageId === package_.id }" @click="displayDirection(index)">
                 <MarkerDetails
                   :package_="package_"
                   :mapVue="getMapVue()"
@@ -130,7 +193,7 @@
           <div
             v-for="(package_, index) in packagesList"
             :key="package_.id || index"
-            class="package-item"
+            class="package-item tone-indigo"
             :class="{ selected: selectedPackageId === package_.id }"
             @click="displayDirection(index)"
           >
@@ -662,6 +725,9 @@ export default {
       }
     },
     handleViewportUpdate(payload) {
+      if (this.isLoadingPackages || (this.refreshPackagesPromise && !this.hasCompletedInitialAroundMeLoad)) {
+        return;
+      }
       this.mapViewport = payload;
       if (this.searchMode !== 'aroundMe' || this.addressCriteria || !this.positionData) {
         return;
@@ -698,7 +764,7 @@ export default {
       }, 350);
     },
     hasMeaningfulViewportChange(nextViewport, previousViewport) {
-      const epsilon = 0.0015;
+      const epsilon = 0.0035;
       const nextCenter = nextViewport?.center || {};
       const previousCenter = previousViewport?.center || {};
       const nextBounds = nextViewport?.bounds || {};
@@ -745,6 +811,10 @@ export default {
       this.displayDirection(nextIndex);
     },
     handleSearchRefresh(event) {
+      if (this.viewportRefreshTimer) {
+        clearTimeout(this.viewportRefreshTimer);
+        this.viewportRefreshTimer = null;
+      }
       this.syncSearchRadiusFromStore();
       const mode = event?.detail?.mode;
       if (mode === 'aroundMe') {
@@ -767,6 +837,10 @@ export default {
       }
     },
     handleAddressSearch(event) {
+      if (this.viewportRefreshTimer) {
+        clearTimeout(this.viewportRefreshTimer);
+        this.viewportRefreshTimer = null;
+      }
       this.syncSearchRadiusFromStore();
       const requestedMode = event?.detail?.mode;
       const criteria = event?.detail?.criteria;
@@ -1211,7 +1285,17 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 16px;
+  padding: 16px 24px !important;
+  margin-bottom: 20px;
+}
+.banner-text {
+  font-weight: 700;
+  color: var(--qd-primary);
+}
+.banner-actions {
+  display: flex;
+  gap: 12px;
 }
 .packages-panel {
   display: flex;
@@ -1221,121 +1305,363 @@ export default {
   border-radius: 14px;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
-  overflow: hidden;
 }
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 14px 14px 12px;
-  border-bottom: 1px solid #ebedf2;
-  background: #ffffff;
-}
-.panel-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.batch-action-stack {
+.panel-header.horizontal-stack {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
+  align-items: flex-start;
+  padding: 20px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--qd-border);
+  gap: 20px;
 }
-.batch-action-stack.mobile {
-  width: 100%;
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
 }
-.panel-header h3 {
+
+.title-row h3 {
   margin: 0;
-  font-weight: 700;
-  font-size: 20px;
-  color: #111827;
 }
-.panel-header p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #64748b;
+
+.header-main-info.vertical-header p {
+  margin: 0;
+  opacity: 0.7;
 }
+
+.header-main-info h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--qd-primary-dark);
+}
+
+.header-main-info p {
+  margin: 4px 0 10px;
+  font-size: 0.9rem;
+  color: var(--qd-muted);
+}
+
 .count-chip {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #334155;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 4px 12px;
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary);
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.batch-reserve-btn {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #0f766e 0%, #0f9f8a 100%);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
-}
-.batch-reserve-btn.secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  background: #ffffff;
-  color: #0f766e;
-  border: 1px solid rgba(15, 118, 110, 0.18);
-  box-shadow: none;
-}
-.batch-reserve-btn:disabled {
-  background: #cbd5e1;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-.batch-route-summary {
+
+/* Batch Control Card */
+.batch-control-card {
+  align-self: stretch;
+  max-width: none;
+  width: 100%;
+  padding: 24px 28px;
+  border-radius: 20px;
   display: flex;
-  gap: 8px;
+  flex-direction: row;
   flex-wrap: wrap;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0f172a;
-}
-.batch-route-summary span {
-  display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: #ecfeff;
-  border: 1px solid #bae6fd;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.6) !important;
 }
-.batch-disabled-hint {
-  max-width: 320px;
-  font-size: 11px;
-  line-height: 1.4;
-  color: #b45309;
+
+.batch-actions-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 220px;
+  align-items: stretch;
 }
-.batch-range-control {
-  display: grid;
-  gap: 4px;
-  min-width: 220px;
-  font-size: 11px;
-  color: #475569;
+
+.batch-reserve-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+  border-radius: 999px !important;
 }
-.batch-range-control label {
+
+
+.mission-status-card {
+  flex-shrink: 0;
+  height: auto;
+  min-height: fit-content;
+  margin: 0 0 16px 0;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
+  color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(79, 70, 229, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  animation: slide-in-top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+
+@keyframes slide-in-top {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.mission-info {
+  display: flex;
+  align-items: center;
+}
+
+.mission-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.badge-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.mission-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mission-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.mission-btn.primary {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mission-btn.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mission-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.mission-btn.primary {
+  background: #ffffff;
+  color: #4f46e5;
+}
+
+.mission-btn.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.mission-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.mission-btn:active {
+  transform: translateY(0);
+}
+
+@media screen and (max-width: 767px) {
+  .mission-status-card {
+    margin: -6px -6px 12px -6px;
+    border-radius: 0 0 20px 20px;
+    padding: 18px 16px;
+  }
+}
+
+.batch-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 12px;
+  color: #92400e;
+}
+
+.batch-alert .material-symbols-outlined {
+  font-size: 1.2rem;
+  color: #d97706;
+}
+
+.batch-alert p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.batch-config {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.batch-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.slider-labels {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--qd-text);
 }
-.batch-range-control input {
+
+.selection-count {
+  font-size: 0.9rem;
+  color: var(--qd-primary);
+}
+
+/* Custom Range Input */
+input[type=range] {
+  -webkit-appearance: none;
   width: 100%;
-  accent-color: #0f766e;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
 }
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background: var(--qd-primary);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+input[type=range]:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  background: #f8fafc;
+  border: 1px solid var(--qd-border);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--qd-text);
+  white-space: nowrap;
+}
+
+.metric-item.highlight {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.metric-item.success { background: var(--qd-success-soft); color: var(--qd-success); }
+.metric-item.warning { background: var(--qd-warning-soft); color: var(--qd-warning); }
+.metric-item.info { background: var(--qd-primary-soft); color: var(--qd-primary); }
+
+.metric-item .material-symbols-outlined {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+/* Mobile Bar */
 .mobile-batch-bar {
   display: none;
+  position: relative;
+  z-index: 50;
+  padding: 16px;
+  border-radius: 20px 20px 0 0;
+  margin: -10px -6px 10px -6px;
+}
+
+.mobile-batch-bar .batch-config.mobile {
+  gap: 16px;
+  width: 100%;
+}
+
+.mobile-batch-bar .metrics-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media screen and (max-width: 1024px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .batch-control-card {
+    max-width: none;
+    flex-direction: column;
+    padding: 16px;
+  }
 }
 .packages-list {
   display: flex;
@@ -1432,25 +1758,63 @@ export default {
     border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   }
-  .mobile-mode-switch {
+  /* Premium Segmented Control for Mobile */
+  .segmented-control {
+    position: relative;
+    height: 48px;
     display: flex;
-    gap: 8px;
-    margin-bottom: 2px;
+    background: #f1f5f9;
+    border-radius: 14px;
+    padding: 4px;
+    box-sizing: border-box;
+    margin-bottom: 12px;
   }
+
+  .segmented-control-bg {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    background: #fff;
+    border-radius: 11px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .segmented-control-bg.at-right {
+    transform: translateX(100%);
+  }
+
+  .segment-btn {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    background: none;
+    padding: 0 16px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  .segment-btn.active {
+    color: #0f172a;
+  }
+
+  .segment-btn .material-symbols-outlined {
+    font-size: 20px;
+  }
+
   .mobile-batch-bar {
     display: flex;
     justify-content: stretch;
-  }
-  .mobile-batch-bar .batch-reserve-btn {
-    width: 100%;
-  }
-  .mobile-batch-bar .batch-route-summary {
-    justify-content: center;
-  }
-  .mode-btn {
-    height: 38px;
-    border-radius: 12px;
-    font-size: 13px;
   }
   .mobile-map-card {
     width: 100%;

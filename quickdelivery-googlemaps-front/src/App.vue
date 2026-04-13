@@ -62,6 +62,9 @@ export default {
       if (this.$route.name === 'landingPage' || this.$route.meta?.publicOnly) {
         return false;
       }
+      if (hasValidAccessToken() && ['createPackage', 'userSignInPage', 'userSignInPageUpdate'].includes(this.$route.name)) {
+        return true;
+      }
       if (!this.$route.meta?.public) {
         return true;
       }
@@ -1275,11 +1278,13 @@ export default {
 }
 @media screen and (max-width: 767px) {
   .global-scroll-top {
-    width: 46px;
-    height: 46px;
+    width: 40px;
+    height: 40px;
+    right: max(10px, env(safe-area-inset-right, 0px) + 8px);
+    bottom: max(12px, env(safe-area-inset-bottom, 0px) + 8px);
   }
   .global-scroll-top .material-symbols-outlined {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
 </style>

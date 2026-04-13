@@ -1,33 +1,48 @@
 <template>
-  <div class="user-account-page">
+  <div class="user-account-page qd-page">
     <template v-if="isLoadingPage">
-      <div class="page-header">
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
           <h1>{{ $t('userAccountPageTitle') }}</h1>
           <p>{{ $t('userAccountPageSubtitle') }}</p>
         </div>
+      </header>
+      <div class="page-state loading-state">
+        <div class="spinner"></div>
+        {{ $t('stateLoading') }}
       </div>
-      <div class="page-state">{{ $t('stateLoading') }}</div>
     </template>
     <template v-else-if="loadError">
-      <div class="page-header">
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
           <h1>{{ $t('userAccountPageTitle') }}</h1>
           <p>{{ $t('userAccountPageSubtitle') }}</p>
         </div>
+      </header>
+      <div class="page-state error-state">
+        <i class="error-icon">️⚠</i>
+        {{ $t('stateLoadError') }}
       </div>
-      <div class="page-state error">{{ $t('stateLoadError') }}</div>
     </template>
     <template v-else-if="selectedUser">
-      <div class="page-header">
-        <div>
+      <header class="qd-page-header">
+        <div class="header-main">
           <h1>{{ $t('userAccountPageTitle') }}</h1>
-          <p>{{ $t('userAccountPageSubtitle') }}</p>
+          <p class="subtitle">{{ $t('userAccountPageSubtitle') }}</p>
         </div>
-        <div class="header-chip">{{ $t(selectedUser.type || 'userType') }}</div>
+        <div class="qd-page-header-actions">
+          <span class="user-role-badge">{{ $t(selectedUser.type || 'userType') }}</span>
+        </div>
+      </header>
+
+      <div class="account-layout">
+        <aside class="sidebar">
+          <CourierReadinessCard :readiness="courierReadiness" variant="default" />
+        </aside>
+        <main class="main-content">
+          <UserAccount :selectedUser="selectedUser"/>
+        </main>
       </div>
-      <CourierReadinessCard :readiness="courierReadiness" variant="compact" />
-      <UserAccount :selectedUser="selectedUser"/>
     </template>
   </div>
 </template>
@@ -80,74 +95,61 @@ export default {
   },
 };
 </script>
-<style>
-.user-account-page {
-  min-height: 100%;
-  padding: 28px;
-  background: #f6f7f9;
-  box-sizing: border-box;
+
+<style scoped>
+.user-role-badge {
+  background: var(--qd-primary-dark);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 3rem;
-  line-height: 1;
-  color: #0f172a;
-}
-
-.page-header p {
+.subtitle {
   margin: 8px 0 0;
-  color: #64748b;
-  font-size: 1rem;
+  color: var(--qd-muted);
+  font-size: 1.1rem;
 }
 
-.header-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 700;
-  text-align: center;
-  overflow-wrap: anywhere;
+.account-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 32px;
+  align-items: start;
 }
 
-.page-state {
-  padding: 14px;
-  border-radius: 12px;
-  background: #eef3f9;
-  color: #334155;
-  text-align: center;
+.sidebar {
+  position: sticky;
+  top: 40px;
 }
 
-.page-state.error {
-  background: #fef2f2;
-  color: #b91c1c;
+.main-content {
+  min-width: 0;
 }
 
-@media screen and (max-width: 767px) {
+/* States */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media screen and (max-width: 1024px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 768px) {
   .user-account-page {
-    padding: 16px;
+    padding: 12px;
   }
-
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .page-header h1 {
-    font-size: 2.2rem;
+  .title-wrap h1 {
+    font-size: 1.6rem;
+    line-height: 1.1;
   }
 }
 </style>

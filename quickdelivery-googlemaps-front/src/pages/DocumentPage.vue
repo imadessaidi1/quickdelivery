@@ -1,40 +1,40 @@
 <template>
-  <div class="document-page">
+  <div class="document-page qd-page">
     <div class="page-shell">
       <template v-if="isLoading">
-        <div class="page-head">
-          <button class="btn primary_btn back-btn" type="button" @click="goBack">
-            {{ $t('actionBack') }}
-          </button>
-          <div>
+        <header class="qd-page-header">
+          <div class="header-main">
+            <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px;">
+              <span class="icon">←</span> {{ $t('actionBack') }}
+            </button>
             <h1>{{ documentTitle }}</h1>
             <p>{{ packageReference }}</p>
           </div>
-        </div>
+        </header>
         <div class="page-state">{{ $t('stateLoading') }}</div>
       </template>
       <template v-else-if="loadError">
-        <div class="page-head">
-          <button class="btn primary_btn back-btn" type="button" @click="goBack">
-            {{ $t('actionBack') }}
-          </button>
-          <div>
+        <header class="qd-page-header">
+          <div class="header-main">
+            <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px;">
+              <span class="icon">←</span> {{ $t('actionBack') }}
+            </button>
             <h1>{{ documentTitle }}</h1>
             <p>{{ packageReference }}</p>
           </div>
-        </div>
+        </header>
         <div class="page-state error">{{ $t('stateLoadError') }}</div>
       </template>
       <template v-else>
-        <div class="page-head">
-          <button class="btn primary_btn back-btn" type="button" @click="goBack">
-            {{ $t('actionBack') }}
-          </button>
-          <div>
+        <header class="qd-page-header">
+          <div class="header-main">
+            <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px;">
+              <span class="icon">←</span> {{ $t('actionBack') }}
+            </button>
             <h1>{{ documentTitle }}</h1>
             <p>{{ packageReference }}</p>
           </div>
-        </div>
+        </header>
 
         <div v-if="!documentSrc && loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
         <div v-else-if="!documentSrc" class="page-state">{{ $t('packageDocumentMissing') }}</div>
@@ -220,58 +220,54 @@ export default {
 
 <style scoped>
 .document-page {
-  min-height: 100%;
-  padding: 24px;
-  background: #f6f7f9;
-  box-sizing: border-box;
+  padding-bottom: 40px;
 }
 
 .page-shell {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 32px;
   min-height: calc(100vh - 130px);
 }
 
 .page-head {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .page-head h1 {
   margin: 0;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: #0f172a;
 }
 
 .page-head p {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: #64748b;
+  font-size: 1.125rem;
 }
 
-.back-btn {
-  min-width: 110px;
+.back-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 42px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .document-frame-shell {
   flex: 1;
   min-height: 0;
-  border: 1px solid #dbe1ea;
-  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  border-radius: 24px;
   overflow: hidden;
-  background: #1f2937;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  background: #111827;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
 }
 
 .document-frame {
@@ -291,9 +287,9 @@ export default {
 .document-pdf-shell {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
   min-height: 70vh;
-  padding: 16px;
+  padding: 24px;
   overflow: auto;
   box-sizing: border-box;
   background: #111827;
@@ -302,15 +298,22 @@ export default {
   display: block;
   width: 100%;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+
 .page-state {
-  padding: 14px;
-  border-radius: 12px;
-  background: #eef3f9;
-  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px;
+  background: #fff;
+  border-radius: 24px;
+  color: #64748b;
+  font-weight: 600;
   text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .page-state.error {
@@ -320,11 +323,7 @@ export default {
 
 @media screen and (max-width: 767px) {
   .document-page {
-    padding: 16px;
-  }
-
-  .page-head {
-    flex-direction: column;
+    padding: 12px;
   }
 }
 </style>

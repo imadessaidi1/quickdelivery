@@ -1,7 +1,7 @@
 <template>
-  <div class="user-registration-page">
-    <header class="page-header">
-      <div>
+  <div class="user-registration-page qd-page">
+    <header class="qd-page-header">
+      <div class="header-main">
         <span class="page-chip">{{ $t('menuUserSignin') }}</span>
         <h1>{{ pageTitle }}</h1>
         <p>{{ pageSubtitle }}</p>
@@ -1456,24 +1456,31 @@ export default {
 .card-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 18px 30px 28px;
-  border-top: 1px solid #e6edf6;
 }
 
 .card-actions .wizard-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 152px;
-  height: 42px;
+  width: calc(50% - 6px);
+  min-width: 132px;
+  max-width: 220px;
+  height: 44px;
   padding: 0 18px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+}
+
+.card-actions .wizard-action-btn[type="submit"] {
+  order: 1;
+  margin-right: auto;
+}
+
+.card-actions .wizard-action-btn[type="button"] {
+  order: 2;
+  margin-left: auto;
 }
 
 .card-content :deep(.legal-consent-card) {
@@ -1512,11 +1519,11 @@ export default {
 
 @media screen and (max-width: 720px) {
   .user-registration-page {
-    padding: 16px;
+    padding: 12px;
   }
 
   .page-header {
-    padding: 20px 18px;
+    padding: 14px 12px;
   }
 
   .wizard-card {
@@ -1525,22 +1532,22 @@ export default {
 
   .wizard-sidebar {
     gap: 8px;
-    padding: 12px;
+    padding: 8px;
   }
 
   .wizard-step {
     min-width: 72px;
     grid-template-columns: 1fr;
     justify-items: center;
-    gap: 6px;
-    padding: 10px 8px;
-    border-radius: 16px;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 12px;
   }
 
   .step-index {
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
+    width: 24px;
+    height: 24px;
+    font-size: 0.72rem;
   }
 
   .step-copy {
@@ -1549,7 +1556,7 @@ export default {
   }
 
   .step-copy strong {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     line-height: 1.1;
     max-width: 100%;
     overflow: hidden;
@@ -1566,21 +1573,25 @@ export default {
   .review-banner,
   .card-content,
   .card-actions {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .review-banner {
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-left: 12px;
+    margin-right: 12px;
   }
 
   .card-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .card-actions .wizard-action-btn {
-    width: 100%;
+    width: calc(50% - 4px);
+    min-width: 0;
+    max-width: none;
   }
 }
 
@@ -1594,15 +1605,17 @@ export default {
   .wizard-step {
     min-width: 0;
     width: 100%;
+    padding: 4px;
   }
 
   .step-copy strong {
-    font-size: 0.68rem;
-    max-width: 46px;
+    font-size: 0.58rem;
+    line-height: 1;
+    max-width: 42px;
   }
 
   .review-banner {
-    padding: 16px;
+    padding: 12px;
   }
 }
 </style>

@@ -35,8 +35,7 @@
           <input class="radius-slider" type="range" min="1" max="100" step="1" v-model.number="radiusKm" @input="updateRadiusOnly" />
         </div>
         <div class="toolbar-actions">
-          <button class="toolbar-btn secondary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
-          <button class="toolbar-btn primary" type="button" @click="refreshAroundMe">{{ $t('mapSearchAroundMeAction') }}</button>
+          <button class="toolbar-btn primary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
         </div>
       </div>
       <GoogleMap ref="mapVue" :style="{ width: '100%', height: '100%' }" @map-iframe-loaded="handleMapIframeLoaded"/>
@@ -80,8 +79,7 @@
           <input class="radius-slider" type="range" min="1" max="100" step="1" v-model.number="radiusKm" @input="updateRadiusOnly" />
         </div>
         <div class="toolbar-actions">
-          <button class="toolbar-btn secondary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
-          <button class="toolbar-btn primary" type="button" @click="refreshAroundMe">{{ $t('mapSearchAroundMeAction') }}</button>
+          <button class="toolbar-btn primary" type="button" @click="submitAddressSearch">{{ $t('actionSearch') }}</button>
         </div>
       </div>
     </div>
@@ -271,7 +269,7 @@ export default {
   height: calc(100% - 6px);
   min-height: 540px;
   box-sizing: border-box;
-  background: #f3f4f6;
+  background: var(--qd-bg);
   overflow-x: clip;
 }
 
@@ -314,8 +312,8 @@ export default {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 3px solid rgba(37, 84, 143, 0.16);
-  border-top-color: #24558f;
+  border: 3px solid var(--qd-primary-soft);
+  border-top-color: var(--qd-primary);
   animation: around-loader-spin 0.8s linear infinite;
 }
 
@@ -330,7 +328,7 @@ export default {
   min-height: 420px;
   border: 1px solid #dde3ec;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   background: #dfe6f3;
   box-shadow: 0 10px 25px rgba(21, 27, 39, 0.06);
   min-width: 0;
@@ -338,19 +336,28 @@ export default {
 
 .map-search-toolbar {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  z-index: 3;
+  top: 20px;
+  left: 20px;
+  right: auto;
+  width: min(600px, calc(100% - 40px));
+  z-index: 100;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(6px);
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  transition: all 0.3s ease;
+}
+
+.map-search-toolbar:focus-within {
+  background: rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
 }
 
 .search-block {
@@ -368,12 +375,20 @@ export default {
 
 .search-address-input :deep(.address-autocomplete-input) {
   width: 100%;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 14px;
-  border-color: #d7deea;
-  font-size: 14px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 2px solid rgba(215, 222, 234, 0.6);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  font-weight: 600;
   box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.search-address-input :deep(.address-autocomplete-input:focus) {
+  border-color: var(--qd-primary);
+  background: #ffffff;
 }
 
 .search-address-input :deep(.qd-place-autocomplete) {
@@ -391,8 +406,9 @@ export default {
 .radius-block {
   display: grid;
   gap: 4px;
-  min-width: 180px;
-  flex: 0 0 190px;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 180px;
 }
 
 .radius-label {
@@ -401,31 +417,94 @@ export default {
 }
 
 .radius-slider {
+  -webkit-appearance: none;
   width: 100%;
-  accent-color: #0f766e;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  outline: none;
+  background: #e2e8f0;
+  cursor: pointer;
+  accent-color: var(--qd-primary);
+}
+
+.radius-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background: var(--qd-primary);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.radius-slider:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+.radius-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 10px;
+  background: #e2e8f0;
+}
+
+.radius-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  background: var(--qd-primary);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
 }
 
 .search-mode-btn {
-  min-width: 80px;
-  height: 42px;
-  padding: 0 10px;
-  border: 1px solid #d7deea;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #1f2937;
-  font-size: 12px;
-  font-weight: 700;
+  min-width: 90px;
+  height: 46px;
+  padding: 0 12px;
+  border: 1.5px solid rgba(215, 222, 234, 0.6);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
 .search-mode-btn.active {
-  background: #eef2ff;
-  border-color: #b8c3dd;
+  background: var(--qd-primary);
+  border-color: var(--qd-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.mission-btn.primary {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mission-btn.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mission-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .toolbar-actions {
   display: flex;
   gap: 8px;
-  flex: 0 0 auto;
+  width: 100%;
+  flex: 1 1 180px;
 }
 
 .toolbar-btn {
@@ -442,9 +521,23 @@ export default {
 }
 
 .toolbar-btn.primary {
-  background: #020617;
-  border-color: #020617;
+  background: var(--qd-primary);
+  border-color: var(--qd-primary);
   color: #ffffff;
+  height: 46px;
+  padding: 0 20px;
+  width: 100%;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-btn.primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
 }
 
 .packages-shell {
@@ -509,9 +602,52 @@ export default {
 .modal {
   z-index: 4;
 }
+
+/* Fix for Google Maps Autocomplete z-index and visibility */
+.pac-container {
+  z-index: 10000 !important;
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
+  margin-top: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.15) !important;
+  font-family: inherit !important;
+}
+
+.pac-item {
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  border-top: 1px solid #f1f5f9 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.pac-item:first-child {
+  border-top: none !important;
+}
+
+.pac-item:hover {
+  background-color: #f8fafc !important;
+}
+
+.pac-item-query {
+  font-size: 14px !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.pac-matched {
+  color: #4f46e5 !important;
+}
+
+.pac-icon {
+  margin-top: 0 !important;
+}
+
 @media screen and (min-width: 1024px) {
   .home-page {
-    grid-template-columns: minmax(0, 1fr) minmax(420px, 32vw);
+    grid-template-columns: minmax(0, 1fr) minmax(480px, 36vw);
     min-height: 620px;
   }
 
@@ -552,7 +688,8 @@ export default {
   }
 
   .map-shell {
-    min-height: 360px;
+    height: 50dvh;
+    min-height: 300px;
     border-radius: 14px;
     width: 100%;
     max-width: 100%;
@@ -592,7 +729,7 @@ export default {
 
   .toolbar-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .search-mode-group {
@@ -603,6 +740,47 @@ export default {
   .search-mode-btn,
   .toolbar-btn {
     width: 100%;
+  }
+
+  .radius-block {
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .radius-slider {
+    width: 100%;
+    min-height: 0 !important;
+    height: 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: #e2e8f0 !important;
+    display: block;
+  }
+
+  .radius-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 10px;
+    background: #e2e8f0;
+  }
+
+  .radius-slider::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -7px;
+  }
+
+  .radius-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 10px;
+    background: #e2e8f0;
+  }
+
+  .radius-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #ffffff;
   }
 
   .packages-shell {
@@ -635,7 +813,8 @@ export default {
   }
 
   .home-page.mobile-map-mode .map-shell {
-    min-height: calc(100dvh - 210px);
+    height: 50dvh;
+    min-height: 50dvh;
   }
 
   .home-page.mobile-list-mode .map-shell {

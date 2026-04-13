@@ -1,54 +1,57 @@
 <template>
   <div class="vehicle-step">
     <section class="section-head">
-      <span class="eyebrow">{{ $t('wizardUserStepVehicle') }}</span>
+      <span class="badge info uppercase">{{ $t('wizardUserStepVehicle') }}</span>
       <h3>{{ $t('userRegistrationVehicleTitle') }}</h3>
       <p>{{ $t('userRegistrationVehicleSubtitle') }}</p>
     </section>
 
-    <div v-if="!requiresVehicleSection" class="empty-panel">
+    <div v-if="!requiresVehicleSection" class="panel-card empty-panel">
+      <span class="material-symbols-outlined">info</span>
       {{ $t('userRegistrationVehicleOptional') }}
     </div>
 
     <template v-else>
       <div class="vehicle-grid">
-        <div class="field-wrap full-width">
-          <label>{{ $t('userVehicleType') }}</label>
-          <div class="type-selector-grid">
-            <label v-for="type in vehicleTypes" :key="type.value" class="type-card" :class="{ active: vehicle.type === type.value }">
+        <div class="full-width">
+          <label class="field-label">{{ $t('userVehicleType') }}</label>
+          <div class="type-cards-container">
+            <label v-for="type in vehicleTypes" :key="type.value" class="vehicle-type-card" :class="{ active: vehicle.type === type.value }">
               <input type="radio" :value="type.value" v-model="vehicle.type" class="hidden-radio" />
-              <div class="card-inner">
-                <span class="material-symbols-outlined icon">{{ type.icon }}</span>
-                <span class="type-label">{{ $t(type.label) }}</span>
-                <div class="tooltip-container">
-                   <span class="material-symbols-outlined info-icon">info</span>
-                   <div class="tooltip-box">
-                     {{ $t(type.hint) }}
-                   </div>
+              <div class="card-inner" :class="{ 'tone-indigo': vehicle.type === type.value }">
+                <span class="material-symbols-outlined type-icon">{{ type.icon }}</span>
+                <span class="type-name">{{ $t(type.label) }}</span>
+                
+                <div class="tooltip-trigger">
+                  <span class="material-symbols-outlined info-badge">info</span>
+                  <div class="glass-tooltip glass-pane">
+                    {{ $t(type.hint) }}
+                  </div>
                 </div>
               </div>
             </label>
           </div>
         </div>
-        <div class="field-wrap">
+
+        <div class="field-group">
           <label for="registrationNumber">{{ $t('userVehicleRegistration') }}</label>
           <Field id="registrationNumber" v-model="vehicle.registrationNumber" type="text" name="registrationNumber" :rules="validateCarRegistrationNumber" @input="normalizeRegistrationNumber" />
           <ErrorMessage class="errorMessage" name="registrationNumber" />
         </div>
 
-        <div class="field-wrap">
+        <div class="field-group">
           <label for="brand">{{ $t('userVehicleBrand') }}</label>
           <Field id="brand" v-model="vehicle.brand" type="text" name="brand" :rules="validateRequired" />
           <ErrorMessage class="errorMessage" name="brand" />
         </div>
 
-        <div class="field-wrap">
+        <div class="field-group">
           <label for="model">{{ $t('userVehicleModel') }}</label>
           <Field id="model" v-model="vehicle.model" type="text" name="model" :rules="validateRequired" />
           <ErrorMessage class="errorMessage" name="model" />
         </div>
 
-        <div class="field-wrap">
+        <div class="field-group">
           <label for="energyType">{{ $t('userVehicleEnergy') }}</label>
           <select id="energyType" v-model="vehicle.energyType">
             <option value="ELECTRIC">{{ $t('ELECTRIC') }}</option>
@@ -61,16 +64,29 @@
         </div>
       </div>
 
-      <div class="upload-grid">
-        <label v-for="document in visibleVehicleDocuments" :key="document.key" class="upload-card">
-          <span>{{ $t(document.label) }}</span>
-          <input :ref="document.ref" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange(document.ref, document.key)">
-          <strong>{{ fileName(document.key) }}</strong>
-          <small v-if="documentStatus(document.key)">{{ documentStatus(document.key) }}</small>
-          <div v-if="documentReview(document.key)" class="review-note">
-            <span class="review-label">{{ $t('userDocumentReviewCommentLabel') }}</span>
-            <p>{{ documentReview(document.key) }}</p>
+      <div class="documents-grid">
+        <label v-for="document in visibleVehicleDocuments" :key="document.key" class="document-upload-card panel-card" :class="getStatusToneClass(document.key)">
+          <div class="doc-header">
+            <span class="doc-title">{{ $t(document.label) }}</span>
+            <span v-if="documentStatus(document.key)" class="badge outline" :class="getStatusBadgeClass(document.key)">
+              {{ documentStatus(document.key) }}
+            </span>
           </div>
+          
+          <div class="file-drop-area">
+            <input :ref="document.ref" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange(document.ref, document.key)">
+            <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+            <strong class="file-name">{{ fileName(document.key) }}</strong>
+          </div>
+
+          <div v-if="documentReview(document.key)" class="review-feedback badge danger outline">
+            <span class="material-symbols-outlined">history_edu</span>
+            <div class="review-text">
+              <small>{{ $t('userDocumentReviewCommentLabel') }}</small>
+              <p>{{ documentReview(document.key) }}</p>
+            </div>
+          </div>
+          
           <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
         </label>
       </div>
@@ -176,12 +192,24 @@ export default {
       }
       return this.$t(status);
     },
+    getStatusBadgeClass(type) {
+      const status = this.vehicleDocuments?.[type]?.documentStatus;
+      if (status === 'ACCEPTED') return 'success';
+      if (status === 'REJECTED') return 'danger';
+      return 'info';
+    },
     documentReview(type) {
       const document = this.vehicleDocuments?.[type];
       if (!document?.reviewComment) {
         return '';
       }
       return document.reviewComment;
+    },
+    getStatusToneClass(type) {
+      const status = this.vehicleDocuments?.[type]?.documentStatus;
+      if (status === 'ACCEPTED') return 'tone-emerald';
+      if (status === 'REJECTED') return 'tone-rose';
+      return 'tone-indigo';
     },
   },
   watch: {
@@ -201,71 +229,59 @@ export default {
 
 <style scoped>
 .vehicle-step {
-  display: grid;
-  gap: 22px;
-  min-width: 0;
-}
-
-.vehicle-step,
-.vehicle-step * {
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 .section-head h3 {
-  margin: 6px 0 8px;
-  font-size: 1.4rem;
-  color: #14213d;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 12px 0 8px;
+  color: var(--qd-text);
 }
 
 .section-head p {
-  margin: 0;
-  color: #617086;
+  color: var(--qd-muted);
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #edf4ff;
-  color: #27548a;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.vehicle-grid,
-.upload-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.field-wrap,
-.upload-card,
 .empty-panel {
-  padding: 18px;
-  border: 1px solid #dde5f0;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 18px 38px rgba(24, 39, 75, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--qd-muted);
+  font-weight: 600;
+}
+
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
 .full-width {
   grid-column: 1 / -1;
 }
 
-.type-selector-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-top: 10px;
+.field-label {
+  display: block;
+  font-weight: 700;
+  color: var(--qd-text);
+  margin-bottom: 12px;
 }
 
-.type-card {
+.type-cards-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.vehicle-type-card {
   position: relative;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  perspective: 1000px;
 }
 
 .hidden-radio {
@@ -279,184 +295,221 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 8px;
-  border: 2px solid #edeff5;
-  border-radius: 16px;
-  background: #fcfdfe;
+  padding: 20px 12px;
+  background: var(--qd-surface-strong);
+  border: 2px solid var(--qd-border);
+  border-radius: var(--qd-radius);
+  transition: var(--qd-transition);
+  min-height: 124px;
   text-align: center;
-  gap: 8px;
-  min-height: 110px;
+  gap: 10px;
 }
 
-.type-card.active .card-inner {
-  border-color: #27548a;
-  background: #f0f7ff;
-  box-shadow: 0 4px 12px rgba(39, 84, 138, 0.15);
+.vehicle-type-card:hover .card-inner {
+  border-color: var(--qd-primary-soft);
+  transform: translateY(-4px);
+  background: var(--qd-bg);
 }
 
-.type-card:hover .card-inner {
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
+.vehicle-type-card.active .card-inner {
+  border-color: var(--qd-primary);
+  background: var(--qd-primary-soft);
+  box-shadow: var(--qd-shadow-soft);
 }
 
-.type-card.active:hover .card-inner {
-  border-color: #27548a;
+.type-icon {
+  font-size: 2.8rem;
+  color: var(--qd-muted);
+  transition: var(--qd-transition);
 }
 
-.icon {
-  font-size: 2.4rem;
-  color: #64748b;
-  transition: color 0.2s ease;
+.vehicle-type-card.active .type-icon {
+  color: var(--qd-primary);
 }
 
-.active .icon {
-  color: #27548a;
-}
-
-.type-label {
+.type-name {
   font-size: 0.85rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 800;
+  color: var(--qd-text);
 }
 
-.tooltip-container {
+.tooltip-trigger {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #94a3b8;
+  top: 10px;
+  right: 10px;
 }
 
-.info-icon {
-  font-size: 16px;
+.info-badge {
+  font-size: 1.1rem;
+  color: var(--qd-muted);
   cursor: help;
+  opacity: 0.6;
 }
 
-.tooltip-box {
+.glass-tooltip {
   position: absolute;
-  bottom: 125%;
+  bottom: 130%;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
-  width: 180px;
-  background: #1e293b;
-  color: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.4;
+  width: 200px;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  text-align: center;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 10;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: var(--qd-transition);
+  z-index: 20;
   pointer-events: none;
+  font-weight: 500;
+  color: var(--qd-text);
 }
 
-.tooltip-box::after {
-  content: '';
+.glass-tooltip::after {
+  content: "";
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: #1e293b transparent transparent transparent;
+  border-color: rgba(255, 255, 255, 0.4) transparent transparent transparent;
 }
 
-.type-card:hover .tooltip-box {
+.vehicle-type-card:hover .glass-tooltip {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
 }
 
-.field-wrap label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #24364f;
+/* Fields */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.field-wrap :deep(input),
-.field-wrap select {
-  width: 100%;
-  max-width: 100%;
-  min-height: 48px;
-  padding: 0 14px;
-  border: 1px solid #ced7e4;
+.field-group label {
+  font-weight: 700;
+  color: var(--qd-text);
+  font-size: 0.9rem;
+}
+
+.field-group :deep(input),
+.field-group select {
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--qd-border-strong);
   border-radius: 14px;
   background: #fff;
-  box-sizing: border-box;
+  font-weight: 600;
+  transition: var(--qd-transition);
 }
 
-.upload-card {
+.field-group :deep(input):focus {
+  border-color: var(--qd-primary);
+  outline: none;
+  box-shadow: 0 0 0 4px var(--qd-primary-soft);
+}
+
+/* Documents */
+.documents-grid {
   display: grid;
-  gap: 10px;
-  min-width: 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-.upload-card > span {
-  color: #14213d;
-  font-weight: 700;
+.document-upload-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.upload-card strong {
-  color: #2b5a96;
-  word-break: break-word;
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.upload-card small {
-  color: #617086;
+.doc-title {
+  font-weight: 800;
+  color: var(--qd-text);
 }
 
-.review-note {
+.file-drop-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  border: 2px dashed var(--qd-border-strong);
+  border-radius: 16px;
+  background: var(--qd-bg);
+  text-align: center;
+  transition: var(--qd-transition);
+  cursor: pointer;
+}
+
+.file-drop-area:hover {
+  border-color: var(--qd-primary);
+  background: var(--qd-primary-soft);
+}
+
+.file-drop-area input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-icon {
+  font-size: 2.4rem;
+  color: var(--qd-primary);
+  margin-bottom: 8px;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: var(--qd-text);
+  word-break: break-all;
+}
+
+.review-feedback {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   padding: 12px;
-  border-radius: 14px;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
+  border-radius: 12px;
 }
 
-.review-label {
+.review-feedback .material-symbols-outlined { color: var(--qd-danger); }
+
+.review-text small {
   display: block;
-  margin-bottom: 4px;
-  color: #9f1239;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 0.7rem;
   text-transform: uppercase;
 }
 
-.review-note p {
-  margin: 0;
-  color: #7f1d1d;
-  font-size: 0.88rem;
-  line-height: 1.45;
+.review-text p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
 }
 
-.empty-panel {
-  color: #617086;
-}
-
-.upload-card .errorMessage,
 .errorMessage {
-  display: block;
-  font-size: 0.78rem;
-  color: #b42318;
-  word-break: break-word;
+  font-size: 0.8rem;
+  color: var(--qd-danger);
+  font-weight: 600;
 }
 
-@media screen and (max-width: 1080px) {
-  .vehicle-grid,
-  .upload-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .type-selector-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+@media (max-width: 1024px) {
+  .type-cards-container { grid-template-columns: repeat(3, 1fr); }
+  .vehicle-grid, .documents-grid { grid-template-columns: 1fr; }
 }
 
-@media screen and (max-width: 640px) {
-  .type-selector-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+@media (max-width: 600px) {
+  .type-cards-container { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

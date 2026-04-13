@@ -29,7 +29,7 @@
           />
           <p v-if="captchaError" class="captcha-error">{{ captchaError }}</p>
 
-          <button class="login-btn" type="submit">{{ $t('landingLoginAction') }}</button>
+          <button class="qd-btn-primary login-btn" type="submit" style="height: 48px; border-radius: 14px; width: 100%;">{{ $t('landingLoginAction') }}</button>
         </form>
 
         <p class="security-note">{{ $t('loginPageSecurityNote') }}</p>
@@ -90,7 +90,6 @@ export default {
   display: grid;
   grid-template-columns: 1.1fr minmax(360px, 460px);
   background: #eef2f6;
-  font-family: 'Poppins', sans-serif;
 }
 
 .login-hero {
@@ -190,18 +189,10 @@ export default {
 }
 
 .login-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 46px;
   margin-top: 8px;
-  border: none;
-  border-radius: 12px;
-  background: #020617;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .security-note {
@@ -247,11 +238,48 @@ export default {
 @media screen and (max-width: 640px) {
   .login-hero,
   .login-panel {
-    padding: 20px;
+    padding: 12px;
+  }
+
+  .login-hero {
+    min-height: 180px;
+  }
+
+  .hero-copy h1 {
+    margin: 10px 0 8px;
+    font-size: 1.55rem;
+    line-height: 1.1;
+  }
+
+  .hero-copy p {
+    font-size: 0.84rem;
+    line-height: 1.32;
   }
 
   .login-card {
-    padding: 24px;
+    padding: 16px;
+  }
+
+  .login-card h2 {
+    margin: 12px 0 6px;
+    font-size: 1.2rem;
+    line-height: 1.16;
+  }
+
+  .login-card p,
+  .security-note,
+  .captcha-error {
+    font-size: 0.82rem;
+    line-height: 1.32;
+  }
+
+  .login-form {
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .login-links {
+    margin-top: 14px;
   }
 }
 </style>

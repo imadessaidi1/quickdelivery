@@ -1,50 +1,140 @@
 <template>
-    <div class="package-details-page">
-        <div class="page-head">
-            <button class="btn primary_btn back-btn" type="button" @click="goBack">{{ $t('actionBack') }}</button>
-            <button
-              class="btn cancel_btn header-cancel-btn"
-              type="button"
-              v-show="showCancelReservation"
-              @click="cancelReservation"
-            >
-                {{ $t('actionCancelReservation') }}
-            </button>
-            <div>
-                <h1>{{ $t('packagesArroundMArkerDetailActionsDetails') }}</h1>
-                <p>{{ package_.reference || id }}</p>
+    <div class="package-details-page-v3 qd-page">
+        <!-- Dashboard Header -->
+        <header class="qd-page-header">
+            <div class="header-main">
+                <button class="back-link qd-btn-secondary" type="button" @click="goBack" style="margin-bottom: 12px;">
+                    <span class="icon">←</span> {{ $t('actionBack') }}
+                </button>
+                <div class="header-titles">
+                    <h1>{{ $t('packagesArroundMArkerDetailActionsDetails') }}</h1>
+                    <div class="ref-badge" style="display: inline-flex; align-items: center; gap: 6px; background: var(--qd-primary-soft); color: var(--qd-primary-dark); padding: 4px 12px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; margin-top: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">tag</span>
+                        <span>{{ package_.reference || id }}</span>
+                    </div>
+                </div>
             </div>
+            
+            <div class="qd-page-header-actions">
+                <div v-if="package_.status" :class="['status-badge-lg', package_.status.toLowerCase()]">
+                    <span class="pulse-dot-small" v-if="package_.status === 'NEW'"></span>
+                    {{ $t(`packageStatus_${package_.status}`) || package_.status }}
+                </div>
+                <button
+                    class="qd-btn-danger btn-cancel-header"
+                    type="button"
+                    v-show="showCancelReservation"
+                    @click="cancelReservation"
+                >
+                    <span class="material-symbols-outlined">cancel</span>
+                    {{ $t('actionCancelReservation') }}
+                </button>
+            </div>
+        </header>
+
+        <div v-if="isLoadingPage" class="page-loader">
+            <div class="spinner-large"></div>
+            <p>{{ $t('stateLoading') }}</p>
         </div>
-        <div v-if="isLoadingPage" class="page-state">{{ $t('stateLoading') }}</div>
-        <div v-else-if="loadError" class="page-state error">{{ $t('stateLoadError') }}</div>
-        <div v-else class="package-form">
-            <div class="summary_component">
-                <PackageSummary/>
-            </div>
-            <br/>
-            <button class="btn primary_btn" ref="detailsButtons" v-show="canOperateDelivery && package_.status === 'NEW'"
-            :disabled="isReserveDisabled"
-            @click="reserve">{{ $t('packagesArroundMArkerDetailActionsReserve') }}</button>
-            <div v-if="canOperateDelivery && package_.status === 'NEW' && isReserveDisabled" class="reservation-hint">
-                {{ reservationDisabledReason }}
-            </div>
-            <div v-show="canOperateDelivery && package_.status === 'RESERVED'">
-                <div class="input_only">
-                    <label for="otp">{{$t('packagePickupPassword')}}:</label>
-                    <Field id="otp" type="number" v-model="otp" name="otp" :rules="validateNumericField"/>
-                    <ErrorMessage class="errorMessage" name="otp" />
+        
+        <div v-else-if="loadError" class="page-error-state">
+            <span class="material-symbols-outlined large-icon">error_outline</span>
+            <h2>{{ $t('stateLoadError') }}</h2>
+            <button class="qd-btn-primary" @click="mounted">{{ $t('actionRetry') }}</button>
+        </div>
+
+        <div v-else class="dashboard-content dashboard-cards-grid">
+            <!-- Information Col -->
+            <div class="info-column">
+                <div class="content-card main-details-card animate-card">
+                    <PackageSummary/>
                 </div>
-                <button class="btn primary_btn" ref="detailsButtons"
-                    @click="pickup">{{ $t('packagesArroundMArkerDetailActionsPickUp') }}</button>
             </div>
-            <div v-show="canOperateDelivery && package_.status === 'PICKEDUP'">
-                <div class="input_only">
-                    <label for="deliveryOtp">{{$t('packageDeliveryPassword')}}:</label>
-                    <Field id="deliveryOtp" type="number" v-model="deliveryOtp" name="deliveryOtp" :rules="validateNumericField"/>
-                    <ErrorMessage class="errorMessage" name="deliveryOtp" />
+
+            <!-- Page Actions Floating Card -->
+            <div class="action-dock">
+                <div class="action-card-premium glass-pane">
+                    <div class="actions-container">
+                        <!-- New Package: Reserve -->
+                        <div v-if="canOperateDelivery && package_.status === 'NEW'" class="reserve-action-block">
+                            <button 
+                                class="qd-btn-primary"
+                                :disabled="isReserveDisabled"
+                                @click="reserve"
+                                style="width: 100%; height: 54px;"
+                            >
+                                <span class="material-symbols-outlined">add_circle</span>
+                                {{ $t('packagesArroundMArkerDetailActionsReserve') }}
+                            </button>
+                            <div v-if="isReserveDisabled" class="inline-alert-mini">
+                                <span class="material-symbols-outlined">info</span>
+                                <span>{{ reservationDisabledReason }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Reserved: Pickup -->
+                        <div v-if="canOperateDelivery && package_.status === 'RESERVED'" class="auth-action-column">
+                            <div class="auth-action-row">
+                                <div class="otp-input-premium">
+                                    <span class="material-symbols-outlined icon">lock</span>
+                                    <Field 
+                                        id="otp" 
+                                        type="tel" 
+                                        inputmode="numeric"
+                                        v-model="otp" 
+                                        name="otp" 
+                                        :rules="validateNumericField" 
+                                        :placeholder="$t('packagePickupPassword')"
+                                        @keypress="$event.key >= '0' && $event.key <= '9' ? true : $event.preventDefault()"
+                                        @input="otp = (otp || '').toString().replace(/\D/g, '')"
+                                    />
+                                </div>
+                                <button class="qd-btn-primary" @click="pickup" style="height: 54px; min-width: 160px;">
+                                    <span class="material-symbols-outlined">local_shipping</span>
+                                    {{ $t('packagesArroundMArkerDetailActionsPickUp') }}
+                                </button>
+                            </div>
+                            <div class="secondary-actions-row" v-if="departureAddress.phone">
+                                <a :href="'tel:' + departureAddress.phone" class="qd-btn-secondary">
+                                    <span class="material-symbols-outlined">call</span>
+                                    {{ $t('actionCallSender') }}
+                                </a>
+                            </div>
+                            <ErrorMessage class="errorMessage-dock" name="otp" />
+                        </div>
+
+                        <!-- Picked Up: Deliver -->
+                        <div v-if="canOperateDelivery && package_.status === 'PICKEDUP'" class="auth-action-column">
+                            <div class="auth-action-row">
+                                <div class="otp-input-premium">
+                                    <span class="material-symbols-outlined icon">verified_user</span>
+                                    <Field 
+                                        id="deliveryOtp" 
+                                        type="tel" 
+                                        inputmode="numeric"
+                                        v-model="deliveryOtp" 
+                                        name="deliveryOtp" 
+                                        :rules="validateNumericField" 
+                                        :placeholder="$t('packageDeliveryPassword')"
+                                        @keypress="$event.key >= '0' && $event.key <= '9' ? true : $event.preventDefault()"
+                                        @input="deliveryOtp = (deliveryOtp || '').toString().replace(/\D/g, '')"
+                                    />
+                                </div>
+                                <button class="qd-btn-primary" @click="deliver" style="height: 54px; min-width: 160px;">
+                                    <span class="material-symbols-outlined">task_alt</span>
+                                    {{ $t('packagesArroundMArkerDetailActionsDeliver') }}
+                                </button>
+                            </div>
+                            <div class="secondary-actions-row" v-if="arrivalAddress.phone">
+                                <a :href="'tel:' + arrivalAddress.phone" class="qd-btn-secondary">
+                                    <span class="material-symbols-outlined">call</span>
+                                    {{ $t('actionCallRecipient') }}
+                                </a>
+                            </div>
+                            <ErrorMessage class="errorMessage-dock" name="deliveryOtp" />
+                        </div>
+                    </div>
                 </div>
-                <button class="btn primary_btn" ref="detailsButtons"
-                @click="deliver">{{ $t('packagesArroundMArkerDetailActionsDeliver') }}</button>
             </div>
         </div>
     </div>
@@ -91,6 +181,12 @@ export default{
         },
         canCancelReservation() {
           return this.showCancelReservation;
+        },
+        departureAddress() {
+          return this.package_?.addresses?.find(a => a.type === 'DEPARTURE') || {};
+        },
+        arrivalAddress() {
+          return this.package_?.addresses?.find(a => a.type === 'ARRIVAL') || {};
         },
   },
   components: {
@@ -293,68 +389,317 @@ export default{
 }
 </script>
 <style>
-  .package-details-page {
-    min-height: 100%;
-    padding: 24px;
-    background: #f6f7f9;
-    box-sizing: border-box;
+.package-details-page-v3 {
+  padding-bottom: 120px !important;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.btn-cancel-header {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.header-titles h1 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.ref-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-badge-lg {
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge-lg.new { background: #dcfce7; color: #166534; }
+.status-badge-lg.reserved { background: #fef9c3; color: #854d0e; }
+.status-badge-lg.pickedup { background: #dbeafe; color: #1e40af; }
+
+.pulse-dot-small {
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: qd-pulse-mini 1.5s infinite;
+}
+
+@keyframes qd-pulse-mini {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.btn-cancel-header {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-header:hover {
+  background: #fecaca;
+  transform: translateY(-2px);
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.content-card.main-details-card {
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 8px; /* Extra padding inside the card */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f1f5f9;
+}
+
+.animate-card {
+  animation: qd-fade-up 0.5s ease-out;
+}
+
+@keyframes qd-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Action Dock Styling */
+.action-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 600px;
+  z-index: 1000;
+}
+
+.action-card-premium {
+  padding: 16px 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+}
+
+.auth-action-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.otp-input-premium {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.otp-input-premium .icon {
+  position: absolute;
+  left: 16px;
+  color: #6366f1;
+  font-size: 1.25rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.otp-input-premium input {
+  width: 100%;
+  height: 54px;
+  padding: 0 16px 0 48px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  transition: all 0.2s;
+}
+
+.otp-input-premium input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  outline: none;
+}
+
+/* Standardized qd-btn-* handled by design-system.css */
+
+.auth-action-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.errorMessage-dock {
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.inline-alert-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #92400e;
+  justify-content: center;
+}
+
+.secondary-actions-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* .btn-call-secondary handled by design-system.css qd-btn-secondary */
+
+@media screen and (max-width: 768px) {
+  .package-details-page-v3 {
+    padding: 12px;
+    padding-bottom: 12px;
+    gap: 14px;
   }
-  .page-head {
-    display: flex;
+
+  .dashboard-content {
+    gap: 12px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 18px;
+    gap: 12px;
   }
-  .page-head h1 {
-    margin: 0;
-    color: #0f172a;
+
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
   }
-  .page-head p {
-    margin: 6px 0 0;
-    color: #64748b;
+
+  .header-titles h1 {
+    font-size: 1.4rem;
   }
-  .back-btn {
-    min-width: 110px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .action-dock {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    z-index: auto;
+  }
+
+  .action-card-premium {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  
+  .auth-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(118px, 0.7fr);
+    gap: 8px;
+  }
+
+  .otp-input-premium input {
     height: 42px;
-    padding: 0 18px;
-    border: none;
+    padding: 0 10px 0 48px !important;
+    box-sizing: border-box;
     border-radius: 12px;
-    background: #020617;
-    color: #ffffff;
-    font-weight: 600;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    font-size: 0.95rem;
   }
-  .package-form {
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    background: #ffffff;
-    padding: 18px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+
+  .otp-input-premium .icon {
+    left: 12px;
+    width: 24px;
+    font-size: 1.05rem;
+    text-align: center;
   }
-  .input_only input {
-    margin: 10px 0;
-    width: 200px;
+
+  .auth-action-row .qd-btn-primary {
+    width: 100%;
+    min-width: 0 !important;
+    height: 42px !important;
+    padding: 0 10px !important;
+    white-space: nowrap;
   }
-  .header-cancel-btn {
-    min-width: 180px;
-    height: 42px;
-    padding: 0 18px;
-    border-radius: 12px;
+
+  .secondary-actions-row {
+    margin-top: 6px;
   }
-  .reservation-hint {
-    margin: 8px 0 12px;
-    font-size: 12px;
-    color: #b45309;
+
+  .secondary-actions-row .qd-btn-secondary {
+    width: 100%;
+    min-height: 38px;
   }
-  @media screen and (max-width: 767px) {
-    .package-details-page {
-      padding: 16px;
-    }
-    .page-head {
-      flex-direction: column;
-    }
+  
+  .prime-action-btn {
+    width: 100%;
   }
+}
 </style>

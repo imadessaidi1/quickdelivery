@@ -1,9 +1,9 @@
 <template>
-  <div class="my-packages-page">
+  <div class="my-packages-page qd-page">
     <template v-if="isLoadingPage">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('menuMyPackages') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip">{{ $t('menuMyPackages') }}</span>
           <h1>{{ $t('myPackagesTitle') }}</h1>
           <p>{{ $t('myPackagesSubtitle') }}</p>
         </div>
@@ -15,9 +15,9 @@
     </template>
 
     <template v-else-if="loadError">
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip">{{ $t('menuMyPackages') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip">{{ $t('menuMyPackages') }}</span>
           <h1>{{ $t('myPackagesTitle') }}</h1>
           <p>{{ $t('myPackagesSubtitle') }}</p>
         </div>
@@ -29,80 +29,103 @@
     </template>
 
     <template v-else>
-      <header class="hero-section">
-        <div class="hero-content">
-          <span class="hero-chip pulse-chip">{{ $t('menuMyPackages') }}</span>
+      <header class="qd-page-header">
+        <div class="header-main">
+          <span class="page-chip pulse-chip">{{ $t('menuMyPackages') }}</span>
           <h1>{{ $t('myPackagesTitle') }}</h1>
           <p>{{ $t('myPackagesSubtitle') }}</p>
         </div>
-        <div class="hero-account-glass">
-          <div class="account-avatar">
-            {{ connectedUserInitial }}
+        <div class="qd-page-header-actions">
+          <div class="hero-account-glass">
+            <div class="account-avatar">
+              {{ connectedUserInitial }}
+            </div>
+            <div class="account-info">
+              <strong>{{ connectedUserName }}</strong>
+              <span class="role-badge">{{ displayedPriceColumnLabel }}</span>
+            </div>
+            <router-link v-if="canCreatePackage" to="/createPackage" class="qd-btn-primary primary-action">
+              {{ $t('myPackagesNewDelivery') }}
+            </router-link>
           </div>
-          <div class="account-info">
-            <strong>{{ connectedUserName }}</strong>
-            <span class="role-badge">{{ displayedPriceColumnLabel }}</span>
-          </div>
-          <router-link v-if="canCreatePackage" to="/createPackage" class="primary-action">
-            {{ $t('myPackagesNewDelivery') }}
-          </router-link>
         </div>
       </header>
 
-      <PremiumDashboardCard variant="flat" class="filters-panel" no-padding>
-        <div class="filters-row">
-          <div class="search-field">
-            <span class="material-symbols-outlined">search</span>
-            <input v-model.trim="searchTerm" type="text" :placeholder="$t('myPackagesSearchPlaceholder')">
-          </div>
-          <select v-model="selectedStatus" class="status-select">
-            <option value="ALL">{{ $t('myPackagesAllStatuses') }}</option>
-            <option v-for="status in availableStatuses" :key="status" :value="status">
-              {{ statusLabel(status) }}
-            </option>
-          </select>
-        </div>
-      </PremiumDashboardCard>
-
-      <div class="stats-grid">
-        <PremiumDashboardCard variant="glass" tone="indigo" class="stat-premium-card">
-          <div class="stat-inner">
-            <span class="stat-value">{{ filteredPackages.length }}</span>
-            <span class="stat-label">{{ $t('myPackagesStatTotal') }}</span>
+      <div class="stats-banner-premium">
+        <PremiumDashboardCard variant="glass" tone="indigo" class="stat-meta-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrap"><span class="material-symbols-outlined">inventory_2</span></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ filteredPackages.length }}</span>
+              <span class="stat-label">{{ $t('myPackagesStatTotal') }}</span>
+            </div>
           </div>
         </PremiumDashboardCard>
-        <PremiumDashboardCard variant="glass" tone="amber" class="stat-premium-card">
-          <div class="stat-inner">
-            <span class="stat-value">{{ countByStatus(['INDELIVERY', 'PICKEDUP', 'RESERVED']) }}</span>
-            <span class="stat-label">{{ $t('myPackagesStatInTransit') }}</span>
+        <PremiumDashboardCard variant="glass" tone="amber" class="stat-meta-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrap"><span class="material-symbols-outlined">local_shipping</span></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ countByStatus(['INDELIVERY', 'PICKEDUP', 'RESERVED']) }}</span>
+              <span class="stat-label">{{ $t('myPackagesStatInTransit') }}</span>
+            </div>
           </div>
         </PremiumDashboardCard>
-        <PremiumDashboardCard variant="glass" tone="emerald" class="stat-premium-card">
-          <div class="stat-inner">
-            <span class="stat-value">{{ countByStatus(['DELIVERED']) }}</span>
-            <span class="stat-label">{{ $t('myPackagesStatDelivered') }}</span>
+        <PremiumDashboardCard variant="glass" tone="emerald" class="stat-meta-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrap"><span class="material-symbols-outlined">verified</span></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ countByStatus(['DELIVERED']) }}</span>
+              <span class="stat-label">{{ $t('myPackagesStatDelivered') }}</span>
+            </div>
           </div>
         </PremiumDashboardCard>
-        <PremiumDashboardCard variant="glass" tone="slate" class="stat-premium-card">
-          <div class="stat-inner">
-            <span class="stat-value">{{ countByStatus(['NEW', 'PAYMENTPENDING']) }}</span>
-            <span class="stat-label">{{ $t('myPackagesStatPending') }}</span>
+        <PremiumDashboardCard variant="glass" tone="slate" class="stat-meta-card">
+          <div class="stat-content">
+            <div class="stat-icon-wrap"><span class="material-symbols-outlined">hourglass_empty</span></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ countByStatus(['NEW', 'PAYMENTPENDING']) }}</span>
+              <span class="stat-label">{{ $t('myPackagesStatPending') }}</span>
+            </div>
           </div>
         </PremiumDashboardCard>
       </div>
 
-      <div class="content-layout">
-        <section class="packages-column">
-          <div v-if="!isMobile && filteredPackages.length > 0" class="view-switch">
-            <button class="view-btn" :class="{ active: displayMode === 'cards' }" @click="displayMode = 'cards'">
-              {{ $t('myPackagesCardsView') }}
-            </button>
-            <button class="view-btn" :class="{ active: displayMode === 'table' }" @click="displayMode = 'table'">
-              {{ $t('myPackagesTableView') }}
-            </button>
+      <PremiumDashboardCard variant="flat" class="filters-panel" no-padding>
+        <div class="filters-row-unified">
+          <div class="search-field-premium">
+            <span class="material-symbols-outlined">search</span>
+            <input v-model.trim="searchTerm" type="text" :placeholder="$t('myPackagesSearchPlaceholder')">
           </div>
+          
+          <div class="filter-controls-right">
+            <select v-model="selectedStatus" class="status-select-premium">
+              <option value="ALL">{{ $t('myPackagesAllStatuses') }}</option>
+              <option v-for="status in availableStatuses" :key="status" :value="status">
+                {{ statusLabel(status) }}
+              </option>
+            </select>
 
-          <div v-if="filteredPackages.length === 0" class="page-state">{{ $t('stateEmptyPackages') }}</div>
+            <div v-if="!isMobile" class="segmented-control">
+              <div class="segmented-control-bg" :class="{ 'at-right': displayMode === 'table' }"></div>
+              <button class="segment-btn" :class="{ active: displayMode === 'cards' }" @click="displayMode = 'cards'">
+                <span class="material-symbols-outlined">grid_view</span>
+                {{ $t('myPackagesCardsView') }}
+              </button>
+              <button class="segment-btn" :class="{ active: displayMode === 'table' }" @click="displayMode = 'table'">
+                <span class="material-symbols-outlined">table_chart</span>
+                {{ $t('myPackagesTableView') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </PremiumDashboardCard>
+
+      <div class="content-layout-single">
+        <section class="packages-column-full">
+          <div v-if="filteredPackages.length === 0" class="empty-state-card">
+            <span class="material-symbols-outlined">inventory</span>
+            <p>{{ $t('stateEmptyPackages') }}</p>
+          </div>
 
           <div v-else-if="displayMode === 'cards'" class="status-groups">
             <PremiumDashboardCard
@@ -156,10 +179,10 @@
             </div>
 
             <div class="card-actions">
-              <button v-if="canTrackPackage(package_)" class="track-btn" @click="openTracking(package_)">
+              <button v-if="canTrackPackage(package_)" class="qd-btn-primary" @click="openTracking(package_)">
                 {{ $t('myPackagesTrackAction') }}
               </button>
-              <button class="details-btn" @click="openDetails(package_)">
+              <button class="qd-btn-secondary" @click="openDetails(package_)">
                 {{ $t('packagesArroundMArkerDetailActionsDetails') }}
               </button>
             </div>
@@ -192,35 +215,18 @@
                   </td>
                   <td>{{ formatCreatedDate(package_) }}</td>
                   <td>
-                    <button v-if="canTrackPackage(package_)" class="track-btn table-btn" @click="openTracking(package_)">
-                      {{ $t('myPackagesTrackAction') }}
-                    </button>
-                    <button class="details-btn table-btn" @click="openDetails(package_)">
-                      {{ $t('packagesArroundMArkerDetailActionsDetails') }}
-                    </button>
+                    <div class="table-actions-unified">
+                        <button v-if="canTrackPackage(package_)" class="qd-btn-primary table-btn" @click="openTracking(package_)">
+                        {{ $t('myPackagesTrackAction') }}
+                        </button>
+                        <button class="qd-btn-secondary table-btn" @click="openDetails(package_)">
+                        {{ $t('packagesArroundMArkerDetailActionsDetails') }}
+                        </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </PremiumDashboardCard>
-        </section>
-
-        <section class="insights-column">
-          <PremiumDashboardCard :title="$t('menuMyPackages')" variant="glass" class="insight-card">
-            <div class="todo-stack">
-              <div class="todo-pill">
-                <span class="material-symbols-outlined">inventory_2</span>
-                <span>{{ filteredPackages.length }} {{ $t('myPackagesStatTotal') }}</span>
-              </div>
-              <div class="todo-pill tone-amber">
-                <span class="material-symbols-outlined">local_shipping</span>
-                <span>{{ countByStatus(['INDELIVERY', 'PICKEDUP', 'RESERVED']) }} {{ $t('myPackagesStatInTransit') }}</span>
-              </div>
-              <div class="todo-pill tone-emerald">
-                <span class="material-symbols-outlined">verified</span>
-                <span>{{ countByStatus(['DELIVERED']) }} {{ $t('myPackagesStatDelivered') }}</span>
-              </div>
-            </div>
           </PremiumDashboardCard>
         </section>
       </div>
@@ -469,246 +475,255 @@ export default {
 </script>
 
 <style scoped>
-.my-packages-page {
-  min-height: 100%;
-  padding: 32px;
-  background:
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.08), transparent 400px),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+.hero-account-glass {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-.hero-section {
+.account-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--qd-primary);
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.account-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--qd-primary-dark);
+}
+
+.role-badge {
+  font-size: 0.72rem;
+  color: var(--qd-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.primary-action {
+  height: 44px !important;
+  border-radius: 12px !important;
+  font-size: 0.9rem !important;
+}
+
+/* Stats Banner Premium */
+.stats-banner-premium {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.stat-meta-card {
+  transition: transform 0.3s ease;
+}
+
+.stat-meta-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+}
+
+.stat-icon-wrap {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+}
+
+.stat-icon-wrap .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.stat-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Unified Filters & Toggle */
+.filters-panel {
+  padding: 24px;
+}
+
+.filters-row-unified {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 24px;
 }
 
-.hero-chip {
-  display: inline-flex;
-  padding: 6px 14px;
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--qd-primary);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
-}
-
-.pulse-chip {
-  animation: qd-pulse-soft 2s infinite;
-}
-
-@keyframes qd-pulse-soft {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }
-  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
-}
-
-.hero-content h1 {
-  margin: 0;
-  font-size: 2.75rem;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
-.hero-content p {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 1.05rem;
-}
-
-.hero-account-glass {
+.search-field-premium {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
-  flex-wrap: wrap;
+  gap: 12px;
+  height: 54px;
+  padding: 0 20px;
+  background: #f1f5f9;
+  border-radius: 18px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
 }
 
-.account-avatar {
-  width: 44px;
-  height: 44px;
-  background: var(--qd-primary);
-  color: #fff;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.25rem;
+.search-field-premium:focus-within {
+  background: #fff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
-.account-info strong {
-  display: block;
-  font-size: 1rem;
-  color: #0f172a;
-}
-
-.role-badge {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 600;
-}
-
-.primary-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 164px;
-  max-width: 100%;
-  height: 44px;
-  padding: 0 18px;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.filters-panel {
-  padding: 20px;
-}
-
-.filters-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 14px;
-}
-
-.search-field {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 50px;
-  padding: 0 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.search-field span {
+.search-field-premium .material-symbols-outlined {
   color: #94a3b8;
 }
 
-.search-field input,
-.status-select {
+.search-field-premium input {
   width: 100%;
   border: none;
-  outline: none;
-  background: transparent;
-  color: #1f2937;
-  font-size: 0.95rem;
-}
-
-.status-select {
-  height: 50px;
-  padding: 0 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.stat-inner {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-value {
-  font-size: 2.1rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
+  background: none;
+  font-size: 1rem;
   font-weight: 500;
+  color: #1e293b;
+  outline: none;
 }
 
-.view-switch {
+.filter-controls-right {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-bottom: 18px;
+  align-items: center;
+  gap: 16px;
 }
 
-.view-btn {
-  min-width: 84px;
-  height: 38px;
+.status-select-premium {
+  height: 54px;
+  padding: 0 20px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  font-weight: 600;
+  color: #475569;
+  outline: none;
+  cursor: pointer;
 }
 
-.content-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
-  align-items: start;
+/* Custom Segmented Control */
+.segmented-control {
+  position: relative;
+  height: 54px;
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 18px;
+  padding: 4px;
+  box-sizing: border-box;
 }
 
-.packages-column,
-.insights-column {
+.segmented-control-bg {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmented-control-bg.at-right {
+  transform: translateX(100%);
+}
+
+.segment-btn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #64748b;
+  cursor: pointer;
+  z-index: 1;
+  transition: color 0.3s;
+}
+
+.segment-btn.active {
+  color: #0f172a;
+}
+
+.segment-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Content Layout */
+.content-layout-single {
+  width: 100%;
+}
+
+.packages-column-full {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
-.page-state {
-  padding: 14px;
-  border-radius: 12px;
-  background: #eef3f9;
-  color: #334155;
-  text-align: center;
-}
-
-.loading-state,
-.error-state {
+.empty-state-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100px 0;
+  padding: 80px;
+  background: #fff;
+  border-radius: 24px;
+  color: #94a3b8;
+  gap: 16px;
+  text-align: center;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(79, 70, 229, 0.1);
-  border-top-color: var(--qd-primary);
-  border-radius: 50%;
-  animation: qd-spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes qd-spin {
-  to { transform: rotate(360deg); }
-}
-
-.packages-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+.empty-state-card .material-symbols-outlined {
+  font-size: 48px;
+  opacity: 0.3;
 }
 
 .status-groups {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
 .status-group-card {
@@ -720,177 +735,159 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 14px 18px;
-  border: 0;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-  background: transparent;
-  color: #0f172a;
+  padding: 20px 24px;
+  border: none;
+  background: rgba(248, 250, 252, 0.5);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.group-header:hover {
+  background: rgba(248, 250, 252, 1);
 }
 
 .group-header-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .group-title {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .group-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
+  padding: 2px 10px;
   background: #eef2ff;
-  color: #334155;
+  color: #4f46e5;
+  border-radius: 99px;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .group-chevron {
-  transition: transform 0.2s ease;
+  color: #94a3b8;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .group-chevron.collapsed {
   transform: rotate(-90deg);
 }
 
-.package-card {
-  position: relative;
-  padding: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.05);
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
+/* Package Grid */
+.packages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 24px;
 }
 
-.card-top {
-  display: block;
-  min-width: 0;
-  margin-bottom: 18px;
-  padding-right: 108px;
+.package-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.package-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  border-color: #e2e8f0;
 }
 
 .card-top h3 {
   margin: 0;
-  font-size: clamp(1.2rem, 2vw, 1.7rem);
-  line-height: 1.1;
+  font-size: 1.4rem;
+  font-weight: 900;
   color: #0f172a;
-  word-break: break-word;
+  letter-spacing: -0.01em;
+  padding-right: 80px;
 }
 
 .status-badge {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  white-space: nowrap;
+  top: 24px;
+  right: 24px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.status-delivered {
-  color: #166534;
-  background: #dcfce7;
-}
-
-.status-indelivery,
-.status-pickedup,
-.status-reserved {
-  color: #b45309;
-  background: #fef3c7;
-}
-
-.status-new,
-.status-paymentpending {
-  color: #475569;
-  background: #e2e8f0;
-}
+.status-delivered { background: #dcfce7; color: #166534; }
+.status-indelivery, .status-pickedup, .status-reserved { background: #fef9c3; color: #854d0e; }
+.status-new, .status-paymentpending { background: #f1f5f9; color: #475569; }
 
 .address-block {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-bottom: 18px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid #eef2f7;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .address-row {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  gap: 12px;
 }
 
 .address-row small {
   display: block;
-  margin-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #94a3b8;
+  margin-bottom: 2px;
 }
 
 .address-row strong {
+  font-size: 0.9375rem;
   color: #334155;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
-.pickup-icon {
-  color: #65a30d;
-  font-size: 18px;
-}
-
-.delivery-icon {
-  color: #ef4444;
-  font-size: 18px;
-}
+.pickup-icon { color: #10b981; }
+.delivery-icon { color: #f43f5e; }
 
 .card-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .card-meta small {
   display: block;
-  margin-bottom: 6px;
+  font-size: 0.75rem;
   color: #94a3b8;
+  margin-bottom: 4px;
 }
 
 .card-meta strong {
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #0f172a;
-  font-size: 1.05rem;
-}
-
-.meta-right {
-  text-align: right;
 }
 
 .card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.track-btn,
-.details-btn {
-  min-width: 132px;
-  height: 40px;
-}
+/* .track-btn, .details-btn handled by design-system.css qd-btn classes */
 
+/* Table View Unified */
 .packages-table-shell {
-  overflow-x: auto;
+  padding: 0;
 }
 
 .packages-table {
@@ -898,75 +895,56 @@ export default {
   border-collapse: collapse;
 }
 
-.packages-table th,
-.packages-table td {
-  padding: 16px;
-  border-bottom: 1px solid #eef2f7;
+.packages-table th {
+  padding: 20px 24px;
   text-align: left;
-  vertical-align: middle;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  background: rgba(248, 250, 252, 0.8);
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.packages-table th {
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: rgba(248, 250, 252, 0.85);
+.packages-table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9375rem;
+  color: #334155;
+}
+
+.table-actions-unified {
+    display: flex;
+    gap: 8px;
 }
 
 .table-btn {
-  min-width: 108px;
-  height: 36px;
-  margin-right: 8px;
+    min-width: 100px;
 }
 
-.table-btn:last-child {
-  margin-right: 0;
-}
-
-.todo-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.todo-pill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(79, 70, 229, 0.08);
-  border-radius: 12px;
-  color: var(--qd-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.todo-pill.tone-amber {
-  background: rgba(245, 158, 11, 0.08);
-  color: #b45309;
-}
-
-.todo-pill.tone-emerald {
-  background: rgba(16, 185, 129, 0.08);
-  color: #047857;
+@media screen and (max-width: 1400px) {
+  .packages-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media screen and (max-width: 1100px) {
-  .content-layout,
-  .filters-row {
-    grid-template-columns: 1fr;
+  .stats-banner-premium {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  .stats-grid,
-  .packages-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .filters-row-unified {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-controls-right {
+    justify-content: space-between;
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 768px) {
   .my-packages-page {
-    padding: 20px;
+    padding: 12px;
+    gap: 14px;
   }
 
   .hero-section {
@@ -975,54 +953,73 @@ export default {
   }
 
   .hero-content h1 {
-    font-size: 2rem;
+    font-size: 1.65rem;
+    line-height: 1.1;
   }
 
   .hero-account-glass {
     width: 100%;
+    padding: 12px 16px;
   }
 
-  .primary-action {
+  .stats-banner-premium {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .filters-row-unified {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .status-select-premium {
     width: 100%;
-    min-width: 0;
   }
 
-  .stats-grid,
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .my-packages-page {
+    padding: 12px;
+  }
+  .hero-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-content h1 {
+    font-size: 1.55rem;
+    line-height: 1.1;
+  }
+  .stats-banner-premium {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
   .packages-grid {
     grid-template-columns: 1fr;
+    padding: 10px;
   }
-
-  .view-switch {
-    justify-content: stretch;
+  .empty-state-card {
+    padding: 24px 12px;
+    gap: 10px;
+    border-radius: 12px;
   }
-
-  .view-btn {
-    flex: 1;
+  .empty-state-card .material-symbols-outlined {
+    font-size: 32px;
   }
-
-  .group-header {
-    padding: 12px 14px;
-  }
-
-  .card-top {
-    padding-right: 92px;
-  }
-
-  .card-meta {
-    grid-template-columns: 1fr;
-  }
-
-  .meta-right {
-    text-align: left;
-  }
-
   .status-badge {
-    top: 16px;
-    right: 16px;
-  }
-
-  .packages-table-shell {
-    overflow: auto;
+    position: relative;
+    top: 0;
+    right: 0;
+    margin-top: 12px;
   }
 }
 </style>

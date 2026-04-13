@@ -256,7 +256,6 @@ export default {
   min-height: 100vh;
   background: #f1f1f1;
   color: #111111;
-  font-family: 'Poppins', sans-serif;
 }
 
 .container {
@@ -334,7 +333,7 @@ export default {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.7));
 }
 
 .hero-copy {
@@ -487,6 +486,7 @@ export default {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
+
 .journey-head {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
@@ -578,7 +578,74 @@ export default {
   }
 
   .banner-content {
-    padding: 72px 0;
+    padding: 48px 0;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(1.45rem, 7vw, 1.6rem);
+    line-height: 1.12;
+  }
+
+  .hero-copy p,
+  .statistics_head p,
+  .services p,
+  .how-subtitle,
+  .users_feedback > p,
+  .join-us p {
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  .statistics_section,
+  .services,
+  .how-it-works,
+  .users_feedback,
+  .join-us {
+    padding: 2.25rem 0;
+  }
+
+  .statistics,
+  .cards,
+  .reviews,
+  .journeys {
+    margin-top: 1rem;
+    gap: 12px;
+  }
+
+  .statistics_head h1,
+  .services h1,
+  .how-it-works h1,
+  .join-us h1 {
+    font-size: 1.45rem;
+    line-height: 1.16;
+  }
+
+  .card,
+  .user_review,
+  .journey-card,
+  .step {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .step {
+    text-align: left;
+  }
+
+  .journey-head {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .hero-actions {
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .hero-btn {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.86rem;
   }
 
   .statistics,

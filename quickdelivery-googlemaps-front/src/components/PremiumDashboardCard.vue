@@ -163,36 +163,27 @@ export default {
   border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
-/* Tones */
-.premium-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.tone-indigo::before { background: var(--qd-primary); }
-.tone-emerald::before { background: var(--qd-success); }
-.tone-amber::before { background: var(--qd-warning); }
-.tone-rose::before { background: #e11d48; }
-
-.premium-card:hover::before {
-  opacity: 1;
-}
-
 @media (max-width: 640px) {
+  .premium-card {
+    border-radius: 14px;
+  }
   .card-header {
-    padding: 20px 20px 12px;
+    padding: 14px 14px 8px;
+    gap: 10px;
+  }
+  .header-main h3 {
+    font-size: 0.98rem;
+    line-height: 1.2;
+  }
+  .header-main p {
+    font-size: 0.76rem;
+    line-height: 1.3;
   }
   .card-body {
-    padding: 0 20px 20px;
+    padding: 0 14px 14px;
   }
   .card-footer {
-    padding: 12px 20px;
+    padding: 10px 14px;
   }
 }
 </style>

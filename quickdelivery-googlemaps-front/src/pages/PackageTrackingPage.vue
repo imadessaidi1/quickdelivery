@@ -1,15 +1,23 @@
 <template>
-  <div class="package-tracking-page">
-    <div class="page-header">
-      <button v-if="showBackButton" class="back-btn" type="button" @click="goBack">
-        {{ $t('actionBack') }}
-      </button>
-      <div>
+  <div class="package-tracking-page qd-page">
+    <header class="qd-page-header">
+      <div class="header-main">
+        <button v-if="showBackButton" class="back-link qd-btn-secondary" type="button" @click="goBack">
+          <span class="icon">←</span> {{ $t('actionBack') }}
+        </button>
         <h1>{{ $t('trackingPageTitle') }}</h1>
         <p>{{ $t('trackingPageSubtitle') }}</p>
       </div>
-      <div class="reference-chip">{{ packageReference }}</div>
-    </div>
+      <div class="qd-page-header-actions">
+        <div class="reference-chip">{{ packageReference }}</div>
+        <div v-if="packageData && packageData.courierName" class="courier-contact-chip">
+          <span class="courier-name">{{ packageData.courierName }}</span>
+          <a v-if="packageData.courierPhone" :href="'tel:' + packageData.courierPhone" class="courier-call-mini">
+            <span class="material-symbols-outlined">call</span>
+          </a>
+        </div>
+      </div>
+    </header>
 
     <PackageTrackingGoogleMap
       v-if="trackingState === 'ready' && packageData"
@@ -162,14 +170,40 @@ export default {
   margin-bottom: 14px;
 }
 
-.back-btn {
-  display: inline-flex;
+.back-link {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 110px;
-  height: 42px;
-  padding: 0 18px;
-  font-weight: 600;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-link:hover {
+  color: #0f172a;
+  transform: translateX(-4px);
+}
+
+.back-link .icon {
+  font-size: 1.1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.05;
+  color: #0f172a;
+}
+
+.page-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
 .page-header h1 {
@@ -195,9 +229,61 @@ export default {
   background: #020617;
   color: #ffffff;
   font-size: 0.85rem;
-  font-weight: 700;
-  text-align: center;
-  overflow-wrap: anywhere;
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary-dark);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.courier-contact-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  padding: 4px 4px 4px 12px;
+  border-radius: 99px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.courier-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: capitalize;
+}
+
+.courier-call-mini {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: #ffffff;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.courier-call-mini:hover {
+  transform: scale(1.1);
+  background: #059669;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.courier-call-mini .material-symbols-outlined {
+  font-size: 1.1rem;
 }
 
 @media screen and (max-width: 1180px) and (min-width: 768px) {
@@ -268,8 +354,9 @@ export default {
     align-items: stretch;
   }
 
-  .back-btn {
+  .back-link {
     width: 100%;
+    justify-content: center;
   }
 
   .page-header h1 {

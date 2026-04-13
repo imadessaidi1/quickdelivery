@@ -226,6 +226,7 @@
       }
 
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
+            suppressViewportPublishUntil = Date.now() + 1500;
 	        window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;
@@ -245,6 +246,7 @@
 		}
 
 	  function calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, packageStart, packageEnd) {
+            suppressViewportPublishUntil = Date.now() + 1500;
 			window.top.postMessage('StartLoading', '*');
 			const start = packageStart;
 			const end = packageEnd;

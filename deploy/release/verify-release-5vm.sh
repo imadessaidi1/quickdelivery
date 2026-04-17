@@ -6,7 +6,7 @@ API_DOMAIN="${API_DOMAIN:-api.quickdelivery.fr}"
 AUTH_DOMAIN="${AUTH_DOMAIN:-auth.quickdelivery.fr}"
 RELEASE_ROLE="${RELEASE_ROLE:-}"
 CONFIG_USERNAME="${CONFIG_USERNAME:-configuser}"
-CONFIG_PASSWORD="${CONFIG_PASSWORD:-}"
+CONFIG_SERVER_PASSWORD="${CONFIG_SERVER_PASSWORD:-${CONFIG_PASSWORD:-}}"
 
 if [[ -z "$RELEASE_ROLE" ]]; then
   echo "RELEASE_ROLE is required." >&2
@@ -70,10 +70,10 @@ case "$RELEASE_ROLE" in
     wait_for_http "auth vhost via vm1" "https://${AUTH_DOMAIN}/auth" "-k -fsSI --resolve ${AUTH_DOMAIN}:443:127.0.0.1" 24 5
     ;;
   vm2-platform)
-    if [[ -n "$CONFIG_PASSWORD" ]]; then
-      wait_for_http "config-server" "http://127.0.0.1:8889/actuator/health" "-fsS -u ${CONFIG_USERNAME}:${CONFIG_PASSWORD}" 24 5
+    if [[ -n "$CONFIG_SERVER_PASSWORD" ]]; then
+      wait_for_http "config-server" "http://127.0.0.1:8889/actuator/health" "-fsS -u ${CONFIG_USERNAME}:${CONFIG_SERVER_PASSWORD}" 24 5
     else
-      echo "config-server auth check skipped (CONFIG_PASSWORD not set)"
+      echo "config-server auth check skipped (CONFIG_SERVER_PASSWORD not set)"
     fi
     wait_for_http "discovery-server" "http://127.0.0.1:8080/actuator/health" "-fsS" 24 5
     wait_for_http "oauth local" "http://127.0.0.1:18443/auth" "-fsSI" 24 5

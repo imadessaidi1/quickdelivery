@@ -475,6 +475,8 @@ public class PackageController {
                                                           @RequestParam(name = "town", required = false, defaultValue = "") String town,
                                                           @RequestParam(name = "country", required = false, defaultValue = "") String country,
                                                           @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres,
+                                                          @RequestParam(name = "pickupRadiusMeters", required = false) Double pickupRadiusMeters,
+                                                          @RequestParam(name = "deliveryRadiusMeters", required = false) Double deliveryRadiusMeters,
                                                           @RequestParam(name = "deliveryMode", required = false) String deliveryMode,
                                                           @RequestParam(name = "vehicleType", required = false) String vehicleType,
                                                           @RequestParam(name = "destinationLatitude", required = false) Double destinationLatitude,
@@ -486,8 +488,10 @@ public class PackageController {
         addressDTO.setZipCode(zipCode);
         addressDTO.setLatitude(destinationLatitude == null ? null : BigDecimal.valueOf(destinationLatitude));
         addressDTO.setLongitude(destinationLongitude == null ? null : BigDecimal.valueOf(destinationLongitude));
+        double effectivePickupRadius = pickupRadiusMeters != null ? pickupRadiusMeters : rayonEnMetres;
+        double effectiveDeliveryRadius = deliveryRadiusMeters != null ? deliveryRadiusMeters : rayonEnMetres;
         try {
-            return packagesService.getPackagesAroundPositionWithDestination(latitude, longitude, addressDTO, rayonEnMetres, deliveryMode, vehicleType);
+            return packagesService.getPackagesAroundPositionWithDestination(latitude, longitude, addressDTO, effectivePickupRadius, effectiveDeliveryRadius, deliveryMode, vehicleType);
         } catch (IOException | InterruptedException | ApiException e) {
             throw new RuntimeException(e);
         }

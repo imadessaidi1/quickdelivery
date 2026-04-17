@@ -19,28 +19,34 @@
     </aside>
 
     <div class="form-card">
+      <AddressBookRecipientSearch
+        v-if="enableAddressBook && addressType === 'ARRIVAL'"
+        :owner-user-id="ownerUserId"
+        @recipient-selected="applyAddressBookEntry"
+      />
+
       <div class="address-grid">
         <div class="field-wrap">
           <label for="firstName">{{ $t('packageAddressFirstNameLabel') }}</label>
-          <Field id="firstName" v-model="address.firstName" name="address.firstName" :rules="validateString" />
+          <Field id="firstName" v-model="address.firstName" name="address.firstName" :rules="validateString" @input="notifyManualRecipientChange" />
           <ErrorMessage class="errorMessage" name="address.firstName" />
         </div>
 
         <div class="field-wrap">
           <label for="lastName">{{ $t('packageAddressLastName') }}</label>
-          <Field id="lastName" v-model="address.lastName" name="address.lastName" :rules="validateString" />
+          <Field id="lastName" v-model="address.lastName" name="address.lastName" :rules="validateString" @input="notifyManualRecipientChange" />
           <ErrorMessage class="errorMessage" name="address.lastName" />
         </div>
 
         <div class="field-wrap">
           <label for="email">{{ $t('packageAddressEmail') }}</label>
-          <Field id="email" v-model="address.email" type="email" name="address.email" :rules="validateEmail" />
+          <Field id="email" v-model="address.email" type="email" name="address.email" :rules="validateEmail" @input="notifyManualRecipientChange" />
           <ErrorMessage class="errorMessage" name="address.email" />
         </div>
 
         <div class="field-wrap">
           <label for="phone">{{ $t('packageAddressPhoneLabel') }}</label>
-          <PhoneNumberField :input-id="`${addressType}-phone`" v-model="address.phone" name="address.phone" />
+          <PhoneNumberField :input-id="`${addressType}-phone`" v-model="address.phone" name="address.phone" @update:modelValue="notifyManualRecipientChange" />
         </div>
 
         <div class="field-wrap field-wide">
@@ -51,6 +57,7 @@
               v-model="address.addressAuto"
               :existingAddress="address.addressAuto"
               @place-selected="handlePlaceSelected"
+              @input="notifyManualRecipientChange"
             />
           </div>
           <span v-if="isAddressError" class="errorMessage">{{ errorAddressMessage }}</span>
@@ -89,6 +96,7 @@
             v-model="address.dateTime"
             time-picker-inline
             :locale="datePickerLocale"
+            :format-locale="datePickerFormatLocale"
             format="dd/MM/yyyy HH:mm"
             :min-date="minDate"
             :max-date="maxDate"
@@ -97,6 +105,15 @@
           />
           <span v-if="isDateTimeError" class="errorMessage">{{ errorDeliveryDateTimeMessage }}</span>
         </div>
+
+        <label v-if="showAddToAddressBook && addressType === 'ARRIVAL'" class="address-book-checkbox field-wide">
+          <input
+            :checked="addToAddressBook"
+            type="checkbox"
+            @change="$emit('update:addToAddressBook', $event.target.checked)"
+          >
+          <span>{{ $t('addressBookAddRecipient') }}</span>
+        </label>
       </div>
     </div>
   </div>
@@ -107,12 +124,15 @@ import { ErrorMessage, Field } from 'vee-validate';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { fr } from 'date-fns/locale';
+import AddressBookRecipientSearch from './AddressBookRecipientSearch.vue';
 import AddressAutocomplete from './AddressAutocomplete.vue';
 import PhoneNumberField from './PhoneNumberField.vue';
 import { validateEmail, validateNumericFieldAcceptZero, validateString } from '@/config/comonFunction';
 
 export default {
+  emits: ['recipient-selected', 'update:addToAddressBook'],
   components: {
+    AddressBookRecipientSearch,
     AddressAutocomplete,
     Field,
     ErrorMessage,
@@ -123,6 +143,22 @@ export default {
     addressType: {
       type: String,
       default: 'DEPARTURE',
+    },
+    enableAddressBook: {
+      type: Boolean,
+      default: false,
+    },
+    showAddToAddressBook: {
+      type: Boolean,
+      default: false,
+    },
+    addToAddressBook: {
+      type: Boolean,
+      default: false,
+    },
+    ownerUserId: {
+      type: [Number, String],
+      default: null,
     },
   },
   data() {
@@ -163,7 +199,12 @@ export default {
       });
     },
     datePickerLocale() {
-      return fr;
+      const locale = this.$i18n?.locale;
+      const localeCode = typeof locale === 'string' ? locale : locale?.value;
+      return localeCode?.toLowerCase().startsWith('fr') ? 'fr-FR' : 'en-US';
+    },
+    datePickerFormatLocale() {
+      return this.datePickerLocale.startsWith('fr') ? fr : null;
     },
   },
   methods: {
@@ -177,9 +218,37 @@ export default {
       autocompleteRef?.syncAutocompleteValue?.();
     },
     handlePlaceSelected(place) {
+      this.notifyManualRecipientChange();
       this.address.addressAuto = place?.formattedAddress || '';
       this.address.latitude = place?.latitude ?? null;
       this.address.longitude = place?.longitude ?? null;
+    },
+    applyAddressBookEntry(entry) {
+      if (!entry) {
+        return;
+      }
+      this.address.firstName = entry.firstName || '';
+      this.address.lastName = entry.lastName || '';
+      this.address.email = entry.email || '';
+      this.address.phone = entry.phone || '';
+      this.address.line1 = entry.line1 || '';
+      this.address.line2 = entry.line2 || '';
+      this.address.town = entry.town || '';
+      this.address.zipCode = entry.zipCode || '';
+      this.address.country = entry.country || '';
+      this.address.floor = entry.floor ?? 0;
+      this.address.hasElevator = entry.hasElevator ?? null;
+      this.address.addressAuto = entry.addressAuto || [entry.line1, entry.zipCode, entry.town, entry.country].filter(Boolean).join(', ');
+      this.address.latitude = entry.latitude ?? null;
+      this.address.longitude = entry.longitude ?? null;
+      this.$emit('update:addToAddressBook', false);
+      this.$emit('recipient-selected', entry);
+      this.$nextTick(() => this.syncAddressAutocomplete());
+    },
+    notifyManualRecipientChange() {
+      if (this.addressType === 'ARRIVAL') {
+        this.$emit('recipient-selected', null);
+      }
     },
   },
   watch: {
@@ -321,6 +390,25 @@ export default {
 
 .field-hint {
   color: #617086;
+}
+
+.address-book-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  padding: 10px 12px;
+  border: 1px solid #cfe0f8;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #214f88;
+  font-weight: 700;
+}
+
+.address-book-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
 .field-wrap :deep(input) {

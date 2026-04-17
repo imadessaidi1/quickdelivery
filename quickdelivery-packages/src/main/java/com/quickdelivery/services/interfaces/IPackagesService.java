@@ -46,6 +46,7 @@ public interface IPackagesService {
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres, String deliveryMode) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException;
+    List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException;
     RoutePlanDTO buildRoutePlan(RoutePlanRequestDTO request);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude, String deliveryMode);

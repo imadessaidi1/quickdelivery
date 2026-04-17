@@ -29,6 +29,7 @@ public class CacheConfig {
         cacheManager.registerCustomCache("packagesAroundGrouped", buildCache("packagesAroundGrouped", nearbyCacheTtlSeconds, 512));
         cacheManager.registerCustomCache("packagesAroundMe", buildCache("packagesAroundMe", nearbyCacheTtlSeconds, 512));
         cacheManager.registerCustomCache("packagesAroundDestination", buildCache("packagesAroundDestination", nearbyCacheTtlSeconds, 512));
+        cacheManager.registerCustomCache("packagesOnMyRoad", buildCache("packagesOnMyRoad", nearbyCacheTtlSeconds, 256));
         cacheManager.registerCustomCache("packagesByStatus", buildCache("packagesByStatus", hotCacheTtlSeconds, 256));
         cacheManager.registerCustomCache("packagesByDeliveryPerson", buildCache("packagesByDeliveryPerson", hotCacheTtlSeconds, 512));
         cacheManager.registerCustomCache("packagesBySender", buildCache("packagesBySender", hotCacheTtlSeconds, 512));

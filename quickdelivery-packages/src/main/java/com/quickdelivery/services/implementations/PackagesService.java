@@ -249,6 +249,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -457,7 +458,7 @@ public class PackagesService implements IPackagesService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "packagesAroundDestination", key = "T(java.lang.String).format('%s:%s:%s:%s:%s:%s:%s', #latitude, #longitude, #destinationAddress.line1, #destinationAddress.zipCode, #destinationAddress.town, #destinationAddress.country, #rayonEnMetres)", sync = true)
+    @Cacheable(value = "packagesAroundDestination", key = "T(java.lang.String).format('%s:%s:%s:%s:%s:%s:%s', T(com.quickdelivery.services.implementations.PackagesService).normalizeNearbyCoordinateKey(#latitude), T(com.quickdelivery.services.implementations.PackagesService).normalizeNearbyCoordinateKey(#longitude), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.line1), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.zipCode), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.town), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.country), #rayonEnMetres)", sync = true)
     public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
         return getPackagesAroundPositionWithDestination(latitude, longitude, destinationAddress, rayonEnMetres, null);
     }
@@ -478,8 +479,23 @@ public class PackagesService implements IPackagesService {
             return Collections.emptyList();
         }
 
+        return getPackagesAroundPositionWithDestination(latitude, longitude, destinationAddress, rayonEnMetres, rayonEnMetres, deliveryMode, vehicleType);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException {
+        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+            GeoHelper.AddressGeoCoding(geoApiContext, destinationAddress);
+        }
+        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+            return Collections.emptyList();
+        }
+
         int maxVisiblePackages = resolveMaxPackagesForSearch(deliveryMode, vehicleType);
-        return getPackagesAroundPosition(latitude, longitude, rayonEnMetres, deliveryMode).stream()
+        final double destLat = destinationAddress.getLatitude().doubleValue();
+        final double destLng = destinationAddress.getLongitude().doubleValue();
+        return getPackagesAroundPosition(latitude, longitude, pickupRadiusMeters, deliveryMode).stream()
                 .filter(packageDTO -> isPackageCompatibleForSearch(modelMapper.map(packageDTO, Package.class), deliveryMode, vehicleType))
                 .filter(packageDTO -> {
                     AddressDTO arrivalAddress = getArrivalAddress(packageDTO.getAddresses());
@@ -489,10 +505,15 @@ public class PackagesService implements IPackagesService {
                     return haversineMeters(
                             arrivalAddress.getLatitude().doubleValue(),
                             arrivalAddress.getLongitude().doubleValue(),
-                            destinationAddress.getLatitude().doubleValue(),
-                            destinationAddress.getLongitude().doubleValue()
-                    ) <= rayonEnMetres;
+                            destLat,
+                            destLng
+                    ) <= deliveryRadiusMeters;
                 })
+                .sorted(Comparator.comparingDouble(packageDTO -> {
+                    AddressDTO arr = getArrivalAddress(packageDTO.getAddresses());
+                    if (arr == null || arr.getLatitude() == null || arr.getLongitude() == null) return Double.MAX_VALUE;
+                    return haversineMeters(arr.getLatitude().doubleValue(), arr.getLongitude().doubleValue(), destLat, destLng);
+                }))
                 .limit(maxVisiblePackages)
                 .collect(Collectors.toList());
     }
@@ -566,6 +587,7 @@ public class PackagesService implements IPackagesService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "packagesOnMyRoad", key = "T(com.quickdelivery.services.implementations.PackagesService).buildCorridorCacheKey(#departureLatitude, #arrivalLatitude, #departureLongitude, #arrivalLongitude, #deliveryMode, #vehicleType, #radiusMeters)", sync = true)
     public List<PackageDTO> findAddressOnMyRoad(String departureLatitude,
                                                 String arrivalLatitude,
                                                 String departureLongitude,
@@ -630,10 +652,11 @@ public class PackagesService implements IPackagesService {
                     boolean deliveryWithinDestinationRadius = arrDistanceToDestination <= effectiveRadiusMeters;
                     boolean pickupOnPath = isOnPathCandidate(depDistanceToRoute, depProgress, corridorMeters);
                     boolean deliveryOnPath = isOnPathCandidate(arrDistanceToRoute, arrProgress, corridorMeters);
+                    double maxDetourMinutes = resolveMaxDetourMinutes(deliveryMode);
                     double pickupDetourMinutes = convertDetourMetersToMinutes(depDistanceToRoute, deliveryMode);
                     double deliveryDetourMinutes = convertDetourMetersToMinutes(arrDistanceToRoute, deliveryMode);
-                    boolean pickupOnPathWithAcceptedDetour = pickupOnPath && pickupDetourMinutes <= 20d;
-                    boolean deliveryOnPathWithAcceptedDetour = deliveryOnPath && deliveryDetourMinutes <= 20d;
+                    boolean pickupOnPathWithAcceptedDetour = pickupOnPath && pickupDetourMinutes <= maxDetourMinutes;
+                    boolean deliveryOnPathWithAcceptedDetour = deliveryOnPath && deliveryDetourMinutes <= maxDetourMinutes;
 
                     boolean matchesSearch =
                             (pickupWithinCourierRadius && deliveryWithinDestinationRadius)
@@ -672,6 +695,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -705,6 +729,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -761,6 +786,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -835,6 +861,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -887,6 +914,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -1002,6 +1030,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -1057,6 +1086,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
@@ -1950,6 +1980,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true)
@@ -2046,6 +2077,7 @@ public class PackagesService implements IPackagesService {
             @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
             @CacheEvict(value = "packagesAroundMe", allEntries = true),
             @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
             @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
             @CacheEvict(value = "packagesBySender", allEntries = true),
             @CacheEvict(value = "userWithOngoingDelivery", allEntries = true)
@@ -4319,6 +4351,35 @@ public class PackagesService implements IPackagesService {
 
     private double convertDetourMetersToMinutes(double detourMeters, String mode) {
         return detourMeters / Math.max(1d, resolveMetersPerMinute(mode));
+    }
+
+    private double resolveMaxDetourMinutes(String deliveryMode) {
+        if (deliveryMode == null || deliveryMode.isBlank()) return 20d;
+        return switch (deliveryMode) {
+            case "ON_FOOT" -> 8d;
+            case "BIKE" -> 10d;
+            case "SCOOTER" -> 15d;
+            case "CAR" -> 20d;
+            case "VAN", "TRUCK" -> 25d;
+            case "HEAVY" -> 30d;
+            default -> 20d;
+        };
+    }
+
+    public static String normalizeCacheString(String value) {
+        return value == null ? "" : value.toLowerCase(java.util.Locale.ROOT).trim();
+    }
+
+    public static String buildCorridorCacheKey(String depLat, String arrLat, String depLng, String arrLng,
+                                               String deliveryMode, String vehicleType, double radiusMeters) {
+        return String.format("%s:%s:%s:%s:%s:%s:%s",
+                normalizeNearbyCoordinateKey(depLat),
+                normalizeNearbyCoordinateKey(arrLat),
+                normalizeNearbyCoordinateKey(depLng),
+                normalizeNearbyCoordinateKey(arrLng),
+                deliveryMode == null ? "" : deliveryMode,
+                vehicleType == null ? "" : vehicleType,
+                BigDecimal.valueOf(radiusMeters).setScale(0, java.math.RoundingMode.HALF_UP).toPlainString());
     }
 
     private boolean isOnPathCandidate(double distanceToRoute, double progress, double corridorMeters) {

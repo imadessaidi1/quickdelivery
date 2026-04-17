@@ -88,9 +88,12 @@ public class FirebasePushNotificationService implements IPushNotificationService
                         .setToken(token.trim())
                         .putData("notificationId", String.valueOf(notification.getId()))
                         .putData("eventType", notification.getEventType().name())
+                        .putData("type", toFrontendType(notification))
                         .putData("title", safeValue(notification.getTitle()))
                         .putData("body", safeValue(notification.getBody()))
+                        .putData("message", safeValue(notification.getBody()))
                         .putData("targetUrl", safeValue(notification.getTargetUrl()))
+                        .putData("url", safeValue(notification.getTargetUrl()))
                         .putData("payloadJson", safeValue(notification.getPayloadJson()))
                         .setAndroidConfig(AndroidConfig.builder()
                                 .setPriority(AndroidConfig.Priority.HIGH)
@@ -158,5 +161,24 @@ public class FirebasePushNotificationService implements IPushNotificationService
 
     private String safeValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String toFrontendType(Notification notification) {
+        if (notification == null || notification.getEventType() == null) {
+            return "GENERIC_NOTIFICATION";
+        }
+        return switch (notification.getEventType()) {
+            case PACKAGE_NEARBY -> "NEW_PACKAGE_NOTIFICATION";
+            case PACKAGE_CREATED -> "PACKAGE_CREATED_NOTIFICATION";
+            case PACKAGE_RESERVED -> "PACKAGE_RESERVED_NOTIFICATION";
+            case PACKAGE_RESERVATION_OTP -> "PACKAGE_RESERVATION_OTP_NOTIFICATION";
+            case PACKAGE_COURIER_ARRIVED_FOR_PICKUP -> "PACKAGE_COURIER_ARRIVED_FOR_PICKUP_NOTIFICATION";
+            case PACKAGE_PICKUP_STOP_ARRIVAL -> "PACKAGE_PICKUP_STOP_ARRIVAL_NOTIFICATION";
+            case PACKAGE_DELIVERY_STOP_ARRIVAL -> "PACKAGE_DELIVERY_STOP_ARRIVAL_NOTIFICATION";
+            case PACKAGE_PICKUP_SUCCESS, PACKAGE_PICKED_UP -> "PACKAGE_PICKUP_NOTIFICATION";
+            case PACKAGE_DELIVERY_SUCCESS, PACKAGE_DELIVERED -> "PACKAGE_DELIVERY_NOTIFICATION";
+            case PACKAGE_PAYMENT_CONFIRMED -> "PACKAGE_PAYMENT_RECEIVED_NOTIFICATION";
+            default -> "GENERIC_NOTIFICATION";
+        };
     }
 }

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "serve:local": "node scripts/dev-local.js",
     "build": "vue-cli-service build && node scripts/inject-google-maps-key.js",
     "lint": "vue-cli-service lint",
     "cap:sync": "npm run build && npx cap sync",

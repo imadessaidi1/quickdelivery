@@ -6,7 +6,7 @@
           <div class="panel-head">
             <h2>{{ $t('userInfo') || 'Informations' }}</h2>
           </div>
-          <UserDetails :user="selectedUser" :vehicle="primaryVehicle" :userDocuments="selectedUser.documents" :show-update-button="true"/>
+          <UserDetails :user="selectedUser" :vehicle="primaryVehicle" :userDocuments="normalizedDocuments" :show-update-button="true"/>
         </div>
       </div>
       <div v-if="hasDisplayableDocuments" class="document-viewer">

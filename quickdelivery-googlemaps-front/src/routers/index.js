@@ -119,15 +119,9 @@ const routes = [
         },
         {
         path: '/userSignInPage',
-        name: 'userSignInPageUpdate',
-        component:UserSignInPage,
-        props: (route) => ({ id: route.query.id, updateToken: route.query.updateToken }),
-        meta: { public: true }
-        },
-        {
-        path: '/userSignInPage',
         name: 'userSignInPage',
         component:UserSignInPage,
+        props: (route) => ({ id: route.query.id, updateToken: route.query.updateToken }),
         meta: { public: true }
         },
         {
@@ -202,9 +196,6 @@ const router = VueRouter.createRouter({
 });
 
 router.beforeEach(async (to) => {
-    if (to.path === '/userSignInPage' && to.query.updateToken) {
-        return true;
-    }
     if (to.name === 'landingPage' && hasValidAccessToken()) {
         return resolveLandingPathForCurrentUser();
     }

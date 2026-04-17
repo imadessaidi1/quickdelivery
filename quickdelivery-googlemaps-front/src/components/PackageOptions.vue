@@ -56,29 +56,33 @@
       </div>
 
       <div class="upload-grid">
-        <label class="upload-card">
-          <span>{{ $t('packagePicture') }}</span>
-          <small>{{ $t('packagePictureInfo') }}</small>
-          <input ref="fileInput0" type="file" accept="image/*" @change="handleFileChange(0)">
-          <strong>{{ documentLabel(0) }}</strong>
-        </label>
+        <DocumentUploadCard
+          :label="$t('packagePicture')"
+          :file-name="documentLabel(0)"
+          @change="handleFileChange($event, 0)"
+        />
 
-        <label class="upload-card">
-          <span>{{ $t('packageInvoice') }}</span>
-          <small>{{ $t('packageInvoiceInfoLabel') }}</small>
-          <input ref="fileInput1" type="file" accept="image/*, application/pdf" @change="handleFileChange(1)">
-          <strong>{{ documentLabel(1) }}</strong>
-        </label>
+        <DocumentUploadCard
+          :label="$t('packageInvoice')"
+          :file-name="documentLabel(1)"
+          accept="image/*, application/pdf"
+          @change="handleFileChange($event, 1)"
+        />
       </div>
     </section>
   </div>
 </template>
 
 <script>
+import DocumentUploadCard from './DocumentUploadCard.vue';
+
 const DECLARED_VALUE_MIN = 1;
 const DECLARED_VALUE_MAX = 10000;
 
 export default {
+  components: {
+    DocumentUploadCard,
+  },
   props: {
     modelValue: {
       type: Object,
@@ -132,8 +136,8 @@ export default {
     },
   },
   methods: {
-    handleFileChange(index) {
-      const file = this.$refs[`fileInput${index}`]?.files?.[0];
+    handleFileChange(event, index) {
+      const file = event?.target?.files?.[0];
       if (file) {
         const nextDocuments = [...(this.documentS || [])];
         nextDocuments[index] = file;
@@ -166,40 +170,31 @@ export default {
 <style scoped>
 .options-layout {
   display: grid;
-  gap: 20px;
+  gap: 24px;
   min-width: 0;
-}
-
-.options-layout,
-.options-layout * {
-  box-sizing: border-box;
 }
 
 .options-card {
   padding: 24px;
-  border: 1px solid #dde5f0;
+  border: 1px solid var(--qd-border);
   border-radius: 22px;
   background: #fff;
-  box-shadow: 0 18px 38px rgba(24, 39, 75, 0.07);
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.06);
 }
 
 .section-head {
-  margin-bottom: 18px;
-}
-
-.section-head.compact {
-  margin-bottom: 14px;
+  margin-bottom: 24px;
 }
 
 .section-head h3 {
   margin: 6px 0 8px;
-  font-size: 1.35rem;
-  color: #14213d;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--qd-text);
 }
 
 .section-head p {
-  margin: 0;
-  color: #617086;
+  color: var(--qd-muted);
 }
 
 .eyebrow {
@@ -207,8 +202,8 @@ export default {
   align-items: center;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #edf4ff;
-  color: #27548a;
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary);
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -217,102 +212,97 @@ export default {
 .choice-grid,
 .upload-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.choice-card,
-.upload-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid #d7dfeb;
-  border-radius: 18px;
-  background: #fff;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 .choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--qd-border);
+  border-radius: 20px;
+  background: var(--qd-surface-strong);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: var(--qd-transition);
+}
+
+.choice-card:hover {
+  background: #fff;
+  border-color: var(--qd-primary-soft);
 }
 
 .choice-card.active {
-  border-color: #1f4f89;
-  box-shadow: 0 14px 30px rgba(23, 48, 87, 0.12);
+  border-color: var(--qd-primary);
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary);
   transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(39, 84, 138, 0.1);
 }
 
-.choice-card strong,
-.upload-card span {
-  color: #14213d;
-  font-size: 1rem;
-  font-weight: 700;
+.choice-card strong {
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
-.choice-card span,
-.choice-card small,
-.upload-card small {
-  color: #617086;
-}
-
-.upload-card input {
-  width: 100%;
-  max-width: 100%;
-}
-
-.upload-card strong {
-  color: #2b5a96;
-  word-break: break-word;
+.choice-card span {
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .insurance-toggle {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 18px;
+  padding: 16px 20px;
   border-radius: 18px;
-  background: #f7f9fc;
-  color: #24364f;
+  background: var(--qd-surface-strong);
+  cursor: pointer;
+  transition: var(--qd-transition);
+}
+
+.insurance-toggle:hover {
+  background: #fff;
+  border: 1px solid var(--qd-border);
 }
 
 .insurance-toggle input {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-}
-
-.insurance-toggle strong {
-  margin-left: auto;
-  color: #1f4f89;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--qd-primary);
 }
 
 .declared-value-field {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .declared-value-field input {
-  min-height: 46px;
-  padding: 0 14px;
-  border: 1px solid #ced7e4;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--qd-border);
   border-radius: 14px;
+  background: #fff;
+  font-size: 1rem;
+  transition: var(--qd-transition);
 }
 
-.declared-value-field small {
-  color: #617086;
+.declared-value-field input:focus {
+  border-color: var(--qd-primary);
+  box-shadow: 0 0 0 4px var(--qd-primary-soft);
+  outline: none;
 }
 
 .errorMessage {
-  font-size: 0.78rem;
-  color: #b42318;
+  font-size: 0.8rem;
+  color: var(--qd-danger);
+  font-weight: 600;
 }
 
-@media screen and (max-width: 980px) {
-  .choice-grid,
-  .upload-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 1024px) {
+  .choice-grid, .upload-grid { grid-template-columns: 1fr; }
 }
 </style>

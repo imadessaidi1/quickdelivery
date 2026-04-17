@@ -130,7 +130,7 @@ services:
         JAR_FILE: artifacts/quickdelivery-users.jar
     container_name: quickdelivery-users-service
     environment:
-      SPRING_APPLICATION_NAME: Users_Service
+      SPRING_APPLICATION_NAME: users-service
       SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
       SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
       SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
@@ -160,6 +160,9 @@ services:
       QUICKDELIVERY_OCR_TEXTRACT_REGION: ${QUICKDELIVERY_OCR_TEXTRACT_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      USERS_DOCS_MODE: ${USERS_DOCS_MODE}
       GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY}
       MAPQUEST_KEY: ${MAPQUEST_KEY}
       JAVA_TOOL_OPTIONS: ${USERS_SERVICE_JAVA_TOOL_OPTIONS:--XX:+UseG1GC -XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=60 -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200}
@@ -192,7 +195,7 @@ services:
         JAR_FILE: artifacts/quickdelivery-packages.jar
     container_name: quickdelivery-packages-service
     environment:
-      SPRING_APPLICATION_NAME: Package_Service
+      SPRING_APPLICATION_NAME: package-service
       SPRING_CONFIG_IMPORT: configserver:http://config-server:8889
       SPRING_CLOUD_CONFIG_USERNAME: ${CONFIG_SERVER_USERNAME}
       SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
@@ -213,11 +216,20 @@ services:
       QUICKDELIVERY_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
       QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE}
       QUICKDELIVERY_MAIL_DEBUG: ${MAIL_DEBUG}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      PACKAGES_DOCS_MODE: ${PACKAGES_DOCS_MODE}
       GOOGLE_MAPS_KEY: ${GOOGLE_MAPS_KEY}
       MAPQUEST_KEY: ${MAPQUEST_KEY}
+      PACKAGES_PUSH_FIREBASE_ENABLED: ${PACKAGES_PUSH_FIREBASE_ENABLED:-true}
+      PACKAGES_PUSH_FIREBASE_PROJECT_ID: ${PACKAGES_PUSH_FIREBASE_PROJECT_ID}
+      PACKAGES_PUSH_FIREBASE_CREDENTIALS_PATH: /app/certs/service-account.json
       JAVA_TOOL_OPTIONS: ${PACKAGES_SERVICE_JAVA_TOOL_OPTIONS:--XX:+UseG1GC -XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=60 -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200}
     volumes:
       - packages-docs:/data/packages-docs
+      - ../../certs:/app/certs:ro
     depends_on:
       mysql:
         condition: service_healthy
@@ -249,8 +261,8 @@ services:
       SPRING_CLOUD_CONFIG_PASSWORD: ${CONFIG_SERVER_PASSWORD}
       SERVER_PORT: 8443
       SERVER_SSL_ENABLED: "false"
-      USERS_SERVICE_URI: lb://Users_Service
-      PACKAGES_SERVICE_URI: lb://Package_Service
+      USERS_SERVICE_URI: lb://users-service
+      PACKAGES_SERVICE_URI: lb://package-service
       PACKAGES_WS_URI: ws://packages-service:8082
       EUREKA_DEFAULT_ZONE: http://discovery-server:8080/eureka/
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8080/eureka/

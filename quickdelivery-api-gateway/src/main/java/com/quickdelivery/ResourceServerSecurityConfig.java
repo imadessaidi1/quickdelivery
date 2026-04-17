@@ -1,10 +1,13 @@
 package com.quickdelivery;
 
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -20,7 +23,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
+import javax.net.ssl.SSLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +40,9 @@ public class ResourceServerSecurityConfig {
 
     @Value("${quickdelivery.security.additional-issuer-uris:}")
     private String additionalIssuerUris;
+
+    @Value("${quickdelivery.security.jwt.insecure-ssl:false}")
+    private boolean insecureSsl;
 
     @Value("${quickdelivery.frontend.base-urls:}")
     private String frontendBaseUrls;
@@ -60,7 +69,22 @@ public class ResourceServerSecurityConfig {
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
         String jwkSetUri = primaryIssuerUri + "/protocol/openid-connect/certs";
-        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        NimbusReactiveJwtDecoder decoder;
+        if (insecureSsl) {
+            try {
+                io.netty.handler.ssl.SslContext sslContext = SslContextBuilder.forClient()
+                        .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+                HttpClient httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+                WebClient webClient = WebClient.builder()
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
+                        .build();
+                decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(webClient).build();
+            } catch (SSLException e) {
+                throw new RuntimeException("Failed to build insecure JWT decoder", e);
+            }
+        } else {
+            decoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        }
 
         Set<String> allowedIssuers = PublicEndpointResolver.resolveIssuerUris(primaryIssuerUri, additionalIssuerUris);
 

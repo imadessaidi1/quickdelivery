@@ -68,6 +68,7 @@ require_file() {
 load_env_file() {
   require_file "$ENV_FILE"
   while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
     [[ -z "$line" ]] && continue
     [[ "$line" =~ ^[[:space:]]*# ]] && continue
     export "$line"

@@ -49,6 +49,8 @@ public class UserOnboardingValidationService {
             if (!DELIVERY_MODES.contains(deliveryMode)) {
                 messages.add(localize("DELIVERY_MODE_INVALID", locale));
             }
+        } else if (!hasResidenceAddress(user.getPersonalAddress(), user.getAddressAuto())) {
+            messages.add(localize("ADDRESS_REQUIRED", locale));
         }
 
         return new ValidationResult(messages.isEmpty(), messages);

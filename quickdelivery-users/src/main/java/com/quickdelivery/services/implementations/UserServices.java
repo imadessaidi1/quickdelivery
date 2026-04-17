@@ -22,6 +22,7 @@ import com.quickdelivery.abstarct.entities.Vehicle;
 import com.quickdelivery.abstarct.helpers.GeoHelper;
 import com.quickdelivery.abstarct.helpers.MailHelper;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
+import com.quickdelivery.abstarct.parameters.ADDRESS_TYPE;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_MATCH_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_OCR_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
@@ -103,8 +104,7 @@ public class UserServices implements IUserServices {
             "image/jpeg",
             "image/jpg",
             "image/webp",
-            "application/pdf"
-    );
+            "application/pdf");
     private static final String SYSTEM_REVIEWER = "SYSTEM";
     private static final Logger logger = LoggerFactory.getLogger(UserServices.class);
 
@@ -180,13 +180,14 @@ public class UserServices implements IUserServices {
             if (user == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User payload is required");
             }
+            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
+            normalizeCustomerAddressForAccountCreate(user, deliveryPerson);
             validateOnboardingRequest(userOnboardingValidationService.validateForAccountCreate(user, locale));
             User existingUser = users.findByEmail(user.getEmailAddress());
             if (existingUser != null) {
                 return resumeExistingAccountCreate(existingUser, user, locale);
             }
 
-            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
             String rawPassword = user.getPassword();
             User userEntity = new User();
             userEntity.setType(user.getType());
@@ -207,6 +208,10 @@ public class UserServices implements IUserServices {
             userEntity.setDocument(new HashSet<>());
             userEntity.setPayments(new HashSet<>());
             applyPreferredLocale(userEntity, locale);
+            if (!deliveryPerson) {
+                geocodeAddressesIfPossible(user);
+                replacePersonalAddresses(userEntity, user);
+            }
 
             users.saveAndFlush(userEntity);
 
@@ -229,6 +234,8 @@ public class UserServices implements IUserServices {
             if (deliveryPerson) {
                 attachResumeAccess(response, userEntity);
                 runUserMailTask(() -> sendUserOnboardingResumeEmail(response, userEntity, locale));
+            } else if (!Boolean.TRUE.equals(userEntity.getEmailAddressValidation())) {
+                runUserMailTask(() -> sendUserAccountCreationEmail(response, userEntity, locale));
             }
             return response;
         });
@@ -242,7 +249,8 @@ public class UserServices implements IUserServices {
             @CacheEvict(value = "usersAdminUserOverview", allEntries = true),
             @CacheEvict(value = "usersAdminHttpBreakdown", allEntries = true)
     })
-    public UserDTO saveOnboardingDraft(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale, Integer step) {
+    public UserDTO saveOnboardingDraft(UserDTO user, VehicleDTO vehicleDTO,
+            MultiValueMap<String, MultipartFile> filesMap, Locale locale, Integer step) {
         return recordUserOperation("saveOnboardingDraft", () -> {
             if (user == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User payload is required");
@@ -250,7 +258,8 @@ public class UserServices implements IUserServices {
             int requestedStep = step == null ? ONBOARDING_STEP_ADDRESS : step;
             boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
             if (!deliveryPerson) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Draft onboarding is only available for delivery persons");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Draft onboarding is only available for delivery persons");
             }
 
             sanitizeAddresses(user, true);
@@ -263,8 +272,7 @@ public class UserServices implements IUserServices {
                     filesMap,
                     userEntity,
                     locale,
-                    requestedStep
-            ));
+                    requestedStep));
 
             String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
             mergeUserProfile(userEntity, user);
@@ -274,7 +282,8 @@ public class UserServices implements IUserServices {
                 mergeVehicle(userEntity, vehicleDTO == null ? new VehicleDTO() : vehicleDTO);
             }
 
-            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
+            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath,
+                    locale);
             users.saveAndFlush(userEntity);
             if (!validFilesMap.isEmpty()) {
                 userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
@@ -302,7 +311,10 @@ public class UserServices implements IUserServices {
 
             UserDTO response = toUserDetailDTO(userEntity, onboarding);
             attachResumeAccess(response, userEntity);
-            runUserMailTask(() -> sendUserOnboardingResumeEmail(response, userEntity, locale));
+            // Nous retirons l'envoi d'e-mail de reprise automatique ici pour éviter le spam
+            // à chaque clic "Suivant".
+            // Ce lien est déjà expédié à l'utilisateur lors du createAccount() initial à
+            // l'étape 1.
             return response;
         });
     }
@@ -315,7 +327,8 @@ public class UserServices implements IUserServices {
             @CacheEvict(value = "usersAdminUserOverview", allEntries = true),
             @CacheEvict(value = "usersAdminHttpBreakdown", allEntries = true)
     })
-    public UserDTO completeOnboarding(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+    public UserDTO completeOnboarding(UserDTO user, VehicleDTO vehicleDTO,
+            MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
         return recordUserOperation("completeOnboarding", () -> {
             if (user == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User payload is required");
@@ -325,7 +338,8 @@ public class UserServices implements IUserServices {
             User userEntity = resolveExistingUserForOnboarding(user);
             UserOnboarding onboarding = loadOrCreateOnboarding(userEntity);
             assertDraftOnboardingEditable(userEntity, onboarding);
-            validateOnboardingRequest(userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
+            validateOnboardingRequest(
+                    userOnboardingValidationService.validateForUpdate(user, vehicleDTO, filesMap, userEntity, locale));
             String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
 
             mergeUserProfile(userEntity, user);
@@ -337,7 +351,8 @@ public class UserServices implements IUserServices {
                 userEntity.setVehicles(new HashSet<>());
             }
 
-            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath, locale);
+            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath,
+                    locale);
             users.saveAndFlush(userEntity);
             if (!validFilesMap.isEmpty()) {
                 userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
@@ -365,9 +380,12 @@ public class UserServices implements IUserServices {
             onboarding.setLastErrorCode(null);
             onboarding.setLastErrorMessage(null);
             userOnboardings.save(onboarding);
-            return toUserDetailDTO(userEntity);
+            UserDTO response = toUserDetailDTO(userEntity);
+            runUserMailTask(() -> sendUserAccountCreationEmail(response, userEntity, locale));
+            return response;
         });
     }
+
     @Override
     @Caching(evict = {
             @CacheEvict(value = "usersValidationPage", allEntries = true),
@@ -375,14 +393,16 @@ public class UserServices implements IUserServices {
             @CacheEvict(value = "usersAdminUserOverview", allEntries = true),
             @CacheEvict(value = "usersAdminHttpBreakdown", allEntries = true)
     })
-    public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+    public UserDTO createNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap,
+            Locale locale) {
         return recordUserOperation("create", () -> {
             try {
                 boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(user.getType());
                 String rawPassword = user.getPassword();
                 sanitizeAddresses(user, deliveryPerson);
-                validateOnboardingRequest(userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
-                User userEntity = modelMapper.map(user,User.class);
+                validateOnboardingRequest(
+                        userOnboardingValidationService.validateForCreate(user, vehicleDTO, filesMap, locale));
+                User userEntity = modelMapper.map(user, User.class);
                 applyPreferredLocale(userEntity, locale);
                 if (deliveryPerson) {
                     geocodeAddressesIfPossible(user);
@@ -397,7 +417,8 @@ public class UserServices implements IUserServices {
                 String filesPath = buildUserFilesPath(user.getEmailAddress());
                 MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
                 filesMap.entrySet().stream()
-                        .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty() && entry.getValue().get(0) != null)
+                        .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty()
+                                && entry.getValue().get(0) != null)
                         .forEach(entry -> {
                             String fileName = entry.getKey();
                             MultipartFile file = entry.getValue().get(0);
@@ -414,7 +435,7 @@ public class UserServices implements IUserServices {
                             if (currentFileName == null || !currentFileName.contains(".")) {
                                 return;
                             }
-                            String newFileName = fileName+currentFileName.substring(currentFileName.lastIndexOf('.'));
+                            String newFileName = fileName + currentFileName.substring(currentFileName.lastIndexOf('.'));
                             document.setDocURL(resolveDocumentPath(filesPath, newFileName));
                             userEntity.getDocument().add(document);
                             validFilesMap.add(fileName, file);
@@ -432,7 +453,8 @@ public class UserServices implements IUserServices {
                 if (!validFilesMap.isEmpty()) {
                     triggerOcrForUploadedDocuments(userEntity, validFilesMap);
                 }
-                userEntity.getPersonalAddress().forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
+                userEntity.getPersonalAddress()
+                        .forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
                 user.setId(userEntity.getId());
                 user.setVersion(userEntity.getVersion());
                 user.setPassword(null);
@@ -440,7 +462,8 @@ public class UserServices implements IUserServices {
                 runUserMailTask(() -> sendUserAccountCreationEmail(user, userEntity, locale));
                 return user;
             } catch (Exception exception) {
-                logger.error("Unable to create user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+                logger.error("Unable to create user account for email={} type={}: {}", user.getEmailAddress(),
+                        user.getType(), exception.getMessage(), exception);
                 throw exception;
             }
         });
@@ -453,7 +476,8 @@ public class UserServices implements IUserServices {
             @CacheEvict(value = "usersAdminUserOverview", allEntries = true),
             @CacheEvict(value = "usersAdminHttpBreakdown", allEntries = true)
     })
-    public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+    public UserDTO updateNewUser(UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap,
+            Locale locale) {
         return recordUserOperation("update", () -> {
             try {
                 User userEntity = resolveUserForAccountUpdate(user);
@@ -468,24 +492,71 @@ public class UserServices implements IUserServices {
                 scheduleIdentityStateSync(userEntity);
                 return deliveryPerson
                         ? toUserDetailDTO(users.findDetailedById(userEntity.getId())
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
                         : toCustomerContactDTO(users.findProfileById(userEntity.getId())
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")));
+                                .orElseThrow(
+                                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")));
             } catch (Exception exception) {
-                logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(), user.getType(), exception.getMessage(), exception);
+                logger.error("Unable to update user account for email={} type={}: {}", user.getEmailAddress(),
+                        user.getType(), exception.getMessage(), exception);
                 throw exception;
             }
         });
     }
 
     @Override
-    public UserDTO updateUserByToken(String updateToken, UserDTO user, VehicleDTO vehicleDTO, MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
-        User existingUser = resolveUserByUpdateToken(updateToken);
-        user.setId(existingUser.getId());
-        user.setVersion(existingUser.getVersion());
-        user.setActiveAccount(existingUser.getActiveAccount());
-        user.setEmailAddressValidation(existingUser.getEmailAddressValidation());
-        return updateNewUser(user, vehicleDTO, filesMap, locale);
+    public UserDTO updateUserByToken(String updateToken, UserDTO user, VehicleDTO vehicleDTO,
+            MultiValueMap<String, MultipartFile> filesMap, Locale locale) {
+        return recordUserOperation("updateUserByToken", () -> {
+            User userEntity = resolveUserByUpdateToken(updateToken);
+            user.setId(userEntity.getId());
+            user.setVersion(userEntity.getVersion());
+            user.setActiveAccount(userEntity.getActiveAccount());
+            user.setEmailAddressValidation(userEntity.getEmailAddressValidation());
+
+            sanitizeAddresses(user, false);
+            geocodeAddressesIfPossible(user);
+            mergeCustomerContactProfile(userEntity, user);
+            applyPreferredLocale(userEntity, locale);
+
+            boolean deliveryPerson = DELIVERY_PERSON.equalsIgnoreCase(userEntity.getType());
+            if (deliveryPerson && vehicleDTO != null && vehicleDTO.getRegistrationNumber() != null) {
+                mergeVehicle(userEntity, vehicleDTO);
+            }
+
+            String filesPath = buildUserFilesPath(userEntity.getEmailAddress());
+            MultiValueMap<String, MultipartFile> validFilesMap = applyUpdatedDocuments(userEntity, filesMap, filesPath,
+                    locale);
+            users.saveAndFlush(userEntity);
+            scheduleIdentityStateSync(userEntity);
+
+            if (!validFilesMap.isEmpty()) {
+                userDocumentStorageService.saveFiles(validFilesMap, filesPath, true);
+                triggerOcrForUploadedDocuments(userEntity, validFilesMap);
+            }
+
+            // Met à jour le statut onboarding : FAILED → DOCUMENTS_UPLOADED (en attente de
+            // re-validation)
+            if (deliveryPerson) {
+                UserOnboarding onboarding = userOnboardings.findByUserId(userEntity.getId()).orElse(null);
+                if (onboarding != null) {
+                    Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                    onboarding.setStatus(USER_ONBOARDING_STATUS.DOCUMENTS_UPLOADED);
+                    onboarding.setDocumentsUploadedAt(now);
+                    onboarding.setReadyForValidationAt(now);
+                    onboarding.setLastUpdatedAt(now);
+                    onboarding.setLastErrorCode(null);
+                    onboarding.setLastErrorMessage(null);
+                    userOnboardings.save(onboarding);
+                }
+            }
+
+            return deliveryPerson
+                    ? toUserDetailDTO(users.findDetailedById(userEntity.getId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
+                    : toCustomerContactDTO(users.findProfileById(userEntity.getId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")));
+        });
     }
 
     @Override
@@ -517,12 +588,13 @@ public class UserServices implements IUserServices {
     })
     public UserDTO userValidation(UserDTO user, Locale locale) {
         return recordUserOperation("validate", () -> {
-            User userFromDB = users.findById(user.getId())
+            User userFromDB = users.findDetailedById(user.getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
             userFromDB.setActiveAccount(user.getActiveAccount());
             userFromDB.setEmailAddressValidation(user.getEmailAddressValidation());
             Map<DOCUMENT_TYPE, Document> existingDocuments = userFromDB.getDocument().stream()
-                    .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
+                    .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left,
+                            LinkedHashMap::new));
             user.getDocument().forEach((documentType, documentDTO) -> {
                 Document document = existingDocuments.get(documentType);
                 if (document == null) {
@@ -542,7 +614,7 @@ public class UserServices implements IUserServices {
             List<Document> rejectedDocuments = userFromDB.getDocument().stream()
                     .filter(document -> document.getDocumentStatus() == DOCUMENT_STATUS.REJECTED)
                     .collect(Collectors.toList());
-            if(!rejectedDocuments.isEmpty()) {
+            if (!rejectedDocuments.isEmpty()) {
                 updateOnboardingForRejectedDocuments(userFromDB, rejectedDocuments);
                 runUserMailTask(() -> sendUserDocumentsUpdateRequest(user, userFromDB, rejectedDocuments, locale));
             } else if (Boolean.TRUE.equals(userFromDB.getActiveAccount())) {
@@ -561,7 +633,7 @@ public class UserServices implements IUserServices {
             @CacheEvict(value = "usersAdminHttpBreakdown", allEntries = true)
     })
     public void deleteUSer(UserDTO user) {
-         users.delete(modelMapper.map(user,User.class));
+        users.delete(modelMapper.map(user, User.class));
     }
 
     @Override
@@ -586,7 +658,7 @@ public class UserServices implements IUserServices {
     @Transactional(readOnly = true)
     public UserDTO findByEmail(String email) {
         User user = users.findProfileByEmail(email);
-        if(user != null) {
+        if (user != null) {
             UserDTO userDTO = DELIVERY_PERSON.equalsIgnoreCase(user.getType())
                     ? toUserDetailDTO(users.findDetailedByEmail(email))
                     : toCustomerContactDTO(user);
@@ -594,7 +666,7 @@ public class UserServices implements IUserServices {
                 userDTO.setAddressAuto(userDTO.getPersonalAddress().get(0).toString());
             }
             return userDTO;
-        }else
+        } else
             return null;
     }
 
@@ -626,8 +698,7 @@ public class UserServices implements IUserServices {
                 DELIVERY_PERSON.equalsIgnoreCase(user.getType())
                         && !Boolean.TRUE.equals(user.getActiveAccount())
                         && onboardingStatus != null
-                        && !"COMPLETED".equalsIgnoreCase(onboardingStatus)
-        );
+                        && !"COMPLETED".equalsIgnoreCase(onboardingStatus));
         return response;
     }
 
@@ -661,7 +732,8 @@ public class UserServices implements IUserServices {
             response.setTotalPages(userPage.getTotalPages());
             response.setTotalVehicles(users.countVehiclesForValidation());
             response.setTotalDocuments(users.countDocumentsForValidation());
-            response.setTotalVehicleDocuments(users.countDocumentsForValidationByType(Set.of(DOCUMENT_TYPE.GRAY_CARD, DOCUMENT_TYPE.INSURANCE)));
+            response.setTotalVehicleDocuments(
+                    users.countDocumentsForValidationByType(Set.of(DOCUMENT_TYPE.GRAY_CARD, DOCUMENT_TYPE.INSURANCE)));
             return response;
         });
     }
@@ -687,7 +759,8 @@ public class UserServices implements IUserServices {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
             }
             try {
-                byte[] data = readDocumentBytes(document, document.getUser() == null ? null : document.getUser().getEmailAddress());
+                byte[] data = readDocumentBytes(document,
+                        document.getUser() == null ? null : document.getUser().getEmailAddress());
                 recordUserDocumentContentSize(data.length);
                 DocumentContentDTO response = new DocumentContentDTO();
                 response.setData(data);
@@ -727,7 +800,8 @@ public class UserServices implements IUserServices {
         overview.setRegisteredDeliveryPersons(users.countRegisteredUsersByType(DELIVERY_PERSON));
 
         try {
-            Set<String> activeEmails = keycloakProvisioningService.loadActiveUserEmailsByClient(FRONTEND_CLIENT_ID).stream()
+            Set<String> activeEmails = keycloakProvisioningService.loadActiveUserEmailsByClient(FRONTEND_CLIENT_ID)
+                    .stream()
                     .map(email -> email.toLowerCase(Locale.ROOT))
                     .collect(Collectors.toSet());
 
@@ -748,18 +822,20 @@ public class UserServices implements IUserServices {
         breakdown.setServiceName("users-service");
 
         Map<String, HttpEndpointMetricDTO> aggregated = new LinkedHashMap<>();
-        meterRegistry.find("http.server.requests").meters().forEach(meter -> collectHttpEndpointMetric(aggregated, meter));
+        meterRegistry.find("http.server.requests").meters()
+                .forEach(meter -> collectHttpEndpointMetric(aggregated, meter));
 
         List<HttpEndpointMetricDTO> endpoints = aggregated.values().stream()
                 .sorted(Comparator.comparingDouble(HttpEndpointMetricDTO::getRequestCount).reversed())
                 .limit(12)
                 .toList();
         breakdown.setEndpoints(endpoints);
-        breakdown.setTotalRequestCount(aggregated.values().stream().mapToDouble(HttpEndpointMetricDTO::getRequestCount).sum());
+        breakdown.setTotalRequestCount(
+                aggregated.values().stream().mapToDouble(HttpEndpointMetricDTO::getRequestCount).sum());
         return breakdown;
     }
 
-    private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale){
+    private void sendUserAccountCreationEmail(UserDTO user, User userEntity, Locale locale) {
         if (shouldSkipUserMail()) {
             return;
         }
@@ -767,7 +843,8 @@ public class UserServices implements IUserServices {
         templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("validationLink", buildValidationLink(userEntity.getId()));
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.uservalidation", null, locale),templateModel,
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),
+                    messageSource.getMessage("email.subject.uservalidation", null, locale), templateModel,
                     locale, EMAIL_TEMPLATE_TYPE.NEW_DELIVERYPERSON_VALIDATION.getType(), null);
         } catch (Exception e) {
             handleUserMailFailure(e, userEntity.getEmailAddress());
@@ -783,6 +860,10 @@ public class UserServices implements IUserServices {
         templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("resumeLink", user.getOnboarding().getResumeLink());
         templateModel.put("currentStepLabel", localizeOnboardingStep(user.getOnboarding().getCurrentStep(), locale));
+
+        logger.info("[RESUME LINK] Providing onboarding resume link for {}: {}", userEntity.getEmailAddress(),
+                user.getOnboarding().getResumeLink());
+
         try {
             MailHelper.sendMessageUsingThymeleafTemplate(
                     messageSource,
@@ -792,15 +873,16 @@ public class UserServices implements IUserServices {
                     templateModel,
                     locale,
                     EMAIL_TEMPLATE_TYPE.DELIVERYPERSON_ONBOARDING_RESUME.getType(),
-                    null
-            );
+                    null);
         } catch (Exception e) {
             handleUserMailFailure(e, userEntity.getEmailAddress());
-            logger.warn("Unable to send onboarding-resume email to {}: {}", userEntity.getEmailAddress(), e.getMessage(), e);
+            logger.warn("Unable to send onboarding-resume email to {}: {}", userEntity.getEmailAddress(),
+                    e.getMessage(), e);
         }
     }
 
-    private void sendUserDocumentsUpdateRequest(UserDTO user, User userEntity, List<Document> rejectedDocuments, Locale locale){
+    private void sendUserDocumentsUpdateRequest(UserDTO user, User userEntity, List<Document> rejectedDocuments,
+            Locale locale) {
         if (shouldSkipUserMail()) {
             return;
         }
@@ -812,19 +894,20 @@ public class UserServices implements IUserServices {
                         "label", formatDocumentType(document.getType(), locale),
                         "reason", Optional.ofNullable(document.getReviewComment())
                                 .filter(comment -> !comment.isBlank())
-                                .orElse(localizedMissingReviewReason(locale))
-                ))
+                                .orElse(localizedMissingReviewReason(locale))))
                 .toList());
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.userUpdateDocsRequest", null, locale),templateModel,
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),
+                    messageSource.getMessage("email.subject.userUpdateDocsRequest", null, locale), templateModel,
                     locale, EMAIL_TEMPLATE_TYPE.DELIVERYPERSON_DOCUPDATE_REQUEST.getType(), null);
         } catch (Exception e) {
             handleUserMailFailure(e, userEntity.getEmailAddress());
-            logger.warn("Unable to send update-documents email to {}: {}", userEntity.getEmailAddress(), e.getMessage(), e);
+            logger.warn("Unable to send update-documents email to {}: {}", userEntity.getEmailAddress(), e.getMessage(),
+                    e);
         }
     }
 
-    private void sendUserAccountApprovedEmail(UserDTO user, User userEntity, Locale locale){
+    private void sendUserAccountApprovedEmail(UserDTO user, User userEntity, Locale locale) {
         if (shouldSkipUserMail()) {
             return;
         }
@@ -832,11 +915,13 @@ public class UserServices implements IUserServices {
         templateModel.put("recipientName", resolveRecipientName(user));
         templateModel.put("landingLink", resolveFrontendBaseUrl());
         try {
-            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),messageSource.getMessage("email.subject.userAccountApproved", null, locale),templateModel,
+            MailHelper.sendMessageUsingThymeleafTemplate(messageSource, templateResolver, userEntity.getEmailAddress(),
+                    messageSource.getMessage("email.subject.userAccountApproved", null, locale), templateModel,
                     locale, EMAIL_TEMPLATE_TYPE.DELIVERYPERSON_ACCOUNT_APPROVED.getType(), null);
         } catch (Exception e) {
             handleUserMailFailure(e, userEntity.getEmailAddress());
-            logger.warn("Unable to send account-approved email to {}: {}", userEntity.getEmailAddress(), e.getMessage(), e);
+            logger.warn("Unable to send account-approved email to {}: {}", userEntity.getEmailAddress(), e.getMessage(),
+                    e);
         }
     }
 
@@ -875,7 +960,69 @@ public class UserServices implements IUserServices {
                 .collect(Collectors.toList()));
     }
 
-    private void preserveImmutableProfileFieldsForUpdate(UserDTO incomingUser, User persistedUser, boolean deliveryPerson) {
+    private void normalizeCustomerAddressForAccountCreate(UserDTO user, boolean deliveryPerson) {
+        if (deliveryPerson) {
+            return;
+        }
+
+        sanitizeAddresses(user, false);
+        List<com.quickdelivery.abstarct.dto.AddressDTO> addresses = user.getPersonalAddress();
+        if (addresses.isEmpty() && hasText(user.getAddressAuto())) {
+            addresses.add(buildResidenceAddressFromFormattedAddress(user.getAddressAuto()));
+        }
+
+        addresses.forEach(address -> completeResidenceAddress(address, user));
+    }
+
+    private com.quickdelivery.abstarct.dto.AddressDTO buildResidenceAddressFromFormattedAddress(String addressAuto) {
+        com.quickdelivery.abstarct.dto.AddressDTO address = new com.quickdelivery.abstarct.dto.AddressDTO();
+        address.setAddressAuto(addressAuto);
+
+        List<String> chunks = Arrays.stream(Objects.toString(addressAuto, "").split(","))
+                .map(String::trim)
+                .filter(chunk -> !chunk.isBlank())
+                .toList();
+        if (!chunks.isEmpty()) {
+            address.setLine1(chunks.get(0));
+        }
+        if (chunks.size() >= 2) {
+            String cityChunk = chunks.get(chunks.size() - 2);
+            String[] cityTokens = cityChunk.split("\\s+", 2);
+            address.setZipCode(cityTokens.length > 0 ? cityTokens[0] : "");
+            address.setTown(cityTokens.length > 1 ? cityTokens[1] : "");
+        }
+        if (chunks.size() >= 1) {
+            address.setCountry(chunks.get(chunks.size() - 1));
+        }
+        return address;
+    }
+
+    private void completeResidenceAddress(com.quickdelivery.abstarct.dto.AddressDTO address, UserDTO user) {
+        if (address.getType() == null) {
+            address.setType(ADDRESS_TYPE.RESIDENCE);
+        }
+        if (!hasText(address.getFirstName())) {
+            address.setFirstName(user.getFirstName());
+        }
+        if (!hasText(address.getLastName())) {
+            address.setLastName(user.getLastName());
+        }
+        if (!hasText(address.getEmail())) {
+            address.setEmail(user.getEmailAddress());
+        }
+        if (!hasText(address.getPhone())) {
+            address.setPhone(user.getPhone());
+        }
+        if (address.getFloor() == null) {
+            address.setFloor(0);
+        }
+        if (!hasText(address.getAddressAuto())) {
+            address.setAddressAuto(address.toString());
+        }
+    }
+
+    private void preserveImmutableProfileFieldsForUpdate(UserDTO incomingUser, User persistedUser,
+            boolean deliveryPerson) {
         incomingUser.setVersion(persistedUser.getVersion());
         incomingUser.setType(persistedUser.getType());
         incomingUser.setFirstName(persistedUser.getFirstName());
@@ -954,9 +1101,10 @@ public class UserServices implements IUserServices {
         userDTO.setAddressAuto(resolveUserAddressAuto(user));
         userDTO.setDocument(new LinkedHashMap<>());
         userDTO.setDocumentCount(user.getDocument() == null ? 0 : user.getDocument().size());
-        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>() : user.getVehicles().stream()
-                .map(this::toVehicleDTO)
-                .toList());
+        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>()
+                : user.getVehicles().stream()
+                        .map(this::toVehicleDTO)
+                        .toList());
         return userDTO;
     }
 
@@ -966,10 +1114,12 @@ public class UserServices implements IUserServices {
         userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
         userDTO.setPhoneConfirmation(userDTO.getPhone());
         attachDocumentsSafely(user, userDTO);
-        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>() : user.getVehicles().stream()
-                .map(this::toVehicleDTO)
-                .toList());
-        userOnboardings.findByUserId(user.getId()).ifPresent(onboarding -> userDTO.setOnboarding(toUserOnboardingDTO(onboarding)));
+        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>()
+                : user.getVehicles().stream()
+                        .map(this::toVehicleDTO)
+                        .toList());
+        userOnboardings.findByUserId(user.getId())
+                .ifPresent(onboarding -> userDTO.setOnboarding(toUserOnboardingDTO(onboarding)));
         return userDTO;
     }
 
@@ -979,9 +1129,10 @@ public class UserServices implements IUserServices {
         userDTO.setEmailAddressConfirmation(userDTO.getEmailAddress());
         userDTO.setPhoneConfirmation(userDTO.getPhone());
         attachDocumentsSafely(user, userDTO);
-        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>() : user.getVehicles().stream()
-                .map(this::toVehicleDTO)
-                .toList());
+        userDTO.setVehicles(user.getVehicles() == null ? new ArrayList<>()
+                : user.getVehicles().stream()
+                        .map(this::toVehicleDTO)
+                        .toList());
         if (onboarding != null) {
             userDTO.setOnboarding(toUserOnboardingDTO(onboarding));
         }
@@ -1018,9 +1169,10 @@ public class UserServices implements IUserServices {
         userDTO.setPassword(null);
         userDTO.setPasswordConfirmation(null);
         userDTO.setPaymentModes(toPaymentModeMap(user));
-        userDTO.setPersonalAddress(user.getPersonalAddress() == null ? new ArrayList<>() : user.getPersonalAddress().stream()
-                .map(this::toAddressDTO)
-                .toList());
+        userDTO.setPersonalAddress(user.getPersonalAddress() == null ? new ArrayList<>()
+                : user.getPersonalAddress().stream()
+                        .map(this::toAddressDTO)
+                        .toList());
         return userDTO;
     }
 
@@ -1033,7 +1185,30 @@ public class UserServices implements IUserServices {
             if (payment == null || payment.getPaymentType() == null) {
                 return;
             }
-            PaymentDTO paymentDTO = modelMapper.map(payment, PaymentDTO.class);
+            PaymentDTO paymentDTO;
+            if (payment instanceof com.quickdelivery.abstarct.entities.CreditCard cc) {
+                paymentDTO = new PaymentDTO();
+                paymentDTO.setId(cc.getId());
+                paymentDTO.setVersion(cc.getVersion());
+                paymentDTO.setValidated(cc.getValidated());
+                paymentDTO.setPaymentType(cc.getPaymentType());
+                paymentDTO.setCardNumber(cc.getNumber());
+                paymentDTO.setCvv(cc.getCryptogram());
+                paymentDTO.setHolderNam(cc.getHolderName());
+                if (cc.getExpiryMonth() != null && cc.getExpiryYear() != null) {
+                    paymentDTO.setExpiryDate(String.format("%02d/%02d", cc.getExpiryMonth(), cc.getExpiryYear()));
+                }
+            } else if (payment instanceof com.quickdelivery.abstarct.entities.IbanBank iban) {
+                paymentDTO = new PaymentDTO();
+                paymentDTO.setId(iban.getId());
+                paymentDTO.setVersion(iban.getVersion());
+                paymentDTO.setValidated(iban.getValidated());
+                paymentDTO.setPaymentType(iban.getPaymentType());
+                paymentDTO.setIban(iban.getIban());
+                paymentDTO.setBic(iban.getBic());
+            } else {
+                paymentDTO = modelMapper.map(payment, PaymentDTO.class);
+            }
             paymentModes.put(payment.getPaymentType(), paymentDTO);
         });
         return paymentModes;
@@ -1053,14 +1228,16 @@ public class UserServices implements IUserServices {
         dto.setDocumentsUploaded(onboarding.getDocumentsUploadedAt() != null);
         dto.setReadyForValidation(onboarding.getReadyForValidationAt() != null);
         dto.setActiveAccount(onboarding.getUser() != null ? onboarding.getUser().getActiveAccount() : null);
-        dto.setEmailAddressValidation(onboarding.getUser() != null ? onboarding.getUser().getEmailAddressValidation() : null);
+        dto.setEmailAddressValidation(
+                onboarding.getUser() != null ? onboarding.getUser().getEmailAddressValidation() : null);
         dto.setAccountCreatedAt(onboarding.getAccountCreatedAt());
         dto.setProfileCompletedAt(onboarding.getProfileCompletedAt());
         dto.setDocumentsUploadedAt(onboarding.getDocumentsUploadedAt());
         dto.setReadyForValidationAt(onboarding.getReadyForValidationAt());
         dto.setCompletedAt(onboarding.getCompletedAt());
         dto.setCurrentStep(resolveCurrentStep(onboarding));
-        if (includeResumeAccess && onboarding.getUser() != null && isResumableOnboarding(onboarding.getUser(), onboarding)) {
+        if (includeResumeAccess && onboarding.getUser() != null
+                && isResumableOnboarding(onboarding.getUser(), onboarding)) {
             String resumeToken = userUpdateTokenService.generateToken(onboarding.getUser().getId());
             dto.setResumeToken(resumeToken);
             dto.setResumeLink(buildUserUpdateLink(resumeToken));
@@ -1081,7 +1258,8 @@ public class UserServices implements IUserServices {
         return vehicleDTO;
     }
 
-    private com.quickdelivery.abstarct.dto.AddressDTO toAddressDTO(com.quickdelivery.abstarct.entities.Address address) {
+    private com.quickdelivery.abstarct.dto.AddressDTO toAddressDTO(
+            com.quickdelivery.abstarct.entities.Address address) {
         com.quickdelivery.abstarct.dto.AddressDTO addressDTO = new com.quickdelivery.abstarct.dto.AddressDTO();
         addressDTO.setId(address.getId());
         addressDTO.setVersion(address.getVersion());
@@ -1138,33 +1316,75 @@ public class UserServices implements IUserServices {
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             userEntity.setPassword(user.getPassword());
         }
-        Set<com.quickdelivery.abstarct.entities.Address> addresses = user.getPersonalAddress().stream()
-                .map(addressDTO -> {
-                    com.quickdelivery.abstarct.entities.Address address = modelMapper.map(addressDTO, com.quickdelivery.abstarct.entities.Address.class);
-                    address.setResidents(userEntity);
-                    return address;
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        userEntity.setPersonalAddress(addresses);
-        boolean hasIncomingPaymentPayload = user.getPaymentModes() != null
-                && !user.getPaymentModes().isEmpty()
-                && user.getPaymentModes().values().stream().anyMatch(Objects::nonNull);
-        if (hasIncomingPaymentPayload) {
-            Set<com.quickdelivery.abstarct.entities.Payment> payments = user.getPaymentModes().values().stream()
-                    .map(paymentDTO -> modelMapper.map(paymentDTO, com.quickdelivery.abstarct.entities.Payment.class))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            userEntity.setPayments(payments);
-            userEntity.getPayments().forEach(payment -> payment.setHolderInApp(userEntity));
+        replacePersonalAddresses(userEntity, user);
+        if (user.getPaymentModes() != null && !user.getPaymentModes().isEmpty()) {
+            List<com.quickdelivery.abstarct.entities.Payment> validPayments = user.getPaymentModes().entrySet().stream()
+                    .filter(entry -> entry.getKey() != null && isNonEmptyPaymentDTO(entry.getKey(), entry.getValue()))
+                    .map(entry -> {
+                        com.quickdelivery.abstarct.entities.Payment payment;
+                        if (com.quickdelivery.abstarct.parameters.PAYMENT_TYPE.CREDIT_CARD == entry.getKey()) {
+                            com.quickdelivery.abstarct.entities.CreditCard cc = new com.quickdelivery.abstarct.entities.CreditCard();
+                            cc.setNumber(entry.getValue().getCardNumber());
+                            cc.setCryptogram(entry.getValue().getCvv());
+                            cc.setHolderName(entry.getValue().getHolderNam());
+                            if (entry.getValue().getExpiryDate() != null
+                                    && entry.getValue().getExpiryDate().contains("/")) {
+                                String[] parts = entry.getValue().getExpiryDate().split("/");
+                                try {
+                                    cc.setExpiryMonth(Integer.parseInt(parts[0]));
+                                    cc.setExpiryYear(Integer.parseInt(parts[1]));
+                                } catch (NumberFormatException ignored) {
+                                }
+                            }
+                            payment = cc;
+                        } else if (com.quickdelivery.abstarct.parameters.PAYMENT_TYPE.IBAN == entry.getKey()) {
+                            com.quickdelivery.abstarct.entities.IbanBank iban = new com.quickdelivery.abstarct.entities.IbanBank();
+                            iban.setIban(entry.getValue().getIban());
+                            iban.setBic(entry.getValue().getBic());
+                            payment = iban;
+                        } else {
+                            payment = modelMapper.map(entry.getValue(),
+                                    com.quickdelivery.abstarct.entities.Payment.class);
+                        }
+                        payment.setPaymentType(entry.getKey());
+                        payment.setHolderInApp(userEntity);
+                        return payment;
+                    })
+                    .collect(Collectors.toList());
+            if (!validPayments.isEmpty()) {
+                userEntity.getPayments().clear();
+                userEntity.getPayments().addAll(validPayments);
+            }
         }
+    }
+
+    private boolean isNonEmptyPaymentDTO(com.quickdelivery.abstarct.parameters.PAYMENT_TYPE type,
+            com.quickdelivery.abstarct.dto.PaymentDTO dto) {
+        if (dto == null) {
+            return false;
+        }
+        if (com.quickdelivery.abstarct.parameters.PAYMENT_TYPE.CREDIT_CARD == type) {
+            return (dto.getCardNumber() != null && !dto.getCardNumber().isBlank())
+                    || (dto.getHolderNam() != null && !dto.getHolderNam().isBlank());
+        }
+        if (com.quickdelivery.abstarct.parameters.PAYMENT_TYPE.IBAN == type) {
+            return dto.getIban() != null && !dto.getIban().isBlank();
+        }
+        return false;
     }
 
     private void mergeCustomerContactProfile(User userEntity, UserDTO user) {
         userEntity.setVersion(user.getVersion());
         userEntity.setEmailAddress(user.getEmailAddress());
         userEntity.setPhone(user.getPhone());
+        replacePersonalAddresses(userEntity, user);
+    }
+
+    private void replacePersonalAddresses(User userEntity, UserDTO user) {
         Set<com.quickdelivery.abstarct.entities.Address> addresses = user.getPersonalAddress().stream()
                 .map(addressDTO -> {
-                    com.quickdelivery.abstarct.entities.Address address = modelMapper.map(addressDTO, com.quickdelivery.abstarct.entities.Address.class);
+                    com.quickdelivery.abstarct.entities.Address address = modelMapper.map(addressDTO,
+                            com.quickdelivery.abstarct.entities.Address.class);
                     address.setResidents(userEntity);
                     return address;
                 })
@@ -1203,14 +1423,16 @@ public class UserServices implements IUserServices {
         vehicle.setEnergyType(vehicleDTO.getEnergyType());
     }
 
-    private MultiValueMap<String, MultipartFile> applyUpdatedDocuments(User userEntity, MultiValueMap<String, MultipartFile> filesMap, String filesPath, Locale locale) {
+    private MultiValueMap<String, MultipartFile> applyUpdatedDocuments(User userEntity,
+            MultiValueMap<String, MultipartFile> filesMap, String filesPath, Locale locale) {
         MultiValueMap<String, MultipartFile> validFilesMap = new org.springframework.util.LinkedMultiValueMap<>();
         if (filesMap == null || filesMap.isEmpty()) {
             return validFilesMap;
         }
 
         Map<DOCUMENT_TYPE, Document> documentsByType = userEntity.getDocument().stream()
-                .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left, LinkedHashMap::new));
+                .collect(Collectors.toMap(Document::getType, document -> document, (left, right) -> left,
+                        LinkedHashMap::new));
 
         filesMap.forEach((fileName, multipartFiles) -> {
             if (multipartFiles == null || multipartFiles.isEmpty() || multipartFiles.get(0) == null) {
@@ -1261,7 +1483,8 @@ public class UserServices implements IUserServices {
         List<String> reasons = new ArrayList<>();
 
         if (documentDTO.getOcrErrorCode() != null && !documentDTO.getOcrErrorCode().isBlank()) {
-            reasons.add(messageSource.getMessage("user.validation.review.ocrFailed", new Object[]{documentDTO.getOcrErrorCode()}, locale));
+            reasons.add(messageSource.getMessage("user.validation.review.ocrFailed",
+                    new Object[] { documentDTO.getOcrErrorCode() }, locale));
         }
 
         if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.MISMATCH) {
@@ -1269,7 +1492,8 @@ public class UserServices implements IUserServices {
             if (mismatchedFields.isEmpty()) {
                 reasons.add(messageSource.getMessage("user.validation.review.mismatch", null, locale));
             } else {
-                reasons.add(messageSource.getMessage("user.validation.review.fieldsMismatch", new Object[]{String.join(", ", mismatchedFields)}, locale));
+                reasons.add(messageSource.getMessage("user.validation.review.fieldsMismatch",
+                        new Object[] { String.join(", ", mismatchedFields) }, locale));
             }
         } else if (documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.REVIEW_REQUIRED
                 || documentDTO.getMatchStatus() == DOCUMENT_MATCH_STATUS.UNAVAILABLE) {
@@ -1277,7 +1501,8 @@ public class UserServices implements IUserServices {
         }
 
         if (documentDTO.getOcrConfidenceScore() != null && documentDTO.getOcrConfidenceScore() < 1d) {
-            reasons.add(messageSource.getMessage("user.validation.review.ocrConfidence", new Object[]{Math.round(documentDTO.getOcrConfidenceScore() * 100d)}, locale));
+            reasons.add(messageSource.getMessage("user.validation.review.ocrConfidence",
+                    new Object[] { Math.round(documentDTO.getOcrConfidenceScore() * 100d) }, locale));
         }
 
         if (reasons.isEmpty()) {
@@ -1401,10 +1626,9 @@ public class UserServices implements IUserServices {
     private void scheduleIdentityProvisioning(User userEntity, String rawPassword) {
         User identitySnapshot = buildIdentitySnapshot(userEntity);
         runAfterCommitAsync(() -> executeIdentityTask(
-                        identitySnapshot.getId(),
-                        () -> keycloakProvisioningService.provisionUser(identitySnapshot, rawPassword),
-                        "identity-provisioning"
-                ),
+                identitySnapshot.getId(),
+                () -> keycloakProvisioningService.provisionUser(identitySnapshot, rawPassword),
+                "identity-provisioning"),
                 userAsyncTaskExecutor,
                 "identity-provisioning-dispatch");
     }
@@ -1412,10 +1636,9 @@ public class UserServices implements IUserServices {
     private void scheduleIdentityStateSync(User userEntity) {
         User identitySnapshot = buildIdentitySnapshot(userEntity);
         runAfterCommitAsync(() -> executeIdentityTask(
-                        identitySnapshot.getId(),
-                        () -> keycloakProvisioningService.syncUserState(identitySnapshot),
-                        "identity-sync"
-                ),
+                identitySnapshot.getId(),
+                () -> keycloakProvisioningService.syncUserState(identitySnapshot),
+                "identity-sync"),
                 userAsyncTaskExecutor,
                 "identity-sync-dispatch");
     }
@@ -1572,16 +1795,22 @@ public class UserServices implements IUserServices {
         if (userId == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid update token");
         }
-        User user = users.findById(userId)
+        User user = users.findDetailedById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        if (Boolean.TRUE.equals(user.getActiveAccount())) {
+        boolean hasRejectedDocuments = user.getDocument() != null && user.getDocument().stream()
+                .anyMatch(d -> d.getDocumentStatus() == com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS.REJECTED);
+
+        if (Boolean.TRUE.equals(user.getActiveAccount()) && !hasRejectedDocuments) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account already validated");
         }
+
         if (!DELIVERY_PERSON.equalsIgnoreCase(user.getType())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Public update is not available for this account");
         }
+
         userOnboardings.findByUserId(user.getId()).ifPresent(onboarding -> {
-            if (EnumSet.of(USER_ONBOARDING_STATUS.READY_FOR_VALIDATION, USER_ONBOARDING_STATUS.COMPLETED).contains(onboarding.getStatus())) {
+            if (!hasRejectedDocuments
+                    && EnumSet.of(USER_ONBOARDING_STATUS.COMPLETED).contains(onboarding.getStatus())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Onboarding is locked");
             }
         });
@@ -1656,19 +1885,20 @@ public class UserServices implements IUserServices {
     }
 
     private int resolveNextDraftStep(User userEntity) {
-        String deliveryMode = userEntity.getDeliveryMode() == null ? "" : userEntity.getDeliveryMode().trim().toUpperCase(Locale.ROOT);
+        String deliveryMode = userEntity.getDeliveryMode() == null ? ""
+                : userEntity.getDeliveryMode().trim().toUpperCase(Locale.ROOT);
         Set<DOCUMENT_TYPE> uploadedTypes = userEntity.getDocument() == null
                 ? Set.of()
                 : userEntity.getDocument().stream()
-                .filter(document -> document.getDocumentStatus() != DOCUMENT_STATUS.REJECTED)
-                .map(Document::getType)
-                .collect(Collectors.toSet());
+                        .filter(document -> document.getDocumentStatus() != DOCUMENT_STATUS.REJECTED)
+                        .map(Document::getType)
+                        .collect(Collectors.toSet());
         boolean hasResidence = userEntity.getPersonalAddress() != null
-                && userEntity.getPersonalAddress().stream().anyMatch(address ->
-                address.getLine1() != null && !address.getLine1().isBlank()
-                        && address.getTown() != null && !address.getTown().isBlank()
-                        && address.getZipCode() != null && !address.getZipCode().isBlank()
-                        && address.getCountry() != null && !address.getCountry().isBlank());
+                && userEntity.getPersonalAddress().stream()
+                        .anyMatch(address -> address.getLine1() != null && !address.getLine1().isBlank()
+                                && address.getTown() != null && !address.getTown().isBlank()
+                                && address.getZipCode() != null && !address.getZipCode().isBlank()
+                                && address.getCountry() != null && !address.getCountry().isBlank());
         if (!hasResidence) {
             return ONBOARDING_STEP_ADDRESS;
         }
@@ -1680,11 +1910,12 @@ public class UserServices implements IUserServices {
 
         if (requiresVehicleDetails(deliveryMode)) {
             boolean hasVehicleDetails = userEntity.getVehicles() != null
-                    && userEntity.getVehicles().stream().anyMatch(vehicle ->
-                    vehicle.getRegistrationNumber() != null && !vehicle.getRegistrationNumber().isBlank()
-                            && vehicle.getBrand() != null && !vehicle.getBrand().isBlank()
-                            && vehicle.getModel() != null && !vehicle.getModel().isBlank()
-                            && vehicle.getEnergyType() != null && !vehicle.getEnergyType().isBlank());
+                    && userEntity.getVehicles().stream()
+                            .anyMatch(vehicle -> vehicle.getRegistrationNumber() != null
+                                    && !vehicle.getRegistrationNumber().isBlank()
+                                    && vehicle.getBrand() != null && !vehicle.getBrand().isBlank()
+                                    && vehicle.getModel() != null && !vehicle.getModel().isBlank()
+                                    && vehicle.getEnergyType() != null && !vehicle.getEnergyType().isBlank());
             boolean hasVehicleDocuments = uploadedTypes.containsAll(requiredVehicleDocuments(deliveryMode));
             if (!hasVehicleDetails || !hasVehicleDocuments) {
                 return ONBOARDING_STEP_VEHICLE;
@@ -1700,15 +1931,13 @@ public class UserServices implements IUserServices {
                     DOCUMENT_TYPE.PICTURE,
                     DOCUMENT_TYPE.DRIVER_LICENCE,
                     DOCUMENT_TYPE.USER_COMPANY_EXTRACT,
-                    DOCUMENT_TYPE.USER_COMPANY_INSURANCE
-            );
+                    DOCUMENT_TYPE.USER_COMPANY_INSURANCE);
         }
         return EnumSet.of(
                 DOCUMENT_TYPE.ID,
                 DOCUMENT_TYPE.PICTURE,
                 DOCUMENT_TYPE.USER_COMPANY_EXTRACT,
-                DOCUMENT_TYPE.USER_COMPANY_INSURANCE
-        );
+                DOCUMENT_TYPE.USER_COMPANY_INSURANCE);
     }
 
     private Set<DOCUMENT_TYPE> requiredVehicleDocuments(String deliveryMode) {
@@ -1730,8 +1959,9 @@ public class UserServices implements IUserServices {
                 && EnumSet.of(
                         USER_ONBOARDING_STATUS.ACCOUNT_CREATED,
                         USER_ONBOARDING_STATUS.PROFILE_COMPLETED,
-                        USER_ONBOARDING_STATUS.DOCUMENTS_UPLOADED
-                ).contains(onboarding.getStatus());
+                        USER_ONBOARDING_STATUS.DOCUMENTS_UPLOADED,
+                        USER_ONBOARDING_STATUS.READY_FOR_VALIDATION,
+                        USER_ONBOARDING_STATUS.FAILED).contains(onboarding.getStatus());
     }
 
     private int resolveCurrentStep(UserOnboarding onboarding) {
@@ -1808,14 +2038,16 @@ public class UserServices implements IUserServices {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    logger.info("Triggering OCR after commit for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
+                    logger.info("Triggering OCR after commit for user {} on documents {}", userEntity.getEmailAddress(),
+                            documentIds);
                     submitUserAsyncTask(trigger, userAsyncTaskExecutor, "user-ocr");
                 }
             });
             return;
         }
 
-        logger.info("Triggering OCR immediately for user {} on documents {}", userEntity.getEmailAddress(), documentIds);
+        logger.info("Triggering OCR immediately for user {} on documents {}", userEntity.getEmailAddress(),
+                documentIds);
         submitUserAsyncTask(trigger, userAsyncTaskExecutor, "user-ocr");
     }
 
@@ -1886,10 +2118,12 @@ public class UserServices implements IUserServices {
 
         String contentType = Optional.ofNullable(file.getContentType()).orElse("").toLowerCase(Locale.ROOT);
         if (!contentType.isBlank() && !ALLOWED_DOCUMENT_CONTENT_TYPES.contains(contentType)) {
-            return invalidValidation("INVALID_CONTENT_TYPE", localizedValidationMessage("INVALID_CONTENT_TYPE", locale));
+            return invalidValidation("INVALID_CONTENT_TYPE",
+                    localizedValidationMessage("INVALID_CONTENT_TYPE", locale));
         }
 
-        return new DocumentValidationResult(true, DOCUMENT_VALIDATION_STATUS.PENDING_MANUAL_REVIEW, "PENDING_MANUAL_REVIEW",
+        return new DocumentValidationResult(true, DOCUMENT_VALIDATION_STATUS.PENDING_MANUAL_REVIEW,
+                "PENDING_MANUAL_REVIEW",
                 localizedValidationMessage("PENDING_MANUAL_REVIEW", locale));
     }
 
@@ -1947,9 +2181,9 @@ public class UserServices implements IUserServices {
     }
 
     private record DocumentValidationResult(boolean valid,
-                                            DOCUMENT_VALIDATION_STATUS status,
-                                            String code,
-                                            String details) {
+            DOCUMENT_VALIDATION_STATUS status,
+            String code,
+            String details) {
     }
 
     private void clearNormalizedOcrFields(Document document) {

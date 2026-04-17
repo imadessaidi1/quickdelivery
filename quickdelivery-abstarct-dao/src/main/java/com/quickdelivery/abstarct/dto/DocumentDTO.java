@@ -1,6 +1,7 @@
 package com.quickdelivery.abstarct.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_STATUS;
 import com.quickdelivery.abstarct.parameters.DOCUMENT_TYPE;
@@ -10,6 +11,7 @@ import com.quickdelivery.abstarct.parameters.DOCUMENT_VALIDATION_STATUS;
 
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DocumentDTO {
     private Long id;
     private Integer version;

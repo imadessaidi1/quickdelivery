@@ -147,7 +147,10 @@ public class NotificationService implements INotificationService {
         }
         mobileDevice.setUser(user);
         mobileDevice.setDeviceId(request.getDeviceId());
-        mobileDevice.setPushToken(request.getPushToken());
+        String pushToken = normalizePushToken(request.getPushToken());
+        if (pushToken != null) {
+            mobileDevice.setPushToken(pushToken);
+        }
         mobileDevice.setLocale(normalizeLocaleCode(request.getLocale()));
         mobileDevice.setPlatform(request.getPlatform());
         mobileDevice.setActive(request.getActive() == null || request.getActive());
@@ -255,9 +258,15 @@ public class NotificationService implements INotificationService {
     private void dispatchInAppWebSocket(Notification notification, MessageDTO messageDTO) {
         try {
             String payload = objectMapper.writeValueAsString(messageDTO);
-            notificationRedisPublisher.publishNotification(notification.getRecipient().getId().toString(), payload);
+            String recipientUserId = notification.getRecipient().getId().toString();
+            boolean broadcasted = notificationRedisPublisher.publishNotification(recipientUserId, payload);
+            if (!broadcasted) {
+                webSocketHandler.sendSerializedMessageToUser(recipientUserId, payload);
+            }
         } catch (JsonProcessingException exception) {
             logger.error("Error serializing notification for Redis broadcast: {}", exception.getMessage());
+        } catch (RuntimeException exception) {
+            logger.warn("Unable to dispatch in-app notification {}: {}", notification.getId(), exception.getMessage());
         }
     }
 
@@ -269,8 +278,19 @@ public class NotificationService implements INotificationService {
         }
         
         logger.info("[PUSH] Envoi vers {} appareil(s) actif(s) pour l'utilisateur ID: {}", activeDevices.size(), recipientUserId);
+        List<MobileDevice> pushTargetDevices = activeDevices.stream()
+                .filter(device -> normalizePushToken(device.getPushToken()) != null)
+                .toList();
+        if (pushTargetDevices.isEmpty()) {
+            logger.info("[PUSH] Aucun token Firebase actif trouvÃ© pour l'utilisateur ID: {} sur {} appareil(s)",
+                    recipientUserId, activeDevices.size());
+            return;
+        }
+
+        logger.info("[PUSH] Envoi vers {} appareil(s) avec token Firebase pour l'utilisateur ID: {}",
+                pushTargetDevices.size(), recipientUserId);
         try {
-            pushNotificationService.sendNotification(notification, activeDevices);
+            pushNotificationService.sendNotification(notification, pushTargetDevices);
             logger.info("[PUSH] Succès de la requête d'envoi pour l'utilisateur ID: {}", recipientUserId);
         } catch (Exception e) {
             logger.error("[PUSH] Échec de l'envoi pour l'utilisateur ID: {}: {}", recipientUserId, e.getMessage());
@@ -303,6 +323,13 @@ public class NotificationService implements INotificationService {
             return "en";
         }
         return normalized;
+    }
+
+    private String normalizePushToken(String pushToken) {
+        if (pushToken == null || pushToken.isBlank()) {
+            return null;
+        }
+        return pushToken.trim();
     }
 
     private String toFrontendType(NOTIFICATION_EVENT_TYPE eventType) {

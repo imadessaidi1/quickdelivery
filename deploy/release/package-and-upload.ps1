@@ -134,6 +134,7 @@ else {
 
 Write-Step "Uploading deploy scripts and configuration..."
 Invoke-ScpUpload "Uploading deploy directory" @("-r", (Join-Path $projectRoot "deploy"), "${remoteTarget}:${RemoteRoot}/")
+Invoke-ScpUpload "Uploading certs directory" @("-r", (Join-Path $projectRoot "certs"), "${remoteTarget}:${RemoteRoot}/")
 
 if (-not $SkipBackendUpload) {
     $configStageDir = Join-Path ([System.IO.Path]::GetTempPath()) ("quickdelivery-config-upload-" + [System.Guid]::NewGuid().ToString("N"))

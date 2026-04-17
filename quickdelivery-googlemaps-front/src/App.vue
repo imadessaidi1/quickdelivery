@@ -6,10 +6,10 @@
     <SearchBar v-if="showSearchBar" />
     <div class="router-view">
       <router-view v-slot="{ Component, route }">
-        <keep-alive include="homePage">
-          <component v-if="route.meta?.keepAlive" :is="Component" :key="route.name" />
+        <keep-alive include="HomePage">
+          <component v-if="route.meta?.keepAlive && Component" :is="Component" :key="route.name" />
         </keep-alive>
-        <component v-if="!route.meta?.keepAlive" :is="Component" :key="route.fullPath" />
+        <component v-if="!route.meta?.keepAlive && Component" :is="Component" :key="route.fullPath" />
       </router-view>
     </div>
     <teleport to="body">
@@ -47,6 +47,7 @@ const TRACKING_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/
 const TRACKING_PACKAGE_POSITION_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/package-position`;
 const TRACKING_ACTIVE_PACKAGE_ENDPOINT = `${getGatewayBaseUrl()}/packages/v1/tracking/active-package`;
 const MOBILE_DEVICE_STORAGE_KEY = 'quickdelivery.mobileDeviceId';
+const MOBILE_PUSH_TOKEN_STORAGE_KEY = 'quickdelivery.mobilePushToken';
 const BackgroundGeolocation = registerPlugin('BackgroundGeolocation');
 const FirebaseStatus = registerPlugin('FirebaseStatus');
 
@@ -62,7 +63,7 @@ export default {
       if (this.$route.name === 'landingPage' || this.$route.meta?.publicOnly) {
         return false;
       }
-      if (hasValidAccessToken() && ['createPackage', 'userSignInPage', 'userSignInPageUpdate'].includes(this.$route.name)) {
+      if (hasValidAccessToken() && ['createPackage', 'userSignInPage'].includes(this.$route.name)) {
         return true;
       }
       if (!this.$route.meta?.public) {
@@ -330,7 +331,11 @@ export default {
         return;
       }
       this.pushRegistrationListener = PushNotifications.addListener('registration', (token) => {
-        this.mobilePushToken = token?.value || '';
+        const pushToken = token?.value || '';
+        this.mobilePushToken = pushToken;
+        if (pushToken) {
+          this.storeMobilePushToken(pushToken);
+        }
         this.syncMobileDeviceRegistration();
       });
       this.pushRegistrationErrorListener = PushNotifications.addListener('registrationError', (error) => {
@@ -895,6 +900,26 @@ export default {
       window.localStorage.setItem(MOBILE_DEVICE_STORAGE_KEY, generatedId);
       return generatedId;
     },
+    getStoredMobilePushToken() {
+      if (typeof window === 'undefined') {
+        return '';
+      }
+      try {
+        return window.localStorage.getItem(MOBILE_PUSH_TOKEN_STORAGE_KEY) || '';
+      } catch {
+        return '';
+      }
+    },
+    storeMobilePushToken(pushToken) {
+      if (typeof window === 'undefined' || !pushToken) {
+        return;
+      }
+      try {
+        window.localStorage.setItem(MOBILE_PUSH_TOKEN_STORAGE_KEY, pushToken);
+      } catch {
+        // Ignore storage errors; the token will still be posted for this session.
+      }
+    },
     resolveMobilePlatform() {
       const platform = Capacitor.getPlatform?.();
       if (platform === 'android') {
@@ -939,11 +964,15 @@ export default {
       }
       await this.ensurePushRegistration();
       const currentLocation = await this.resolveNearbyCourierLocation();
+      const pushToken = this.mobilePushToken || this.getStoredMobilePushToken();
+      if (pushToken && !this.mobilePushToken) {
+        this.mobilePushToken = pushToken;
+      }
       try {
         await http.post(`${this.$i18n.t('rootURL')}devices/register`, {
           userId: this.connectedUserId,
           deviceId: this.getOrCreateMobileDeviceId(),
-          pushToken: this.mobilePushToken || '',
+          pushToken: pushToken || '',
           locale: this.resolveCurrentLocaleCode(),
           platform: this.resolveMobilePlatform(),
           active: true,

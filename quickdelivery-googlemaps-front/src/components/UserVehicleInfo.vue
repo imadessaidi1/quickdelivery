@@ -65,30 +65,16 @@
       </div>
 
       <div class="documents-grid">
-        <label v-for="document in visibleVehicleDocuments" :key="document.key" class="document-upload-card panel-card" :class="getStatusToneClass(document.key)">
-          <div class="doc-header">
-            <span class="doc-title">{{ $t(document.label) }}</span>
-            <span v-if="documentStatus(document.key)" class="badge outline" :class="getStatusBadgeClass(document.key)">
-              {{ documentStatus(document.key) }}
-            </span>
-          </div>
-          
-          <div class="file-drop-area">
-            <input :ref="document.ref" type="file" accept="image/*, application/pdf" @change="handleVehicleFileChange(document.ref, document.key)">
-            <span class="material-symbols-outlined upload-icon">cloud_upload</span>
-            <strong class="file-name">{{ fileName(document.key) }}</strong>
-          </div>
-
-          <div v-if="documentReview(document.key)" class="review-feedback badge danger outline">
-            <span class="material-symbols-outlined">history_edu</span>
-            <div class="review-text">
-              <small>{{ $t('userDocumentReviewCommentLabel') }}</small>
-              <p>{{ documentReview(document.key) }}</p>
-            </div>
-          </div>
-          
-          <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
-        </label>
+        <DocumentUploadCard
+          v-for="document in visibleVehicleDocuments"
+          :key="document.key"
+          :label="$t(document.label)"
+          :status="vehicleDocuments?.[document.key]?.documentStatus"
+          :file-name="fileName(document.key)"
+          :review-comment="documentReview(document.key)"
+          :error-message="filesErrorMessages[document.key]"
+          @change="handleVehicleFileChange($event, document.key)"
+        />
       </div>
     </template>
   </div>
@@ -98,11 +84,13 @@
 import { ErrorMessage, Field } from 'vee-validate';
 import { validateCarRegistrationNumber, validateRequired } from '@/config/comonFunction';
 import { getRequiredVehicleDocuments, requiresVehicleDetails } from '@/config/deliveryMode';
+import DocumentUploadCard from './DocumentUploadCard.vue';
 
 export default {
   components: {
     Field,
     ErrorMessage,
+    DocumentUploadCard,
   },
   props: {
     isForUpdate: {
@@ -120,8 +108,12 @@ export default {
     vehicleDocuments() {
       return this.$store.state.vehicleDocuments;
     },
+    isResumeOnboarding() {
+      const status = this.user?.onboarding?.status;
+      return ['ACCOUNT_CREATED', 'PROFILE_COMPLETED', 'DOCUMENTS_UPLOADED', 'FAILED', 'READY_FOR_VALIDATION'].includes(status);
+    },
     canUpdateRejectedOnly() {
-      return this.isForUpdate && this.user?.activeAccount !== true;
+      return this.isForUpdate && this.user?.activeAccount !== true && !this.isResumeOnboarding;
     },
     requiresVehicleSection() {
       return requiresVehicleDetails(this.user);
@@ -155,8 +147,8 @@ export default {
   methods: {
     validateCarRegistrationNumber,
     validateRequired,
-    handleVehicleFileChange(refName, type) {
-      const file = this.$refs[refName]?.[0]?.files?.[0] || this.$refs[refName]?.files?.[0];
+    handleVehicleFileChange(event, type) {
+      const file = event?.target?.files?.[0];
       if (!file) {
         return;
       }
@@ -185,18 +177,11 @@ export default {
       }
       return this.$t('packageDocumentMissing');
     },
-    documentStatus(type) {
+    getStatusToneClass(type) {
       const status = this.vehicleDocuments?.[type]?.documentStatus;
-      if (!status || status === 'UPDATED') {
-        return '';
-      }
-      return this.$t(status);
-    },
-    getStatusBadgeClass(type) {
-      const status = this.vehicleDocuments?.[type]?.documentStatus;
-      if (status === 'ACCEPTED') return 'success';
-      if (status === 'REJECTED') return 'danger';
-      return 'info';
+      if (status === 'ACCEPTED') return 'tone-emerald';
+      if (status === 'REJECTED') return 'tone-rose';
+      return 'tone-indigo';
     },
     documentReview(type) {
       const document = this.vehicleDocuments?.[type];
@@ -204,12 +189,6 @@ export default {
         return '';
       }
       return document.reviewComment;
-    },
-    getStatusToneClass(type) {
-      const status = this.vehicleDocuments?.[type]?.documentStatus;
-      if (status === 'ACCEPTED') return 'tone-emerald';
-      if (status === 'REJECTED') return 'tone-rose';
-      return 'tone-indigo';
     },
   },
   watch: {
@@ -410,92 +389,6 @@ export default {
   border-color: var(--qd-primary);
   outline: none;
   box-shadow: 0 0 0 4px var(--qd-primary-soft);
-}
-
-/* Documents */
-.documents-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.document-upload-card {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.doc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.doc-title {
-  font-weight: 800;
-  color: var(--qd-text);
-}
-
-.file-drop-area {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  border: 2px dashed var(--qd-border-strong);
-  border-radius: 16px;
-  background: var(--qd-bg);
-  text-align: center;
-  transition: var(--qd-transition);
-  cursor: pointer;
-}
-
-.file-drop-area:hover {
-  border-color: var(--qd-primary);
-  background: var(--qd-primary-soft);
-}
-
-.file-drop-area input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.upload-icon {
-  font-size: 2.4rem;
-  color: var(--qd-primary);
-  margin-bottom: 8px;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  color: var(--qd-text);
-  word-break: break-all;
-}
-
-.review-feedback {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 12px;
-  border-radius: 12px;
-}
-
-.review-feedback .material-symbols-outlined { color: var(--qd-danger); }
-
-.review-text small {
-  display: block;
-  font-weight: 800;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
-.review-text p {
-  margin: 2px 0 0;
-  font-size: 0.85rem;
 }
 
 .errorMessage {

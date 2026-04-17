@@ -59,6 +59,11 @@
             v-else-if="currentStep === 2"
             ref="arrivalAddress"
             addressType="ARRIVAL"
+            :enable-address-book="isAuthenticated"
+            :owner-user-id="connectedUser.id"
+            :show-add-to-address-book="isAuthenticated && !selectedAddressBookEntryId"
+            v-model:add-to-address-book="addArrivalRecipientToAddressBook"
+            @recipient-selected="handleAddressBookRecipientSelected"
           />
 
           <PackageCreation
@@ -77,6 +82,9 @@
             :options="wizardOptions"
             :selected-preset="selectedPreset"
           />
+          <p v-if="addressBookErrorMessage && currentStep === 2" class="address-book-error">
+            {{ addressBookErrorMessage }}
+          </p>
 
           <LegalConsentCard
             v-if="currentStep === steps.length"
@@ -226,6 +234,9 @@ export default {
       showLegalConsentError: false,
       captchaToken: '',
       captchaErrorMessage: '',
+      selectedAddressBookEntryId: null,
+      addArrivalRecipientToAddressBook: false,
+      addressBookErrorMessage: '',
     };
   },
   computed: {
@@ -430,6 +441,13 @@ export default {
         this.currentStep -= 1;
       }
     },
+    handleAddressBookRecipientSelected(entry) {
+      this.selectedAddressBookEntryId = entry?.id || null;
+      if (entry?.id) {
+        this.addArrivalRecipientToAddressBook = false;
+        this.addressBookErrorMessage = '';
+      }
+    },
     async handleStepSubmit() {
       if (this.currentStep === 1) {
         await this.validateAndStoreAddress(this.$refs.departureAddress, 'DEPARTURE');
@@ -466,8 +484,12 @@ export default {
     },
     async validateAndStoreAddress(componentRef, type, validateDeliveryWindow = false) {
       const addressComponent = Array.isArray(componentRef) ? componentRef[0] : componentRef;
+      if (!addressComponent) return;
       const address = addressComponent.address;
-      const addressAuto = addressComponent.$refs.addressAutoComplete.address || address.addressAuto;
+      const autocompleteRef = Array.isArray(addressComponent.$refs.addressAutoComplete)
+        ? addressComponent.$refs.addressAutoComplete[0]
+        : addressComponent.$refs.addressAutoComplete;
+      const addressAuto = autocompleteRef?.address || address.addressAuto;
 
       address.type = type;
       address.addressAuto = addressAuto;
@@ -512,10 +534,53 @@ export default {
       if (type === 'DEPARTURE') {
         this.$store.commit('updatePackageDepartureAddress', { ...address });
       } else {
+        if (!(await this.saveArrivalRecipientToAddressBookIfRequested(address))) {
+          return;
+        }
         this.$store.commit('updatePackageArrivalAddress', { ...address });
       }
 
       this.currentStep += 1;
+    },
+    async saveArrivalRecipientToAddressBookIfRequested(address) {
+      if (!this.isAuthenticated || !this.addArrivalRecipientToAddressBook || this.selectedAddressBookEntryId) {
+        return true;
+      }
+      const ownerUserId = this.connectedUser?.id;
+      if (!ownerUserId) {
+        this.addressBookErrorMessage = this.$t('addressBookSaveError');
+        return false;
+      }
+      try {
+        const response = await http.post(
+          `${this.$i18n.t('userRootURL')}address-book?ownerUserId=${encodeURIComponent(ownerUserId)}`,
+          {
+            firstName: address.firstName,
+            lastName: address.lastName,
+            email: address.email,
+            phone: address.phone,
+            line1: address.line1,
+            line2: address.line2,
+            town: address.town,
+            zipCode: address.zipCode,
+            country: address.country,
+            floor: address.floor,
+            hasElevator: address.hasElevator,
+            latitude: address.latitude,
+            longitude: address.longitude,
+            addressAuto: address.addressAuto,
+          },
+          { silent: true },
+        );
+        this.selectedAddressBookEntryId = response?.data?.id || null;
+        this.addArrivalRecipientToAddressBook = false;
+        this.addressBookErrorMessage = '';
+        return true;
+      } catch (error) {
+        console.warn('Unable to save recipient in address book:', error);
+        this.addressBookErrorMessage = this.$t('addressBookSaveError');
+        return false;
+      }
     },
     resolveDepartureAddressForValidation() {
       const departureComponent = Array.isArray(this.$refs.departureAddress)
@@ -821,20 +886,21 @@ export default {
 }
 
 .card-actions .wizard-action-btn[type="submit"] {
-  order: 1;
-  margin-right: auto;
+  order: 2;
+  margin-left: auto;
 }
 
 .card-actions .wizard-action-btn[type="button"] {
-  order: 2;
-  margin-left: auto;
+  order: 1;
+  margin-right: auto;
 }
 
 .card-content :deep(.legal-consent-card) {
   margin-top: 18px;
 }
 
-.captcha-error {
+.captcha-error,
+.address-book-error {
   margin-top: 12px;
   color: #b42318;
   font-size: 0.9rem;

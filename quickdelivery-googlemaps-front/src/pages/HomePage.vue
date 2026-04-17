@@ -95,6 +95,7 @@ import AddressAutoComplete from '../components/AddressAutocomplete.vue';
 const GOOGLE_MAPS_KEY = process.env.VUE_APP_GOOGLE_MAPS_KEY || '';
 
 export default {
+  name: 'HomePage',
   data() {
     return {
       mobileViewMode: 'map',

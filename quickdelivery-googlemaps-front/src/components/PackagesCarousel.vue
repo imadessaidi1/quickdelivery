@@ -1184,6 +1184,8 @@ export default {
           town: criteria.town || '',
           country: criteria.country || '',
           rayonEnMetres: String(this.searchRadius),
+          pickupRadiusMeters: String(criteria.pickupRadiusMeters || this.searchRadius),
+          deliveryRadiusMeters: String(criteria.deliveryRadiusMeters || this.searchRadius),
           deliveryMode: this.currentDeliveryMode(),
           vehicleType: this.currentVehicleType(),
           destinationLatitude: String(this.normalizeCoordinate(criteria.latitude)),

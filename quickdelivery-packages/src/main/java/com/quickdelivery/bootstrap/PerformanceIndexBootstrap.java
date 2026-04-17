@@ -28,14 +28,30 @@ public class PerformanceIndexBootstrap {
                     "CREATE INDEX idx_package_reference ON `package` (reference)");
             ensureIndex(jdbcTemplate, "package", "idx_package_guest_access_token",
                     "CREATE INDEX idx_package_guest_access_token ON `package` (guest_access_token)");
+            ensureIndex(jdbcTemplate, "package", "idx_package_status_creation",
+                    "CREATE INDEX idx_package_status_creation ON `package` (status, creation_date DESC, id DESC)");
             ensureIndex(jdbcTemplate, "address", "idx_address_type_latitude_longitude",
                     "CREATE INDEX idx_address_type_latitude_longitude ON address (type, latitude, longitude)");
             ensureIndex(jdbcTemplate, "address", "idx_address_package_id_type",
                     "CREATE INDEX idx_address_package_id_type ON address (package_id, type)");
+            ensureGeoPointColumn(jdbcTemplate);
             ensurePackageReservationDeliveryStatusIndex(jdbcTemplate);
             ensureIndex(jdbcTemplate, "package_reservation", "idx_package_reservation_package_status",
                     "CREATE INDEX idx_package_reservation_package_status ON package_reservation (package_id, status)");
         };
+    }
+
+    private void ensureGeoPointColumn(JdbcTemplate jdbcTemplate) {
+        List<String> columns = jdbcTemplate.queryForList(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'address' AND COLUMN_NAME = 'geo_point'",
+                String.class
+        );
+        if (columns.isEmpty()) {
+            return;
+        }
+        ensureIndex(jdbcTemplate, "address", "idx_address_geo_point",
+                "CREATE SPATIAL INDEX idx_address_geo_point ON address (geo_point)");
     }
 
     private void ensurePackageReservationDeliveryStatusIndex(JdbcTemplate jdbcTemplate) {

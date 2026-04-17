@@ -1,6 +1,7 @@
 package com.quickdelivery.controllers;
 
 import com.quickdelivery.abstarct.dto.AdminUserOverviewDTO;
+import com.quickdelivery.abstarct.dto.AddressBookEntryDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +19,7 @@ import com.quickdelivery.abstarct.dto.VehicleDTO;
 import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.security.CaptchaVerificationService;
 import com.quickdelivery.observability.RuntimeLogMonitor;
+import com.quickdelivery.services.interfaces.IAddressBookService;
 import com.quickdelivery.services.interfaces.IUserServices;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -45,6 +47,8 @@ public class UsersController {
     private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
     @Autowired
     private IUserServices userServices;
+    @Autowired
+    private IAddressBookService addressBookService;
     @Autowired
     private RuntimeLogMonitor runtimeLogMonitor;
     @Autowired
@@ -187,7 +191,7 @@ public class UsersController {
     public UserDTO findUserByUpdateToken(@RequestParam(name = "updateToken", required = true) String updateToken){
         return userServices.findByUpdateToken(updateToken);
     }
-    @GetMapping("/validateEmail{id}")
+    @GetMapping("/validateEmail")
     public ResponseEntity<Void> validateUserEmail(@RequestParam(name = "id", required = true) Long id){
         CHECK_STATUS status = userServices.validateUserEmail(id);
         if(status.equals(CHECK_STATUS.OK)) {
@@ -205,6 +209,19 @@ public class UsersController {
     @GetMapping("/onboarding-status")
     public UserOnboardingDTO onboardingStatus(@RequestParam(name = "email") String email) {
         return userServices.loadOnboardingStatus(email);
+    }
+
+    @GetMapping("/address-book")
+    public List<AddressBookEntryDTO> searchAddressBook(@RequestParam(name = "ownerUserId") Long ownerUserId,
+                                                       @RequestParam(name = "q", defaultValue = "") String query,
+                                                       @RequestParam(name = "limit", required = false) Integer limit) {
+        return addressBookService.search(ownerUserId, query, limit);
+    }
+
+    @PostMapping("/address-book")
+    public AddressBookEntryDTO saveAddressBookEntry(@RequestParam(name = "ownerUserId") Long ownerUserId,
+                                                    @RequestBody AddressBookEntryDTO request) {
+        return addressBookService.save(ownerUserId, request);
     }
 
     @GetMapping("/document-content")

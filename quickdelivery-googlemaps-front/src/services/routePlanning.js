@@ -51,14 +51,17 @@ function projectionProgress(point, start, end) {
   if (!point || !start || !end) {
     return 0;
   }
-  const vx = end.lng - start.lng;
-  const vy = end.lat - start.lat;
+  const midLat = (start.lat + end.lat) / 2;
+  const metersPerLat = 111320;
+  const metersPerLng = 111320 * Math.cos((midLat * Math.PI) / 180);
+  const vx = (end.lng - start.lng) * metersPerLng;
+  const vy = (end.lat - start.lat) * metersPerLat;
   const lengthSquared = (vx * vx) + (vy * vy);
   if (!lengthSquared) {
     return 0;
   }
-  const px = point.lng - start.lng;
-  const py = point.lat - start.lat;
+  const px = (point.lng - start.lng) * metersPerLng;
+  const py = (point.lat - start.lat) * metersPerLat;
   return ((px * vx) + (py * vy)) / lengthSquared;
 }
 
@@ -294,7 +297,55 @@ export function buildDirectRoutePlan(packages, startRaw, endRaw) {
     2,
   );
 
-  return finalizeRoutePlan(start, end, packageStops, [...orderedPickups, ...orderedDropoffs], packages, 'directAddress');
+  const combined = [...orderedPickups, ...orderedDropoffs];
+  const optimized = optimizeStopsWithPrecedence(start, combined, end, packageStops, 2);
+
+  return finalizeRoutePlan(start, end, packageStops, optimized, packages, 'directAddress');
+}
+
+function isPrecedenceValid(stops) {
+  const pickupSeen = new Set();
+  for (const stop of stops) {
+    if (stop.kind === 'pickup') {
+      pickupSeen.add(stop.packageId);
+    } else if (stop.kind === 'dropoff' && !pickupSeen.has(stop.packageId)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function optimizeStopsWithPrecedence(start, stops, end, _packageStops, maxPasses = 2) {
+  if (!Array.isArray(stops) || stops.length < 4) {
+    return Array.isArray(stops) ? stops : [];
+  }
+  const optimized = [...stops];
+  let bestDistance = computePathDistance(start, optimized, end);
+  let pass = 0;
+  let improved = true;
+  while (improved && pass < maxPasses) {
+    improved = false;
+    pass += 1;
+    for (let i = 0; i < optimized.length - 2; i += 1) {
+      for (let j = i + 1; j < optimized.length - 1; j += 1) {
+        const candidate = [
+          ...optimized.slice(0, i),
+          ...optimized.slice(i, j + 1).reverse(),
+          ...optimized.slice(j + 1),
+        ];
+        if (!isPrecedenceValid(candidate)) {
+          continue;
+        }
+        const candidateDistance = computePathDistance(start, candidate, end);
+        if (candidateDistance + 1 < bestDistance) {
+          optimized.splice(0, optimized.length, ...candidate);
+          bestDistance = candidateDistance;
+          improved = true;
+        }
+      }
+    }
+  }
+  return optimized;
 }
 
 export function decoratePackagesWithRoutePlan(packages, routePlan) {

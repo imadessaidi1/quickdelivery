@@ -43,15 +43,17 @@ public interface Packages extends JpaRepository<Package, Long> {
                                                             @Param("minLong") double minLong,
                                                             @Param("maxLong") double maxLong);
 
-    @Query(value = "SELECT a.package_id " +
-            "FROM address a " +
-            "INNER JOIN package p ON p.id = a.package_id " +
-            "WHERE p.status = 'NEW' " +
-            "AND a.type = 'DEPARTURE' " +
-            "AND a.latitude BETWEEN :minLat AND :maxLat " +
-            "AND a.longitude BETWEEN :minLong AND :maxLong " +
-            "AND ST_Distance_Sphere(POINT(a.longitude, a.latitude), POINT(:centerLng, :centerLat)) <= :rayonEnMetres " +
-            "ORDER BY ST_Distance_Sphere(POINT(a.longitude, a.latitude), POINT(:centerLng, :centerLat)) ASC " +
+    @Query(value = "SELECT sub.package_id FROM (" +
+            "  SELECT a.package_id, ST_Distance_Sphere(POINT(a.longitude, a.latitude), POINT(:centerLng, :centerLat)) AS dist " +
+            "  FROM address a " +
+            "  INNER JOIN package p ON p.id = a.package_id " +
+            "  WHERE p.status = 'NEW' " +
+            "  AND a.type = 'DEPARTURE' " +
+            "  AND a.latitude BETWEEN :minLat AND :maxLat " +
+            "  AND a.longitude BETWEEN :minLong AND :maxLong " +
+            ") sub " +
+            "WHERE sub.dist <= :rayonEnMetres " +
+            "ORDER BY sub.dist ASC " +
             "LIMIT :limit", nativeQuery = true)
     List<Long> findNearbyNewPackageIds(@Param("centerLat") double centerLat,
                                        @Param("centerLng") double centerLng,
@@ -86,20 +88,19 @@ public interface Packages extends JpaRepository<Package, Long> {
     @Query("SELECT DISTINCT p FROM Package p " +
             "LEFT JOIN FETCH p.addresses addresses " +
             "WHERE p.status = 'NEW' " +
-            "AND EXISTS (" +
+            "AND (EXISTS (" +
             "   SELECT 1 FROM Address adDep " +
             "   WHERE adDep.packaged = p " +
             "   AND adDep.type = 'DEPARTURE' " +
             "   AND adDep.latitude BETWEEN :minLat AND :maxLat " +
             "   AND adDep.longitude BETWEEN :minLong AND :maxLong" +
-            ") " +
-            "AND EXISTS (" +
+            ") OR EXISTS (" +
             "   SELECT 1 FROM Address adArr " +
             "   WHERE adArr.packaged = p " +
             "   AND adArr.type = 'ARRIVAL' " +
             "   AND adArr.latitude BETWEEN :minLat AND :maxLat " +
             "   AND adArr.longitude BETWEEN :minLong AND :maxLong" +
-            ")")
+            "))")
     List<Package> findNewPackagesInBoundingBox(@Param("minLat") double minLat,
                                                @Param("maxLat") double maxLat,
                                                @Param("minLong") double minLong,

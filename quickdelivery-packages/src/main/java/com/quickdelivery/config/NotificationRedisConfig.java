@@ -1,6 +1,7 @@
 package com.quickdelivery.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -10,6 +11,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import com.quickdelivery.services.implementations.NotificationRedisSubscriber;
 
 @Configuration
+@ConditionalOnProperty(name = "quickdelivery.notification.redis.enabled", havingValue = "true")
 public class NotificationRedisConfig {
 
     public static final String NOTIFICATION_CHANNEL = "quickdelivery:notifications";

@@ -7,22 +7,17 @@
     </section>
 
     <div class="upload-grid">
-      <label v-for="document in visibleDocuments" :key="document.key" class="upload-card">
-        <span>{{ $t(document.label) }}</span>
-        <input
-          :ref="document.ref"
-          type="file"
-          :accept="document.accept"
-          @change="handleUserFileChange(document.ref, document.key)"
-        >
-        <strong>{{ fileName(document.key) }}</strong>
-        <small v-if="documentStatus(document.key)">{{ documentStatus(document.key) }}</small>
-        <div v-if="documentReview(document.key)" class="review-note">
-          <span class="review-label">{{ $t('userDocumentReviewCommentLabel') }}</span>
-          <p>{{ documentReview(document.key) }}</p>
-        </div>
-        <span v-if="filesErrorMessages[document.key]" class="errorMessage">{{ filesErrorMessages[document.key] }}</span>
-      </label>
+      <DocumentUploadCard
+        v-for="document in visibleDocuments"
+        :key="document.key"
+        :label="$t(document.label)"
+        :status="userDocuments?.[document.key]?.documentStatus"
+        :file-name="fileName(document.key)"
+        :review-comment="documentReview(document.key)"
+        :error-message="filesErrorMessages[document.key]"
+        :accept="document.accept"
+        @change="handleUserFileChange($event, document.key)"
+      />
     </div>
 
     <section class="payment-card">
@@ -50,12 +45,14 @@
 import CreditCard from './CreditCard.vue';
 import IBAN from './IbanBank.vue';
 import { getRequiredUserDocuments } from '@/config/deliveryMode';
+import DocumentUploadCard from './DocumentUploadCard.vue';
 
 export default {
   emits: ['update:selectedPaymentType'],
   components: {
     CreditCard,
     IBAN,
+    DocumentUploadCard,
   },
   props: {
     isForUpdate: {
@@ -75,7 +72,11 @@ export default {
       return this.$store.state.userDocuments;
     },
     canUpdateRejectedOnly() {
-      return this.isForUpdate && this.user?.activeAccount !== true;
+      return this.isForUpdate && this.user?.activeAccount !== true && !this.isResumeOnboarding;
+    },
+    isResumeOnboarding() {
+      const status = this.user?.onboarding?.status;
+      return ['ACCOUNT_CREATED', 'PROFILE_COMPLETED', 'DOCUMENTS_UPLOADED'].includes(status);
     },
     visibleDocuments() {
       const definitionByKey = {
@@ -134,8 +135,8 @@ export default {
     },
   },
   methods: {
-    handleUserFileChange(refName, type) {
-      const file = this.$refs[refName]?.[0]?.files?.[0] || this.$refs[refName]?.files?.[0];
+    handleUserFileChange(event, type) {
+      const file = event?.target?.files?.[0];
       if (!file) {
         return;
       }
@@ -160,13 +161,6 @@ export default {
       }
       return this.$t('packageDocumentMissing');
     },
-    documentStatus(type) {
-      const status = this.userDocuments?.[type]?.documentStatus;
-      if (!status || status === 'UPDATED') {
-        return '';
-      }
-      return this.$t(status);
-    },
     documentReview(type) {
       const document = this.userDocuments?.[type];
       if (!document?.reviewComment) {
@@ -181,145 +175,81 @@ export default {
 <style scoped>
 .documents-step {
   display: grid;
-  gap: 22px;
+  gap: 24px;
   min-width: 0;
-}
-
-.documents-step,
-.documents-step * {
-  box-sizing: border-box;
 }
 
 .section-head h3 {
   margin: 6px 0 8px;
-  font-size: 1.4rem;
-  color: #14213d;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--qd-text);
 }
 
 .section-head p {
-  margin: 0;
-  color: #617086;
+  color: var(--qd-muted);
 }
 
 .section-head.compact {
   margin-bottom: 16px;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #edf4ff;
-  color: #27548a;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .upload-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-.upload-card,
 .payment-card {
-  padding: 18px;
-  border: 1px solid #dde5f0;
+  padding: 24px;
+  border: 1px solid var(--qd-border);
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 18px 38px rgba(24, 39, 75, 0.07);
-}
-
-.upload-card {
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-}
-
-.upload-card > span {
-  color: #14213d;
-  font-weight: 700;
-}
-
-.upload-card strong {
-  color: #2b5a96;
-  word-break: break-word;
-}
-
-.upload-card small {
-  color: #617086;
-}
-
-.review-note {
-  padding: 12px;
-  border-radius: 14px;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-}
-
-.review-label {
-  display: block;
-  margin-bottom: 4px;
-  color: #9f1239;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.review-note p {
-  margin: 0;
-  color: #7f1d1d;
-  font-size: 0.88rem;
-  line-height: 1.45;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.06);
 }
 
 .payment-toggle {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .toggle-option {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid #d7dfeb;
+  padding: 12px 20px;
+  border: 1px solid var(--qd-border);
   border-radius: 999px;
-  background: #f8fafc;
-  color: #24364f;
+  background: var(--qd-surface-strong);
+  transition: var(--qd-transition);
+  cursor: pointer;
+}
+
+.toggle-option:hover {
+  background: #fff;
+  border-color: var(--qd-primary-soft);
 }
 
 .toggle-option.active {
-  border-color: #1f4f89;
-  background: #edf4ff;
+  border-color: var(--qd-primary);
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary);
 }
 
-.toggle-option input {
-  margin: 0;
-  flex: 0 0 auto;
-}
-.upload-card .errorMessage,
-.payment-card .errorMessage,
 .errorMessage {
   display: block;
-  font-size: 0.78rem;
-  color: #b42318;
-  word-break: break-word;
+  font-size: 0.8rem;
+  color: var(--qd-danger);
+  font-weight: 600;
+  margin-top: 4px;
 }
 
-@media screen and (max-width: 1180px) {
-  .upload-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+@media (max-width: 1024px) {
+  .upload-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media screen and (max-width: 860px) {
-  .upload-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 600px) {
+  .upload-grid { grid-template-columns: 1fr; }
 }
 </style>

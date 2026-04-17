@@ -26,7 +26,7 @@
             <small>{{ $t(key) }}</small>
             <strong>{{ value?.name || '--' }}</strong>
           </div>
-          <div v-if="!Object.keys(uploadedUserDocuments).length">
+          <div v-if="!hasUserDocuments">
             <small>{{ $t('wizardUserStepDocs') }}</small>
             <strong>--</strong>
           </div>
@@ -72,7 +72,7 @@
             <small>{{ $t(key) }}</small>
             <strong>{{ value?.name || '--' }}</strong>
           </div>
-          <div v-if="!Object.keys(uploadedVehicleDocuments).length">
+          <div v-if="!hasVehicleDocuments">
             <small>{{ $t('userDocumentsVehicleSection') }}</small>
             <strong>--</strong>
           </div>
@@ -107,16 +107,22 @@ export default {
       return this.$store.state.vehicleDocuments || {};
     },
     uploadedUserDocuments() {
-      return Object.fromEntries(Object.entries(this.userDocuments).filter(([, value]) => value?.name));
+      return this.userDocuments;
     },
     uploadedVehicleDocuments() {
-      return Object.fromEntries(Object.entries(this.vehicleDocuments).filter(([, value]) => value?.name));
+      return this.vehicleDocuments;
+    },
+    hasUserDocuments() {
+      return Object.keys(this.uploadedUserDocuments).length > 0;
+    },
+    hasVehicleDocuments() {
+      return Object.keys(this.uploadedVehicleDocuments).length > 0;
     },
     paymentMethodLabel() {
       if (this.selectedPaymentType === 'IBAN') {
-        return this.$t('userIBAN');
+        return this.$i18n.t('userIBAN');
       }
-      return this.$t('userPaymentCreditCard');
+      return this.$i18n.t('userPaymentCreditCard');
     },
     maskedCardNumber() {
       return maskCardNumber(this.user.paymentModes?.CREDIT_CARD?.cardNumber);

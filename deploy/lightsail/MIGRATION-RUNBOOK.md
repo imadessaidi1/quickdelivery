@@ -140,12 +140,12 @@ Bascule:
 
 ## 10. Point De Vigilance Important
 
-`api-gateway` route maintenant `users` et `packages` via `lb://Users_Service` et `lb://Package_Service`.
+`api-gateway` route maintenant `users` et `packages` via `lb://users-service` et `lb://package-service`.
 
 Cela signifie:
 
 1. `discovery-server` doit toujours voir `VM3` et `VM4` comme `UP`
-2. les deux services doivent bien s'enregistrer sous `Users_Service` et `Package_Service`
+2. les deux services doivent bien s'enregistrer sous `users-service` et `package-service`
 3. le WebSocket tracking reste volontairement epingle sur `VM3` pour le MVP
 
 ## 11. Fichiers Associes

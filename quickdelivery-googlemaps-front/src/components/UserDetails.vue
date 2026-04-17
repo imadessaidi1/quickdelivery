@@ -36,7 +36,10 @@ export default {
     props: {
         user: null,
         vehicle: null,
-        userDocuments: [],
+        userDocuments: {
+            type: [Array, Object],
+            default: () => ({}),
+        },
         showUpdateButton: {
             type: Boolean,
             default: true,

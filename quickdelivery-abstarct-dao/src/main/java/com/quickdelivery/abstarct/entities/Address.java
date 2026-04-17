@@ -44,6 +44,8 @@ public class Address {
     private BigDecimal latitude;
     @Column(precision = 11, scale = 8)
     private BigDecimal longitude;
+    @Column(name = "geo_point", columnDefinition = "POINT AS (POINT(IFNULL(longitude, 0), IFNULL(latitude, 0))) STORED NOT NULL", insertable = false, updatable = false)
+    private byte[] geoPoint;
     @ManyToOne
     @JoinColumn(name="residents_user_id")
     private User residents;

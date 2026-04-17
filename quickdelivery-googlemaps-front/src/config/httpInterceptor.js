@@ -2,6 +2,7 @@ import axios from 'axios';
 import store from './store';
 import { getAccessToken, hasValidAccessToken, redirectToLogin, wasRecentAuthSuccess } from './auth';
 import { attachAbortController, releaseAbortController } from './requestControl';
+import { resolveBackendErrorMessage } from './backendErrorMessages';
 
 let authRedirectInProgress = false;
 function triggerLoginRedirect() {
@@ -57,7 +58,7 @@ instance.interceptors.request.use(
     if (!silent) {
       store.commit('updateShowMessage', true);
       store.commit('updateRequestSuccess', false);
-      store.commit('updateRequestMessage', 'error');
+      store.commit('updateRequestMessage', resolveBackendErrorMessage(error));
       setTimeout(() => {
           store.commit('updateShowMessage', false);
       }, 9000);
@@ -95,7 +96,7 @@ instance.interceptors.response.use(
       store.commit('endLoading');
       store.commit('updateShowMessage', true);
       store.commit('updateRequestSuccess', false);
-      store.commit('updateRequestMessage', 'error');
+      store.commit('updateRequestMessage', resolveBackendErrorMessage(error));
       setTimeout(() => {
           store.commit('updateShowMessage', false);
       }, 9000);

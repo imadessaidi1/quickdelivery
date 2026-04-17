@@ -5,7 +5,7 @@ APP_DOMAIN="${APP_DOMAIN:-app.quickdelivery.fr}"
 API_DOMAIN="${API_DOMAIN:-api.quickdelivery.fr}"
 AUTH_DOMAIN="${AUTH_DOMAIN:-auth.quickdelivery.fr}"
 CONFIG_USERNAME="${CONFIG_USERNAME:-configuser}"
-CONFIG_PASSWORD="${CONFIG_PASSWORD:-}"
+CONFIG_SERVER_PASSWORD="${CONFIG_SERVER_PASSWORD:-${CONFIG_PASSWORD:-}}"
 
 wait_for_http() {
   local label="$1"
@@ -39,10 +39,10 @@ docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 
 echo
 echo "== Local checks =="
-if [[ -n "$CONFIG_PASSWORD" ]]; then
-  wait_for_http "config-server" "http://127.0.0.1:8889/actuator/health" "-fsS -u ${CONFIG_USERNAME}:${CONFIG_PASSWORD}" 24 5
+if [[ -n "$CONFIG_SERVER_PASSWORD" ]]; then
+  wait_for_http "config-server" "http://127.0.0.1:8889/actuator/health" "-fsS -u ${CONFIG_USERNAME}:${CONFIG_SERVER_PASSWORD}" 24 5
 else
-  echo "config-server: skipped (CONFIG_PASSWORD not set)"
+  echo "config-server: skipped (CONFIG_SERVER_PASSWORD not set)"
 fi
 
 wait_for_http "api-gateway local" "http://127.0.0.1:8443/actuator/health" "-fsS" 36 5

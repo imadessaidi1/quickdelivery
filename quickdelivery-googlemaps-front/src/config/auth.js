@@ -403,7 +403,13 @@ function processMobileLogoutCallback(sourceUrl) {
 }
 
 async function processAuthCallback(sourceUrl) {
-  const url = new URL(sourceUrl);
+  let url;
+  try {
+    url = new URL(sourceUrl);
+  } catch (e) {
+    console.error('Invalid URL in auth callback:', sourceUrl, e);
+    return { handled: false, redirected: false };
+  }
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
   if (!code) {

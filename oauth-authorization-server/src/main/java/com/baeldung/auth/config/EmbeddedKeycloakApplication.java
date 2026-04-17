@@ -9,6 +9,9 @@ import org.keycloak.exportimport.ExportImportManager;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.RoleModel;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.services.managers.ApplianceBootstrap;
 import org.keycloak.services.managers.RealmManager;
@@ -38,7 +41,7 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 	protected ExportImportManager bootstrap() {
 		final ExportImportManager exportImportManager = super.bootstrap();
 		createMasterRealmAdminUser();
-		createBaeldungRealm();
+		createQuickDeliveryRealm();
 		return exportImportManager;
 	}
 
@@ -46,23 +49,59 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
 
 		KeycloakSession session = getSessionFactory().create();
 
-		ApplianceBootstrap applianceBootstrap = new ApplianceBootstrap(session);
-
 		AdminUser admin = keycloakServerProperties.getAdminUser();
 
 		try {
 			session.getTransactionManager().begin();
-			applianceBootstrap.createMasterRealmUser(admin.getUsername(), admin.getPassword());
+			
+			RealmModel masterRealm = session.realms().getRealm("master");
+			if (masterRealm == null) {
+				LOG.error("Master realm not found!");
+				session.getTransactionManager().rollback();
+				return;
+			}
+
+			UserModel adminUser = session.users().getUserByUsername(masterRealm, admin.getUsername());
+			if (adminUser == null) {
+				LOG.info("Master admin user {} not found. Creating it...", admin.getUsername());
+				
+				// Try ApplianceBootstrap first as it is the official way
+				ApplianceBootstrap applianceBootstrap = new ApplianceBootstrap(session);
+				applianceBootstrap.createMasterRealmUser(admin.getUsername(), admin.getPassword());
+				
+				// Re-verify if created (ApplianceBootstrap might skip if it thinks the realm is already bootstrapped)
+				adminUser = session.users().getUserByUsername(masterRealm, admin.getUsername());
+				if (adminUser == null) {
+					LOG.info("ApplianceBootstrap skipped user creation. Forcing manual creation of admin user: {}", admin.getUsername());
+					adminUser = session.users().addUser(masterRealm, admin.getUsername());
+					adminUser.setEnabled(true);
+					LOG.info("Manually created admin user {}", admin.getUsername());
+				}
+			} else {
+				LOG.info("Master admin user {} already exists.", admin.getUsername());
+			}
+			
+			// Always ensure password and role are correct
+			if (adminUser != null) {
+				adminUser.credentialManager().updateCredential(UserCredentialModel.password(admin.getPassword()));
+				
+				RoleModel adminRole = masterRealm.getRole("admin");
+				if (adminRole != null && !adminUser.hasRole(adminRole)) {
+					adminUser.grantRole(adminRole);
+					LOG.info("Assigned admin role to {}", admin.getUsername());
+				}
+			}
+			
 			session.getTransactionManager().commit();
 		} catch (Exception ex) {
-			LOG.warn("Couldn't create keycloak master admin user: {}", ex.getMessage());
+			LOG.warn("Couldn't create/update keycloak master admin user: {}", ex.getMessage());
 			session.getTransactionManager().rollback();
+		} finally {
+			session.close();
 		}
-
-		session.close();
 	}
 
-	private void createBaeldungRealm() {
+	private void createQuickDeliveryRealm() {
 		KeycloakSession session = getSessionFactory().create();
 
 		try {

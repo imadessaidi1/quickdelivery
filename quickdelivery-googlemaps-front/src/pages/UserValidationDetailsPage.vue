@@ -52,7 +52,7 @@
               <h3>{{ $t('userInfo') }}</h3>
             </div>
             <div class="card-body scrollable">
-              <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="selectedUser.documents || {}" :show-update-button="false" />
+              <UserDetails :user="selectedUser" :vehicle="selectedVehicle" :userDocuments="normalizedDocuments" :show-update-button="false" />
             </div>
           </div>
         </section>

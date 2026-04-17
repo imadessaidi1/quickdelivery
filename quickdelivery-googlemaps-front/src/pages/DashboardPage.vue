@@ -105,21 +105,17 @@
         <!-- Section: Activité et Charts -->
         <section class="activity-history-column">
           <div class="charts-container" v-if="chartCards.length">
-            <PremiumDashboardCard 
+            <DashboardTrendChart
               v-for="chart in chartCards"
               :key="chart.key"
-              :title="chart.title" 
+              :title="chart.title"
               :subtitle="chart.subtitle"
+              :points="chart.points"
+              :tone="chart.tone"
+              :formatter="chart.formatter"
+              :empty-label="$t('dashboardChartEmpty')"
               class="chart-panel"
-            >
-              <DashboardTrendChart
-                :points="chart.points"
-                :tone="chart.tone"
-                :formatter="chart.formatter"
-                :empty-label="$t('dashboardChartEmpty')"
-                no-card
-              />
-            </PremiumDashboardCard>
+            />
           </div>
 
           <div class="dual-panel-row">

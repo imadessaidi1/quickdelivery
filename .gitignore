@@ -61,6 +61,16 @@ dist/
 **/.cache/
 coverage/
 **/coverage/
+build_errors.txt
+**/build_log.txt
+**/build_output.txt
+quickdelivery-googlemaps-front/dist.zip
+perf/crash-summary-*.json
+perf/generated/
+
+### Local IDE / agent runtime ###
+.claude/
+.run/
 
 ### Deploy artifacts / secrets ###
 artifacts/*.jar
@@ -68,3 +78,11 @@ deploy/docker/.env.production
 deploy/docker/.env
 deploy/docker/.env.local
 deploy/lightsail/*.env
+certs/
+
+### Local service profiles and admin maintenance scripts ###
+**/src/main/resources/application-local.properties
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-local.yaml
+deploy/lightsail/restore_bael_admin.sh
+recreate_bael_admin.sh

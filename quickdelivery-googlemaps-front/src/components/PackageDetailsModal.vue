@@ -67,7 +67,7 @@
           </div>
           
           <div class="action-row">
-            <button class="qd-btn-secondary" @click="cancelReservation" style="flex: 1;">
+            <button v-if="showCancelReservation" class="qd-btn-secondary" @click="cancelReservation" style="flex: 1;">
               {{ $t('actionCancelReservation') }}
             </button>
             <button class="qd-btn-primary" @click="pickup" style="flex: 1;">
@@ -113,6 +113,7 @@ import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
 import { validateNumericField } from '@/config/comonFunction';
 import { getCurrentUserRoles } from '@/config/auth';
+import { isPackageReservedByDeliveryPerson } from '@/config/packageReservations';
 
 export default {
   components: {
@@ -150,7 +151,8 @@ export default {
           return '';
         },
         showCancelReservation() {
-          return this.canOperateDelivery && this.package_?.status === 'RESERVED';
+          return this.canOperateDelivery
+            && isPackageReservedByDeliveryPerson(this.package_, this.$store.state.connectedUser?.id);
         },
         canCancelReservation() {
           return this.showCancelReservation;
@@ -235,10 +237,25 @@ export default {
     },
     openModal() {
       this.isOpen = true;
+      this.loadPackageDetailsForAuthorization();
     },
     closeModal() {
       this.$store.commit('updatePackage', this.emptyPackage);
       this.isOpen = false;
+    },
+    async loadPackageDetailsForAuthorization() {
+      const reference = this.package_?.reference;
+      if (!reference) {
+        return;
+      }
+      try {
+        const response = await http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackage')}${encodeURIComponent(reference)}`);
+        if (response?.data) {
+          this.$store.commit('updatePackage', response.data);
+        }
+      } catch (error) {
+        console.error('Unable to load package details for reservation authorization.', error);
+      }
     },
     reserve() {
       if (this.isReserveDisabled) {

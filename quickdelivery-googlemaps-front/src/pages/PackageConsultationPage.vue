@@ -145,6 +145,7 @@ import { validateNumericField } from '@/config/comonFunction';
 import http from '@/config/httpInterceptor';
 import { Field, ErrorMessage } from 'vee-validate';
 import { getCurrentUserRoles } from '@/config/auth';
+import { isPackageReservedByDeliveryPerson } from '@/config/packageReservations';
 
 export default{
   computed: {
@@ -177,7 +178,8 @@ export default{
           return '';
         },
         showCancelReservation() {
-          return this.canOperateDelivery && this.package_?.status === 'RESERVED';
+          return this.canOperateDelivery
+            && isPackageReservedByDeliveryPerson(this.package_, this.$store.state.connectedUser?.id);
         },
         canCancelReservation() {
           return this.showCancelReservation;

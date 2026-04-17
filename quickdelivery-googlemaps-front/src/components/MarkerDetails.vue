@@ -124,6 +124,7 @@
 import http from '@/config/httpInterceptor';
 import { getCurrentUserRoles } from '@/config/auth';
 import { formatDisplayedPackageAmount } from '@/config/packagePricing';
+import { isPackageReservedByDeliveryPerson } from '@/config/packageReservations';
 
 export default {
   props: {
@@ -157,7 +158,8 @@ export default {
       return this.canOperateDelivery() && !this.package_?.isSoftLockedBy && this.isReserveDisabled;
     },
     showCancelReservation() {
-      return this.canOperateDelivery() && this.package_?.status === 'RESERVED';
+      return this.canOperateDelivery()
+        && isPackageReservedByDeliveryPerson(this.package_, this.$store.state.connectedUser?.id);
     },
     canCancelReservation() {
       return this.showCancelReservation;

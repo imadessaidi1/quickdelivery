@@ -41,16 +41,20 @@ public interface IPackagesService {
 
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres);
     List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres, String deliveryMode);
+    List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres, String deliveryMode, Long deliveryPersonId);
     List<PackageDTO> getPackagesInBounds(double minLat, double maxLat, double minLng, double maxLng, double centerLat, double centerLng, int limit);
     List<PackageDTO> getPackagesInBounds(double minLat, double maxLat, double minLng, double maxLng, double centerLat, double centerLng, int limit, String deliveryMode);
+    List<PackageDTO> getPackagesInBounds(double minLat, double maxLat, double minLng, double maxLng, double centerLat, double centerLng, int limit, String deliveryMode, Long deliveryPersonId);
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres, String deliveryMode) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException;
     List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException;
+    List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType, Long deliveryPersonId) throws IOException, InterruptedException, ApiException;
     RoutePlanDTO buildRoutePlan(RoutePlanRequestDTO request);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude, String deliveryMode);
     List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude, String deliveryMode, String vehicleType, double radiusMeters);
+    List<PackageDTO> findAddressOnMyRoad(String departureLatitude, String arrivalLatitude, String departureLongitude, String arrivalLongitude, String deliveryMode, String vehicleType, double radiusMeters, Long deliveryPersonId);
     PackageReservation reservePackage(Long packageID, Long deliveryPersonID, Locale locale) throws NoSuchAlgorithmException;
     ReserveBatchResultDTO reservePackagesBatch(List<Long> packageIds, Long deliveryPersonID, Locale locale);
     ReserveBatchResultDTO reservePackagesBatchFromPlan(ReserveBatchPlanRequestDTO request, Long deliveryPersonID, Locale locale);
@@ -89,6 +93,7 @@ public interface IPackagesService {
     AdminPackageDashboardSummaryDTO loadAdminDashboardSummary(int year);
     FinancialDashboardDTO loadAdminFinancialDashboard();
     List<CourierPenaltyDTO> loadAdminCourierPenalties(int limit);
+    CourierPenaltyDTO liftCourierPenalty(Long penaltyId, String reason);
     RoutePlanDTO getActiveDeliveryRoute(Long deliveryPersonId);
     RoutePlanDTO startActiveDeliveryRoute(Long deliveryPersonId);
 

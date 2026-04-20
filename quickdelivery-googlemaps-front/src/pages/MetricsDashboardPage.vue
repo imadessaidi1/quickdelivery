@@ -140,6 +140,21 @@
                   </div>
                 </div>
 
+                <div v-if="module.metrics.googleMapsGeocodingCalls != null || module.metrics.googleMapsDistanceMatrixCalls != null" class="detailed-metrics-grid googlemaps-metrics">
+                  <div class="d-metric" v-if="module.metrics.googleMapsGeocodingCalls != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsGeocoding') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsGeocodingCalls) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsDistanceMatrixCalls != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsDistanceMatrix') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsDistanceMatrixCalls) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsDistanceCacheHits != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsDistanceCacheHits') }}</span>
+                    <strong class="d-value text-success">{{ formatInteger(module.metrics.googleMapsDistanceCacheHits) }}</strong>
+                  </div>
+                </div>
+
                 <div v-if="module.logInsights" class="log-insights-mini">
                   <span class="log-badge warn" v-if="module.logInsights.warnCountLastHour">{{ module.logInsights.warnCountLastHour }} W</span>
                   <span class="log-badge error" v-if="module.logInsights.errorCountLastHour">{{ module.logInsights.errorCountLastHour }} E</span>
@@ -875,6 +890,13 @@ export default {
 
 .d-label { font-size: 0.625rem; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px; }
 .d-value { font-size: 0.9375rem; color: #334155; font-weight: 700; }
+.d-value.text-success { color: #10b981; }
+
+.googlemaps-metrics {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(15, 23, 42, 0.08);
+}
 
 .log-insights-mini {
   display: flex;

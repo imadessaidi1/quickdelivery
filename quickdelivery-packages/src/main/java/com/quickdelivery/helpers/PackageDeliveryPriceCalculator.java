@@ -1,15 +1,7 @@
 package com.quickdelivery.helpers;
 
-import com.google.maps.DirectionsApi;
-import com.google.maps.GeoApiContext;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.TravelMode;
-import com.quickdelivery.abstarct.dto.AddressDTO;
 import com.quickdelivery.abstarct.dto.PackageDTO;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 public class PackageDeliveryPriceCalculator {
@@ -24,18 +16,8 @@ public class PackageDeliveryPriceCalculator {
     private static final String DEFAULT_CURRENCY = "EUR";
     private static final String PRICING_VERSION = "v4";
 
-    public static double calculateDeliveryPrice(GeoApiContext context, PackageDTO packageDTO) {
-        double distance = calculateDistance(context, packageDTO.getAddresses());
-        return calculateDeliveryPrice(distance, packageDTO);
-    }
-
     public static double calculateDeliveryPrice(double distance, PackageDTO packageDTO) {
         return calculatePricingBreakdown(distance, packageDTO).customerTotalPrice();
-    }
-
-    public static PackagePricingBreakdown calculatePricingBreakdown(GeoApiContext context, PackageDTO packageDTO) {
-        double distance = calculateDistance(context, packageDTO.getAddresses());
-        return calculatePricingBreakdown(distance, packageDTO);
     }
 
     public static PackagePricingBreakdown calculatePricingBreakdown(double distance, PackageDTO packageDTO) {
@@ -70,20 +52,6 @@ public class PackageDeliveryPriceCalculator {
                 DEFAULT_CURRENCY,
                 PRICING_VERSION
         );
-    }
-
-    private static double calculateDistance(GeoApiContext context, List<AddressDTO> addresses) {
-        try {
-            DirectionsResult result = DirectionsApi.newRequest(context)
-                    .origin(addresses.get(0).toString())
-                    .destination(addresses.get(1).toString())
-                    .mode(TravelMode.DRIVING)
-                    .await();
-            long distanceInMeters = result.routes[0].legs[0].distance.inMeters;
-            return distanceInMeters / 1000.0;
-        } catch (ApiException | InterruptedException | IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private static double resolveCategoryBase(String packageSizeCategory) {

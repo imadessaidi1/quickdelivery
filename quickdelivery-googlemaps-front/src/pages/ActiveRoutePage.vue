@@ -1,5 +1,36 @@
 <template>
   <div class="active-route-page qd-page">
+    <!-- Cancel confirmation modal -->
+    <div v-if="showCancelModal" class="modal-overlay" @click.self="showCancelModal = false">
+      <div class="modal-card danger-modal" role="dialog" aria-modal="true">
+        <div class="modal-icon">
+          <span class="material-symbols-outlined">warning</span>
+        </div>
+        <h2>{{ $t('activeRouteCancelModalTitle') }}</h2>
+        <p class="modal-body-text">{{ $t('activeRouteCancelModalBody') }}</p>
+        <ul class="penalty-list">
+          <li>
+            <span class="material-symbols-outlined penalty-icon">payments</span>
+            {{ $t('activeRouteCancelModalFinancial') }}
+          </li>
+          <li>
+            <span class="material-symbols-outlined penalty-icon">timer_off</span>
+            {{ $t('activeRouteCancelModalSuspension') }}
+          </li>
+        </ul>
+        <p class="modal-release-note">{{ $t('activeRouteCancelModalRelease') }}</p>
+        <div class="modal-actions">
+          <button class="qd-btn-secondary" type="button" :disabled="isCancelling" @click="showCancelModal = false">
+            {{ $t('activeRouteCancelModalDismiss') }}
+          </button>
+          <button class="qd-btn-danger" type="button" :disabled="isCancelling" @click="confirmCancelRoute">
+            <span v-if="isCancelling" class="btn-spinner"></span>
+            {{ $t('activeRouteCancelModalConfirm') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <header class="qd-page-header">
       <div class="header-main">
         <span class="page-chip info uppercase">{{ $t('activeRouteChip') }}</span>
@@ -41,6 +72,12 @@
         </button>
       </div>
     </header>
+
+    <div v-if="activeRoute && activeRoute.status === 'PLANNED'" class="deadline-banner">
+      <span class="material-symbols-outlined">schedule</span>
+      <span>{{ $t('activeRouteReservationDeadlineInfo') }}</span>
+      <span v-if="deadlineCountdown" class="deadline-countdown">{{ deadlineCountdown }}</span>
+    </div>
 
     <template v-if="isLoadingPage">
       <div class="page-state">
@@ -192,6 +229,10 @@ export default {
   data() {
     return {
       isLoadingPage: false,
+      showCancelModal: false,
+      isCancelling: false,
+      deadlineCountdown: null,
+      deadlineTimer: null,
     };
   },
   computed: {
@@ -314,8 +355,19 @@ export default {
       return this.activeRoute?.status === 'PLANNED' && this.totalStops > this.completedStops;
     },
   },
+  watch: {
+    activeRoute(route) {
+      this.resetDeadlineTimer();
+      if (route?.status === 'PLANNED' && route?.startDeadlineAt) {
+        this.startDeadlineTimer(route.startDeadlineAt);
+      }
+    },
+  },
   mounted() {
     this.initializePage();
+  },
+  beforeUnmount() {
+    this.resetDeadlineTimer();
   },
   methods: {
     async initializePage() {
@@ -326,6 +378,28 @@ export default {
         this.isLoadingPage = false;
       }
     },
+    startDeadlineTimer(deadlineAt) {
+      const update = () => {
+        const remaining = Math.floor((new Date(deadlineAt) - Date.now()) / 1000);
+        if (remaining <= 0) {
+          this.deadlineCountdown = null;
+          this.resetDeadlineTimer();
+          return;
+        }
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        this.deadlineCountdown = `${m}:${String(s).padStart(2, '0')}`;
+      };
+      update();
+      this.deadlineTimer = setInterval(update, 1000);
+    },
+    resetDeadlineTimer() {
+      if (this.deadlineTimer) {
+        clearInterval(this.deadlineTimer);
+        this.deadlineTimer = null;
+      }
+      this.deadlineCountdown = null;
+    },
     async fetchActiveRoute() {
       if (!this.connectedUserId) {
         return;
@@ -335,7 +409,12 @@ export default {
           `${this.$i18n.t('rootURL')}${this.$i18n.t('activeDeliveryRouteUrl')}${encodeURIComponent(this.connectedUserId)}`,
           { silent: true },
         );
-        this.$store.commit('setActiveDeliveryRoute', response?.data || null);
+        const route = response?.data || null;
+        this.$store.commit('setActiveDeliveryRoute', route);
+        this.resetDeadlineTimer();
+        if (route?.status === 'PLANNED' && route?.startDeadlineAt) {
+          this.startDeadlineTimer(route.startDeadlineAt);
+        }
       } catch (error) {
         console.warn('Unable to refresh active delivery route.', error);
       }
@@ -353,12 +432,17 @@ export default {
       }
       window.open(this.nextNavigationUrl, '_blank', 'noopener');
     },
-    async cancelRoute() {
-      if (!this.canCancelRoute || !window.confirm(this.$t('activeRouteCancelConfirm'))) {
+    cancelRoute() {
+      if (!this.canCancelRoute) {
         return;
       }
+      this.showCancelModal = true;
+    },
+    async confirmCancelRoute() {
+      this.isCancelling = true;
       try {
         await http.put(`${this.$i18n.t('rootURL')}${this.$i18n.t('cancelActiveRouteUrl')}${encodeURIComponent(this.connectedUserId)}`);
+        this.showCancelModal = false;
         this.$store.commit('setOngoingDeliveryState', {
           isUserWithOngoingDelivery: false,
           activeDeliveryRoute: null,
@@ -366,7 +450,21 @@ export default {
         window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
         this.$router.push('/app');
       } catch (error) {
-        console.error('Unable to cancel active route.', error);
+        const status = error?.response?.status;
+        if (status === 404) {
+          this.showCancelModal = false;
+          this.$store.commit('setOngoingDeliveryState', {
+            isUserWithOngoingDelivery: false,
+            activeDeliveryRoute: null,
+          });
+          window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
+          this.$router.push('/app');
+        } else {
+          console.error('Unable to cancel active route.', error);
+          this.showCancelModal = false;
+        }
+      } finally {
+        this.isCancelling = false;
       }
     },
     async startRoute() {
@@ -386,6 +484,137 @@ export default {
 </script>
 
 <style scoped>
+/* Deadline warning banner */
+.deadline-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border: 1px solid #f97316;
+  border-radius: var(--qd-radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #c2410c;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.deadline-banner .material-symbols-outlined {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.deadline-countdown {
+  margin-left: auto;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #c2410c;
+}
+
+/* Cancel confirmation modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--qd-surface);
+  border-radius: calc(var(--qd-radius) * 2);
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.modal-icon .material-symbols-outlined {
+  font-size: 3rem;
+  color: #ef4444;
+}
+
+.danger-modal h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--qd-text);
+  margin: 0;
+}
+
+.modal-body-text {
+  color: var(--qd-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.penalty-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.penalty-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--qd-surface-strong);
+  border: 1px solid #fecaca;
+  border-radius: var(--qd-radius);
+  padding: 12px 16px;
+  font-weight: 700;
+  color: #b91c1c;
+  font-size: 0.95rem;
+}
+
+.penalty-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  font-size: 1.2rem !important;
+}
+
+.modal-release-note {
+  color: var(--qd-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.modal-actions > * {
+  flex: 1;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: qd-spin 0.8s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
 .active-route-page {
   padding-bottom: 40px;
 }
@@ -657,5 +886,9 @@ export default {
   .large-icon { font-size: 2.25rem; margin-bottom: 8px; }
   .qd-page-header-actions { width: 100%; flex-direction: column; }
   .qd-page-header-actions > * { width: 100%; }
+  .deadline-banner { flex-wrap: wrap; }
+  .deadline-countdown { margin-left: 0; width: 100%; text-align: right; }
+  .modal-card { padding: 24px 20px; }
+  .modal-actions { flex-direction: column-reverse; }
 }
 </style>

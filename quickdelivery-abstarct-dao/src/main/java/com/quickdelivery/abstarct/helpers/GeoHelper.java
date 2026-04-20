@@ -7,12 +7,14 @@ import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.*;
 import com.quickdelivery.abstarct.dto.AddressDTO;
+import io.micrometer.core.instrument.Metrics;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 public class GeoHelper {
 
     public static void AddressGeoCoding(GeoApiContext  geoApiContext, AddressDTO addressDTO) throws IOException, InterruptedException, ApiException {
+        Metrics.counter("quickdelivery.googlemaps.api.calls", "type", "geocoding").increment();
         GeocodingResult[] results =  GeocodingApi.geocode(geoApiContext,
                 addressDTO.toString()).await();
         addressDTO.setLatitude(BigDecimal.valueOf(results[0].geometry.location.lat));
@@ -20,6 +22,7 @@ public class GeoHelper {
     }
 
     public static DistanceMatrix getDistanceByCoordinates(GeoApiContext  geoApiContext, double departureLat, double departureLng, double arrivalLat, double arrivalLng) throws IOException, InterruptedException, ApiException {
+        Metrics.counter("quickdelivery.googlemaps.api.calls", "type", "distance_matrix").increment();
         return DistanceMatrixApi.newRequest(geoApiContext)
                 .origins(new LatLng(departureLat, departureLng))
                 .destinations(new LatLng(arrivalLat, arrivalLng))
@@ -27,6 +30,7 @@ public class GeoHelper {
                 .await();
     }
     public static DistanceMatrix getDistanceByAddress(GeoApiContext  geoApiContext, String departure, String arrival) throws IOException, InterruptedException, ApiException {
+        Metrics.counter("quickdelivery.googlemaps.api.calls", "type", "distance_matrix").increment();
         return DistanceMatrixApi.newRequest(geoApiContext)
                 .origins(departure)
                 .destinations(arrival)

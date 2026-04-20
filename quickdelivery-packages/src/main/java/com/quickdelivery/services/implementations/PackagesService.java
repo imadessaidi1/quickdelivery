@@ -71,6 +71,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -139,6 +141,8 @@ public class PackagesService implements IPackagesService {
     private int maxDistanceCacheEntries;
     @Value("${quickdelivery.routes.stop-validation-radius-meters:150}")
     private double stopValidationRadiusMeters;
+    @Value("${quickdelivery.routes.stop-merge-radius-meters:30}")
+    private double stopMergeRadiusMeters;
     @Value("${quickdelivery.routes.start-deadline-minutes:30}")
     private long routeStartDeadlineMinutes;
     @Value("${quickdelivery.routes.no-progress-deadline-minutes:30}")
@@ -207,19 +211,26 @@ public class PackagesService implements IPackagesService {
 
     @Scheduled(fixedDelayString = "${quickdelivery.routes.penalty-scan-ms:60000}")
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "packagesByStatus", allEntries = true),
+            @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
+            @CacheEvict(value = "packagesAroundMe", allEntries = true),
+            @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
+            @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
+            @CacheEvict(value = "userWithOngoingDelivery", allEntries = true)
+    })
     public void scanRoutePenaltyDeadlines() {
         LocalDateTime now = LocalDateTime.now();
         if (routeStartDeadlineMinutes > 0) {
             Timestamp plannedCutoff = Timestamp.valueOf(now.minusMinutes(routeStartDeadlineMinutes));
             deliveryRoutes.findByStatusAndCreatedBefore(DELIVERY_ROUTE_STATUS.PLANNED, plannedCutoff)
-                    .forEach(route -> persistCourierPenalty(
-                            route.getDeliveryPerson(),
+                    .forEach(route -> cancelPlannedRouteAndNotifyPenalty(
                             route,
-                            null,
                             COURIER_PENALTY_TYPE.ROUTE_NOT_STARTED_DEADLINE,
                             2,
                             "routeNotStartedBeforeDeadline",
-                            "{\"deliveryRouteId\":" + route.getId() + ",\"deadlineMinutes\":" + routeStartDeadlineMinutes + "}",
+                            routeStartDeadlineMinutes,
                             false
                     ));
         }
@@ -414,7 +425,9 @@ public class PackagesService implements IPackagesService {
     @Override
     @Transactional(readOnly = true)
     public Map<String, List<PackageDTO>> getPAckagesAroundPosition(AddressDTO address, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
-        GeoHelper.AddressGeoCoding(geoApiContext,address);
+        if (!hasUsableCoordinates(address)) {
+            GeoHelper.AddressGeoCoding(geoApiContext, address);
+        }
         return getPAckagesAroundPosition(address.getLatitude().toString(), address.getLongitude().toString(), rayonEnMetres);
     }
 
@@ -429,6 +442,12 @@ public class PackagesService implements IPackagesService {
     @Transactional(readOnly = true)
     public List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres, String deliveryMode) {
         return loadNearbyNewPackages(Double.parseDouble(latitude), Double.parseDouble(longitude), rayonEnMetres, deliveryMode);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PackageDTO> getPackagesAroundPosition(String latitude, String longitude, double rayonEnMetres, String deliveryMode, Long deliveryPersonId) {
+        return getPackagesAroundPosition(latitude, longitude, rayonEnMetres, deliveryMode);
     }
 
     @Override
@@ -458,6 +477,12 @@ public class PackagesService implements IPackagesService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<PackageDTO> getPackagesInBounds(double minLat, double maxLat, double minLng, double maxLng, double centerLat, double centerLng, int limit, String deliveryMode, Long deliveryPersonId) {
+        return getPackagesInBounds(minLat, maxLat, minLng, maxLng, centerLat, centerLng, limit, deliveryMode);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "packagesAroundDestination", key = "T(java.lang.String).format('%s:%s:%s:%s:%s:%s:%s', T(com.quickdelivery.services.implementations.PackagesService).normalizeNearbyCoordinateKey(#latitude), T(com.quickdelivery.services.implementations.PackagesService).normalizeNearbyCoordinateKey(#longitude), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.line1), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.zipCode), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.town), T(com.quickdelivery.services.implementations.PackagesService).normalizeCacheString(#destinationAddress.country), #rayonEnMetres)", sync = true)
     public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres) throws IOException, InterruptedException, ApiException {
         return getPackagesAroundPositionWithDestination(latitude, longitude, destinationAddress, rayonEnMetres, null);
@@ -472,10 +497,10 @@ public class PackagesService implements IPackagesService {
     @Override
     @Transactional(readOnly = true)
     public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double rayonEnMetres, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException {
-        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+        if (!hasUsableCoordinates(destinationAddress)) {
             GeoHelper.AddressGeoCoding(geoApiContext, destinationAddress);
         }
-        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+        if (!hasUsableCoordinates(destinationAddress)) {
             return Collections.emptyList();
         }
 
@@ -485,10 +510,10 @@ public class PackagesService implements IPackagesService {
     @Override
     @Transactional(readOnly = true)
     public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType) throws IOException, InterruptedException, ApiException {
-        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+        if (!hasUsableCoordinates(destinationAddress)) {
             GeoHelper.AddressGeoCoding(geoApiContext, destinationAddress);
         }
-        if (destinationAddress.getLatitude() == null || destinationAddress.getLongitude() == null) {
+        if (!hasUsableCoordinates(destinationAddress)) {
             return Collections.emptyList();
         }
 
@@ -516,6 +541,12 @@ public class PackagesService implements IPackagesService {
                 }))
                 .limit(maxVisiblePackages)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PackageDTO> getPackagesAroundPositionWithDestination(String latitude, String longitude, AddressDTO destinationAddress, double pickupRadiusMeters, double deliveryRadiusMeters, String deliveryMode, String vehicleType, Long deliveryPersonId) throws IOException, InterruptedException, ApiException {
+        return getPackagesAroundPositionWithDestination(latitude, longitude, destinationAddress, pickupRadiusMeters, deliveryRadiusMeters, deliveryMode, vehicleType);
     }
 
     @Override
@@ -687,6 +718,35 @@ public class PackagesService implements IPackagesService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PackageDTO> findAddressOnMyRoad(String departureLatitude,
+                                                String arrivalLatitude,
+                                                String departureLongitude,
+                                                String arrivalLongitude,
+                                                String deliveryMode,
+                                                String vehicleType,
+                                                double radiusMeters,
+                                                Long deliveryPersonId) {
+        return findAddressOnMyRoad(departureLatitude, arrivalLatitude, departureLongitude, arrivalLongitude, deliveryMode, vehicleType, radiusMeters);
+    }
+
+    private List<PackageDTO> excludeCancelledPackagesForDeliveryPerson(List<PackageDTO> sourcePackages, Long deliveryPersonId) {
+        if (sourcePackages == null || sourcePackages.isEmpty() || deliveryPersonId == null) {
+            return sourcePackages == null ? Collections.emptyList() : sourcePackages;
+        }
+        Set<Long> cancelledPackageIds = new HashSet<>(packageReservations.findPackageIdsByDeliveryPersonAndStatuses(
+                deliveryPersonId,
+                EnumSet.of(PACKAGE_RESERVATION_STATUS.CANCELED)
+        ));
+        if (cancelledPackageIds.isEmpty()) {
+            return sourcePackages;
+        }
+        return sourcePackages.stream()
+                .filter(packageDTO -> packageDTO.getId() == null || !cancelledPackageIds.contains(packageDTO.getId()))
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     @Transactional
@@ -848,6 +908,7 @@ public class PackagesService implements IPackagesService {
             if (reservedRoutePlan != null && !result.getReservedPackageIds().isEmpty()) {
                 DeliveryRoute deliveryRoute = createDeliveryRoute(deliveryPersonID, reservedRoutePlan);
                 reservedRoutePlan = toRoutePlanDTO(deliveryRoute);
+                notifyRouteReservationDeadline(deliveryRoute);
             }
             result.setReservedRoutePlan(reservedRoutePlan);
             return result;
@@ -1266,11 +1327,23 @@ public class PackagesService implements IPackagesService {
         AddressDTO arrivalAddress = getArrivalAddress(aPackage.getAddresses());
         String packageReference = aPackage.getReference() == null ? "draft-package" : aPackage.getReference();
         long startedAt = System.currentTimeMillis();
+
+        if (aPackage.getDistanceKm() != null && aPackage.getDistanceKm() > 0) {
+            meterRegistry.counter("quickdelivery.googlemaps.distance.cache.hits", "source", "db").increment();
+            logger.info("Resolved route distance from DB for package {}: {} km in {} ms",
+                    packageReference,
+                    String.format(Locale.ROOT, "%.2f", aPackage.getDistanceKm()),
+                    System.currentTimeMillis() - startedAt);
+            return aPackage.getDistanceKm();
+        }
+
         String routeCacheKey = buildRouteCacheKey(departureAddress, arrivalAddress);
 
         CachedRouteDistance cachedRouteDistance = getCachedRouteDistance(routeCacheKey);
         if (cachedRouteDistance != null) {
+            meterRegistry.counter("quickdelivery.googlemaps.distance.cache.hits", "source", "memory").increment();
             aPackage.setDistanceToDestination(cachedRouteDistance.formattedDistance());
+            aPackage.setDistanceKm(cachedRouteDistance.distanceInKilometers());
             logger.info("Resolved route distance from cache for package {}: {} km in {} ms",
                     packageReference,
                     String.format(Locale.ROOT, "%.2f", cachedRouteDistance.distanceInKilometers()),
@@ -1282,6 +1355,7 @@ public class PackagesService implements IPackagesService {
         if (distanceMatrix != null) {
             aPackage.setDistanceToDestination(formatDistanceMatrixValue(distanceMatrix));
             double distanceInKilometers = extractDistanceInKilometers(distanceMatrix);
+            aPackage.setDistanceKm(distanceInKilometers);
             cacheRouteDistance(routeCacheKey, distanceInKilometers, aPackage.getDistanceToDestination());
             logger.info("Resolved route distance through provider for package {}: {} km in {} ms",
                     packageReference,
@@ -1299,6 +1373,7 @@ public class PackagesService implements IPackagesService {
             );
             double straightLineKilometers = straightLineMeters / 1000.0;
             aPackage.setDistanceToDestination("approx/" + formatApproximateDistance(straightLineMeters));
+            aPackage.setDistanceKm(straightLineKilometers);
             cacheRouteDistance(routeCacheKey, straightLineKilometers, aPackage.getDistanceToDestination());
             logger.warn(
                     "Falling back to straight-line distance for package {} between [{}] and [{}]: {} km after {} ms",
@@ -1955,6 +2030,17 @@ public class PackagesService implements IPackagesService {
         if (!DELIVERY_ROUTE_STATUS.PLANNED.equals(deliveryRoute.getStatus())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "errorActiveRouteStartNotAllowed");
         }
+        if (isRouteStartDeadlineExceeded(deliveryRoute)) {
+            cancelPlannedRouteAndNotifyPenalty(
+                    deliveryRoute,
+                    COURIER_PENALTY_TYPE.ROUTE_NOT_STARTED_DEADLINE,
+                    2,
+                    "routeNotStartedBeforeDeadline",
+                    routeStartDeadlineMinutes,
+                    false
+            );
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "errorActiveRouteCancelledDueToLateStart");
+        }
         if (deliveryRouteStops.countByRouteAndStatus(deliveryRoute.getId(), DELIVERY_ROUTE_STOP_STATUS.PENDING) == 0) {
             persistCourierPenalty(
                     deliveryRoute.getDeliveryPerson(),
@@ -2098,17 +2184,48 @@ public class PackagesService implements IPackagesService {
             );
             throw new ResponseStatusException(HttpStatus.CONFLICT, "errorActiveRouteCancellationNotAllowed");
         }
+        cancelPlannedRouteAndNotifyPenalty(
+                deliveryRoute,
+                COURIER_PENALTY_TYPE.ROUTE_CANCELLED_BEFORE_START,
+                2,
+                "plannedRouteCancelledBeforeStart",
+                routeStartDeadlineMinutes,
+                true
+        );
+        return null;
+    }
+
+    private boolean isRouteStartDeadlineExceeded(DeliveryRoute deliveryRoute) {
+        if (deliveryRoute == null || routeStartDeadlineMinutes <= 0 || deliveryRoute.getCreatedAt() == null) {
+            return false;
+        }
+        LocalDateTime deadline = deliveryRoute.getCreatedAt().toLocalDateTime().plusMinutes(routeStartDeadlineMinutes);
+        return LocalDateTime.now().isAfter(deadline);
+    }
+
+    private void cancelPlannedRouteAndNotifyPenalty(DeliveryRoute deliveryRoute,
+                                                    COURIER_PENALTY_TYPE penaltyType,
+                                                    int severity,
+                                                    String reason,
+                                                    long deadlineMinutes,
+                                                    boolean deduplicateRecentPenalty) {
+        if (deliveryRoute == null || deliveryRoute.getId() == null) {
+            return;
+        }
         List<DeliveryRouteStop> stops = deliveryRouteStops.findByRouteIdOrderByStopOrder(deliveryRoute.getId());
         LinkedHashSet<Long> packageIds = stops.stream()
                 .map(stop -> stop.getaPackage() == null ? null : stop.getaPackage().getId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        Long deliveryPersonId = deliveryRoute.getDeliveryPerson() == null ? null : deliveryRoute.getDeliveryPerson().getId();
         for (Long packageId : packageIds) {
-            packageReservations.findByPackageAndDeliveryPersonAndStatus(packageId, deliveryPersonId, PACKAGE_RESERVATION_STATUS.ONGOING)
-                    .ifPresent(reservation -> {
-                        reservation.setStatus(PACKAGE_RESERVATION_STATUS.CANCELED);
-                        packageReservations.save(reservation);
-                    });
+            if (deliveryPersonId != null) {
+                packageReservations.findByPackageAndDeliveryPersonAndStatus(packageId, deliveryPersonId, PACKAGE_RESERVATION_STATUS.ONGOING)
+                        .ifPresent(reservation -> {
+                            reservation.setStatus(PACKAGE_RESERVATION_STATUS.CANCELED);
+                            packageReservations.save(reservation);
+                        });
+            }
             packages.findByIdForUpdate(packageId).ifPresent(aPackage -> {
                 if (PACKAGE_STATUS.RESERVED.equals(aPackage.getStatus())) {
                     aPackage.setStatus(PACKAGE_STATUS.NEW);
@@ -2128,17 +2245,65 @@ public class PackagesService implements IPackagesService {
                 deliveryRoute.getDeliveryPerson(),
                 deliveryRoute,
                 null,
-                COURIER_PENALTY_TYPE.ROUTE_CANCELLED_BEFORE_START,
-                2,
-                "plannedRouteCancelledBeforeStart",
-                "{\"deliveryRouteId\":" + deliveryRoute.getId() + ",\"packageCount\":" + packageIds.size() + "}",
-                true
+                penaltyType,
+                severity,
+                reason,
+                "{\"deliveryRouteId\":" + deliveryRoute.getId()
+                        + ",\"packageCount\":" + packageIds.size()
+                        + ",\"deadlineMinutes\":" + deadlineMinutes
+                        + ",\"packageIds\":[" + packageIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + "]}",
+                deduplicateRecentPenalty
         );
         deliveryRouteStops.saveAll(stops);
         deliveryRoute.setStatus(DELIVERY_ROUTE_STATUS.CANCELLED);
         deliveryRoute.setCompletedAt(Timestamp.valueOf(LocalDateTime.now()));
         deliveryRoutes.saveAndFlush(deliveryRoute);
-        return null;
+        notifyRouteCancellationPenalty(deliveryRoute, penaltyType, severity, deadlineMinutes, packageIds);
+    }
+
+    private void notifyRouteReservationDeadline(DeliveryRoute deliveryRoute) {
+        if (deliveryRoute == null || deliveryRoute.getDeliveryPerson() == null || deliveryRoute.getDeliveryPerson().getId() == null) {
+            return;
+        }
+        try {
+            notificationService.createAndDispatch(
+                    deliveryRoute.getDeliveryPerson().getId(),
+                    NOTIFICATION_EVENT_TYPE.DELIVERY_ROUTE_RESERVED_WARNING,
+                    "/myRoute",
+                    "{\"deliveryRouteId\":" + deliveryRoute.getId() + ",\"deadlineMinutes\":" + routeStartDeadlineMinutes + "}",
+                    routeStartDeadlineMinutes
+            );
+        } catch (RuntimeException exception) {
+            logger.warn("Unable to notify route reservation deadline for route {}: {}", deliveryRoute.getId(), exception.getMessage());
+        }
+    }
+
+    private void notifyRouteCancellationPenalty(DeliveryRoute deliveryRoute,
+                                                COURIER_PENALTY_TYPE penaltyType,
+                                                int severity,
+                                                long deadlineMinutes,
+                                                Collection<Long> packageIds) {
+        if (deliveryRoute == null || deliveryRoute.getDeliveryPerson() == null || deliveryRoute.getDeliveryPerson().getId() == null) {
+            return;
+        }
+        double penaltyAmount = resolveFinancialPenaltyAmount(penaltyType, severity);
+        String packageIdsJson = packageIds == null ? "" : packageIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        try {
+            notificationService.createAndDispatch(
+                    deliveryRoute.getDeliveryPerson().getId(),
+                    NOTIFICATION_EVENT_TYPE.DELIVERY_ROUTE_CANCELLED_PENALTY,
+                    "/app",
+                    "{\"deliveryRouteId\":" + deliveryRoute.getId()
+                            + ",\"deadlineMinutes\":" + deadlineMinutes
+                            + ",\"penaltyAmount\":" + penaltyAmount
+                            + ",\"currency\":\"EUR\""
+                            + ",\"packageIds\":[" + packageIdsJson + "]}",
+                    penaltyAmount,
+                    "EUR"
+            );
+        } catch (RuntimeException exception) {
+            logger.warn("Unable to notify route cancellation penalty for route {}: {}", deliveryRoute.getId(), exception.getMessage());
+        }
     }
 
     @Override
@@ -2156,6 +2321,9 @@ public class PackagesService implements IPackagesService {
         metrics.setAsyncQueueSize(sumMetric("quickdelivery.async.queue.size"));
         metrics.setAsyncActiveCount(sumMetric("quickdelivery.async.active.count"));
         metrics.setOcrProcessedCount(null);
+        metrics.setGoogleMapsGeocodingCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "geocoding"));
+        metrics.setGoogleMapsDistanceMatrixCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "distance_matrix"));
+        metrics.setGoogleMapsDistanceCacheHits(sumMetric("quickdelivery.googlemaps.distance.cache.hits"));
         return metrics;
     }
 
@@ -2337,6 +2505,29 @@ public class PackagesService implements IPackagesService {
     public List<CourierPenaltyDTO> loadAdminCourierPenalties(int limit) {
         int resolvedLimit = Math.max(1, Math.min(limit, 500));
         return buildCourierPenaltyDTOs(courierPenalties.findAllByOrderByCreatedAtDesc(PageRequest.of(0, resolvedLimit)));
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "packagesAdminFinancialDashboard", allEntries = true)
+    public CourierPenaltyDTO liftCourierPenalty(Long penaltyId, String reason) {
+        if (penaltyId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "errorCourierPenaltyIdRequired");
+        }
+        CourierPenalty penalty = courierPenalties.findById(penaltyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "errorCourierPenaltyNotFound"));
+        if (!COURIER_PENALTY_STATUS.ACTIVE.equals(penalty.getStatus())) {
+            return toCourierPenaltyDTO(penalty);
+        }
+
+        Timestamp reviewedAt = Timestamp.valueOf(LocalDateTime.now());
+        penalty.setStatus(COURIER_PENALTY_STATUS.REVIEWED);
+        penalty.setReviewedAt(reviewedAt);
+        if (penalty.getSuspensionUntil() != null && penalty.getSuspensionUntil().after(reviewedAt)) {
+            penalty.setSuspensionUntil(reviewedAt);
+        }
+        penalty.setReason(appendPenaltyReviewReason(penalty.getReason(), reason));
+        return toCourierPenaltyDTO(courierPenalties.save(penalty));
     }
 
     @Override
@@ -2579,6 +2770,7 @@ public class PackagesService implements IPackagesService {
         packageDTO.setInsuranceSelected(normalizedPackage.getInsuranceSelected());
         packageDTO.setDeclaredValue(normalizedPackage.getDeclaredValue());
         packageDTO.setDistanceToDestination(normalizedPackage.getDistanceToDestination());
+        packageDTO.setDistanceKm(normalizedPackage.getDistanceKm());
         packageDTO.setGuestMode(normalizedPackage.getGuestMode());
         packageDTO.setGuestAccessToken(normalizedPackage.getGuestAccessToken());
         packageDTO.setLastPositionLatitude(normalizedPackage.getLastPositionLatitude());
@@ -2620,6 +2812,7 @@ public class PackagesService implements IPackagesService {
         packageDTO.setSenderID(normalizedPackage.getSender() == null ? null : normalizedPackage.getSender().getId());
         packageDTO.setGuestMode(normalizedPackage.getGuestMode());
         packageDTO.setDistanceToDestination(normalizedPackage.getDistanceToDestination());
+        packageDTO.setDistanceKm(normalizedPackage.getDistanceKm());
         packageDTO.setFromYou(null);
         packageDTO.setFiles(new ArrayList<>());
         packageDTO.setPackageReservations(new ArrayList<>());
@@ -3176,21 +3369,51 @@ public class PackagesService implements IPackagesService {
                                                    GeoPoint start,
                                                    GeoPoint end,
                                                    RoutePlanRequestDTO request) {
-        List<RouteStopCandidate> orderedStops = packagesToPlan.stream()
-                .flatMap(plannablePackage -> {
-                    double pickupProgress = clampProgress(projectionProgress(plannablePackage.pickupPoint(), start, end));
-                    double rawDropoffProgress = clampProgress(projectionProgress(plannablePackage.dropoffPoint(), start, end));
+        // Phase 1: build MergedStops with projection progress, then sort
+        List<MergedStop> rawMerged = packagesToPlan.stream()
+                .flatMap(pkg -> {
+                    double pickupProgress = clampProgress(projectionProgress(pkg.pickupPoint(), start, end));
+                    double rawDropoffProgress = clampProgress(projectionProgress(pkg.dropoffPoint(), start, end));
                     double dropoffProgress = Math.max(rawDropoffProgress, pickupProgress + 0.0001d);
                     return Stream.of(
-                            new RouteStopCandidate("pickup", plannablePackage, plannablePackage.pickupPoint(), pickupProgress, 0),
-                            new RouteStopCandidate("dropoff", plannablePackage, plannablePackage.dropoffPoint(), dropoffProgress, 1)
+                            new MergedStop("pickup", pkg.pickupPoint(), List.of(pkg), pickupProgress),
+                            new MergedStop("dropoff", pkg.dropoffPoint(), List.of(pkg), dropoffProgress)
                     );
                 })
-                .sorted(Comparator
-                        .comparingDouble(RouteStopCandidate::routeProgress)
-                        .thenComparing(RouteStopCandidate::typePriority)
-                        .thenComparing(candidate -> candidate.plannablePackage().packageId()))
                 .collect(Collectors.toList());
+
+        // Fuse co-located stops before sorting
+        List<MergedStop> mergedPickups = mergeColocatedStops(
+                rawMerged.stream().filter(s -> "pickup".equals(s.kind())).collect(Collectors.toList()));
+        List<MergedStop> mergedDropoffs = mergeColocatedStops(
+                rawMerged.stream().filter(s -> "dropoff".equals(s.kind())).collect(Collectors.toList()));
+
+        // Recalculate representative progress as average of constituent packages
+        List<MergedStop> sortedPickups = mergedPickups.stream()
+                .sorted(Comparator.comparingDouble(MergedStop::routeProgress)
+                        .thenComparing(s -> s.packages().get(0).packageId()))
+                .collect(Collectors.toList());
+        List<MergedStop> sortedDropoffs = mergedDropoffs.stream()
+                .sorted(Comparator.comparingDouble(MergedStop::routeProgress)
+                        .thenComparing(s -> s.packages().get(0).packageId()))
+                .collect(Collectors.toList());
+
+        // Interleave by progress
+        List<MergedStop> interleaved = new ArrayList<>(sortedPickups.size() + sortedDropoffs.size());
+        interleaved.addAll(sortedPickups);
+        interleaved.addAll(sortedDropoffs);
+        interleaved.sort(Comparator.comparingDouble(MergedStop::routeProgress)
+                .thenComparingInt(s -> "pickup".equals(s.kind()) ? 0 : 1)
+                .thenComparing(s -> s.packages().get(0).packageId()));
+
+        // Phase 2: local 2-opt (4 passes) to fix residual crossings
+        List<MergedStop> optimized = optimizeMergedStopsWithTwoOpt(start, interleaved, end, 4);
+
+        // Enforce pickup-before-dropoff constraint
+        optimized = enforcePickupBeforeDropoff(optimized);
+
+        // Phase 3: explode MergedStop → RouteStopCandidate
+        List<RouteStopCandidate> orderedStops = explodeMergedStops(optimized);
         return finalizeRoutePlan("personalRoute", request.getSelectedPackageId(), packagesToPlan, start, end, orderedStops);
     }
 
@@ -3198,29 +3421,40 @@ public class PackagesService implements IPackagesService {
                                                  GeoPoint start,
                                                  GeoPoint end,
                                                  RoutePlanRequestDTO request) {
-        List<RouteStopCandidate> pickupStops = packagesToPlan.stream()
-                .map(plannablePackage -> new RouteStopCandidate("pickup", plannablePackage, plannablePackage.pickupPoint(), 0d, 0))
+        // Phase 1: fuse co-located pickups and dropoffs
+        List<MergedStop> rawPickups = packagesToPlan.stream()
+                .map(pkg -> new MergedStop("pickup", pkg.pickupPoint(), List.of(pkg), 0d))
                 .collect(Collectors.toList());
-        List<RouteStopCandidate> dropoffStops = packagesToPlan.stream()
-                .map(plannablePackage -> new RouteStopCandidate("dropoff", plannablePackage, plannablePackage.dropoffPoint(), 0d, 1))
+        List<MergedStop> rawDropoffs = packagesToPlan.stream()
+                .map(pkg -> new MergedStop("dropoff", pkg.dropoffPoint(), List.of(pkg), 0d))
                 .collect(Collectors.toList());
 
-        List<RouteStopCandidate> orderedPickups = optimizeStopsWithTwoOpt(
+        List<MergedStop> mergedPickups = mergeColocatedStops(rawPickups);
+        List<MergedStop> mergedDropoffs = mergeColocatedStops(rawDropoffs);
+
+        // Phase 2: nearest-neighbor + 2-opt (8 passes) on full merged lists
+        List<MergedStop> orderedPickups = optimizeMergedStopsWithTwoOpt(
                 start,
-                orderStopsByNearestNeighbor(start, pickupStops, null),
+                orderMergedStopsByNearestNeighbor(start, mergedPickups, null),
                 end,
-                2
+                8
         );
         GeoPoint pickupEnd = orderedPickups.isEmpty() ? start : orderedPickups.get(orderedPickups.size() - 1).point();
-        List<RouteStopCandidate> orderedDropoffs = optimizeStopsWithTwoOpt(
+        List<MergedStop> orderedDropoffs = optimizeMergedStopsWithTwoOpt(
                 pickupEnd,
-                orderStopsByNearestNeighbor(pickupEnd, dropoffStops, end),
+                orderMergedStopsByNearestNeighbor(pickupEnd, mergedDropoffs, end),
                 end,
-                2
+                8
         );
-        List<RouteStopCandidate> orderedStops = new ArrayList<>(orderedPickups.size() + orderedDropoffs.size());
-        orderedStops.addAll(orderedPickups);
-        orderedStops.addAll(orderedDropoffs);
+
+        // Enforce pickup-before-dropoff per package
+        List<MergedStop> allMerged = new ArrayList<>(orderedPickups.size() + orderedDropoffs.size());
+        allMerged.addAll(orderedPickups);
+        allMerged.addAll(orderedDropoffs);
+        allMerged = enforcePickupBeforeDropoff(allMerged);
+
+        // Phase 3: explode MergedStop → RouteStopCandidate
+        List<RouteStopCandidate> orderedStops = explodeMergedStops(allMerged);
         return finalizeRoutePlan("directAddress", request.getSelectedPackageId(), packagesToPlan, start, end, orderedStops);
     }
 
@@ -3289,6 +3523,171 @@ public class PackagesService implements IPackagesService {
             }
         }
         return optimized;
+    }
+
+    private List<MergedStop> mergeColocatedStops(List<MergedStop> stops) {
+        List<MergedStop> merged = new ArrayList<>();
+        boolean[] consumed = new boolean[stops.size()];
+        for (int i = 0; i < stops.size(); i++) {
+            if (consumed[i]) {
+                continue;
+            }
+            MergedStop base = stops.get(i);
+            List<PlannablePackage> groupPackages = new ArrayList<>(base.packages());
+            double sumLat = base.point().lat;
+            double sumLng = base.point().lng;
+            int count = 1;
+            for (int j = i + 1; j < stops.size(); j++) {
+                if (consumed[j]) {
+                    continue;
+                }
+                MergedStop candidate = stops.get(j);
+                double dist = haversineMeters(base.point().lat, base.point().lng,
+                        candidate.point().lat, candidate.point().lng);
+                if (dist <= stopMergeRadiusMeters) {
+                    groupPackages.addAll(candidate.packages());
+                    sumLat += candidate.point().lat;
+                    sumLng += candidate.point().lng;
+                    count++;
+                    consumed[j] = true;
+                }
+            }
+            GeoPoint centroid = new GeoPoint(sumLat / count, sumLng / count);
+            merged.add(new MergedStop(base.kind(), centroid, groupPackages, base.routeProgress()));
+        }
+        return merged;
+    }
+
+    private List<MergedStop> orderMergedStopsByNearestNeighbor(GeoPoint initialPoint,
+                                                                List<MergedStop> stops,
+                                                                GeoPoint finalBiasPoint) {
+        List<MergedStop> pending = new ArrayList<>(stops);
+        List<MergedStop> ordered = new ArrayList<>(stops.size());
+        GeoPoint current = initialPoint;
+        while (!pending.isEmpty()) {
+            int bestIndex = 0;
+            double bestScore = Double.MAX_VALUE;
+            for (int i = 0; i < pending.size(); i++) {
+                MergedStop stop = pending.get(i);
+                double distFromCurrent = haversineMeters(current.lat, current.lng, stop.point().lat, stop.point().lng);
+                double distToFinal = finalBiasPoint == null ? 0d
+                        : haversineMeters(stop.point().lat, stop.point().lng, finalBiasPoint.lat, finalBiasPoint.lng);
+                double score = distFromCurrent + distToFinal * 0.1d;
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestIndex = i;
+                }
+            }
+            MergedStop selected = pending.remove(bestIndex);
+            ordered.add(selected);
+            current = selected.point();
+        }
+        return ordered;
+    }
+
+    private List<MergedStop> optimizeMergedStopsWithTwoOpt(GeoPoint start,
+                                                            List<MergedStop> stops,
+                                                            GeoPoint end,
+                                                            int maxPasses) {
+        if (stops == null || stops.size() < 4) {
+            return stops == null ? List.of() : stops;
+        }
+        List<MergedStop> optimized = new ArrayList<>(stops);
+        double bestDistance = computeMergedPathDistance(start, optimized, end);
+        int pass = 0;
+        boolean improved = true;
+        while (improved && pass < maxPasses) {
+            improved = false;
+            pass++;
+            for (int i = 0; i < optimized.size() - 2; i++) {
+                for (int j = i + 1; j < optimized.size() - 1; j++) {
+                    List<MergedStop> candidate = new ArrayList<>(optimized.size());
+                    candidate.addAll(optimized.subList(0, i));
+                    List<MergedStop> reversed = new ArrayList<>(optimized.subList(i, j + 1));
+                    Collections.reverse(reversed);
+                    candidate.addAll(reversed);
+                    candidate.addAll(optimized.subList(j + 1, optimized.size()));
+                    double candidateDistance = computeMergedPathDistance(start, candidate, end);
+                    if (candidateDistance + 1d < bestDistance) {
+                        optimized = candidate;
+                        bestDistance = candidateDistance;
+                        improved = true;
+                    }
+                }
+            }
+        }
+        return optimized;
+    }
+
+    private double computeMergedPathDistance(GeoPoint start, List<MergedStop> stops, GeoPoint end) {
+        GeoPoint current = start;
+        double totalMeters = 0d;
+        for (MergedStop stop : stops) {
+            totalMeters += haversineMeters(current.lat, current.lng, stop.point().lat, stop.point().lng);
+            current = stop.point();
+        }
+        totalMeters += haversineMeters(current.lat, current.lng, end.lat, end.lng);
+        return totalMeters;
+    }
+
+    private List<MergedStop> enforcePickupBeforeDropoff(List<MergedStop> stops) {
+        // Build index of first occurrence of each packageId as pickup
+        Map<Long, Integer> pickupIndex = new HashMap<>();
+        for (int i = 0; i < stops.size(); i++) {
+            MergedStop stop = stops.get(i);
+            if ("pickup".equals(stop.kind())) {
+                for (PlannablePackage pkg : stop.packages()) {
+                    pickupIndex.putIfAbsent(pkg.packageId(), i);
+                }
+            }
+        }
+        List<MergedStop> result = new ArrayList<>(stops);
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (int i = 0; i < result.size(); i++) {
+                MergedStop stop = result.get(i);
+                if (!"dropoff".equals(stop.kind())) {
+                    continue;
+                }
+                for (PlannablePackage pkg : stop.packages()) {
+                    Integer pIdx = pickupIndex.get(pkg.packageId());
+                    if (pIdx != null && pIdx > i) {
+                        // move this dropoff stop to just after its pickup
+                        MergedStop moved = result.remove(i);
+                        result.add(pIdx, moved);
+                        // rebuild pickupIndex
+                        pickupIndex.clear();
+                        for (int k = 0; k < result.size(); k++) {
+                            MergedStop s = result.get(k);
+                            if ("pickup".equals(s.kind())) {
+                                for (PlannablePackage p : s.packages()) {
+                                    pickupIndex.putIfAbsent(p.packageId(), k);
+                                }
+                            }
+                        }
+                        changed = true;
+                        break;
+                    }
+                }
+                if (changed) {
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<RouteStopCandidate> explodeMergedStops(List<MergedStop> mergedStops) {
+        List<RouteStopCandidate> result = new ArrayList<>();
+        for (MergedStop merged : mergedStops) {
+            int typePriority = "pickup".equals(merged.kind()) ? 0 : 1;
+            for (PlannablePackage pkg : merged.packages()) {
+                GeoPoint point = "pickup".equals(merged.kind()) ? pkg.pickupPoint() : pkg.dropoffPoint();
+                result.add(new RouteStopCandidate(merged.kind(), pkg, point, 0d, typePriority));
+            }
+        }
+        return result;
     }
 
     private double computePathDistance(GeoPoint start, List<RouteStopCandidate> stops, GeoPoint end) {
@@ -3477,15 +3876,16 @@ public class PackagesService implements IPackagesService {
 
     private List<String> buildGoogleMapsNavigationUrls(GeoPoint start, GeoPoint end, List<RoutePlanStopDTO> stops) {
         List<String> urls = new ArrayList<>();
-        if (start == null || end == null) {
+        if (!isUsableGeoPoint(start) || !isUsableGeoPoint(end)) {
             return urls;
         }
         List<GeoPoint> points = new ArrayList<>();
         points.add(start);
         if (stops != null) {
             for (RoutePlanStopDTO stop : stops) {
-                if (stop.getLat() != null && stop.getLng() != null) {
-                    points.add(new GeoPoint(stop.getLat(), stop.getLng()));
+                GeoPoint stopPoint = toUsableGeoPoint(stop);
+                if (stopPoint != null) {
+                    points.add(stopPoint);
                 }
             }
         }
@@ -3502,20 +3902,51 @@ public class PackagesService implements IPackagesService {
             GeoPoint destination = points.get(segmentEndIndex);
             StringBuilder url = new StringBuilder("https://www.google.com/maps/dir/?api=1");
             url.append("&travelmode=driving");
-            url.append("&origin=").append(origin.lat).append(",").append(origin.lng);
-            url.append("&destination=").append(destination.lat).append(",").append(destination.lng);
+            url.append("&dir_action=navigate");
+            url.append("&origin=").append(encodeGoogleMapsCoordinate(origin));
+            url.append("&destination=").append(encodeGoogleMapsCoordinate(destination));
             if (segmentEndIndex - segmentStartIndex > 1) {
                 String waypoints = IntStream.range(segmentStartIndex + 1, segmentEndIndex)
-                        .mapToObj(index -> points.get(index).lat + "," + points.get(index).lng)
+                        .mapToObj(index -> formatGoogleMapsCoordinate(points.get(index)))
                         .collect(Collectors.joining("|"));
                 if (!waypoints.isBlank()) {
-                    url.append("&waypoints=").append(waypoints);
+                    url.append("&waypoints=").append(encodeGoogleMapsQueryValue(waypoints));
                 }
             }
             urls.add(url.toString());
             segmentStartIndex = segmentEndIndex;
         }
         return urls;
+    }
+
+    private GeoPoint toUsableGeoPoint(RoutePlanStopDTO stop) {
+        if (stop == null || stop.getLat() == null || stop.getLng() == null) {
+            return null;
+        }
+        GeoPoint point = new GeoPoint(stop.getLat(), stop.getLng());
+        return isUsableGeoPoint(point) ? point : null;
+    }
+
+    private boolean isUsableGeoPoint(GeoPoint point) {
+        return point != null
+                && Double.isFinite(point.lat)
+                && Double.isFinite(point.lng)
+                && point.lat >= -90d
+                && point.lat <= 90d
+                && point.lng >= -180d
+                && point.lng <= 180d;
+    }
+
+    private String formatGoogleMapsCoordinate(GeoPoint point) {
+        return point.lat + "," + point.lng;
+    }
+
+    private String encodeGoogleMapsCoordinate(GeoPoint point) {
+        return encodeGoogleMapsQueryValue(formatGoogleMapsCoordinate(point));
+    }
+
+    private String encodeGoogleMapsQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private double resolveMaxWeightKg(String deliveryMode, String vehicleType) {
@@ -3840,6 +4271,18 @@ public class PackagesService implements IPackagesService {
         return activeSuspensions.stream().findFirst();
     }
 
+    private String appendPenaltyReviewReason(String existingReason, String reviewReason) {
+        String normalizedReviewReason = reviewReason == null ? "" : reviewReason.trim();
+        if (normalizedReviewReason.isBlank()) {
+            return existingReason;
+        }
+        String appendedReason = "Review: " + normalizedReviewReason;
+        String combinedReason = existingReason == null || existingReason.isBlank()
+                ? appendedReason
+                : existingReason + " | " + appendedReason;
+        return combinedReason.length() <= 500 ? combinedReason : combinedReason.substring(0, 500);
+    }
+
     private void enforceCourierNotSuspended(Long deliveryPersonId) {
         findActiveSuspension(deliveryPersonId)
                 .ifPresent(penalty -> {
@@ -3951,6 +4394,12 @@ public class PackagesService implements IPackagesService {
         dto.setRouteId(deliveryRoute.getId());
         dto.setMode("persistedRoute");
         dto.setStatus(deliveryRoute.getStatus() == null ? null : deliveryRoute.getStatus().name());
+        if (DELIVERY_ROUTE_STATUS.PLANNED.equals(deliveryRoute.getStatus())
+                && deliveryRoute.getCreatedAt() != null
+                && routeStartDeadlineMinutes > 0) {
+            LocalDateTime deadline = deliveryRoute.getCreatedAt().toLocalDateTime().plusMinutes(routeStartDeadlineMinutes);
+            dto.setStartDeadlineAt(Timestamp.valueOf(deadline).toInstant().toString());
+        }
         dto.setStart(toRoutePlanPoint(new GeoPoint(deliveryRoute.getStartLatitude(), deliveryRoute.getStartLongitude())));
         dto.setEnd(toRoutePlanPoint(new GeoPoint(deliveryRoute.getEndLatitude(), deliveryRoute.getEndLongitude())));
         List<DeliveryRouteStop> persistedStops = deliveryRouteStops.findByRouteIdOrderByStopOrder(deliveryRoute.getId());
@@ -4036,6 +4485,12 @@ public class PackagesService implements IPackagesService {
                                       GeoPoint point,
                                       double routeProgress,
                                       int typePriority) {
+    }
+
+    private record MergedStop(String kind,
+                               GeoPoint point,
+                               List<PlannablePackage> packages,
+                               double routeProgress) {
     }
 
     private AddressDTO getDepartureAddress(List<AddressDTO> addresses) {
@@ -4149,6 +4604,20 @@ public class PackagesService implements IPackagesService {
     private Double sumMetric(String metricName) {
         try {
             return meterRegistry.find(metricName)
+                    .meters()
+                    .stream()
+                    .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))
+                    .mapToDouble(measurement -> ((Measurement) measurement).getValue())
+                    .sum();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Double sumMetricByTag(String metricName, String tagKey, String tagValue) {
+        try {
+            return meterRegistry.find(metricName)
+                    .tag(tagKey, tagValue)
                     .meters()
                     .stream()
                     .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))

@@ -45,16 +45,14 @@ public class PackageMain {
         }
 
     @Bean
-    @Scope("prototype")
     public GeoApiContext iniiateGoogleGeoCoder(){
-        GeoApiContext context = new GeoApiContext.Builder()
+        return new GeoApiContext.Builder()
             .apiKey(googleMapsApiKey)
             .queryRateLimit(googleMapsQueryRateLimit)
             .connectTimeout(googleMapsConnectTimeoutSeconds, TimeUnit.SECONDS)
             .readTimeout(googleMapsReadTimeoutSeconds, TimeUnit.SECONDS)
             .writeTimeout(googleMapsWriteTimeoutSeconds, TimeUnit.SECONDS)
             .build();
-        return context;
     }
     @Bean
     public Logger initLogger(){

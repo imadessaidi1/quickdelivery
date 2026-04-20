@@ -203,7 +203,8 @@ If no `PICKEDUP` package exists for the configured courier, `init-env.ps1` now t
 - `guest-checkout.js` is self-contained and creates its own guest package.
 - `courier-onboarding.js` uploads a full courier file with vehicle documents, then validates it as admin.
 - `e2e-delivery.js` creates a package near `3 Rue Pasteur, 94450 Limeil-Brevannes` and drives it to `DELIVERED`.
-- `seed-visible-packages.js` leaves paid `NEW` packages around Limeil-Brevannes so they can be seen on the “packages autour de moi” map in 10, 20 and 30 km radius filters.
+- `seed-visible-packages.js` leaves paid `NEW` packages around Limeil-Brevannes so they can be seen on the "packages autour de moi" map in 10, 20 and 30 km radius filters.
+- `reset-and-seed-homepage-data.ps1` prepares a full homepage/e2e dataset on the Limeil-Brevannes -> Orly corridor: pickups within 3 km of `3 Rue Pasteur, 94450 Limeil-Brevannes`, deliveries within 2 km of `2 Rue Anatole France, 94310 Orly`, plus direct-search and tournee-search packages for reservation, tracking and notification tests.
 - `tracking-live.js` retries once before failing the websocket update assertion to reduce false negatives.
 - `crash.js` is intentionally destructive and should only be run against a non-production environment or during an approved failure-window.
 - `vm1-frontdoor.js` is the best campaign to isolate `Nginx` / TLS / `api-gateway` saturation on `VM1`.

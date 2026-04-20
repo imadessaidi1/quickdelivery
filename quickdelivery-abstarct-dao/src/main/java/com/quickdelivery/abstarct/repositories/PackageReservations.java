@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,4 +46,13 @@ public interface PackageReservations extends JpaRepository<PackageReservation, L
     Optional<PackageReservation> findByPackageAndDeliveryPersonAndStatus(@Param("packageId") Long packageId,
                                                                          @Param("deliveryPersonId") Long deliveryPersonId,
                                                                          @Param("status") PACKAGE_RESERVATION_STATUS status);
+
+    @Query("""
+            SELECT DISTINCT pr.aPackage.id
+            FROM PackageReservation pr
+            WHERE pr.deliveryPerson.id = :deliveryPersonId
+            AND pr.status IN :statuses
+            """)
+    List<Long> findPackageIdsByDeliveryPersonAndStatuses(@Param("deliveryPersonId") Long deliveryPersonId,
+                                                         @Param("statuses") Collection<PACKAGE_RESERVATION_STATUS> statuses);
 }

@@ -15,7 +15,7 @@ import {
 } from './courier-onboarding.js';
 
 const ROUTE_START = { lat: 48.74845, lng: 2.48856 };
-const ROUTE_END = { lat: 48.7812, lng: 2.4545 };
+const ROUTE_END = { lat: 48.74683, lng: 2.40548 };
 
 function createAndValidateCourier() {
   const userPayload = buildCourierUserPayload();
@@ -179,14 +179,14 @@ function createPaidPackage(seedLabel) {
         addressAuto: '3 Rue Pasteur, 94450 Limeil-Brevannes, France',
       },
       arrival: {
-        line1: '2 Avenue du General de Gaulle',
+        line1: '2 Rue Anatole France',
         line2: '',
-        town: 'Creteil',
-        zipCode: '94000',
+        town: 'Orly',
+        zipCode: '94310',
         country: 'France',
         latitude: ROUTE_END.lat,
         longitude: ROUTE_END.lng,
-        addressAuto: '2 Avenue du General de Gaulle, 94000 Creteil, France',
+        addressAuto: '2 Rue Anatole France, 94310 Orly, France',
       },
       referencePrefix: 'PERF-ROUTE',
     }),

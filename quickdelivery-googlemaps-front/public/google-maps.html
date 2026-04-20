@@ -51,6 +51,23 @@
        const SOFT_LOCKED_MARKER_COLOR = '#f59e0b';
        const INACTIVE_MARKER_COLOR = '#94a3b8';
        const PACKAGE_ROUTE_COLORS = ['#2563eb', '#16a34a', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#be185d', '#4f46e5', '#65a30d', '#0f766e'];
+
+       // Route display cache (Fix P1a — cost reduction)
+       const routeDisplayCache = new Map(); // key -> { path, distanceMeters, durationMillis, cachedAt }
+       const ROUTE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+       const ROUTE_CACHE_MAX_ENTRIES = 50;
+
+       function buildRouteCacheKey(originLat, originLng, destLat, destLng) {
+           return originLat.toFixed(4) + ',' + originLng.toFixed(4) + '->' + destLat.toFixed(4) + ',' + destLng.toFixed(4);
+       }
+
+       function pruneRouteCache() {
+           if (routeDisplayCache.size > ROUTE_CACHE_MAX_ENTRIES) {
+               // Delete the oldest entry (first inserted key)
+               var firstKey = routeDisplayCache.keys().next().value;
+               routeDisplayCache.delete(firstKey);
+           }
+       }
        
 	   function getAccessToken() {
 		   try {
@@ -228,21 +245,40 @@
 	  function calculateAndDisplayRouteForPackage(directionsService, directionsRenderer, packageStart, packageEnd) {
             suppressViewportPublishUntil = Date.now() + 1500;
 	        window.top.postMessage('StartLoading', '*');
-			const start = packageStart;
-			const end = packageEnd;
+			var start = packageStart;
+			var end = packageEnd;
+			highlightedPackageIds = null;
+			refreshMarkersVisualState();
+
+			var cacheKey = buildRouteCacheKey(start.lat, start.lng, end.lat, end.lng);
+			var cached = routeDisplayCache.get(cacheKey);
+			if (cached && (Date.now() - cached.cachedAt) < ROUTE_CACHE_TTL_MS) {
+			    // Cache hit — re-render without a Routes API call
+			    renderRoute(cached, true);
+			    updateRouteEndpointMarkers(start, end);
+			    window.top.postMessage('EndLoading', '*');
+			    return;
+			}
+
 			computeDrivingRoute(start, end)
 				.then((response) => {
 					if (!response) throw new Error('No route returned');
 					renderRoute(response, true);
 					updateRouteEndpointMarkers(start, end);
+					// Store in cache
+					routeDisplayCache.set(cacheKey, {
+					    path: response.path,
+					    distanceMeters: response.distanceMeters,
+					    durationMillis: response.durationMillis,
+					    cachedAt: Date.now(),
+					});
+					pruneRouteCache();
                     window.top.postMessage('EndLoading', '*');
 				})
 				.catch((e) => {
                     window.top.postMessage('EndLoading', '*');
 					console.error("Directions request failed due to " + e)
                 });
-			highlightedPackageIds = null;
-			refreshMarkersVisualState();
 		}
 
 	  function calculateAndDisplayRouteForPackageOnMyRoad(directionsService, directionsRenderer, packageStart, packageEnd) {

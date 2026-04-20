@@ -11,6 +11,9 @@ public class ServiceMetricsDTO {
     private Double asyncQueueSize;
     private Double asyncActiveCount;
     private Double ocrProcessedCount;
+    private Double googleMapsGeocodingCalls;
+    private Double googleMapsDistanceMatrixCalls;
+    private Double googleMapsDistanceCacheHits;
 
     public String getServiceName() {
         return serviceName;
@@ -90,5 +93,29 @@ public class ServiceMetricsDTO {
 
     public void setOcrProcessedCount(Double ocrProcessedCount) {
         this.ocrProcessedCount = ocrProcessedCount;
+    }
+
+    public Double getGoogleMapsGeocodingCalls() {
+        return googleMapsGeocodingCalls;
+    }
+
+    public void setGoogleMapsGeocodingCalls(Double googleMapsGeocodingCalls) {
+        this.googleMapsGeocodingCalls = googleMapsGeocodingCalls;
+    }
+
+    public Double getGoogleMapsDistanceMatrixCalls() {
+        return googleMapsDistanceMatrixCalls;
+    }
+
+    public void setGoogleMapsDistanceMatrixCalls(Double googleMapsDistanceMatrixCalls) {
+        this.googleMapsDistanceMatrixCalls = googleMapsDistanceMatrixCalls;
+    }
+
+    public Double getGoogleMapsDistanceCacheHits() {
+        return googleMapsDistanceCacheHits;
+    }
+
+    public void setGoogleMapsDistanceCacheHits(Double googleMapsDistanceCacheHits) {
+        this.googleMapsDistanceCacheHits = googleMapsDistanceCacheHits;
     }
 }

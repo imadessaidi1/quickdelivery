@@ -145,6 +145,32 @@ function New-OffsetAddress {
         -Label ("{0}-{1}" -f $Label, $Index)
 }
 
+function New-RadiusAddress {
+    param(
+        [hashtable]$Base,
+        [string]$Type,
+        [string]$Label,
+        [int]$Index,
+        [double]$RadiusKm,
+        [double]$BearingDegrees
+    )
+
+    $bearingRadians = $BearingDegrees * [math]::PI / 180
+    $latitudeOffsetKm = $RadiusKm * [math]::Cos($bearingRadians)
+    $longitudeOffsetKm = $RadiusKm * [math]::Sin($bearingRadians)
+    $latitudeOffset = $latitudeOffsetKm / 110.574
+    $longitudeOffset = $longitudeOffsetKm / (111.320 * [math]::Cos($Base.Latitude * [math]::PI / 180))
+
+    return New-CoordinateAddress `
+        -Type $Type `
+        -Line1 ("{0} Seed {1}" -f (10 + $Index), $Label) `
+        -Town $Base.Town `
+        -ZipCode $Base.ZipCode `
+        -Latitude ($Base.Latitude + $latitudeOffset) `
+        -Longitude ($Base.Longitude + $longitudeOffset) `
+        -Label ("{0}-{1}" -f $Label, $Index)
+}
+
 function New-InterpolatedAddress {
     param(
         [hashtable]$Start,
@@ -160,18 +186,18 @@ function New-InterpolatedAddress {
     $latitude = $Start.Latitude + (($End.Latitude - $Start.Latitude) * $Progress) + $LatitudeOffset
     $longitude = $Start.Longitude + (($End.Longitude - $Start.Longitude) * $Progress) + $LongitudeOffset
 
-    if ($Progress -lt 0.2) {
+    if ($Progress -lt 0.25) {
         $town = "Limeil-Brevannes"
         $zipCode = "94450"
-    } elseif ($Progress -lt 0.4) {
-        $town = "Creteil"
-        $zipCode = "94000"
-    } elseif ($Progress -lt 0.7) {
-        $town = "Paris"
-        $zipCode = "75012"
+    } elseif ($Progress -lt 0.55) {
+        $town = "Valenton"
+        $zipCode = "94460"
+    } elseif ($Progress -lt 0.75) {
+        $town = "Villeneuve-Saint-Georges"
+        $zipCode = "94190"
     } else {
-        $town = "Paris"
-        $zipCode = "75018"
+        $town = "Orly"
+        $zipCode = "94310"
     }
 
     return New-CoordinateAddress `
@@ -314,58 +340,22 @@ function Get-SeedPlan {
         Latitude = 48.74845
         Longitude = 2.48856
     }
-    $bernardDimey = @{
-        Line1 = "22 Rue Bernard Dimey"
-        Town = "Paris"
-        ZipCode = "75018"
-        Latitude = 48.89510
-        Longitude = 2.34360
+    $orlyAnatoleFrance = @{
+        Line1 = "2 Rue Anatole France"
+        Town = "Orly"
+        ZipCode = "94310"
+        Latitude = 48.74683
+        Longitude = 2.40548
     }
-    $creteil = @{
-        Line1 = "2 Avenue du General de Gaulle"
-        Town = "Creteil"
-        ZipCode = "94000"
-        Latitude = 48.78120
-        Longitude = 2.45450
-    }
-    $paris12 = @{
-        Line1 = "14 Cours de Vincennes"
-        Town = "Paris"
-        ZipCode = "75012"
-        Latitude = 48.84470
-        Longitude = 2.40840
-    }
-    $chartres = @{
-        Line1 = "8 Place Pierre Semard"
-        Town = "Chartres"
-        ZipCode = "28000"
-        Latitude = 48.44720
-        Longitude = 1.48910
-    }
-    $lille = @{
-        Line1 = "1 Boulevard de Turin"
-        Town = "Lille"
-        ZipCode = "59800"
-        Latitude = 50.63940
-        Longitude = 3.07540
-    }
-    $marseille = @{
-        Line1 = "Square Narvik"
-        Town = "Marseille"
-        ZipCode = "13001"
-        Latitude = 43.30280
-        Longitude = 5.38020
-    }
-
     $originAddress = New-CoordinateAddress -Type DEPARTURE -Line1 $limeil.Line1 -Town $limeil.Town -ZipCode $limeil.ZipCode -Latitude $limeil.Latitude -Longitude $limeil.Longitude -Label "origin"
-    $directDestinationAddress = New-CoordinateAddress -Type ARRIVAL -Line1 $bernardDimey.Line1 -Town $bernardDimey.Town -ZipCode $bernardDimey.ZipCode -Latitude $bernardDimey.Latitude -Longitude $bernardDimey.Longitude -Label "destination"
+    $directDestinationAddress = New-CoordinateAddress -Type ARRIVAL -Line1 $orlyAnatoleFrance.Line1 -Town $orlyAnatoleFrance.Town -ZipCode $orlyAnatoleFrance.ZipCode -Latitude $orlyAnatoleFrance.Latitude -Longitude $orlyAnatoleFrance.Longitude -Label "destination"
 
     $pricingDestinations = @(
-        @{ Key = "band-10"; Address = (New-CoordinateAddress -Type ARRIVAL -Line1 $creteil.Line1 -Town $creteil.Town -ZipCode $creteil.ZipCode -Latitude $creteil.Latitude -Longitude $creteil.Longitude -Label "price-band-10") },
-        @{ Key = "band-30"; Address = (New-CoordinateAddress -Type ARRIVAL -Line1 $paris12.Line1 -Town $paris12.Town -ZipCode $paris12.ZipCode -Latitude $paris12.Latitude -Longitude $paris12.Longitude -Label "price-band-30") },
-        @{ Key = "band-100"; Address = (New-CoordinateAddress -Type ARRIVAL -Line1 $chartres.Line1 -Town $chartres.Town -ZipCode $chartres.ZipCode -Latitude $chartres.Latitude -Longitude $chartres.Longitude -Label "price-band-100") },
-        @{ Key = "band-long"; Address = (New-CoordinateAddress -Type ARRIVAL -Line1 $lille.Line1 -Town $lille.Town -ZipCode $lille.ZipCode -Latitude $lille.Latitude -Longitude $lille.Longitude -Label "price-band-long") },
-        @{ Key = "band-long-premium"; Address = (New-CoordinateAddress -Type ARRIVAL -Line1 $marseille.Line1 -Town $marseille.Town -ZipCode $marseille.ZipCode -Latitude $marseille.Latitude -Longitude $marseille.Longitude -Label "price-band-long-premium") }
+        @{ Key = "corridor-25"; Address = (New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "price-corridor" -Index 1 -Progress 0.25 -LatitudeOffset 0 -LongitudeOffset 0) },
+        @{ Key = "corridor-45"; Address = (New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "price-corridor" -Index 2 -Progress 0.45 -LatitudeOffset 0 -LongitudeOffset 0) },
+        @{ Key = "corridor-65"; Address = (New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "price-corridor" -Index 3 -Progress 0.65 -LatitudeOffset 0 -LongitudeOffset 0) },
+        @{ Key = "corridor-85"; Address = (New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "price-corridor" -Index 4 -Progress 0.85 -LatitudeOffset 0 -LongitudeOffset 0) },
+        @{ Key = "orly-anatole"; Address = $directDestinationAddress }
     )
 
     $categories = @("SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE")
@@ -468,8 +458,8 @@ function Get-SeedPlan {
         -Expectation "Insurance proportional fee"
 
     for ($index = 0; $index -lt 8; $index += 1) {
-        $pickup = New-OffsetAddress -Base $limeil -Type DEPARTURE -Label "around-me-pickup" -Index $index -LatitudeOffset (0.002 * (($index % 4) - 1.5)) -LongitudeOffset (0.002 * ([math]::Floor($index / 4) - 0.5))
-        $drop = New-OffsetAddress -Base $creteil -Type ARRIVAL -Label "around-me-drop" -Index $index -LatitudeOffset (0.002 * (($index % 4) - 1.5)) -LongitudeOffset (0.002 * ([math]::Floor($index / 4) - 0.5))
+        $pickup = New-RadiusAddress -Base $limeil -Type DEPARTURE -Label "around-me-pickup" -Index $index -RadiusKm (0.4 + (($index % 6) * 0.4)) -BearingDegrees (($index * 47) % 360)
+        $drop = New-RadiusAddress -Base $orlyAnatoleFrance -Type ARRIVAL -Label "around-me-drop" -Index $index -RadiusKm (0.3 + (($index % 5) * 0.3)) -BearingDegrees ((180 + ($index * 53)) % 360)
         Add-SeedCase -Target $seedCases -Group "around_me" `
             -Reference ("TEST-AROUNDME-{0:D2}-{1}" -f ($index + 1), $runSuffix) `
             -Category $categories[$index % $categories.Count] `
@@ -483,8 +473,8 @@ function Get-SeedPlan {
     }
 
     for ($index = 0; $index -lt 30; $index += 1) {
-        $pickup = New-OffsetAddress -Base $limeil -Type DEPARTURE -Label "direct-pickup" -Index $index -LatitudeOffset (0.0014 * (($index % 5) - 2)) -LongitudeOffset (0.0014 * ([math]::Floor($index / 5) - 2.5))
-        $drop = New-OffsetAddress -Base $bernardDimey -Type ARRIVAL -Label "direct-drop" -Index $index -LatitudeOffset (0.0012 * (($index % 5) - 2)) -LongitudeOffset (0.0012 * ([math]::Floor($index / 5) - 2.5))
+        $pickup = New-RadiusAddress -Base $limeil -Type DEPARTURE -Label "direct-pickup" -Index $index -RadiusKm (0.5 + (($index % 6) * 0.42)) -BearingDegrees (($index * 31) % 360)
+        $drop = New-RadiusAddress -Base $orlyAnatoleFrance -Type ARRIVAL -Label "direct-drop" -Index $index -RadiusKm (0.25 + (($index % 7) * 0.25)) -BearingDegrees ((90 + ($index * 29)) % 360)
         $directInsuranceSelected = (($index % 2) -eq 0)
         $directDeclaredValue = if ($directInsuranceSelected) { 100 } else { 0 }
         Add-SeedCase -Target $seedCases -Group "direct" `
@@ -500,10 +490,10 @@ function Get-SeedPlan {
     }
 
     for ($index = 0; $index -lt 30; $index += 1) {
-        $progressPickup = 0.05 + ($index * 0.02)
-        $progressDrop = [math]::Min(0.95, $progressPickup + 0.12)
-        $pickup = New-InterpolatedAddress -Start $limeil -End $bernardDimey -Type DEPARTURE -Label "tournee-pickup" -Index $index -Progress $progressPickup -LatitudeOffset (0.0012 * (($index % 3) - 1)) -LongitudeOffset (0.0009 * (($index % 4) - 1.5))
-        $drop = New-InterpolatedAddress -Start $limeil -End $bernardDimey -Type ARRIVAL -Label "tournee-drop" -Index $index -Progress $progressDrop -LatitudeOffset (0.0010 * (($index % 4) - 1.5)) -LongitudeOffset (0.0008 * (($index % 3) - 1))
+        $progressPickup = 0.06 + ($index * 0.025)
+        $progressDrop = [math]::Min(0.98, $progressPickup + 0.14)
+        $pickup = New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type DEPARTURE -Label "tournee-pickup" -Index $index -Progress $progressPickup -LatitudeOffset (0.0010 * (($index % 3) - 1)) -LongitudeOffset (0.0008 * (($index % 4) - 1.5))
+        $drop = New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "tournee-drop" -Index $index -Progress $progressDrop -LatitudeOffset (0.0009 * (($index % 4) - 1.5)) -LongitudeOffset (0.0007 * (($index % 3) - 1))
         $tourneeInsuranceSelected = (($index % 3) -eq 0)
         $tourneeDeclaredValue = if ($tourneeInsuranceSelected) { 150 } else { 0 }
         Add-SeedCase -Target $seedCases -Group "tournee" `
@@ -515,7 +505,7 @@ function Get-SeedPlan {
             -DeclaredValue $tourneeDeclaredValue `
             -Departure $pickup `
             -Arrival $drop `
-            -Expectation "Visible on personal route search"
+            -Expectation "Visible on personal route search between Limeil and Orly"
     }
 
     for ($index = 0; $index -lt 6; $index += 1) {
@@ -530,7 +520,7 @@ function Get-SeedPlan {
             -DeclaredValue 0 `
             -Departure $pickup `
             -Arrival $drop `
-            -Expectation "Should not appear on homepage searches around Limeil/Paris"
+            -Expectation "Should not appear on homepage searches around Limeil/Orly"
     }
 
     return @{

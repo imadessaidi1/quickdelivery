@@ -48,6 +48,8 @@ public class Package {
     private Double declaredValue;
     @Column
     private String distanceToDestination;
+    @Column
+    private Double distanceKm;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "packaged", cascade = CascadeType.ALL)
     private Set<Address> addresses = new HashSet<>();
 
@@ -273,6 +275,14 @@ public class Package {
 
     public void setDistanceToDestination(String distanceToDestination) {
         this.distanceToDestination = distanceToDestination;
+    }
+
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
     }
 
     public String getReference() {

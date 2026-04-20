@@ -788,6 +788,9 @@ public class UserServices implements IUserServices {
         metrics.setAsyncQueueSize(sumMetric("quickdelivery.async.queue.size"));
         metrics.setAsyncActiveCount(sumMetric("quickdelivery.async.active.count"));
         metrics.setOcrProcessedCount(sumMetric("quickdelivery.ocr.document.processed"));
+        metrics.setGoogleMapsGeocodingCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "geocoding"));
+        metrics.setGoogleMapsDistanceMatrixCalls(null);
+        metrics.setGoogleMapsDistanceCacheHits(null);
         return metrics;
     }
 
@@ -1054,6 +1057,9 @@ public class UserServices implements IUserServices {
 
     private void geocodeAddressesIfPossible(UserDTO user) {
         user.getPersonalAddress().forEach(address -> {
+            if (!needsGeocoding(address)) {
+                return;
+            }
             try {
                 GeoHelper.AddressGeoCoding(geoApiContext, address);
             } catch (IOException | InterruptedException | ApiException e) {
@@ -1061,6 +1067,19 @@ public class UserServices implements IUserServices {
                         user.getEmailAddress(), e.getMessage());
             }
         });
+    }
+
+    /**
+     * Returns true only when the address is missing valid coordinates and
+     * actually needs a Geocoding API call (cost-reduction guard, Fix P1b).
+     */
+    private boolean needsGeocoding(com.quickdelivery.abstarct.dto.AddressDTO address) {
+        if (address == null) return false;
+        java.math.BigDecimal lat = address.getLatitude();
+        java.math.BigDecimal lng = address.getLongitude();
+        if (lat == null || lng == null) return true;
+        return lat.compareTo(java.math.BigDecimal.ZERO) == 0
+                && lng.compareTo(java.math.BigDecimal.ZERO) == 0;
     }
 
     private boolean hasAddressContent(com.quickdelivery.abstarct.dto.AddressDTO address) {
@@ -2262,6 +2281,20 @@ public class UserServices implements IUserServices {
     private Double sumMetric(String metricName) {
         try {
             return meterRegistry.find(metricName)
+                    .meters()
+                    .stream()
+                    .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))
+                    .mapToDouble(measurement -> ((Measurement) measurement).getValue())
+                    .sum();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private Double sumMetricByTag(String metricName, String tagKey, String tagValue) {
+        try {
+            return meterRegistry.find(metricName)
+                    .tag(tagKey, tagValue)
                     .meters()
                     .stream()
                     .flatMap(meter -> StreamSupport.stream(meter.measure().spliterator(), false))

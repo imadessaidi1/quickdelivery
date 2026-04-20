@@ -126,7 +126,9 @@ public interface Packages extends JpaRepository<Package, Long> {
             "FROM Package p " +
             "JOIN FETCH p.packageReservations r " +
             "LEFT JOIN FETCH p.addresses a " +
-            "WHERE r.deliveryPerson.id = :deliveryPersonID")
+            "WHERE r.deliveryPerson.id = :deliveryPersonID " +
+            "AND r.status <> com.quickdelivery.abstarct.parameters.PACKAGE_RESERVATION_STATUS.CANCELED " +
+            "AND p.status <> com.quickdelivery.abstarct.parameters.PACKAGE_STATUS.NEW")
     List<Package> findPackagesByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 
     @Query("SELECT DISTINCT p " +

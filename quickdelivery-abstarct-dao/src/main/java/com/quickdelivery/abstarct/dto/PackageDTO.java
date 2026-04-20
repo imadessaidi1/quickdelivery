@@ -45,6 +45,7 @@ public class PackageDTO {
     private String guestAccessToken;
 
     private String distanceToDestination;
+    private Double distanceKm;
     private List<PackageReservationDTO> packageReservations;
     private List<AddressDTO> addresses;
 
@@ -351,6 +352,14 @@ public class PackageDTO {
 
     public void setDistanceToDestination(String distanceToDestination) {
         this.distanceToDestination = distanceToDestination;
+    }
+
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
     }
 
     public String getFromYou() {

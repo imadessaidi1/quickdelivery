@@ -122,8 +122,9 @@ public class PackageController {
     public List<PackageDTO> packagesAroundMyPosition(@RequestParam(name = "latitude", required = true) String latitude,
                                                                 @RequestParam(name = "longitude", required = true) String longitude,
                                                                 @RequestParam(name = "rayonEnMetres", required = true) double rayonEnMetres,
-                                                                @RequestParam(name = "deliveryMode", required = false) String deliveryMode){
-        return packagesService.getPackagesAroundPosition(latitude,longitude,rayonEnMetres, deliveryMode);
+                                                                @RequestParam(name = "deliveryMode", required = false) String deliveryMode,
+                                                                @RequestParam(name = "deliveryPersonId", required = false) Long deliveryPersonId){
+        return packagesService.getPackagesAroundPosition(latitude,longitude,rayonEnMetres, deliveryMode, deliveryPersonId);
     }
 
     @GetMapping("/map/packages-in-bounds")
@@ -134,8 +135,9 @@ public class PackageController {
                                              @RequestParam(name = "centerLat") double centerLat,
                                              @RequestParam(name = "centerLng") double centerLng,
                                              @RequestParam(name = "limit", defaultValue = "100") int limit,
-                                             @RequestParam(name = "deliveryMode", required = false) String deliveryMode) {
-        return packagesService.getPackagesInBounds(minLat, maxLat, minLng, maxLng, centerLat, centerLng, limit, deliveryMode);
+                                             @RequestParam(name = "deliveryMode", required = false) String deliveryMode,
+                                             @RequestParam(name = "deliveryPersonId", required = false) Long deliveryPersonId) {
+        return packagesService.getPackagesInBounds(minLat, maxLat, minLng, maxLng, centerLat, centerLng, limit, deliveryMode, deliveryPersonId);
     }
 
     @GetMapping("/packages-on-my-road")
@@ -145,8 +147,9 @@ public class PackageController {
                                                  @RequestParam(name = "arrivalLongitude", required = true) String arrivalLongitude,
                                                  @RequestParam(name = "deliveryMode", required = false) String deliveryMode,
                                                  @RequestParam(name = "vehicleType", required = false) String vehicleType,
-                                                 @RequestParam(name = "radiusMeters", required = false, defaultValue = "10000") double radiusMeters){
-        return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude, deliveryMode, vehicleType, radiusMeters);
+                                                 @RequestParam(name = "radiusMeters", required = false, defaultValue = "10000") double radiusMeters,
+                                                 @RequestParam(name = "deliveryPersonId", required = false) Long deliveryPersonId){
+        return packagesService.findAddressOnMyRoad(departureLatitude,arrivalLatitude,departureLongitude, arrivalLongitude, deliveryMode, vehicleType, radiusMeters, deliveryPersonId);
     }
 
     @PostMapping("/plan-route")
@@ -412,6 +415,12 @@ public class PackageController {
         return packagesService.loadAdminCourierPenalties(limit);
     }
 
+    @PostMapping("/admin/courier-penalties/{penaltyId}/lift")
+    public CourierPenaltyDTO liftCourierPenalty(@PathVariable("penaltyId") Long penaltyId,
+                                                @RequestParam(name = "reason", required = false) String reason) {
+        return packagesService.liftCourierPenalty(penaltyId, reason);
+    }
+
     @GetMapping("/notifications")
     public List<NotificationDTO> notifications(@RequestParam("userId") Long userId) {
         return notificationService.findByRecipient(userId);
@@ -480,7 +489,8 @@ public class PackageController {
                                                           @RequestParam(name = "deliveryMode", required = false) String deliveryMode,
                                                           @RequestParam(name = "vehicleType", required = false) String vehicleType,
                                                           @RequestParam(name = "destinationLatitude", required = false) Double destinationLatitude,
-                                                          @RequestParam(name = "destinationLongitude", required = false) Double destinationLongitude) {
+                                                          @RequestParam(name = "destinationLongitude", required = false) Double destinationLongitude,
+                                                          @RequestParam(name = "deliveryPersonId", required = false) Long deliveryPersonId) {
         AddressDTO addressDTO = new AddressDTO();
         addressDTO.setLine1(line1);
         addressDTO.setCountry(country);
@@ -491,7 +501,7 @@ public class PackageController {
         double effectivePickupRadius = pickupRadiusMeters != null ? pickupRadiusMeters : rayonEnMetres;
         double effectiveDeliveryRadius = deliveryRadiusMeters != null ? deliveryRadiusMeters : rayonEnMetres;
         try {
-            return packagesService.getPackagesAroundPositionWithDestination(latitude, longitude, addressDTO, effectivePickupRadius, effectiveDeliveryRadius, deliveryMode, vehicleType);
+            return packagesService.getPackagesAroundPositionWithDestination(latitude, longitude, addressDTO, effectivePickupRadius, effectiveDeliveryRadius, deliveryMode, vehicleType, deliveryPersonId);
         } catch (IOException | InterruptedException | ApiException e) {
             throw new RuntimeException(e);
         }

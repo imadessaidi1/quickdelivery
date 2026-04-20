@@ -905,6 +905,9 @@ export default {
             isUserWithOngoingDelivery: true,
             activeDeliveryRoute: reservedRoutePlan,
           });
+          this.$store.commit('updateRequestSuccess', true);
+          this.$store.commit('updateRequestMessage', this.$t('activeRouteReservationDeadlineInfo'));
+          this.$store.commit('updateShowMessage', true);
           window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
           const navigationUrl = reservedRoutePlan.googleMapsNavigationUrl
             || (Array.isArray(reservedRoutePlan.googleMapsNavigationUrls) ? reservedRoutePlan.googleMapsNavigationUrls[0] : '');
@@ -1040,7 +1043,8 @@ export default {
             + latitude
             + '&longitude=' + longitude
             + '&rayonEnMetres=' + this.searchRadius
-            + '&deliveryMode=' + encodeURIComponent(this.currentDeliveryMode());
+            + '&deliveryMode=' + encodeURIComponent(this.currentDeliveryMode())
+            + (this.$store.state.connectedUser?.id ? '&deliveryPersonId=' + encodeURIComponent(this.$store.state.connectedUser.id) : '');
           const response = await http.get(url, { silent: true });
           this.syncPackagesState(response.data);
           this.onMyRoadPackageIds = [];
@@ -1099,6 +1103,9 @@ export default {
           limit: this.isMobile ? '50' : '100',
           deliveryMode: this.currentDeliveryMode(),
         });
+        if (this.$store.state.connectedUser?.id) {
+          params.set('deliveryPersonId', String(this.$store.state.connectedUser.id));
+        }
         const response = await http.get(`${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesInBounds')}${params.toString()}`, { silent: true });
           this.syncPackagesState(response.data);
           this.onMyRoadPackageIds = [];
@@ -1142,6 +1149,9 @@ export default {
           vehicleType: this.currentVehicleType(),
           radiusMeters: String(this.searchRadius),
         });
+        if (this.$store.state.connectedUser?.id) {
+          params.set('deliveryPersonId', String(this.$store.state.connectedUser.id));
+        }
         const url = `${this.$i18n.t('rootURL')}packages-on-my-road?${params.toString()}`;
         const response = await http.get(url, { silent: true });
         this.batchPackageCount = Math.max(1, Array.isArray(response.data) ? response.data.length : 1);
@@ -1191,6 +1201,9 @@ export default {
           destinationLatitude: String(this.normalizeCoordinate(criteria.latitude)),
           destinationLongitude: String(this.normalizeCoordinate(criteria.longitude)),
         });
+        if (this.$store.state.connectedUser?.id) {
+          params.set('deliveryPersonId', String(this.$store.state.connectedUser.id));
+        }
         const url = `${this.$i18n.t('rootURL')}${this.$i18n.t('getPackagesAroundMeByDestination')}${params.toString()}`;
         const response = await http.get(url, { silent: true });
         this.batchPackageCount = Math.max(1, Array.isArray(response.data) ? response.data.length : 1);

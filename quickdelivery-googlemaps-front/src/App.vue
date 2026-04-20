@@ -284,6 +284,10 @@ export default {
           return this.$t('notificationTypePickup');
         case 'PACKAGE_DELIVERY_NOTIFICATION':
           return this.$t('notificationTypeDelivery');
+        case 'DELIVERY_ROUTE_RESERVED_WARNING_NOTIFICATION':
+          return this.$t('notificationTypeRouteReservedWarning');
+        case 'DELIVERY_ROUTE_CANCELLED_PENALTY_NOTIFICATION':
+          return this.$t('notificationTypeRouteCancelledPenalty');
         default:
           return this.$t('notificationTitle');
       }
@@ -309,6 +313,10 @@ export default {
           return 'PACKAGE_PICKUP_NOTIFICATION';
         case 'PACKAGE_DELIVERED':
           return 'PACKAGE_DELIVERY_NOTIFICATION';
+        case 'DELIVERY_ROUTE_RESERVED_WARNING':
+          return 'DELIVERY_ROUTE_RESERVED_WARNING_NOTIFICATION';
+        case 'DELIVERY_ROUTE_CANCELLED_PENALTY':
+          return 'DELIVERY_ROUTE_CANCELLED_PENALTY_NOTIFICATION';
         default:
           return 'GENERIC_NOTIFICATION';
       }

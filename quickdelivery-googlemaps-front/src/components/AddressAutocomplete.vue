@@ -172,14 +172,29 @@ export default {
         return;
       }
       const place = typeof prediction.toPlace === 'function' ? prediction.toPlace() : prediction;
-      if (typeof place.fetchFields === 'function') {
-        await place.fetchFields({
-          fields: ['formattedAddress', 'location'],
-        });
+
+      // Fix P2 — cost reduction: avoid fetchFields when location is already present.
+      // fetchFields({ fields: ['formattedAddress', 'location'] }) costs ~17 $/1000.
+      // The suggestion text from the event is free and sufficient for formattedAddress.
+      let latitude = place?.location?.lat?.() ?? place?.geometry?.location?.lat?.() ?? null;
+      let longitude = place?.location?.lng?.() ?? place?.geometry?.location?.lng?.() ?? null;
+
+      if (latitude === null || longitude === null) {
+        // Location not yet available — fetch only the fields we actually need
+        if (typeof place.fetchFields === 'function') {
+          await place.fetchFields({ fields: ['location'] });
+          latitude = place?.location?.lat?.() ?? null;
+          longitude = place?.location?.lng?.() ?? null;
+        }
       }
-      const formattedAddress = place?.formattedAddress || place?.formatted_address || this.address || '';
-      const latitude = place?.location?.lat?.() ?? place?.geometry?.location?.lat?.() ?? null;
-      const longitude = place?.location?.lng?.() ?? place?.geometry?.location?.lng?.() ?? null;
+
+      // Prefer the free suggestion text; fall back to formattedAddress only if already fetched
+      const formattedAddress = event?.placePrediction?.text?.toString()
+        || place?.formattedAddress
+        || place?.formatted_address
+        || this.address
+        || '';
+
       this.emitAddressUpdate(formattedAddress);
       this.$emit('place-selected', {
         formattedAddress,

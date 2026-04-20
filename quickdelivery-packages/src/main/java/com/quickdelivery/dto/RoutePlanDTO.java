@@ -18,6 +18,7 @@ public class RoutePlanDTO {
     private RoutePlanMetricsDTO metrics;
     private String googleMapsNavigationUrl;
     private List<String> googleMapsNavigationUrls = new ArrayList<>();
+    private String startDeadlineAt;
 
     public Long getRouteId() {
         return routeId;
@@ -113,5 +114,13 @@ public class RoutePlanDTO {
 
     public void setGoogleMapsNavigationUrls(List<String> googleMapsNavigationUrls) {
         this.googleMapsNavigationUrls = googleMapsNavigationUrls;
+    }
+
+    public String getStartDeadlineAt() {
+        return startDeadlineAt;
+    }
+
+    public void setStartDeadlineAt(String startDeadlineAt) {
+        this.startDeadlineAt = startDeadlineAt;
     }
 }

@@ -324,6 +324,9 @@ public class GatewayServiceAggregationService {
         summary.setAsyncQueueSize(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getAsyncQueueSize).toList()));
         summary.setAsyncActiveCount(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getAsyncActiveCount).toList()));
         summary.setOcrProcessedCount(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getOcrProcessedCount).toList()));
+        summary.setGoogleMapsGeocodingCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsGeocodingCalls).toList()));
+        summary.setGoogleMapsDistanceMatrixCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsDistanceMatrixCalls).toList()));
+        summary.setGoogleMapsDistanceCacheHits(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsDistanceCacheHits).toList()));
         return summary;
     }
 

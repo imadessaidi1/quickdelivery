@@ -199,21 +199,21 @@ public interface Packages extends JpaRepository<Package, Long> {
     @Query("SELECT p " +
             "FROM Package p JOIN FETCH p.packageReservations r " +
             "WHERE r.deliveryPerson.id = :deliveryPersonID " +
-            "AND p.status = 'PICKEDUP'")
+            "AND p.status IN ('PICKEDUP', 'RELAY_DROPOFF_REQUIRED')")
     List<Package> findPackagesInDeliveryByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 
     @Query("SELECT p.reference " +
             "FROM Package p JOIN p.packageReservations r " +
             "WHERE r.deliveryPerson.id = :deliveryPersonID " +
-            "AND p.status = 'PICKEDUP'")
+            "AND p.status IN ('PICKEDUP', 'RELAY_DROPOFF_REQUIRED')")
     List<String> findPackageReferencesInDeliveryByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 
     @Query("""
             SELECT p
             FROM Package p JOIN FETCH p.packageReservations r
             WHERE r.deliveryPerson.id = :deliveryPersonID
-            AND p.status IN ('PICKEDUP', 'INDELIVERY')
-            ORDER BY CASE WHEN p.status = 'INDELIVERY' THEN 0 ELSE 1 END, p.reservationDate DESC, p.id DESC
+            AND p.status IN ('PICKEDUP', 'INDELIVERY', 'RELAY_DROPOFF_REQUIRED')
+            ORDER BY CASE WHEN p.status = 'INDELIVERY' THEN 0 WHEN p.status = 'RELAY_DROPOFF_REQUIRED' THEN 1 ELSE 2 END, p.reservationDate DESC, p.id DESC
             """)
     List<Package> findActiveTrackingPackagesByDeliveryPerson(@Param("deliveryPersonID") long deliveryPersonID);
 
@@ -222,7 +222,7 @@ public interface Packages extends JpaRepository<Package, Long> {
             UPDATE Package p
             SET p.lastPositionLatitude = :latitude, p.lastPositionLongitude = :longitude
             WHERE p.reference = :packageReference
-            AND p.status IN ('PICKEDUP', 'INDELIVERY')
+            AND p.status IN ('PICKEDUP', 'INDELIVERY', 'RELAY_DROPOFF_REQUIRED')
             """)
     int updateTrackingPositionByPackageReference(@Param("packageReference") String packageReference,
                                                  @Param("latitude") java.math.BigDecimal latitude,

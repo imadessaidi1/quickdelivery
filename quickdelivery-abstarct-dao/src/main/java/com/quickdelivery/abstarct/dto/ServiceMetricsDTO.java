@@ -14,6 +14,10 @@ public class ServiceMetricsDTO {
     private Double googleMapsGeocodingCalls;
     private Double googleMapsDistanceMatrixCalls;
     private Double googleMapsDistanceCacheHits;
+    private Double googleMapsClientMapLoads;
+    private Double googleMapsClientPlacesCalls;
+    private Double googleMapsClientRouteCalls;
+    private Double googleMapsClientGeocodingCalls;
 
     public String getServiceName() {
         return serviceName;
@@ -117,5 +121,37 @@ public class ServiceMetricsDTO {
 
     public void setGoogleMapsDistanceCacheHits(Double googleMapsDistanceCacheHits) {
         this.googleMapsDistanceCacheHits = googleMapsDistanceCacheHits;
+    }
+
+    public Double getGoogleMapsClientMapLoads() {
+        return googleMapsClientMapLoads;
+    }
+
+    public void setGoogleMapsClientMapLoads(Double googleMapsClientMapLoads) {
+        this.googleMapsClientMapLoads = googleMapsClientMapLoads;
+    }
+
+    public Double getGoogleMapsClientPlacesCalls() {
+        return googleMapsClientPlacesCalls;
+    }
+
+    public void setGoogleMapsClientPlacesCalls(Double googleMapsClientPlacesCalls) {
+        this.googleMapsClientPlacesCalls = googleMapsClientPlacesCalls;
+    }
+
+    public Double getGoogleMapsClientRouteCalls() {
+        return googleMapsClientRouteCalls;
+    }
+
+    public void setGoogleMapsClientRouteCalls(Double googleMapsClientRouteCalls) {
+        this.googleMapsClientRouteCalls = googleMapsClientRouteCalls;
+    }
+
+    public Double getGoogleMapsClientGeocodingCalls() {
+        return googleMapsClientGeocodingCalls;
+    }
+
+    public void setGoogleMapsClientGeocodingCalls(Double googleMapsClientGeocodingCalls) {
+        this.googleMapsClientGeocodingCalls = googleMapsClientGeocodingCalls;
     }
 }

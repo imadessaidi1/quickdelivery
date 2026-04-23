@@ -20,14 +20,16 @@ import java.util.Properties;
 public class MailHelper {
     private static JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(resolveMailSetting("quickdelivery.mail.host", "QUICKDELIVERY_MAIL_HOST", "smtp.gmail.com"));
+        mailSender.setHost(resolveMailSetting("quickdelivery.mail.host", "QUICKDELIVERY_MAIL_HOST", "smtp.ionos.fr"));
         mailSender.setPort(Integer.parseInt(resolveMailSetting("quickdelivery.mail.port", "QUICKDELIVERY_MAIL_PORT", "587")));
-        mailSender.setUsername(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME"));
+        String username = resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME");
+        mailSender.setUsername(username);
         mailSender.setPassword(resolveRequiredMailSecret("quickdelivery.mail.password", "QUICKDELIVERY_MAIL_PASSWORD"));
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", resolveMailSetting("quickdelivery.mail.smtp.auth", "QUICKDELIVERY_MAIL_SMTP_AUTH", "true"));
         props.put("mail.smtp.starttls.enable", resolveMailSetting("quickdelivery.mail.smtp.starttls.enable", "QUICKDELIVERY_MAIL_SMTP_STARTTLS_ENABLE", "true"));
+        props.put("mail.smtp.from", resolveMailFromAddress(username));
         props.put("mail.debug", resolveMailSetting("quickdelivery.mail.debug", "QUICKDELIVERY_MAIL_DEBUG", "false"));
         props.put("mail.mime.charset", "UTF-8");
         props.put("mail.mime.allowutf8", "true");
@@ -44,6 +46,14 @@ public class MailHelper {
             return defaultValue;
         }
         return value.trim();
+    }
+
+    private static String resolveMailFromAddress(String fallbackUsername) {
+        String from = resolveMailSetting("quickdelivery.mail.from", "QUICKDELIVERY_MAIL_FROM", fallbackUsername);
+        if (from == null || from.isBlank()) {
+            return fallbackUsername;
+        }
+        return from.trim();
     }
 
     private static String resolveRequiredMailSecret(String propertyName, String envName) {
@@ -71,8 +81,10 @@ public class MailHelper {
     }
 
     private static void sendHtmlMessage(String to, String subject, String htmlBody, String pathToAttachment) throws MessagingException {
-        MimeMessage message = getJavaMailSender().createMimeMessage();
+        JavaMailSender mailSender = getJavaMailSender();
+        MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(resolveMailFromAddress(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME")));
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlBody, true);
@@ -81,12 +93,13 @@ public class MailHelper {
                     = new FileSystemResource(new File(pathToAttachment));
             helper.addAttachment(file.getFilename(), file);
         }
-        getJavaMailSender().send(message);
+        mailSender.send(message);
     }
 
     public static void sendSimpleMessage(
             String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(resolveMailFromAddress(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME")));
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
@@ -95,17 +108,19 @@ public class MailHelper {
 
     public static void sendMessageWithAttachment(
             String to, String subject, String text, String pathToAttachment) {
-        MimeMessage message = getJavaMailSender().createMimeMessage();
+        JavaMailSender mailSender = getJavaMailSender();
+        MimeMessage message = mailSender.createMimeMessage();
 
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(resolveMailFromAddress(resolveRequiredMailSecret("quickdelivery.mail.username", "QUICKDELIVERY_MAIL_USERNAME")));
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text);
             FileSystemResource file
                     = new FileSystemResource(new File(pathToAttachment));
             helper.addAttachment(file.getFilename(), file);
-            getJavaMailSender().send(message);
+            mailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }

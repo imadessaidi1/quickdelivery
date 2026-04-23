@@ -172,14 +172,16 @@ public class PackageMain {
         applyMailProperty(environment, "quickdelivery.mail.port");
         applyMailProperty(environment, "quickdelivery.mail.username");
         applyMailProperty(environment, "quickdelivery.mail.password");
+        applyMailProperty(environment, "quickdelivery.mail.from");
         applyMailProperty(environment, "quickdelivery.mail.smtp.auth");
         applyMailProperty(environment, "quickdelivery.mail.smtp.starttls.enable");
         applyMailProperty(environment, "quickdelivery.mail.debug");
 
         System.out.println(
-                serviceName + " mail config: host=" + environment.getProperty("quickdelivery.mail.host", "smtp.gmail.com")
+                serviceName + " mail config: host=" + environment.getProperty("quickdelivery.mail.host", "smtp.ionos.fr")
                         + ", port=" + environment.getProperty("quickdelivery.mail.port", "587")
                         + ", username=" + environment.getProperty("quickdelivery.mail.username", "")
+                        + ", from=" + environment.getProperty("quickdelivery.mail.from", environment.getProperty("quickdelivery.mail.username", ""))
                         + ", password=****"
         );
     }

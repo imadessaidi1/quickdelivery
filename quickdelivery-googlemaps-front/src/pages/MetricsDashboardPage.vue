@@ -140,7 +140,7 @@
                   </div>
                 </div>
 
-                <div v-if="module.metrics.googleMapsGeocodingCalls != null || module.metrics.googleMapsDistanceMatrixCalls != null" class="detailed-metrics-grid googlemaps-metrics">
+                <div v-if="hasGoogleMapsMetrics(module.metrics)" class="detailed-metrics-grid googlemaps-metrics">
                   <div class="d-metric" v-if="module.metrics.googleMapsGeocodingCalls != null">
                     <span class="d-label">{{ $t('metricsGoogleMapsGeocoding') }}</span>
                     <strong class="d-value">{{ formatInteger(module.metrics.googleMapsGeocodingCalls) }}</strong>
@@ -152,6 +152,22 @@
                   <div class="d-metric" v-if="module.metrics.googleMapsDistanceCacheHits != null">
                     <span class="d-label">{{ $t('metricsGoogleMapsDistanceCacheHits') }}</span>
                     <strong class="d-value text-success">{{ formatInteger(module.metrics.googleMapsDistanceCacheHits) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsClientMapLoads != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsClientMapLoads') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsClientMapLoads) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsClientPlacesCalls != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsClientPlacesCalls') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsClientPlacesCalls) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsClientRouteCalls != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsClientRouteCalls') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsClientRouteCalls) }}</strong>
+                  </div>
+                  <div class="d-metric" v-if="module.metrics.googleMapsClientGeocodingCalls != null">
+                    <span class="d-label">{{ $t('metricsGoogleMapsClientGeocodingCalls') }}</span>
+                    <strong class="d-value">{{ formatInteger(module.metrics.googleMapsClientGeocodingCalls) }}</strong>
                   </div>
                 </div>
 
@@ -607,6 +623,17 @@ export default {
     computeHeapRatio(m) {
       if (!m || !m.heapMaxMb) return 0;
       return (Number(m.heapUsedMb) / Number(m.heapMaxMb)) * 100;
+    },
+    hasGoogleMapsMetrics(metrics) {
+      return [
+        'googleMapsGeocodingCalls',
+        'googleMapsDistanceMatrixCalls',
+        'googleMapsDistanceCacheHits',
+        'googleMapsClientMapLoads',
+        'googleMapsClientPlacesCalls',
+        'googleMapsClientRouteCalls',
+        'googleMapsClientGeocodingCalls',
+      ].some((key) => metrics?.[key] != null);
     },
     buildSeries(selector, aggregation) {
       return MODULE_CONFIG.map(cfg => ({

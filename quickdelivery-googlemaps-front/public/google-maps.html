@@ -77,6 +77,25 @@
 		   }
 	   }
 
+       function recordGoogleMapsClientCall(type, count = 1) {
+           try {
+               const params = new URLSearchParams({
+                   type: String(type || ''),
+                   count: String(count || 1),
+               });
+               const headers = {};
+               const accessToken = getAccessToken();
+               if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+               fetch(`${gatewayBaseUrl}/packages/v1/google-maps-client-call?${params.toString()}`, {
+                   method: 'POST',
+                   headers,
+                   keepalive: true,
+               }).catch(() => {});
+           } catch (_) {
+               // Metrics must never block map interactions.
+           }
+       }
+
 	   async function initMap() {
           const markerLibrary = await google.maps.importLibrary('marker');
           routeLibrary = await google.maps.importLibrary('routes');
@@ -91,6 +110,7 @@
           vehicleType = url.searchParams.get("vehicleType") || '';
           radiusMeters = url.searchParams.get("radiusMeters") || '';
           gatewayBaseUrl = url.searchParams.get("gatewayBaseUrl") || window.location.origin;
+          recordGoogleMapsClientCall('client_maps_js');
           
           infowindow = new google.maps.InfoWindow({
               size: new google.maps.Size(150,50)
@@ -171,6 +191,7 @@
 
       async function computeDrivingRoute(start, end, intermediates = []) {
           const { Route } = routeLibrary || await google.maps.importLibrary('routes');
+          recordGoogleMapsClientCall('client_routes');
           const result = await Route.computeRoutes({
               origin: start,
               destination: end,
@@ -600,6 +621,7 @@
         if (!window.google?.maps || !map) return;
 
         if (parsedData?.centerAddress) {
+           recordGoogleMapsClientCall('client_geocoding');
            geocoder.geocode({ address: parsedData.centerAddress }, (results, status) => {
               if (status === "OK" && results?.[0]?.geometry?.location) {
                  suppressViewportPublishUntil = Date.now() + 1200;

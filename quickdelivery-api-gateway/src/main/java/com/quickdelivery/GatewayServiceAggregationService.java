@@ -327,6 +327,10 @@ public class GatewayServiceAggregationService {
         summary.setGoogleMapsGeocodingCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsGeocodingCalls).toList()));
         summary.setGoogleMapsDistanceMatrixCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsDistanceMatrixCalls).toList()));
         summary.setGoogleMapsDistanceCacheHits(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsDistanceCacheHits).toList()));
+        summary.setGoogleMapsClientMapLoads(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsClientMapLoads).toList()));
+        summary.setGoogleMapsClientPlacesCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsClientPlacesCalls).toList()));
+        summary.setGoogleMapsClientRouteCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsClientRouteCalls).toList()));
+        summary.setGoogleMapsClientGeocodingCalls(sumMetric(availablePayloads.stream().map(GatewayServiceMetricsResponse::getGoogleMapsClientGeocodingCalls).toList()));
         return summary;
     }
 

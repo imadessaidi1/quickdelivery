@@ -6,6 +6,8 @@
 - nouveautes fonctionnelles et techniques: `docs/nouveautes-projet.md`
 - securite et roles: `docs/security-matrix.md`
 - setup mobile push: `docs/mobile-push-setup.md`
+- evolution reseau relais: `docs/reseau-relais-design.md`
+- paiement Stripe: `docs/stripe-payment.md`
 
 ## 1. Prerequis
 
@@ -255,10 +257,11 @@ Les emails envoyes par `users` et `packages` utilisent la configuration servie p
 
 Proprietes actuellement definies:
 
-- `quickdelivery.mail.host=smtp.gmail.com`
+- `quickdelivery.mail.host=smtp.ionos.fr`
 - `quickdelivery.mail.port=587`
-- `quickdelivery.mail.username=quickdelivery529@gmail.com`
-- `quickdelivery.mail.password=Quickdelivery123@`
+- `quickdelivery.mail.username=admin@quickdelivery.fr`
+- `quickdelivery.mail.password=****`
+- `quickdelivery.mail.from=admin@quickdelivery.fr`
 - `quickdelivery.mail.smtp.auth=true`
 - `quickdelivery.mail.smtp.starttls.enable=true`
 - `quickdelivery.mail.debug=false`
@@ -276,12 +279,12 @@ Lecture effective au runtime:
 
 Logs attendus au demarrage:
 
-- `Users mail config: host=smtp.gmail.com, port=587, username=quickdelivery529@gmail.com, password=****`
-- `Packages mail config: host=smtp.gmail.com, port=587, username=quickdelivery529@gmail.com, password=****`
+- `Users mail config: host=smtp.ionos.fr, port=587, username=admin@quickdelivery.fr, from=admin@quickdelivery.fr, password=****`
+- `Packages mail config: host=smtp.ionos.fr, port=587, username=admin@quickdelivery.fr, from=admin@quickdelivery.fr, password=****`
 
 Important:
 
-- si Gmail refuse encore l'authentification, le mot de passe doit etre un mot de passe d'application valide, pas le mot de passe principal du compte
+- si IONOS refuse l'authentification, verifier que SMTP est actif pour la boite et que le mot de passe correspond bien a la boite mail
 - les emails `users` et `packages` sont maintenant non bloquants: un echec SMTP ne doit plus casser un parcours metier comme creation de compte, reservation ou livraison
 
 ### 4.4 Exemple Production

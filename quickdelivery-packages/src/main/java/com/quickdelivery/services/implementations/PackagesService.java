@@ -20,9 +20,12 @@ import com.quickdelivery.abstarct.repositories.DeliveryRoutes;
 import com.quickdelivery.abstarct.repositories.DeliveryRouteStops;
 import com.quickdelivery.abstarct.repositories.Documents;
 import com.quickdelivery.abstarct.repositories.PackageReservations;
+import com.quickdelivery.abstarct.repositories.PackagePayments;
 import com.quickdelivery.abstarct.repositories.PackageSettlements;
 import com.quickdelivery.abstarct.repositories.Packages;
+import com.quickdelivery.abstarct.repositories.UserPenalties;
 import com.quickdelivery.abstarct.repositories.Users;
+import com.quickdelivery.dto.PaymentCheckoutSessionDTO;
 import com.quickdelivery.dto.ReserveBatchPlanRequestDTO;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.dto.ReservationAvailabilityDTO;
@@ -38,6 +41,14 @@ import com.quickdelivery.helpers.PackageDeliveryPriceCalculator;
 import com.quickdelivery.helpers.PackagePricingBreakdown;
 import com.quickdelivery.services.interfaces.INotificationService;
 import com.quickdelivery.services.interfaces.IPackagesService;
+import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Event;
+import com.stripe.model.StripeObject;
+import com.stripe.model.checkout.Session;
+import com.stripe.net.Webhook;
+import com.stripe.param.checkout.SessionCreateParams;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
@@ -79,6 +90,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -141,12 +153,24 @@ public class PackagesService implements IPackagesService {
     private int maxDistanceCacheEntries;
     @Value("${quickdelivery.routes.stop-validation-radius-meters:150}")
     private double stopValidationRadiusMeters;
-    @Value("${quickdelivery.routes.stop-merge-radius-meters:30}")
-    private double stopMergeRadiusMeters;
     @Value("${quickdelivery.routes.start-deadline-minutes:30}")
     private long routeStartDeadlineMinutes;
     @Value("${quickdelivery.routes.no-progress-deadline-minutes:30}")
     private long routeNoProgressDeadlineMinutes;
+    @Value("${quickdelivery.sender.absence-penalty-amount:5.0}")
+    private double senderAbsencePenaltyAmount;
+    @Value("${quickdelivery.sender.absence-penalty-currency:EUR}")
+    private String senderAbsencePenaltyCurrency;
+    @Value("${quickdelivery.stripe.secret-key:}")
+    private String stripeSecretKey;
+    @Value("${quickdelivery.stripe.webhook-secret:}")
+    private String stripeWebhookSecret;
+    @Value("${quickdelivery.stripe.currency:eur}")
+    private String stripeCurrency;
+    @Value("${quickdelivery.stripe.success-path:/paymentPage?stripeStatus=success&packageId={PACKAGE_ID}&reference={PACKAGE_REFERENCE}&guestMode={GUEST_MODE}&guestAccessToken={GUEST_ACCESS_TOKEN}}")
+    private String stripeSuccessPath;
+    @Value("${quickdelivery.stripe.cancel-path:/paymentPage?stripeStatus=cancel&packageId={PACKAGE_ID}&reference={PACKAGE_REFERENCE}&guestMode={GUEST_MODE}&guestAccessToken={GUEST_ACCESS_TOKEN}}")
+    private String stripeCancelPath;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -162,7 +186,11 @@ public class PackagesService implements IPackagesService {
     @Autowired
     private CourierPenalties courierPenalties;
     @Autowired
+    private UserPenalties userPenalties;
+    @Autowired
     private PackageReservations packageReservations;
+    @Autowired
+    private PackagePayments packagePayments;
     @Autowired
     private PackageSettlements packageSettlements;
     @Autowired
@@ -196,6 +224,11 @@ public class PackagesService implements IPackagesService {
     private final AtomicLong emailNotificationsDisabledUntilEpochMs = new AtomicLong(0L);
     private final AtomicLong googleMapsDistanceProviderDisabledUntilEpochMs = new AtomicLong(0L);
     private final ConcurrentHashMap<String, CachedRouteDistance> distanceCache = new ConcurrentHashMap<>();
+    private static final String STRIPE_PROVIDER = "STRIPE";
+    private static final String PAYMENT_STATUS_PENDING = "PENDING";
+    private static final String PAYMENT_STATUS_PAID = "PAID";
+    private static final String PAYMENT_STATUS_FAILED = "FAILED";
+    private static final String PAYMENT_STATUS_CANCELLED = "CANCELLED";
     private static final int FINANCIAL_TREND_MONTHS = 6;
     private static final int FINANCIAL_RECENT_SETTLEMENT_LIMIT = 8;
     private static final int FINANCIAL_PENDING_PAYOUT_LIMIT = 8;
@@ -772,7 +805,7 @@ public class PackagesService implements IPackagesService {
                 notificationService.createAndDispatch(aPackage.getSender().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVED, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\",\"otp\":\"" + packageReservation.getPickUpOTP() + "\"}", packageReservation.getPickUpOTP());
             }
             if (packageReservation.getDeliveryPerson() != null && packageReservation.getDeliveryPerson().getId() != null) {
-                notificationService.createAndDispatch(packageReservation.getDeliveryPerson().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVATION_OTP, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\",\"otp\":\"" + packageReservation.getPickUpOTP() + "\"}", aPackage.getReference());
+                notificationService.createAndDispatch(packageReservation.getDeliveryPerson().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVATION_OTP, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\"}", aPackage.getReference());
             }
             primePackageForAsyncNotifications(aPackage);
             runPackageMailTask(() -> {
@@ -818,7 +851,7 @@ public class PackagesService implements IPackagesService {
                     PackageReservation reservation = reservePackageInternal(packageId, deliveryPersonID);
                     Package aPackage = reservation.getaPackage();
                     if (aPackage.getSender() != null && aPackage.getSender().getId() != null) {
-                        notificationService.createAndDispatch(aPackage.getSender().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVED, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\"}");
+                        notificationService.createAndDispatch(aPackage.getSender().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVED, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\",\"otp\":\"" + reservation.getPickUpOTP() + "\"}", reservation.getPickUpOTP());
                     }
                     primePackageForAsyncNotifications(aPackage);
                     runPackageMailTask(() -> {
@@ -881,7 +914,7 @@ public class PackagesService implements IPackagesService {
                     PackageReservation reservation = reservePackageInternal(packageId, deliveryPersonID);
                     Package aPackage = reservation.getaPackage();
                     if (aPackage.getSender() != null && aPackage.getSender().getId() != null) {
-                        notificationService.createAndDispatch(aPackage.getSender().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVED, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\"}");
+                            notificationService.createAndDispatch(aPackage.getSender().getId(), NOTIFICATION_EVENT_TYPE.PACKAGE_RESERVED, "/package?id=" + aPackage.getReference(), "{\"packageReference\":\"" + aPackage.getReference() + "\",\"otp\":\"" + reservation.getPickUpOTP() + "\"}", reservation.getPickUpOTP());
                     }
                     primePackageForAsyncNotifications(aPackage);
                     runPackageMailTask(() -> {
@@ -1021,6 +1054,90 @@ public class PackagesService implements IPackagesService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "packagesByStatus", allEntries = true),
+            @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
+            @CacheEvict(value = "packagesAroundMe", allEntries = true),
+            @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
+            @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
+            @CacheEvict(value = "packagesBySender", allEntries = true),
+            @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
+            @CacheEvict(value = "packagesAdminDashboardSummary", allEntries = true),
+            @CacheEvict(value = "packagesAdminFinancialDashboard", allEntries = true)
+    })
+    public PackageDTO reportSenderAbsentForPickup(Long packageID, Long deliveryPersonID, PositionDTO currentPosition) {
+        return recordPackageOperation("pickup_sender_absent", () -> {
+            Package aPackage = packages.findByIdForUpdate(packageID)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+            PackageReservation reservation = packageReservations.findByPackageAndDeliveryPersonAndStatus(
+                            packageID,
+                            deliveryPersonID,
+                            PACKAGE_RESERVATION_STATUS.ONGOING
+                    )
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active reservation not found"));
+            if (!PACKAGE_STATUS.RESERVED.equals(aPackage.getStatus())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not waiting for pickup");
+            }
+
+            validateCourierPresenceAtStop(deliveryPersonID, aPackage, DELIVERY_ROUTE_STOP_KIND.PICKUP, currentPosition);
+
+            aPackage.setStatus(PACKAGE_STATUS.PICKUP_FAILED);
+            aPackage.setReservationDate(null);
+            aPackage.setIsSoftLockedBy(null);
+            aPackage.setSoftLockExpiresAt(null);
+            reservation.setStatus(PACKAGE_RESERVATION_STATUS.CANCELED);
+            packageReservations.save(reservation);
+            packages.saveAndFlush(aPackage);
+
+            markRouteStopSkipped(deliveryPersonID, packageID, DELIVERY_ROUTE_STOP_KIND.PICKUP);
+            markRouteStopSkipped(deliveryPersonID, packageID, DELIVERY_ROUTE_STOP_KIND.DROPOFF);
+            UserPenalty penalty = persistSenderAbsencePenalty(aPackage, reservation, currentPosition);
+            notifySenderAbsentAtPickup(aPackage, reservation, penalty);
+            return toSummaryPackageDTO(aPackage);
+        });
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "packagesByStatus", allEntries = true),
+            @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
+            @CacheEvict(value = "packagesAroundMe", allEntries = true),
+            @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
+            @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
+            @CacheEvict(value = "packagesBySender", allEntries = true),
+            @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
+            @CacheEvict(value = "packagesAdminDashboardSummary", allEntries = true),
+            @CacheEvict(value = "packagesAdminFinancialDashboard", allEntries = true)
+    })
+    public PackageDTO reportRecipientAbsentForDelivery(Long packageID, Long deliveryPersonID, PositionDTO currentPosition) {
+        return recordPackageOperation("delivery_recipient_absent", () -> {
+            Package aPackage = packages.findByIdForUpdate(packageID)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+            PackageReservation reservation = packageReservations.findByPackageAndDeliveryPersonAndStatus(
+                            packageID,
+                            deliveryPersonID,
+                            PACKAGE_RESERVATION_STATUS.ONGOING
+                    )
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active reservation not found"));
+            if (!EnumSet.of(PACKAGE_STATUS.PICKEDUP, PACKAGE_STATUS.INDELIVERY).contains(aPackage.getStatus())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not in delivery");
+            }
+
+            validateCourierPresenceAtStop(deliveryPersonID, aPackage, DELIVERY_ROUTE_STOP_KIND.DROPOFF, currentPosition);
+
+            aPackage.setStatus(PACKAGE_STATUS.RELAY_DROPOFF_REQUIRED);
+            packages.saveAndFlush(aPackage);
+            markRouteStopSkipped(deliveryPersonID, packageID, DELIVERY_ROUTE_STOP_KIND.DROPOFF);
+            notifyRecipientAbsentAtDelivery(aPackage, reservation);
+            return toSummaryPackageDTO(aPackage);
+        });
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public CHECK_STATUS checkOTPForPickUpPackage(Long packageID, Long senderID, String pickUpOTP) {
         Package aPackage = packages.findById(packageID)
@@ -1107,6 +1224,257 @@ public class PackagesService implements IPackagesService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not waiting for payment");
         }
         packages.updatePackagesStatus(PACKAGE_STATUS.NEW, packageID);
+    }
+
+    @Override
+    @Transactional
+    public PaymentCheckoutSessionDTO createStripeCheckoutSession(Long packageID, String guestAccessToken) {
+        Package aPackage = packages.findById(packageID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
+        if (Boolean.TRUE.equals(aPackage.getGuestMode()) && !isValidGuestToken(aPackage, guestAccessToken)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid guest access token");
+        }
+        if (!PACKAGE_STATUS.PAYMENTPENDING.equals(aPackage.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Package is not waiting for payment");
+        }
+        if (stripeSecretKey == null || stripeSecretKey.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stripe secret key is not configured");
+        }
+
+        long amountCents = resolveStripeAmountCents(aPackage);
+        Stripe.apiKey = stripeSecretKey;
+        try {
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(buildStripeRedirectUrl(stripeSuccessPath, aPackage))
+                    .setCancelUrl(buildStripeRedirectUrl(stripeCancelPath, aPackage))
+                    .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setQuantity(1L)
+                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency(resolveStripeCurrency())
+                                    .setUnitAmount(amountCents)
+                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                            .setName("Livraison QuickDelivery " + safePackageReference(aPackage))
+                                            .build())
+                                    .build())
+                            .build())
+                    .putMetadata("packageId", String.valueOf(aPackage.getId()))
+                    .putMetadata("packageReference", safePackageReference(aPackage))
+                    .build();
+
+            Session session = Session.create(params);
+            Timestamp now = Timestamp.from(Instant.now());
+            PackagePayment payment = new PackagePayment();
+            payment.setaPackage(aPackage);
+            payment.setProvider(STRIPE_PROVIDER);
+            payment.setProviderSessionId(session.getId());
+            payment.setStatus(PAYMENT_STATUS_PENDING);
+            payment.setAmountCents(amountCents);
+            payment.setCurrency(resolveStripeCurrency());
+            payment.setCheckoutUrl(session.getUrl());
+            payment.setCreatedAt(now);
+            payment.setUpdatedAt(now);
+            packagePayments.save(payment);
+
+            PaymentCheckoutSessionDTO response = new PaymentCheckoutSessionDTO();
+            response.setPackageId(aPackage.getId());
+            response.setReference(aPackage.getReference());
+            response.setCheckoutSessionId(session.getId());
+            response.setCheckoutUrl(session.getUrl());
+            response.setStatus(payment.getStatus());
+            return response;
+        } catch (StripeException e) {
+            logger.error("Stripe checkout session creation failed for package {}", packageID, e);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unable to create Stripe checkout session");
+        }
+    }
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "packagesByStatus", allEntries = true),
+            @CacheEvict(value = "packagesAroundGrouped", allEntries = true),
+            @CacheEvict(value = "packagesAroundMe", allEntries = true),
+            @CacheEvict(value = "packagesAroundDestination", allEntries = true),
+            @CacheEvict(value = "packagesOnMyRoad", allEntries = true),
+            @CacheEvict(value = "packagesByDeliveryPerson", allEntries = true),
+            @CacheEvict(value = "packagesBySender", allEntries = true),
+            @CacheEvict(value = "userWithOngoingDelivery", allEntries = true),
+            @CacheEvict(value = "packagesAdminFinancialDashboard", allEntries = true)
+    })
+    public void handleStripeWebhook(String payload, String signatureHeader) {
+        if (stripeWebhookSecret == null || stripeWebhookSecret.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stripe webhook secret is not configured");
+        }
+        if (signatureHeader == null || signatureHeader.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing Stripe signature");
+        }
+
+        Event event;
+        try {
+            event = Webhook.constructEvent(payload, signatureHeader, stripeWebhookSecret);
+        } catch (SignatureVerificationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe signature");
+        }
+
+        Session session = extractStripeCheckoutSession(event);
+        if (session == null) {
+            return;
+        }
+        switch (event.getType()) {
+            case "checkout.session.completed":
+            case "checkout.session.async_payment_succeeded":
+                markStripeSessionPaid(session);
+                break;
+            case "checkout.session.expired":
+                markStripeSessionTerminal(session, PAYMENT_STATUS_CANCELLED);
+                break;
+            case "checkout.session.async_payment_failed":
+                markStripeSessionTerminal(session, PAYMENT_STATUS_FAILED);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private long resolveStripeAmountCents(Package aPackage) {
+        double amount = 0d;
+        if (aPackage.getPackageSettlement() != null && aPackage.getPackageSettlement().getCustomerTotalPrice() != null) {
+            amount = aPackage.getPackageSettlement().getCustomerTotalPrice();
+        } else if (aPackage.getDeliveryPrice() != null) {
+            amount = aPackage.getDeliveryPrice();
+        }
+        long amountCents = Math.round(amount * 100);
+        if (amountCents <= 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Package amount is not payable");
+        }
+        return amountCents;
+    }
+
+    private String resolveStripeCurrency() {
+        return stripeCurrency == null || stripeCurrency.isBlank()
+                ? "eur"
+                : stripeCurrency.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String buildStripeRedirectUrl(String pathTemplate, Package aPackage) {
+        String path = pathTemplate == null || pathTemplate.isBlank() ? "/" : pathTemplate;
+        path = path.replace("{PACKAGE_ID}", String.valueOf(aPackage.getId()))
+                .replace("{PACKAGE_REFERENCE}", urlEncode(safePackageReference(aPackage)))
+                .replace("{GUEST_MODE}", String.valueOf(Boolean.TRUE.equals(aPackage.getGuestMode())))
+                .replace("{GUEST_ACCESS_TOKEN}", urlEncode(Boolean.TRUE.equals(aPackage.getGuestMode()) ? aPackage.getGuestAccessToken() : ""));
+        String baseUrl = resolveFrontendBaseUrl();
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        return baseUrl + path;
+    }
+
+    private String safePackageReference(Package aPackage) {
+        return aPackage.getReference() == null ? "" : aPackage.getReference();
+    }
+
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+    }
+
+    private Session extractStripeCheckoutSession(Event event) {
+        Optional<StripeObject> stripeObject = event.getDataObjectDeserializer().getObject();
+        if (stripeObject.isPresent() && stripeObject.get() instanceof Session session) {
+            return session;
+        }
+        logger.warn("Stripe webhook ignored because event {} did not contain a checkout session", event.getType());
+        return null;
+    }
+
+    private void markStripeSessionPaid(Session session) {
+        PackagePayment payment = packagePayments.findByProviderAndProviderSessionId(STRIPE_PROVIDER, session.getId())
+                .orElse(null);
+        if (payment == null) {
+            logger.warn("Stripe checkout session {} not found in local package payments", session.getId());
+            return;
+        }
+
+        if (PAYMENT_STATUS_PAID.equals(payment.getStatus())) {
+            return;
+        }
+        if (!isStripePaidSession(session)) {
+            logger.info("Stripe checkout session {} completed but payment status is {}", session.getId(), session.getPaymentStatus());
+            return;
+        }
+
+        Timestamp now = Timestamp.from(Instant.now());
+        payment.setStatus(PAYMENT_STATUS_PAID);
+        payment.setProviderPaymentIntentId(session.getPaymentIntent());
+        payment.setPaidAt(now);
+        payment.setUpdatedAt(now);
+
+        Package aPackage = payment.getaPackage();
+        boolean activatedPackage = PACKAGE_STATUS.PAYMENTPENDING.equals(aPackage.getStatus());
+        if (activatedPackage) {
+            aPackage.setStatus(PACKAGE_STATUS.NEW);
+            aPackage.setIsSoftLockedBy(null);
+            aPackage.setSoftLockExpiresAt(null);
+            packages.save(aPackage);
+        }
+        packagePayments.save(payment);
+        if (activatedPackage) {
+            dispatchStripePaymentConfirmedNotifications(aPackage);
+        }
+    }
+
+    private void markStripeSessionTerminal(Session session, String status) {
+        PackagePayment payment = packagePayments.findByProviderAndProviderSessionId(STRIPE_PROVIDER, session.getId())
+                .orElse(null);
+        if (payment == null || PAYMENT_STATUS_PAID.equals(payment.getStatus())) {
+            return;
+        }
+        payment.setStatus(status);
+        payment.setUpdatedAt(Timestamp.from(Instant.now()));
+        packagePayments.save(payment);
+    }
+
+    private boolean isStripePaidSession(Session session) {
+        return "paid".equalsIgnoreCase(session.getPaymentStatus());
+    }
+
+    private void dispatchStripePaymentConfirmedNotifications(Package aPackage) {
+        if (aPackage.getSender() != null && aPackage.getSender().getId() != null) {
+            notificationService.createAndDispatch(
+                    aPackage.getSender().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_PAYMENT_CONFIRMED,
+                    "/package?id=" + safePackageReference(aPackage),
+                    "{\"packageReference\":\"" + safePackageReference(aPackage) + "\"}",
+                    safePackageReference(aPackage)
+            );
+        }
+
+        Optional<Address> departureAddress = aPackage.getAddresses().stream()
+                .filter(address -> ADDRESS_TYPE.DEPARTURE.equals(address.getType()))
+                .findFirst();
+        if (departureAddress.isEmpty()
+                || departureAddress.get().getLatitude() == null
+                || departureAddress.get().getLongitude() == null) {
+            return;
+        }
+
+        List<Long> nearbyRecipientIds = notificationService.findNearbyCourierRecipientIds(
+                departureAddress.get().getLatitude(),
+                departureAddress.get().getLongitude(),
+                20000d
+        );
+        for (Long recipientId : nearbyRecipientIds) {
+            notificationService.createAndDispatch(
+                    recipientId,
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_NEARBY,
+                    "/package?id=" + safePackageReference(aPackage),
+                    "{\"packageReference\":\"" + safePackageReference(aPackage) + "\"}"
+            );
+        }
     }
 
     @Override
@@ -1199,7 +1567,7 @@ public class PackagesService implements IPackagesService {
         contextDTO.setPackageReference(reservation.getaPackage().getReference());
         contextDTO.setPackageStatus(reservation.getaPackage().getStatus());
         contextDTO.setReservationStatus(reservation.getStatus());
-        contextDTO.setPickUpOTP(reservation.getPickUpOTP());
+        contextDTO.setPickUpOTP(null);
         contextDTO.setDeliveryOTP(reservation.getDeliveryOTP());
         return contextDTO;
     }
@@ -1766,8 +2134,12 @@ public class PackagesService implements IPackagesService {
         if(aPackage.getPackageReservations() != null && aPackage.getPackageReservations().size()>0) {
             aPackage.getPackageReservations().stream().forEach(packageReservation -> {
                 if (packageReservation.getStatus().equals(PACKAGE_RESERVATION_STATUS.ONGOING)) {
-                    templateModel.put("otp", packageReservation.getPickUpOTP());
-                    templateModel.put("deliveryOtp", packageReservation.getDeliveryOTP());
+                    if (shouldExposePickupOtpInEmail(type)) {
+                        templateModel.put("otp", packageReservation.getPickUpOTP());
+                    }
+                    if (shouldExposeDeliveryOtpInEmail(type)) {
+                        templateModel.put("deliveryOtp", packageReservation.getDeliveryOTP());
+                    }
                     if(type.equals(EMAIL_TYPE.PACKAGE_RESERVATION_DELIVERY)||type.equals(EMAIL_TYPE.PACKAGE_PICKUP_DELIVERY)) {
                         templateModel.put("recipientName", packageReservation.getDeliveryPerson().getFirstName() + " " + packageReservation.getDeliveryPerson().getLastName());
                     }
@@ -1810,6 +2182,14 @@ public class PackagesService implements IPackagesService {
             handlePackageMailFailure(e, aPackage.getReference());
             logger.warn("Unable to send package email {} for package {}: {}", type, aPackage.getReference(), e.getMessage(), e);
         }
+    }
+
+    private boolean shouldExposePickupOtpInEmail(EMAIL_TYPE type) {
+        return EMAIL_TYPE.PACKAGE_RESERVATION_SENDER.equals(type);
+    }
+
+    private boolean shouldExposeDeliveryOtpInEmail(EMAIL_TYPE type) {
+        return EMAIL_TYPE.PACKAGE_PICKUP_RECEIVER.equals(type);
     }
 
     private void runPackageMailTask(Runnable task) {
@@ -1982,7 +2362,7 @@ public class PackagesService implements IPackagesService {
         int activeReservations = Math.toIntExact(packageReservations.countActiveReservationsByDeliveryPerson(
                 deliveryPersonId,
                 PACKAGE_RESERVATION_STATUS.ONGOING,
-                EnumSet.of(PACKAGE_STATUS.RESERVED, PACKAGE_STATUS.PICKEDUP, PACKAGE_STATUS.INDELIVERY)
+                EnumSet.of(PACKAGE_STATUS.RESERVED, PACKAGE_STATUS.PICKEDUP, PACKAGE_STATUS.INDELIVERY, PACKAGE_STATUS.RELAY_DROPOFF_REQUIRED)
         ));
         boolean activeRouteBlocking = deliveryRoutes.existsByDeliveryPersonAndStatuses(deliveryPersonId, ACTIVE_DELIVERY_ROUTE_STATUSES);
         boolean capacityReached = activeReservations >= maxReservations;
@@ -2308,7 +2688,6 @@ public class PackagesService implements IPackagesService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "packagesAdminMetrics", key = "'singleton'", sync = true)
     public ServiceMetricsDTO loadAdminMetrics() {
         ServiceMetricsDTO metrics = new ServiceMetricsDTO();
         metrics.setServiceName("packages-service");
@@ -2324,7 +2703,22 @@ public class PackagesService implements IPackagesService {
         metrics.setGoogleMapsGeocodingCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "geocoding"));
         metrics.setGoogleMapsDistanceMatrixCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "distance_matrix"));
         metrics.setGoogleMapsDistanceCacheHits(sumMetric("quickdelivery.googlemaps.distance.cache.hits"));
+        metrics.setGoogleMapsClientMapLoads(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "client_maps_js"));
+        metrics.setGoogleMapsClientPlacesCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "client_places"));
+        metrics.setGoogleMapsClientRouteCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "client_routes"));
+        metrics.setGoogleMapsClientGeocodingCalls(sumMetricByTag("quickdelivery.googlemaps.api.calls", "type", "client_geocoding"));
         return metrics;
+    }
+
+    @Override
+    @CacheEvict(value = "packagesAdminMetrics", allEntries = true)
+    public void recordGoogleMapsClientCall(String type, double count) {
+        String normalizedType = normalizeGoogleMapsClientMetricType(type);
+        if (normalizedType == null) {
+            return;
+        }
+        double safeCount = Double.isFinite(count) && count > 0d ? Math.min(count, 100d) : 1d;
+        meterRegistry.counter("quickdelivery.googlemaps.api.calls", "type", normalizedType).increment(safeCount);
     }
 
     @Override
@@ -3376,16 +3770,16 @@ public class PackagesService implements IPackagesService {
                     double rawDropoffProgress = clampProgress(projectionProgress(pkg.dropoffPoint(), start, end));
                     double dropoffProgress = Math.max(rawDropoffProgress, pickupProgress + 0.0001d);
                     return Stream.of(
-                            new MergedStop("pickup", pkg.pickupPoint(), List.of(pkg), pickupProgress),
-                            new MergedStop("dropoff", pkg.dropoffPoint(), List.of(pkg), dropoffProgress)
+                            new MergedStop("pickup", routeStopAddressKey("pickup", pkg), pkg.pickupPoint(), List.of(pkg), pickupProgress),
+                            new MergedStop("dropoff", routeStopAddressKey("dropoff", pkg), pkg.dropoffPoint(), List.of(pkg), dropoffProgress)
                     );
                 })
                 .collect(Collectors.toList());
 
-        // Fuse co-located stops before sorting
-        List<MergedStop> mergedPickups = mergeColocatedStops(
+        // Fuse only exact same-address stops before sorting.
+        List<MergedStop> mergedPickups = mergeSameAddressStops(
                 rawMerged.stream().filter(s -> "pickup".equals(s.kind())).collect(Collectors.toList()));
-        List<MergedStop> mergedDropoffs = mergeColocatedStops(
+        List<MergedStop> mergedDropoffs = mergeSameAddressStops(
                 rawMerged.stream().filter(s -> "dropoff".equals(s.kind())).collect(Collectors.toList()));
 
         // Recalculate representative progress as average of constituent packages
@@ -3411,6 +3805,8 @@ public class PackagesService implements IPackagesService {
 
         // Enforce pickup-before-dropoff constraint
         optimized = enforcePickupBeforeDropoff(optimized);
+        optimized = anchorNearestPickupToStart(optimized, start);
+        optimized = anchorNearestDropoffToEnd(optimized, end);
 
         // Phase 3: explode MergedStop → RouteStopCandidate
         List<RouteStopCandidate> orderedStops = explodeMergedStops(optimized);
@@ -3423,14 +3819,14 @@ public class PackagesService implements IPackagesService {
                                                  RoutePlanRequestDTO request) {
         // Phase 1: fuse co-located pickups and dropoffs
         List<MergedStop> rawPickups = packagesToPlan.stream()
-                .map(pkg -> new MergedStop("pickup", pkg.pickupPoint(), List.of(pkg), 0d))
+                .map(pkg -> new MergedStop("pickup", routeStopAddressKey("pickup", pkg), pkg.pickupPoint(), List.of(pkg), 0d))
                 .collect(Collectors.toList());
         List<MergedStop> rawDropoffs = packagesToPlan.stream()
-                .map(pkg -> new MergedStop("dropoff", pkg.dropoffPoint(), List.of(pkg), 0d))
+                .map(pkg -> new MergedStop("dropoff", routeStopAddressKey("dropoff", pkg), pkg.dropoffPoint(), List.of(pkg), 0d))
                 .collect(Collectors.toList());
 
-        List<MergedStop> mergedPickups = mergeColocatedStops(rawPickups);
-        List<MergedStop> mergedDropoffs = mergeColocatedStops(rawDropoffs);
+        List<MergedStop> mergedPickups = mergeSameAddressStops(rawPickups);
+        List<MergedStop> mergedDropoffs = mergeSameAddressStops(rawDropoffs);
 
         // Phase 2: nearest-neighbor + 2-opt (8 passes) on full merged lists
         List<MergedStop> orderedPickups = optimizeMergedStopsWithTwoOpt(
@@ -3452,6 +3848,8 @@ public class PackagesService implements IPackagesService {
         allMerged.addAll(orderedPickups);
         allMerged.addAll(orderedDropoffs);
         allMerged = enforcePickupBeforeDropoff(allMerged);
+        allMerged = anchorNearestPickupToStart(allMerged, start);
+        allMerged = anchorNearestDropoffToEnd(allMerged, end);
 
         // Phase 3: explode MergedStop → RouteStopCandidate
         List<RouteStopCandidate> orderedStops = explodeMergedStops(allMerged);
@@ -3525,37 +3923,47 @@ public class PackagesService implements IPackagesService {
         return optimized;
     }
 
-    private List<MergedStop> mergeColocatedStops(List<MergedStop> stops) {
-        List<MergedStop> merged = new ArrayList<>();
-        boolean[] consumed = new boolean[stops.size()];
-        for (int i = 0; i < stops.size(); i++) {
-            if (consumed[i]) {
-                continue;
-            }
-            MergedStop base = stops.get(i);
-            List<PlannablePackage> groupPackages = new ArrayList<>(base.packages());
-            double sumLat = base.point().lat;
-            double sumLng = base.point().lng;
-            int count = 1;
-            for (int j = i + 1; j < stops.size(); j++) {
-                if (consumed[j]) {
-                    continue;
-                }
-                MergedStop candidate = stops.get(j);
-                double dist = haversineMeters(base.point().lat, base.point().lng,
-                        candidate.point().lat, candidate.point().lng);
-                if (dist <= stopMergeRadiusMeters) {
-                    groupPackages.addAll(candidate.packages());
-                    sumLat += candidate.point().lat;
-                    sumLng += candidate.point().lng;
-                    count++;
-                    consumed[j] = true;
-                }
-            }
-            GeoPoint centroid = new GeoPoint(sumLat / count, sumLng / count);
-            merged.add(new MergedStop(base.kind(), centroid, groupPackages, base.routeProgress()));
+    private List<MergedStop> mergeSameAddressStops(List<MergedStop> stops) {
+        if (stops == null || stops.isEmpty()) {
+            return List.of();
         }
-        return merged;
+        Map<String, List<MergedStop>> stopsByAddress = new LinkedHashMap<>();
+        for (MergedStop stop : stops) {
+            String key = stop.addressKey();
+            if (key == null || key.isBlank()) {
+                key = stop.kind() + ":" + stop.point().lat + "," + stop.point().lng;
+            }
+            stopsByAddress.computeIfAbsent(key, ignored -> new ArrayList<>()).add(stop);
+        }
+
+        return stopsByAddress.values().stream()
+                .map(group -> {
+                    MergedStop first = group.get(0);
+                    List<PlannablePackage> groupPackages = group.stream()
+                            .flatMap(stop -> stop.packages().stream())
+                            .collect(Collectors.toList());
+                    double routeProgress = group.stream()
+                            .mapToDouble(MergedStop::routeProgress)
+                            .average()
+                            .orElse(first.routeProgress());
+                    return new MergedStop(first.kind(), first.addressKey(), first.point(), groupPackages, routeProgress);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String routeStopAddressKey(String kind, PlannablePackage pkg) {
+        String label = "pickup".equals(kind) ? pkg.pickupLabel() : pkg.dropoffLabel();
+        String normalizedLabel = normalizeExactAddressKey(label);
+        return kind + ":" + normalizedLabel;
+    }
+
+    private String normalizeExactAddressKey(String value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(value.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        return normalized.replaceAll("\\s+", " ");
     }
 
     private List<MergedStop> orderMergedStopsByNearestNeighbor(GeoPoint initialPoint,
@@ -3617,6 +4025,58 @@ public class PackagesService implements IPackagesService {
             }
         }
         return optimized;
+    }
+
+    private List<MergedStop> anchorNearestPickupToStart(List<MergedStop> stops, GeoPoint start) {
+        if (stops == null || stops.size() < 2 || !isUsableGeoPoint(start)) {
+            return stops == null ? List.of() : stops;
+        }
+        int nearestPickupIndex = -1;
+        double nearestPickupDistance = Double.MAX_VALUE;
+        for (int index = 0; index < stops.size(); index++) {
+            MergedStop stop = stops.get(index);
+            if (!"pickup".equals(stop.kind()) || !isUsableGeoPoint(stop.point())) {
+                continue;
+            }
+            double distance = haversineMeters(start.lat, start.lng, stop.point().lat, stop.point().lng);
+            if (distance < nearestPickupDistance) {
+                nearestPickupDistance = distance;
+                nearestPickupIndex = index;
+            }
+        }
+        if (nearestPickupIndex <= 0) {
+            return stops;
+        }
+        List<MergedStop> anchored = new ArrayList<>(stops);
+        MergedStop nearestPickup = anchored.remove(nearestPickupIndex);
+        anchored.add(0, nearestPickup);
+        return anchored;
+    }
+
+    private List<MergedStop> anchorNearestDropoffToEnd(List<MergedStop> stops, GeoPoint end) {
+        if (stops == null || stops.size() < 2 || !isUsableGeoPoint(end)) {
+            return stops == null ? List.of() : stops;
+        }
+        int nearestDropoffIndex = -1;
+        double nearestDropoffDistance = Double.MAX_VALUE;
+        for (int index = 0; index < stops.size(); index++) {
+            MergedStop stop = stops.get(index);
+            if (!"dropoff".equals(stop.kind()) || !isUsableGeoPoint(stop.point())) {
+                continue;
+            }
+            double distance = haversineMeters(stop.point().lat, stop.point().lng, end.lat, end.lng);
+            if (distance < nearestDropoffDistance) {
+                nearestDropoffDistance = distance;
+                nearestDropoffIndex = index;
+            }
+        }
+        if (nearestDropoffIndex < 0 || nearestDropoffIndex == stops.size() - 1) {
+            return stops;
+        }
+        List<MergedStop> anchored = new ArrayList<>(stops);
+        MergedStop nearestDropoff = anchored.remove(nearestDropoffIndex);
+        anchored.add(nearestDropoff);
+        return anchored;
     }
 
     private double computeMergedPathDistance(GeoPoint start, List<MergedStop> stops, GeoPoint end) {
@@ -3949,6 +4409,20 @@ public class PackagesService implements IPackagesService {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
+    private String normalizeGoogleMapsClientMetricType(String type) {
+        if (type == null || type.isBlank()) {
+            return null;
+        }
+        String normalizedType = type.trim().toLowerCase(Locale.ROOT).replace('-', '_');
+        return switch (normalizedType) {
+            case "client_maps_js", "maps_js", "map_load" -> "client_maps_js";
+            case "client_places", "places", "places_autocomplete", "places_details" -> "client_places";
+            case "client_routes", "routes", "routes_compute", "directions" -> "client_routes";
+            case "client_geocoding", "client_geocode", "geocoder" -> "client_geocoding";
+            default -> null;
+        };
+    }
+
     private double resolveMaxWeightKg(String deliveryMode, String vehicleType) {
         String normalizedVehicleType = vehicleType == null ? "" : vehicleType.trim().toUpperCase(Locale.ROOT);
         return switch (normalizedVehicleType) {
@@ -4096,6 +4570,141 @@ public class PackagesService implements IPackagesService {
                     }
                     deliveryRoutes.save(deliveryRoute);
                 });
+    }
+
+    private void markRouteStopSkipped(Long deliveryPersonID, Long packageID, DELIVERY_ROUTE_STOP_KIND stopKind) {
+        deliveryRouteStops.findFirstPendingStop(deliveryPersonID, packageID, stopKind, ACTIVE_DELIVERY_ROUTE_STATUSES, DELIVERY_ROUTE_STOP_STATUS.PENDING)
+                .ifPresent(stop -> {
+                    stop.setStatus(DELIVERY_ROUTE_STOP_STATUS.SKIPPED);
+                    stop.setCompletedAt(Timestamp.valueOf(LocalDateTime.now()));
+                    DeliveryRoute deliveryRoute = stop.getDeliveryRoute();
+                    if (deliveryRoute.getStatus() == DELIVERY_ROUTE_STATUS.PLANNED) {
+                        deliveryRoute.setStatus(DELIVERY_ROUTE_STATUS.ACTIVE);
+                        deliveryRoute.setStartedAt(Timestamp.valueOf(LocalDateTime.now()));
+                    }
+                    deliveryRouteStops.save(stop);
+                    if (deliveryRouteStops.countByRouteAndStatus(deliveryRoute.getId(), DELIVERY_ROUTE_STOP_STATUS.PENDING) == 0) {
+                        deliveryRoute.setStatus(DELIVERY_ROUTE_STATUS.COMPLETED);
+                        deliveryRoute.setCompletedAt(Timestamp.valueOf(LocalDateTime.now()));
+                    }
+                    deliveryRoutes.save(deliveryRoute);
+                });
+    }
+
+    private UserPenalty persistSenderAbsencePenalty(Package aPackage,
+                                                    PackageReservation reservation,
+                                                    PositionDTO currentPosition) {
+        User sender = aPackage == null ? null : aPackage.getSender();
+        if (sender == null || sender.getId() == null || aPackage.getId() == null) {
+            return null;
+        }
+        if (userPenalties.existsActivePenaltyForPackage(
+                sender.getId(),
+                aPackage.getId(),
+                USER_PENALTY_TYPE.SENDER_ABSENT_AT_PICKUP,
+                USER_PENALTY_STATUS.ACTIVE)) {
+            return null;
+        }
+        UserPenalty penalty = new UserPenalty();
+        penalty.setUser(sender);
+        penalty.setaPackage(aPackage);
+        penalty.setType(USER_PENALTY_TYPE.SENDER_ABSENT_AT_PICKUP);
+        penalty.setStatus(USER_PENALTY_STATUS.ACTIVE);
+        penalty.setReason("senderAbsentAtPickup");
+        penalty.setFinancialPenaltyAmount(roundMoney(Math.max(0d, senderAbsencePenaltyAmount)));
+        penalty.setCurrency(resolvePenaltyCurrency(senderAbsencePenaltyCurrency));
+        penalty.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+        penalty.setDetailsJson("{\"packageId\":" + aPackage.getId()
+                + ",\"packageReference\":\"" + safeJson(aPackage.getReference()) + "\""
+                + ",\"deliveryPersonId\":" + (reservation == null || reservation.getDeliveryPerson() == null ? null : reservation.getDeliveryPerson().getId())
+                + ",\"currentLatitude\":" + (currentPosition == null || currentPosition.getLatitude() == null ? null : currentPosition.getLatitude())
+                + ",\"currentLongitude\":" + (currentPosition == null || currentPosition.getLongitude() == null ? null : currentPosition.getLongitude())
+                + "}");
+        return userPenalties.save(penalty);
+    }
+
+    private void notifySenderAbsentAtPickup(Package aPackage, PackageReservation reservation, UserPenalty penalty) {
+        if (aPackage == null || aPackage.getReference() == null) {
+            return;
+        }
+        String packageReference = aPackage.getReference();
+        String targetUrl = "/package?id=" + packageReference;
+        double penaltyAmount = penalty == null || penalty.getFinancialPenaltyAmount() == null ? 0d : penalty.getFinancialPenaltyAmount();
+        String currency = penalty == null ? resolvePenaltyCurrency(senderAbsencePenaltyCurrency) : penalty.getCurrency();
+        String payloadJson = "{\"packageReference\":\"" + safeJson(packageReference)
+                + "\",\"penaltyAmount\":" + penaltyAmount
+                + ",\"currency\":\"" + safeJson(currency) + "\"}";
+        if (aPackage.getSender() != null && aPackage.getSender().getId() != null) {
+            notificationService.createAndDispatch(
+                    aPackage.getSender().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_PICKUP_FAILED_SENDER_ABSENT,
+                    targetUrl,
+                    payloadJson,
+                    packageReference,
+                    penaltyAmount,
+                    currency
+            );
+        }
+        if (reservation != null && reservation.getDeliveryPerson() != null && reservation.getDeliveryPerson().getId() != null) {
+            notificationService.createAndDispatch(
+                    reservation.getDeliveryPerson().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_PICKUP_FAILED_SENDER_ABSENT,
+                    targetUrl,
+                    payloadJson,
+                    packageReference,
+                    penaltyAmount,
+                    currency
+            );
+        }
+    }
+
+    private void notifyRecipientAbsentAtDelivery(Package aPackage, PackageReservation reservation) {
+        if (aPackage == null || aPackage.getReference() == null) {
+            return;
+        }
+        String packageReference = aPackage.getReference();
+        String targetUrl = "/package?id=" + packageReference;
+        String payloadJson = "{\"packageReference\":\"" + safeJson(packageReference)
+                + "\",\"nextStep\":\"RELAY_DROPOFF_REQUIRED\"}";
+        if (aPackage.getSender() != null && aPackage.getSender().getId() != null) {
+            notificationService.createAndDispatch(
+                    aPackage.getSender().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_DELIVERY_FAILED_RECIPIENT_ABSENT,
+                    targetUrl,
+                    payloadJson,
+                    packageReference
+            );
+        }
+        Address receiverAddress = getArrivalAddress(aPackage.getAddresses());
+        if (receiverAddress != null && receiverAddress.getResidents() != null && receiverAddress.getResidents().getId() != null) {
+            notificationService.createAndDispatch(
+                    receiverAddress.getResidents().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_DELIVERY_FAILED_RECIPIENT_ABSENT,
+                    targetUrl,
+                    payloadJson,
+                    packageReference
+            );
+        }
+        if (reservation != null && reservation.getDeliveryPerson() != null && reservation.getDeliveryPerson().getId() != null) {
+            notificationService.createAndDispatch(
+                    reservation.getDeliveryPerson().getId(),
+                    NOTIFICATION_EVENT_TYPE.PACKAGE_RELAY_DROPOFF_REQUIRED,
+                    targetUrl,
+                    payloadJson,
+                    packageReference
+            );
+        }
+    }
+
+    private String resolvePenaltyCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            return "EUR";
+        }
+        return currency.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String safeJson(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private void notifyCourierIfArrivedAtNextStop(Long deliveryPersonId, PositionDTO currentPosition) {
@@ -4488,6 +5097,7 @@ public class PackagesService implements IPackagesService {
     }
 
     private record MergedStop(String kind,
+                               String addressKey,
                                GeoPoint point,
                                List<PlannablePackage> packages,
                                double routeProgress) {
@@ -4967,7 +5577,7 @@ public class PackagesService implements IPackagesService {
         long activeReservations = packageReservations.countActiveReservationsByDeliveryPerson(
                 user.getId(),
                 PACKAGE_RESERVATION_STATUS.ONGOING,
-                EnumSet.of(PACKAGE_STATUS.RESERVED, PACKAGE_STATUS.PICKEDUP, PACKAGE_STATUS.INDELIVERY)
+                EnumSet.of(PACKAGE_STATUS.RESERVED, PACKAGE_STATUS.PICKEDUP, PACKAGE_STATUS.INDELIVERY, PACKAGE_STATUS.RELAY_DROPOFF_REQUIRED)
         );
         if (activeReservations >= maxCapacity) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "errorPackageReservationCapacityReached");

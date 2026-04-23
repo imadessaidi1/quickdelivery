@@ -118,7 +118,6 @@ public class GatewayMetricsController {
     }
 
     @GetMapping("/packages/metrics")
-    @Cacheable(value = "gatewayPackagesAdminMetrics", key = "'singleton'", sync = true)
     public GatewayServiceAggregateResponse<GatewayServiceMetricsResponse> packagesMetrics() {
         return gatewayServiceAggregationService.aggregateMetrics("package-service", "packages-service", "/packages/v1/admin/metrics");
     }

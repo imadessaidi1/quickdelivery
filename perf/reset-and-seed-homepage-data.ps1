@@ -4,6 +4,8 @@ param(
     [string]$SshKeyPath = "C:\Users\imess\.ssh\lightsail.pem",
     [string]$MysqlVmPublicIp = "15.188.208.12",
     [string]$MysqlSshUser = "ubuntu",
+    [ValidateSet("RealRouteOnly", "HomepageFull")]
+    [string]$SeedDataset = "RealRouteOnly",
     [switch]$Execute,
     [string]$ConfirmationPhrase = ""
 )
@@ -210,6 +212,23 @@ function New-InterpolatedAddress {
         -Label ("{0}-{1}" -f $Label, $Index)
 }
 
+function New-RealSeedAddress {
+    param(
+        [string]$Type,
+        [hashtable]$Address,
+        [string]$Label
+    )
+
+    return New-CoordinateAddress `
+        -Type $Type `
+        -Line1 $Address.Line1 `
+        -Town $Address.Town `
+        -ZipCode $Address.ZipCode `
+        -Latitude $Address.Latitude `
+        -Longitude $Address.Longitude `
+        -Label $Label
+}
+
 function New-PackagePayload {
     param(
         [string]$Reference,
@@ -330,6 +349,11 @@ function Add-SeedCase {
 }
 
 function Get-SeedPlan {
+    param(
+        [ValidateSet("RealRouteOnly", "HomepageFull")]
+        [string]$SeedDataset = "RealRouteOnly"
+    )
+
     $seedCases = New-Object 'System.Collections.Generic.List[object]'
     $runSuffix = Get-Date -Format "yyyyMMddHHmmss"
 
@@ -337,18 +361,143 @@ function Get-SeedPlan {
         Line1 = "3 Rue Pasteur"
         Town = "Limeil-Brevannes"
         ZipCode = "94450"
-        Latitude = 48.74845
-        Longitude = 2.48856
+        Latitude = 48.744134
+        Longitude = 2.474711
     }
     $orlyAnatoleFrance = @{
         Line1 = "2 Rue Anatole France"
         Town = "Orly"
         ZipCode = "94310"
-        Latitude = 48.74683
-        Longitude = 2.40548
+        Latitude = 48.744035
+        Longitude = 2.403361
     }
     $originAddress = New-CoordinateAddress -Type DEPARTURE -Line1 $limeil.Line1 -Town $limeil.Town -ZipCode $limeil.ZipCode -Latitude $limeil.Latitude -Longitude $limeil.Longitude -Label "origin"
     $directDestinationAddress = New-CoordinateAddress -Type ARRIVAL -Line1 $orlyAnatoleFrance.Line1 -Town $orlyAnatoleFrance.Town -ZipCode $orlyAnatoleFrance.ZipCode -Latitude $orlyAnatoleFrance.Latitude -Longitude $orlyAnatoleFrance.Longitude -Label "destination"
+
+    $realLocalRouteCases = @(
+        @{
+            Pickup = @{ Line1 = "3 Rue Pasteur"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744134; Longitude = 2.474711 }
+            Drop   = @{ Line1 = "2 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744035; Longitude = 2.403361 }
+        },
+        @{
+            Pickup = @{ Line1 = "1 Place de l'Eglise"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.743971; Longitude = 2.474735 }
+            Drop   = @{ Line1 = "2bis Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744196; Longitude = 2.403544 }
+        },
+        @{
+            Pickup = @{ Line1 = "6 Rue Pasteur"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744049; Longitude = 2.474403 }
+            Drop   = @{ Line1 = "4 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744216; Longitude = 2.403238 }
+        },
+        @{
+            Pickup = @{ Line1 = "8 Rue Pasteur"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744206; Longitude = 2.475071 }
+            Drop   = @{ Line1 = "10 Rue du Verger"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744053; Longitude = 2.402943 }
+        },
+        @{
+            Pickup = @{ Line1 = "2 Place de l'Eglise"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.743803; Longitude = 2.47473 }
+            Drop   = @{ Line1 = "33j Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744024; Longitude = 2.403809 }
+        },
+        @{
+            Pickup = @{ Line1 = "10 Rue Pasteur"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.74428; Longitude = 2.475289 }
+            Drop   = @{ Line1 = "6 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744317; Longitude = 2.403169 }
+        },
+        @{
+            Pickup = @{ Line1 = "4 Rue Pasteur"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744021; Longitude = 2.474125 }
+            Drop   = @{ Line1 = "29 Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743713; Longitude = 2.403714 }
+        },
+        @{
+            Pickup = @{ Line1 = "6 Ruelle de l'Eglise"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.743712; Longitude = 2.474922 }
+            Drop   = @{ Line1 = "31 Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743753; Longitude = 2.403843 }
+        },
+        @{
+            Pickup = @{ Line1 = "5 Place des Tilleuls"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744421; Longitude = 2.474151 }
+            Drop   = @{ Line1 = "4 Rue du Verger"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743676; Longitude = 2.403014 }
+        },
+        @{
+            Pickup = @{ Line1 = "7 Ruelle de Paris"; Town = "Limeil-Brevannes"; ZipCode = "94450"; Latitude = 48.744557; Longitude = 2.474324 }
+            Drop   = @{ Line1 = "8 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744424; Longitude = 2.403095 }
+        }
+    )
+
+    $realCorridorRouteCases = @(
+        @{
+            Pickup = @{ Line1 = "38 Rue Louise Michel"; Town = "Valenton"; ZipCode = "94460"; Latitude = 48.744378; Longitude = 2.465898 }
+            Drop   = @{ Line1 = "2 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744035; Longitude = 2.403361 }
+        },
+        @{
+            Pickup = @{ Line1 = "5 Rue Louis Pergaud"; Town = "Valenton"; ZipCode = "94460"; Latitude = 48.744594; Longitude = 2.459759 }
+            Drop   = @{ Line1 = "2bis Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744196; Longitude = 2.403544 }
+        },
+        @{
+            Pickup = @{ Line1 = "236 Avenue du General Leclerc"; Town = "Valenton"; ZipCode = "94460"; Latitude = 48.744256; Longitude = 2.459454 }
+            Drop   = @{ Line1 = "4 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744216; Longitude = 2.403238 }
+        },
+        @{
+            Pickup = @{ Line1 = "87 Avenue Anatole France"; Town = "Villeneuve-Saint-Georges"; ZipCode = "94190"; Latitude = 48.744485; Longitude = 2.452224 }
+            Drop   = @{ Line1 = "10 Rue du Verger"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744053; Longitude = 2.402943 }
+        },
+        @{
+            Pickup = @{ Line1 = "60 Rue Danton"; Town = "Villeneuve-Saint-Georges"; ZipCode = "94190"; Latitude = 48.744231; Longitude = 2.45183 }
+            Drop   = @{ Line1 = "33j Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744024; Longitude = 2.403809 }
+        },
+        @{
+            Pickup = @{ Line1 = "264 Rue de Paris"; Town = "Villeneuve-Saint-Georges"; ZipCode = "94190"; Latitude = 48.744486; Longitude = 2.446706 }
+            Drop   = @{ Line1 = "6 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744317; Longitude = 2.403169 }
+        },
+        @{
+            Pickup = @{ Line1 = "6 Rue du Tgv"; Town = "Villeneuve-Saint-Georges"; ZipCode = "94190"; Latitude = 48.744841; Longitude = 2.438911 }
+            Drop   = @{ Line1 = "29 Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743713; Longitude = 2.403714 }
+        },
+        @{
+            Pickup = @{ Line1 = "5 Avenue du Front de Seine"; Town = "Villeneuve-le-Roi"; ZipCode = "94290"; Latitude = 48.743102; Longitude = 2.43685 }
+            Drop   = @{ Line1 = "31 Avenue Adrien Raynal"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743753; Longitude = 2.403843 }
+        },
+        @{
+            Pickup = @{ Line1 = "12 Avenue du Marechal de Turenne"; Town = "Villeneuve-le-Roi"; ZipCode = "94290"; Latitude = 48.743251; Longitude = 2.431649 }
+            Drop   = @{ Line1 = "4 Rue du Verger"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.743676; Longitude = 2.403014 }
+        },
+        @{
+            Pickup = @{ Line1 = "3 Rue Edmond Rostand"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744256; Longitude = 2.404113 }
+            Drop   = @{ Line1 = "8 Rue Anatole France"; Town = "Orly"; ZipCode = "94310"; Latitude = 48.744424; Longitude = 2.403095 }
+        }
+    )
+
+    $categories = @("SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE")
+    for ($index = 0; $index -lt $realLocalRouteCases.Count; $index += 1) {
+        $case = $realLocalRouteCases[$index]
+        Add-SeedCase -Target $seedCases -Group "real_limeil_orly" `
+            -Reference ("TEST-REAL-LIMEIL-ORLY-{0:D2}-{1}" -f ($index + 1), $runSuffix) `
+            -Category $categories[$index % $categories.Count] `
+            -WeightKg (2 + ($index % 5) * 2) `
+            -DeliverySpeed @("STANDARD", "EXPRESS", "SAME_DAY")[$index % 3] `
+            -InsuranceSelected (($index % 2) -eq 0) `
+            -DeclaredValue $(if (($index % 2) -eq 0) { 100 } else { 0 }) `
+            -Departure (New-RealSeedAddress -Type DEPARTURE -Address $case.Pickup -Label ("real-local-pickup-{0}" -f $index)) `
+            -Arrival (New-RealSeedAddress -Type ARRIVAL -Address $case.Drop -Label ("real-local-drop-{0}" -f $index)) `
+            -Expectation "Real addresses around 3 Rue Pasteur to test route ordering toward 2 Rue Anatole France"
+    }
+
+    for ($index = 0; $index -lt $realCorridorRouteCases.Count; $index += 1) {
+        $case = $realCorridorRouteCases[$index]
+        Add-SeedCase -Target $seedCases -Group "real_corridor" `
+            -Reference ("TEST-REAL-CORRIDOR-{0:D2}-{1}" -f ($index + 1), $runSuffix) `
+            -Category $categories[$index % $categories.Count] `
+            -WeightKg (3 + ($index % 4) * 3) `
+            -DeliverySpeed "STANDARD" `
+            -InsuranceSelected (($index % 3) -eq 0) `
+            -DeclaredValue $(if (($index % 3) -eq 0) { 150 } else { 0 }) `
+            -Departure (New-RealSeedAddress -Type DEPARTURE -Address $case.Pickup -Label ("real-corridor-pickup-{0}" -f $index)) `
+            -Arrival (New-RealSeedAddress -Type ARRIVAL -Address $case.Drop -Label ("real-corridor-drop-{0}" -f $index)) `
+            -Expectation "Real addresses on the Limeil-Brevannes to Orly corridor for on-my-way routing"
+    }
+
+    if ($SeedDataset -eq "RealRouteOnly") {
+        return @{
+            RunSuffix  = $runSuffix
+            SeedDataset = $SeedDataset
+            SeedCases  = $seedCases
+            DriverOrigin = $originAddress.addressAuto
+            DirectDestination = $directDestinationAddress.addressAuto
+        }
+    }
 
     $pricingDestinations = @(
         @{ Key = "corridor-25"; Address = (New-InterpolatedAddress -Start $limeil -End $orlyAnatoleFrance -Type ARRIVAL -Label "price-corridor" -Index 1 -Progress 0.25 -LatitudeOffset 0 -LongitudeOffset 0) },
@@ -358,7 +507,6 @@ function Get-SeedPlan {
         @{ Key = "orly-anatole"; Address = $directDestinationAddress }
     )
 
-    $categories = @("SMALL", "MEDIUM", "LARGE", "EXTRA_LARGE")
     for ($index = 0; $index -lt $categories.Count; $index += 1) {
         Add-SeedCase -Target $seedCases -Group "pricing" `
             -Reference ("TEST-PRICE-CATEGORY-{0}-{1}" -f $categories[$index], $runSuffix) `
@@ -525,6 +673,7 @@ function Get-SeedPlan {
 
     return @{
         RunSuffix  = $runSuffix
+        SeedDataset = $SeedDataset
         SeedCases  = $seedCases
         DriverOrigin = $originAddress.addressAuto
         DirectDestination = $directDestinationAddress.addressAuto
@@ -542,11 +691,44 @@ function Write-SeedPlanSummary {
     }
 
     Write-Host "Seed plan summary:"
+    Write-Host ("Dataset: {0}" -f $Plan.SeedDataset)
     $summary | ForEach-Object {
         Write-Host (" - {0}: {1}" -f $_.group, $_.count)
     }
     Write-Host ("Driver origin: {0}" -f $Plan.DriverOrigin)
     Write-Host ("Direct/Tournee destination: {0}" -f $Plan.DirectDestination)
+}
+
+function Assert-SeedPlanMatchesDataset {
+    param([hashtable]$Plan)
+
+    if ($Plan.SeedDataset -ne "RealRouteOnly") {
+        return
+    }
+
+    $allowedGroups = @("real_limeil_orly", "real_corridor")
+    $unexpectedGroups = $Plan.SeedCases |
+        Where-Object { $allowedGroups -notcontains $_.group } |
+        Select-Object -ExpandProperty group -Unique
+
+    if ($unexpectedGroups.Count -gt 0) {
+        throw ("RealRouteOnly seed contains unexpected groups: {0}" -f ($unexpectedGroups -join ", "))
+    }
+
+    if ($Plan.SeedCases.Count -ne 20) {
+        throw ("RealRouteOnly seed must create exactly 20 packages, found {0}." -f $Plan.SeedCases.Count)
+    }
+
+    $groupCounts = @{}
+    $Plan.SeedCases | Group-Object { $_.group } | ForEach-Object {
+        $groupCounts[$_.Name] = $_.Count
+    }
+
+    foreach ($groupName in $allowedGroups) {
+        if (-not $groupCounts.ContainsKey($groupName) -or $groupCounts[$groupName] -ne 10) {
+            throw ("RealRouteOnly seed must create exactly 10 packages for {0}." -f $groupName)
+        }
+    }
 }
 
 $repoRoot = Resolve-RepoRoot
@@ -561,8 +743,9 @@ if (-not $quickDeliveryDb) {
     throw "MYSQL_DATABASE not found in deploy/lightsail/vm5-mysql.env"
 }
 
-$seedPlan = Get-SeedPlan
+$seedPlan = Get-SeedPlan -SeedDataset $SeedDataset
 Write-SeedPlanSummary -Plan $seedPlan
+Assert-SeedPlanMatchesDataset -Plan $seedPlan
 
 $executeResetAndSeed = Require-ExecutionConfirmation
 if (-not $executeResetAndSeed) {
@@ -639,6 +822,7 @@ $reportPath = Join-Path $reportDir ("homepage-seed-report-{0}.json" -f $seedPlan
 $reportPayload = [ordered]@{
     createdAt = (Get-Date).ToUniversalTime().ToString("o")
     baseUrl = $BaseUrl
+    seedDataset = $seedPlan.SeedDataset
     driverOrigin = $seedPlan.DriverOrigin
     directDestination = $seedPlan.DirectDestination
     counts = ($createdPackages | Group-Object { $_.group } | Sort-Object Name | ForEach-Object {

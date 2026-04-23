@@ -359,6 +359,8 @@ export default {
 
         this.$store.commit('updatePackageDepartureAddress', {
           ...departureAddress,
+          id: null,
+          version: null,
           firstName: user?.firstName || this.$store.state.connectedUser?.firstName || '',
           lastName: user?.lastName || this.$store.state.connectedUser?.lastName || '',
           email: user?.email || this.$store.state.connectedUser?.email || getCurrentUserIdentity()?.email || '',
@@ -532,15 +534,22 @@ export default {
       }
 
       if (type === 'DEPARTURE') {
-        this.$store.commit('updatePackageDepartureAddress', { ...address });
+        this.$store.commit('updatePackageDepartureAddress', this.toPackageAddressPayload(address));
       } else {
         if (!(await this.saveArrivalRecipientToAddressBookIfRequested(address))) {
           return;
         }
-        this.$store.commit('updatePackageArrivalAddress', { ...address });
+        this.$store.commit('updatePackageArrivalAddress', this.toPackageAddressPayload(address));
       }
 
       this.currentStep += 1;
+    },
+    toPackageAddressPayload(address) {
+      return {
+        ...address,
+        id: null,
+        version: null,
+      };
     },
     async saveArrivalRecipientToAddressBookIfRequested(address) {
       if (!this.isAuthenticated || !this.addArrivalRecipientToAddressBook || this.selectedAddressBookEntryId) {

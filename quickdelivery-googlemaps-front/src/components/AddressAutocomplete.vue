@@ -3,6 +3,8 @@
 </template>
 
 <script>
+import http from '@/config/httpInterceptor';
+
 const GOOGLE_MAPS_KEY = process.env.VUE_APP_GOOGLE_MAPS_KEY || '';
 const SCRIPT_ID = 'quickdelivery-google-places-script';
 const SCRIPT_CALLBACK = '__qdGooglePlacesLoaded';
@@ -171,6 +173,7 @@ export default {
       if (!prediction) {
         return;
       }
+      this.recordGoogleMapsClientCall('client_places');
       const place = typeof prediction.toPlace === 'function' ? prediction.toPlace() : prediction;
 
       // Fix P2 — cost reduction: avoid fetchFields when location is already present.
@@ -203,6 +206,7 @@ export default {
       });
     },
     handleLegacyPlaceSelection() {
+      this.recordGoogleMapsClientCall('client_places');
       const place = this.autocompleteInstance?.getPlace?.();
       const formattedAddress = place?.formatted_address || this.address || '';
       const latitude = place?.geometry?.location?.lat?.() ?? null;
@@ -279,6 +283,15 @@ export default {
         this.instantiateLegacyAutocomplete();
       } catch (error) {
         console.error('Failed to initialize Google Places autocomplete', error);
+      }
+    },
+    recordGoogleMapsClientCall(type) {
+      try {
+        const params = new URLSearchParams({ type, count: '1' });
+        http.post(`${this.$i18n.t('rootURL')}google-maps-client-call?${params.toString()}`, null, { silent: true })
+          .catch(() => {});
+      } catch (_) {
+        // Metrics must not block address entry.
       }
     },
   },

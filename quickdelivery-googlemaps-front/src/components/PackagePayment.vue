@@ -12,9 +12,13 @@
               <label for="payByCard">{{ $t('paymentPayByCard') }}</label>
             </div>
         </div>
+        <p v-if="stripeStatus === 'success'" class="payment-status success">{{ $t('paymentStripeSuccess') }}</p>
+        <p v-else-if="stripeStatus === 'cancel'" class="payment-status warning">{{ $t('paymentStripeCancel') }}</p>
+        <p v-if="paymentError" class="payment-status error">{{ $t('paymentStripeError') }}</p>
         <form v-if="paymentMethod === 'card'" @submit.prevent="processCardPayment">
-            <CreditCard />
-            <button class="btn primary_btn" type="submit">{{ $t('paymentPayByCard') }}</button>
+            <button class="btn primary_btn" type="submit" :disabled="processingPayment">
+              {{ processingPayment ? $t('paymentRedirectingToStripe') : $t('paymentRedirectToStripe') }}
+            </button>
         </form>
         <div class="payment-icons">
           <img src="/visa-ico.png" class="payment-icon"/>
@@ -27,67 +31,16 @@
 
 <script>
 import http from '@/config/httpInterceptor';
-import CreditCard from './CreditCard.vue';
 import { formatDisplayedPackageAmount } from '@/config/packagePricing';
 
-const EMPTY_PACKAGE = {
-  id: null,
-  version: null,
-  creationDate: null,
-  reference: '',
-  height: 0,
-  width: 0,
-  depth: 0,
-  weight: 0,
-  pictureURL: '',
-  status: '',
-  deliveryPrice: null,
-  deliverySpeed: 'STANDARD',
-  insuranceSelected: false,
-  declaredValue: null,
-  senderID: null,
-  packageReservations: [],
-  addresses: [
-    {
-      firstName: '',
-      lastName: '',
-      line1: '',
-      line2: '',
-      town: '',
-      zipCode: '',
-      country: '',
-      floor: 0,
-      hasElevator: null,
-      dateTime: null,
-      email: '',
-      phone: '',
-      type: 'DEPARTURE',
-      latitude: null,
-      longitude: null,
-    },
-    {
-      firstName: '',
-      lastName: '',
-      line1: '',
-      line2: '',
-      town: '',
-      zipCode: '',
-      country: '',
-      floor: 0,
-      hasElevator: null,
-      dateTime: null,
-      email: '',
-      phone: '',
-      type: 'ARRIVAL',
-      latitude: null,
-      longitude: null,
-    },
-  ],
-  lastPositionLatitude: null,
-  lastPositionLongitude: null,
-};
-
 export default {
+  data() {
+    return {
+      paymentMethod: 'card',
+      processingPayment: false,
+      paymentError: false,
+    };
+  },
   computed: {
     package_() {
       return this.$store.state.package_;
@@ -96,18 +49,9 @@ export default {
       const currentPackage = this.resolveCurrentPackage();
       return formatDisplayedPackageAmount(this.$i18n, currentPackage);
     },
-  },
-  components :{
-    CreditCard,
-  },
-  data() {
-    return {
-      paymentMethod: 'card',
-      cardNumber: '',
-      expiryDate: '',
-      cvv: '',
-      amount: '',
-    };
+    stripeStatus() {
+      return this.$route.query.stripeStatus || '';
+    },
   },
   methods: {
     resolveCurrentPackage() {
@@ -134,26 +78,28 @@ export default {
           return;
         }
 
-        const request = currentPackage.guestMode
-          ? http.put(
-              `${this.$i18n.t('rootURL')}${this.$i18n.t('confirmGuestPackagePayment')}?packageID=${currentPackage.id}&guestAccessToken=${encodeURIComponent(currentPackage.guestAccessToken || '')}`,
-              null,
-              { skipAuth: true }
-            )
-          : http.put(
-              `${this.$i18n.t('rootURL')}${this.$i18n.t('updatePackageStatus')}?${currentPackage.id}=NEW`
-            );
+        this.processingPayment = true;
+        this.paymentError = false;
 
-        request
+        const query = `?packageID=${currentPackage.id}`
+          + (currentPackage.guestMode ? `&guestAccessToken=${encodeURIComponent(currentPackage.guestAccessToken || '')}` : '');
+
+        http.post(
+          `${this.$i18n.t('rootURL')}${this.$i18n.t('createStripeCheckoutSession')}${query}`,
+          null,
+          currentPackage.guestMode ? { skipAuth: true } : undefined
+        )
           .then(response => {
-            if (response.status === 200) {
-               this.$store.commit('updatePackage', { ...EMPTY_PACKAGE });
-               this.$store.commit('updateDocuments', []);
-               this.$router.push('/');
+            if (response.data && response.data.checkoutUrl) {
+              window.location.assign(response.data.checkoutUrl);
+              return;
             }
+            throw new Error('Missing Stripe checkout URL');
           })
           .catch(error => {
-            console.error('Error updating package status:', error);
+            this.processingPayment = false;
+            this.paymentError = true;
+            console.error('Error creating Stripe checkout session:', error);
           });
     }
   }
@@ -230,6 +176,25 @@ export default {
 .payment-method label{
   font-size: 12px;
   margin: 0;
+}
+.payment-status {
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin: 16px 0 0;
+  padding: 10px 12px;
+}
+.payment-status.success {
+  background: #e9f7ef;
+  color: #146c43;
+}
+.payment-status.warning {
+  background: #fff3cd;
+  color: #7a5b00;
+}
+.payment-status.error {
+  background: #fdecea;
+  color: #842029;
 }
 
 .payment-form form .primary_btn {

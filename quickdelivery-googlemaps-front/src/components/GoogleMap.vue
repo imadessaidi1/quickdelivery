@@ -18,7 +18,7 @@
 <script>
 import { getGatewayBaseUrl } from '@/config/network';
 
-const MAP_IFRAME_ASSET_VERSION = '20260411-no-route-zoom-v3';
+const MAP_IFRAME_ASSET_VERSION = '20260420-googlemaps-client-metrics-v1';
 
 export default {
   emits: ['map-iframe-loaded'],

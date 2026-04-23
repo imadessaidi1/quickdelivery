@@ -453,8 +453,6 @@ public class UserServices implements IUserServices {
                 if (!validFilesMap.isEmpty()) {
                     triggerOcrForUploadedDocuments(userEntity, validFilesMap);
                 }
-                userEntity.getPersonalAddress()
-                        .forEach(address -> address.getResidents().setPersonalAddress(new HashSet<>()));
                 user.setId(userEntity.getId());
                 user.setVersion(userEntity.getVersion());
                 user.setPassword(null);

@@ -284,6 +284,12 @@ export default {
           return this.$t('notificationTypePickup');
         case 'PACKAGE_DELIVERY_NOTIFICATION':
           return this.$t('notificationTypeDelivery');
+        case 'PACKAGE_PICKUP_FAILED_SENDER_ABSENT_NOTIFICATION':
+          return this.$t('notificationTypePickupFailedSenderAbsent');
+        case 'PACKAGE_DELIVERY_FAILED_RECIPIENT_ABSENT_NOTIFICATION':
+          return this.$t('notificationTypeDeliveryFailedRecipientAbsent');
+        case 'PACKAGE_RELAY_DROPOFF_REQUIRED_NOTIFICATION':
+          return this.$t('notificationTypeRelayDropoffRequired');
         case 'DELIVERY_ROUTE_RESERVED_WARNING_NOTIFICATION':
           return this.$t('notificationTypeRouteReservedWarning');
         case 'DELIVERY_ROUTE_CANCELLED_PENALTY_NOTIFICATION':
@@ -313,6 +319,12 @@ export default {
           return 'PACKAGE_PICKUP_NOTIFICATION';
         case 'PACKAGE_DELIVERED':
           return 'PACKAGE_DELIVERY_NOTIFICATION';
+        case 'PACKAGE_PICKUP_FAILED_SENDER_ABSENT':
+          return 'PACKAGE_PICKUP_FAILED_SENDER_ABSENT_NOTIFICATION';
+        case 'PACKAGE_DELIVERY_FAILED_RECIPIENT_ABSENT':
+          return 'PACKAGE_DELIVERY_FAILED_RECIPIENT_ABSENT_NOTIFICATION';
+        case 'PACKAGE_RELAY_DROPOFF_REQUIRED':
+          return 'PACKAGE_RELAY_DROPOFF_REQUIRED_NOTIFICATION';
         case 'DELIVERY_ROUTE_RESERVED_WARNING':
           return 'DELIVERY_ROUTE_RESERVED_WARNING_NOTIFICATION';
         case 'DELIVERY_ROUTE_CANCELLED_PENALTY':

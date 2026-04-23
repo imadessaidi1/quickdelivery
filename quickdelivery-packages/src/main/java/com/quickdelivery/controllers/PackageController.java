@@ -24,6 +24,7 @@ import com.quickdelivery.abstarct.parameters.CHECK_STATUS;
 import com.quickdelivery.abstarct.parameters.NOTIFICATION_EVENT_TYPE;
 import com.quickdelivery.abstarct.parameters.PACKAGE_STATUS;
 import com.quickdelivery.abstarct.security.CaptchaVerificationService;
+import com.quickdelivery.dto.PaymentCheckoutSessionDTO;
 import com.quickdelivery.dto.ReserveBatchPlanRequestDTO;
 import com.quickdelivery.dto.ReserveBatchResultDTO;
 import com.quickdelivery.dto.ReservationAvailabilityDTO;
@@ -157,6 +158,12 @@ public class PackageController {
         return packagesService.buildRoutePlan(request);
     }
 
+    @PostMapping("/google-maps-client-call")
+    public void recordGoogleMapsClientCall(@RequestParam("type") String type,
+                                           @RequestParam(name = "count", required = false, defaultValue = "1") double count) {
+        packagesService.recordGoogleMapsClientCall(type, count);
+    }
+
     @GetMapping("/package-by-status")
     public List<PackageDTO> findPackagesByStatus(@RequestParam(name = "status", required = true) PACKAGE_STATUS status){
         return packagesService.findPackagesByStatus(status);
@@ -189,6 +196,19 @@ public class PackageController {
         PackageDTO aPackage = packagesService.findPackageByID(packageID);
         notifyPackageCreation(aPackage.getReference());
         notifyPaymentConfirmedForSender(aPackage);
+    }
+
+    @PostMapping("/payments/stripe/checkout-session")
+    public PaymentCheckoutSessionDTO createStripeCheckoutSession(@RequestParam("packageID") Long packageID,
+                                                                 @RequestParam(value = "guestAccessToken", required = false) String guestAccessToken) {
+        return packagesService.createStripeCheckoutSession(packageID, guestAccessToken);
+    }
+
+    @PostMapping(value = "/payments/stripe/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> handleStripeWebhook(@RequestBody String payload,
+                                                    @RequestHeader("Stripe-Signature") String signatureHeader) {
+        packagesService.handleStripeWebhook(payload, signatureHeader);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/reserve")
@@ -243,8 +263,8 @@ public class PackageController {
 
     @PutMapping("/deliver")
     public void deliverPackage(@RequestParam("packageID") Long packageID,
-                              @RequestParam("deliveryPersonID") Long deliveryPersonID,
-                              @RequestParam("deliveryOTP") String deliveryOTP,
+                               @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                               @RequestParam("deliveryOTP") String deliveryOTP,
                               @RequestParam("currentLatitude") Double currentLatitude,
                               @RequestParam("currentLongitude") Double currentLongitude,
                               @RequestParam("locale") Locale locale){
@@ -256,6 +276,28 @@ public class PackageController {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PutMapping("/pickup/sender-absent")
+    public PackageDTO reportSenderAbsentForPickup(@RequestParam("packageID") Long packageID,
+                                                  @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                                  @RequestParam("currentLatitude") Double currentLatitude,
+                                                  @RequestParam("currentLongitude") Double currentLongitude) {
+        PositionDTO currentPosition = new PositionDTO();
+        currentPosition.setLatitude(java.math.BigDecimal.valueOf(currentLatitude));
+        currentPosition.setLongitude(java.math.BigDecimal.valueOf(currentLongitude));
+        return packagesService.reportSenderAbsentForPickup(packageID, deliveryPersonID, currentPosition);
+    }
+
+    @PutMapping("/delivery/recipient-absent")
+    public PackageDTO reportRecipientAbsentForDelivery(@RequestParam("packageID") Long packageID,
+                                                       @RequestParam("deliveryPersonID") Long deliveryPersonID,
+                                                       @RequestParam("currentLatitude") Double currentLatitude,
+                                                       @RequestParam("currentLongitude") Double currentLongitude) {
+        PositionDTO currentPosition = new PositionDTO();
+        currentPosition.setLatitude(java.math.BigDecimal.valueOf(currentLatitude));
+        currentPosition.setLongitude(java.math.BigDecimal.valueOf(currentLongitude));
+        return packagesService.reportRecipientAbsentForDelivery(packageID, deliveryPersonID, currentPosition);
     }
 
     @GetMapping("/checkOTPForPickup")

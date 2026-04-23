@@ -70,6 +70,9 @@
             <button v-if="showCancelReservation" class="qd-btn-secondary" @click="cancelReservation" style="flex: 1;">
               {{ $t('actionCancelReservation') }}
             </button>
+            <button class="qd-btn-secondary danger" @click="reportSenderAbsent" style="flex: 1;">
+              {{ $t('actionReportSenderAbsent') }}
+            </button>
             <button class="qd-btn-primary" @click="pickup" style="flex: 1;">
               <span class="material-symbols-outlined">local_shipping</span>
               {{ $t('packagesArroundMArkerDetailActionsPickUp') }}
@@ -97,10 +100,15 @@
             </div>
             <ErrorMessage class="errorMessage" name="deliveryOtp" />
           </div>
-          <button class="qd-btn-primary" @click="deliver" style="width: 100%;">
-            <span class="material-symbols-outlined">task_alt</span>
-            {{ $t('packagesArroundMArkerDetailActionsDeliver') }}
-          </button>
+          <div class="action-row">
+            <button class="qd-btn-secondary danger" @click="reportRecipientAbsent" style="flex: 1;">
+              {{ $t('actionReportRecipientAbsent') }}
+            </button>
+            <button class="qd-btn-primary" @click="deliver" style="flex: 1;">
+              <span class="material-symbols-outlined">task_alt</span>
+              {{ $t('packagesArroundMArkerDetailActionsDeliver') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -312,6 +320,43 @@ export default {
         console.error('Unable to cancel reservation.', error);
       }
     },
+    reportSenderAbsent() {
+      if (!window.confirm(this.$t('confirmSenderAbsent'))) {
+        return Promise.resolve();
+      }
+      return this.reportStopIssue(this.$i18n.t('senderAbsentPickup'), 'Unable to report sender absence.');
+    },
+    reportRecipientAbsent() {
+      if (!window.confirm(this.$t('confirmRecipientAbsent'))) {
+        return Promise.resolve();
+      }
+      return this.reportStopIssue(this.$i18n.t('recipientAbsentDelivery'), 'Unable to report recipient absence.');
+    },
+    reportStopIssue(endpoint, errorMessage) {
+      return this.getCurrentLocationForStopValidation()
+        .then((position) => {
+          const url = this.$i18n.t('rootURL') + endpoint
+            + "packageID=" + encodeURIComponent(this.package_.id)
+            + "&deliveryPersonID=" + encodeURIComponent(this.$store.state.connectedUser.id)
+            + "&currentLatitude=" + encodeURIComponent(position.latitude)
+            + "&currentLongitude=" + encodeURIComponent(position.longitude);
+          return http.put(url)
+            .then(response => {
+              if (response.status == '200') {
+                this.$store.commit('updatePackage', response.data || this.emptyPackage);
+                this.$store.commit('updateDocuments', []);
+                window.dispatchEvent(new CustomEvent('qd-refresh-reservation-availability'));
+                this.isOpen = false;
+                this.$router.push('/');
+              }
+              return response.data;
+            }).catch((error) => {
+              console.error(errorMessage, error);
+            });
+        }).catch((error) => {
+          console.error('Unable to validate stop location.', error);
+        });
+    },
     deliver(){
         return this.getCurrentLocationForStopValidation()
         .then((position) => {
@@ -517,10 +562,20 @@ export default {
 .action-row {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .action-row .action-btn {
   flex: 1;
+}
+
+.action-row button {
+  min-width: 160px;
+}
+
+.qd-btn-secondary.danger {
+  border-color: #ef4444;
+  color: #b91c1c;
 }
 
 @media screen and (max-width: 768px) {
